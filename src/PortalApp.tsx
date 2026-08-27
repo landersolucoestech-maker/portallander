@@ -97,5 +97,6 @@ export default function PortalApp() {
   const location = useLocation()
   if (location.pathname === '/') return <PublicHome/>
   if (location.pathname === '/app/site/home/hero') return <HeroManagerPage/>
+  if (location.pathname.startsWith('/app/site')) return <><LegacyApp/><Link className="site-hero-shortcut" to="/app/site/home/hero"><Star size={16}/> Conteúdo · Home · Hero</Link></>
   return <LegacyApp/>
 }

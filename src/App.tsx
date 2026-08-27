@@ -43,27 +43,20 @@ function PublicBrand({ compact = false }: { compact?: boolean }) {
 
 function PublicHeader() {
   const [open, setOpen] = useState(false)
-  return <>
-    <header className="public-header">
-      <div className="public-nav shell">
-        <PublicBrand />
-        <nav className={open ? 'public-links open' : 'public-links'}>
-          {publicCategories.map(([label, Icon, to]) => <NavLink key={to} to={to}><Icon size={15}/>{label}</NavLink>)}
-          <NavLink to="/colabore">Colabore</NavLink>
-        </nav>
-        <div className="nav-actions">
-          <button className="public-search" aria-label="Buscar"><Search size={18}/></button>
-          <Link className="public-internal" to="/app">Área interna</Link>
-          <button className="public-menu" onClick={()=>setOpen(!open)} aria-label="Abrir menu">{open?<X/>:<Menu/>}</button>
-        </div>
-      </div>
-    </header>
-    <div className="public-category-bar">
-      <div className="shell category-track">
-        {publicCategories.map(([label, Icon, to]) => <NavLink key={to} to={to}><Icon size={18}/><span>{label}</span></NavLink>)}
+  return <header className="public-header">
+    <div className="public-nav shell">
+      <PublicBrand />
+      <nav className={open ? 'public-links open' : 'public-links'}>
+        {publicCategories.map(([label, Icon, to]) => <NavLink key={to} to={to}><Icon size={15}/>{label}</NavLink>)}
+        <NavLink to="/colabore">Colabore</NavLink>
+      </nav>
+      <div className="nav-actions">
+        <button className="public-search" aria-label="Buscar"><Search size={18}/></button>
+        <Link className="public-internal" to="/app">Área interna</Link>
+        <button className="public-menu" onClick={()=>setOpen(!open)} aria-label="Abrir menu">{open?<X/>:<Menu/>}</button>
       </div>
     </div>
-  </>
+  </header>
 }
 
 function PublicFooter() {

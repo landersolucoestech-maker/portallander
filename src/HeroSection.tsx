@@ -1,6 +1,5 @@
 import { ArrowRight } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { portalLogo } from './brandAsset'
 import { defaultHeroHighlight, readRenderableHero, type HeroHighlight } from './heroModel'
 
 function SmartLink({ to, className, children }: { to: string; className?: string; children: React.ReactNode }) {
@@ -28,7 +27,6 @@ export function HeroSection({ hero = readRenderableHero() }: { hero?: HeroHighli
         </div>
 
         <div className="editorial-hero-media">
-          <div className="editorial-brand-symbol" aria-hidden="true"><img src={portalLogo} alt="" /></div>
           <img
             className="editorial-featured-image"
             src={hero.image || defaultHeroHighlight.image}

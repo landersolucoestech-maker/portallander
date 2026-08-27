@@ -1,12 +1,23 @@
 import { Routes, Route, Navigate, NavLink, Link } from 'react-router-dom'
-import { ArrowRight, Bell, BriefcaseBusiness, Building2, CalendarDays, ChevronDown, CircleDollarSign, FileText, Gauge, Globe2, Images, LayoutDashboard, Menu, Newspaper, Search, Settings, Sparkles, Tags, Users, WandSparkles, X } from 'lucide-react'
+import { ArrowRight, Bell, BriefcaseBusiness, Building2, CalendarDays, ChevronDown, CircleDollarSign, FileText, Flame, Gauge, Globe2, Images, LayoutDashboard, Menu, Mic2, Music2, Newspaper, Play, Search, Settings, Star, Tags, Users, Video, WandSparkles, X, Zap } from 'lucide-react'
 import { useState } from 'react'
+import { portalLogo } from './brandAsset'
 
-const stories = [
-  { category: 'Música', title: 'Novos sons, novas histórias e a cultura que movimenta a cena', excerpt: 'Curadoria editorial com lançamentos, entrevistas e bastidores em uma experiência direta e visual.', meta: '6 min de leitura' },
-  { category: 'Entrevistas', title: 'Conversas com quem está construindo o próximo capítulo da música', excerpt: 'Artistas, produtores e criadores falando de processo, carreira e visão de futuro.', meta: '12 min de leitura' },
-  { category: 'Mercado', title: 'O que muda quando conteúdo, comunidade e negócio passam a operar juntos', excerpt: 'Uma leitura prática sobre mídia, audiência e novas formas de criar valor.', meta: '8 min de leitura' },
+const publicStories = [
+  { category: 'Polêmicas', title: 'Treta no Rio: bastidores de uma discussão que tomou conta das redes', excerpt: 'Entenda o que aconteceu, quem se pronunciou e por que o assunto virou um dos mais comentados da cena.', meta: 'Há 18 min', tone: 'red' },
+  { category: 'Bastidores', title: 'De olho no corre: o que acontece antes do artista subir ao palco', excerpt: 'Produção, equipe, repertório e tensão nos minutos que antecedem um grande show.', meta: 'Há 42 min', tone: 'dark' },
+  { category: 'Lançamentos', title: 'Música nova: os sons que chegaram fortes nesta semana', excerpt: 'Funk, trap e pop urbano em uma seleção direta do que merece entrar no radar.', meta: 'Há 1 h', tone: 'silver' },
+  { category: 'Destaques', title: 'Os nomes que estão movimentando a cultura urbana agora', excerpt: 'Artistas, produtores e criadores que puxam conversa, audiência e tendência.', meta: 'Há 2 h', tone: 'black' },
 ]
+
+const publicCategories = [
+  ['Notícias', Zap, '/noticias'],
+  ['Polêmicas', Flame, '/polemicas'],
+  ['Bastidores', Mic2, '/bastidores'],
+  ['Lançamentos', Music2, '/lancamentos'],
+  ['Destaques', Star, '/destaques'],
+  ['Vídeos', Video, '/videos'],
+] as const
 
 const contacts = [
   { name: 'Marina Costa', company: 'Norte Produções', status: 'Lead', owner: 'Comercial', value: 'R$ 18.000' },
@@ -26,18 +37,84 @@ function Brand({ compact = false }: { compact?: boolean }) {
   return <Link to="/" className="brand"><span className="brand-mark">L</span>{!compact && <span>PORTAL <b>LANDER</b></span>}</Link>
 }
 
+function PublicBrand({ compact = false }: { compact?: boolean }) {
+  return <Link to="/" className={compact ? 'public-brand compact' : 'public-brand'} aria-label="Portal Lander"><img src={portalLogo} alt="Portal Lander" /></Link>
+}
+
 function PublicHeader() {
   const [open, setOpen] = useState(false)
-  return <header className="public-header"><div className="public-nav shell"><Brand/><nav className={open ? 'public-links open' : 'public-links'}><NavLink to="/noticias">Notícias</NavLink><a href="#cultura">Cultura</a><a href="#lancamentos">Lançamentos</a><a href="#entrevistas">Entrevistas</a><NavLink to="/colabore">Colabore</NavLink></nav><div className="nav-actions"><button className="icon-button" aria-label="Buscar"><Search size={18}/></button><Link className="button ghost" to="/app">Área interna</Link><button className="icon-button menu-button" onClick={()=>setOpen(!open)} aria-label="Abrir menu">{open?<X/>:<Menu/>}</button></div></div></header>
+  return <>
+    <header className="public-header">
+      <div className="public-nav shell">
+        <PublicBrand />
+        <nav className={open ? 'public-links open' : 'public-links'}>
+          {publicCategories.map(([label, Icon, to]) => <NavLink key={to} to={to}><Icon size={15}/>{label}</NavLink>)}
+          <NavLink to="/colabore">Colabore</NavLink>
+        </nav>
+        <div className="nav-actions">
+          <button className="public-search" aria-label="Buscar"><Search size={18}/></button>
+          <Link className="public-internal" to="/app">Área interna</Link>
+          <button className="public-menu" onClick={()=>setOpen(!open)} aria-label="Abrir menu">{open?<X/>:<Menu/>}</button>
+        </div>
+      </div>
+    </header>
+    <div className="public-category-bar">
+      <div className="shell category-track">
+        {publicCategories.map(([label, Icon, to]) => <NavLink key={to} to={to}><Icon size={18}/><span>{label}</span></NavLink>)}
+      </div>
+    </div>
+  </>
+}
+
+function PublicFooter() {
+  return <footer className="public-footer"><div className="shell portal-footer-grid"><PublicBrand/><div><b>Notícias · Funk · Cultura · Entretenimento</b><p>Conteúdo urbano, lançamentos, bastidores e tudo que movimenta a cena.</p></div><div className="footer-links"><Link to="/colabore">Colabore</Link><Link to="/app">Área interna</Link><span>© 2026 Portal Lander</span></div></div></footer>
 }
 
 function Home() {
-  return <div className="public-page"><PublicHeader/><main><section className="hero shell"><div className="eyebrow"><Sparkles size={15}/> Conteúdo, cultura e movimento</div><h1>Histórias que<br/>movem a <em>cena.</em></h1><p>O Portal Lander conecta música, cultura, entretenimento e mercado com curadoria editorial e linguagem própria.</p><div className="hero-actions"><Link className="button primary" to="/noticias">Explorar conteúdo <ArrowRight size={17}/></Link><a className="text-link" href="#destaques">Ver destaques</a></div><div className="hero-visual" aria-hidden="true"><div className="orb orb-one"/><div className="orb orb-two"/><span>PL</span></div></section><section id="destaques" className="editorial-section shell"><div className="section-heading"><div><span className="kicker">Em destaque</span><h2>Agora no Portal</h2></div><Link to="/noticias" className="text-link">Ver tudo <ArrowRight size={15}/></Link></div><div className="story-grid">{stories.map((story,i)=><article className={i===0?'story-card featured':'story-card'} key={story.title}><div className="story-art"><span>0{i+1}</span></div><div className="story-copy"><span className="category">{story.category}</span><h3>{story.title}</h3><p>{story.excerpt}</p><small>{story.meta}</small></div></article>)}</div></section><section className="manifesto"><div className="shell manifesto-inner"><span className="kicker">Portal Lander</span><h2>Mais do que publicar.<br/>Criar contexto.</h2><p>Uma plataforma editorial construída para reunir conteúdo, presença digital e oportunidades em um mesmo ecossistema.</p></div></section></main><footer className="public-footer"><div className="shell footer-grid"><Brand/><p>Conteúdo, música, cultura e mídia.</p><span>© 2026 Portal Lander</span></div></footer></div>
+  return <div className="public-page"><PublicHeader/><main>
+    <section className="portal-hero">
+      <div className="shell portal-hero-grid">
+        <div className="portal-hero-copy">
+          <span className="portal-kicker">Portal Lander · Em destaque</span>
+          <h1>O QUE ESTÁ<br/><strong>PEGANDO AGORA.</strong></h1>
+          <p>Notícias, polêmicas, lançamentos, bastidores e tudo que acontece no funk, na cultura urbana e no entretenimento.</p>
+          <div className="portal-actions"><Link to="/noticias" className="portal-button">VER AGORA <ArrowRight size={19}/></Link><Link to="/destaques" className="portal-link">Explorar destaques</Link></div>
+        </div>
+        <div className="portal-hero-brand" aria-hidden="true"><img src={portalLogo} alt=""/><span>NOTÍCIAS · FUNK · CULTURA · ENTRETENIMENTO</span></div>
+      </div>
+      <div className="hero-noise" />
+    </section>
+
+    <section className="portal-breaking"><div className="shell"><span>AGORA</span><p>Novos lançamentos, bastidores e assuntos que estão dominando a conversa.</p><ArrowRight size={18}/></div></section>
+
+    <section className="portal-section shell" id="destaques">
+      <div className="portal-section-title"><div><span>EM DESTAQUE</span><h2>O QUE TODO MUNDO<br/>ESTÁ FALANDO</h2></div><Link to="/noticias">VER TUDO <ArrowRight size={16}/></Link></div>
+      <div className="portal-story-grid">
+        {publicStories.map((story,i)=><article className={i===0?'portal-story lead':'portal-story'} key={story.title}>
+          <div className={`portal-story-art ${story.tone}`}><span className="portal-number">0{i+1}</span><span className="portal-story-logo">PL</span></div>
+          <div className="portal-story-copy"><span className="portal-label">{story.category}</span><h3>{story.title}</h3><p>{story.excerpt}</p><small>{story.meta}</small></div>
+        </article>)}
+      </div>
+    </section>
+
+    <section className="portal-dark-band"><div className="shell"><div className="portal-section-title inverse"><div><span>RADAR LANDER</span><h2>DA RUA PARA<br/>A SUA TELA.</h2></div></div><div className="portal-radar-grid">{publicCategories.map(([label,Icon,to],i)=><Link key={to} to={to} className="portal-radar-card"><Icon/><span>0{i+1}</span><h3>{label}</h3><ArrowRight/></Link>)}</div></div></section>
+
+    <section className="portal-video-section shell"><div className="portal-section-title"><div><span>VÍDEOS</span><h2>ASSISTA NO PORTAL</h2></div><Link to="/videos">VER VÍDEOS <ArrowRight size={16}/></Link></div><div className="portal-video-feature"><div className="video-play"><Play fill="currentColor"/></div><div><span>BASTIDORES</span><h3>O que não apareceu no palco também faz parte da história.</h3><p>Conteúdo em vídeo, entrevistas, cenas de bastidor e cobertura da cultura urbana.</p></div></div></section>
+  </main><PublicFooter/></div>
 }
 
-function Noticias() { return <div className="public-page"><PublicHeader/><main className="shell listing-page"><span className="kicker">Editorial</span><h1>Notícias</h1><p className="page-lead">Atualizações, histórias e movimentos que merecem contexto.</p><div className="filter-row"><button className="chip active">Todos</button><button className="chip">Música</button><button className="chip">Cultura</button><button className="chip">Mercado</button></div><div className="news-list">{[...stories,...stories].map((s,i)=><article key={i} className="news-row"><div className="news-index">{String(i+1).padStart(2,'0')}</div><div><span className="category">{s.category}</span><h2>{s.title}</h2><p>{s.excerpt}</p></div><ArrowRight/></article>)}</div></main></div> }
+function PublicListing({title,accent='ÚLTIMAS',intro='Notícias, bastidores e histórias que movimentam a cena.'}:{title:string,accent?:string,intro?:string}) {
+  return <div className="public-page"><PublicHeader/><main className="shell portal-listing"><header><span className="portal-kicker">{accent}</span><h1>{title}</h1><p>{intro}</p></header><div className="portal-filter-row">{['Todos','Agora','Mais lidos','Esta semana'].map((x,i)=><button className={i===0?'active':''} key={x}>{x}</button>)}</div><div className="portal-news-grid">{[...publicStories,...publicStories].map((s,i)=><article key={`${s.title}-${i}`}><div className={`portal-news-art ${s.tone}`}><span>{String(i+1).padStart(2,'0')}</span></div><div><span className="portal-label">{s.category}</span><h2>{s.title}</h2><p>{s.excerpt}</p><small>{s.meta}</small></div></article>)}</div></main><PublicFooter/></div>
+}
 
-function Colabore() { return <div className="public-page"><PublicHeader/><main className="shell form-page"><div className="form-intro"><span className="kicker">Colabore</span><h1>Tem uma história que deveria estar aqui?</h1><p>Envie pautas, lançamentos, projetos e sugestões para nossa equipe editorial.</p></div><form className="public-form" onSubmit={e=>e.preventDefault()}><label>Nome<input placeholder="Seu nome"/></label><label>Email<input type="email" placeholder="voce@email.com"/></label><label>Tipo<select defaultValue=""><option value="" disabled>Selecione</option><option>Pauta</option><option>Lançamento</option><option>Evento</option><option>Outro</option></select></label><label>Título<input placeholder="Resumo da sugestão"/></label><label className="full">Descrição<textarea rows={6} placeholder="Conte os detalhes..."/></label><div className="form-note full">Frontend de demonstração — envio definitivo será conectado ao backend posteriormente.</div><button className="button primary" type="submit">Preparar envio <ArrowRight size={17}/></button></form></main></div> }
+function Noticias() { return <PublicListing title="NOTÍCIAS"/> }
+function Polemicas() { return <PublicListing title="POLÊMICAS" accent="SEM FILTRO" intro="As histórias, discussões e declarações que colocaram a cena no centro da conversa."/> }
+function Bastidores() { return <PublicListing title="BASTIDORES" accent="POR TRÁS DA CENA" intro="O que acontece antes, durante e depois do que aparece para o público."/> }
+function Lancamentos() { return <PublicListing title="LANÇAMENTOS" accent="MÚSICA NOVA" intro="Singles, clipes e projetos que acabaram de chegar no funk e na cultura urbana."/> }
+function Destaques() { return <PublicListing title="DESTAQUES" accent="NO RADAR" intro="O melhor do Portal Lander reunido em uma seleção direta e atualizada."/> }
+function Videos() { return <PublicListing title="VÍDEOS" accent="ASSISTA" intro="Entrevistas, bastidores, coberturas e conteúdos em vídeo do Portal Lander."/> }
+
+function Colabore() { return <div className="public-page"><PublicHeader/><main className="shell portal-collab"><div className="portal-collab-copy"><span className="portal-kicker">COLABORE COM O PORTAL</span><h1>MANDE SUA<br/><strong>PAUTA.</strong></h1><p>Tem lançamento, evento, história, denúncia, bastidor ou projeto que merece espaço? Envie para nossa equipe editorial.</p><div className="collab-rule"><span>01</span>Conte o que aconteceu</div><div className="collab-rule"><span>02</span>Inclua links e contexto</div><div className="collab-rule"><span>03</span>Nossa equipe faz a análise</div></div><form className="portal-form" onSubmit={e=>e.preventDefault()}><label>Nome<input placeholder="Seu nome"/></label><label>Email<input type="email" placeholder="voce@email.com"/></label><label>Tipo<select defaultValue=""><option value="" disabled>Selecione</option><option>Notícia</option><option>Polêmica</option><option>Bastidor</option><option>Lançamento</option><option>Evento</option><option>Outro</option></select></label><label>Título<input placeholder="Resumo da pauta"/></label><label className="full">Descrição<textarea rows={6} placeholder="Conte os detalhes..."/></label><div className="portal-form-note full">Frontend de demonstração — a persistência definitiva será conectada ao backend posteriormente.</div><button className="portal-button" type="submit">PREPARAR ENVIO <ArrowRight size={17}/></button></form></main><PublicFooter/></div> }
 
 const crmNav = [['Visão geral',LayoutDashboard,'/app/crm'],['Contatos',Users,'/app/crm/contatos'],['Pipeline',BriefcaseBusiness,'/app/crm/pipeline'],['Atividades',CalendarDays,'/app/crm/atividades'],['Financeiro',CircleDollarSign,'/app/crm/financeiro']] as const
 const cmsNav = [['Visão geral',LayoutDashboard,'/app/site'],['Conteúdos',FileText,'/app/site/conteudos'],['Páginas',Globe2,'/app/site/paginas'],['Mídia',Images,'/app/site/midia'],['Categorias',Tags,'/app/site/categorias'],['Mídia Kit',Newspaper,'/app/site/midia-kit'],['Configurações',Settings,'/app/site/configuracoes']] as const
@@ -60,4 +137,4 @@ function Contents() { return <AppShell area="cms"><PageHeader eyebrow="Gerenciad
 function Placeholder({area,title}:{area:'crm'|'cms',title:string}) { return <AppShell area={area}><PageHeader eyebrow={area==='crm'?'CRM':'Gerenciador do Site'} title={title}/><div className="empty-state"><div><Gauge/></div><h2>Estrutura preparada</h2><p>Este módulo entra na próxima etapa de implementação do frontend. A navegação e a arquitetura já estão reservadas sem fingir funcionalidade inexistente.</p></div></AppShell> }
 function NotFound() { return <div className="not-found"><Brand/><span>404</span><h1>Página não encontrada</h1><Link className="button primary" to="/">Voltar ao início</Link></div> }
 
-export default function App() { return <Routes><Route path="/" element={<Home/>}/><Route path="/noticias" element={<Noticias/>}/><Route path="/colabore" element={<Colabore/>}/><Route path="/app" element={<WorkspaceHome/>}/><Route path="/app/crm" element={<CrmDashboard/>}/><Route path="/app/crm/contatos" element={<Contacts/>}/><Route path="/app/crm/pipeline" element={<Placeholder area="crm" title="Pipeline comercial"/>}/><Route path="/app/crm/atividades" element={<Placeholder area="crm" title="Atividades"/>}/><Route path="/app/crm/financeiro" element={<Placeholder area="crm" title="Financeiro"/>}/><Route path="/app/site" element={<CmsDashboard/>}/><Route path="/app/site/conteudos" element={<Contents/>}/>{['paginas','midia','categorias','midia-kit','configuracoes'].map(p=><Route key={p} path={`/app/site/${p}`} element={<Placeholder area="cms" title={({paginas:'Páginas',midia:'Media Manager',categorias:'Categorias','midia-kit':'Mídia Kit',configuracoes:'Configurações'} as Record<string,string>)[p]}/>}/>)}<Route path="/home" element={<Navigate to="/" replace/>}/><Route path="*" element={<NotFound/>}/></Routes> }
+export default function App() { return <Routes><Route path="/" element={<Home/>}/><Route path="/noticias" element={<Noticias/>}/><Route path="/polemicas" element={<Polemicas/>}/><Route path="/bastidores" element={<Bastidores/>}/><Route path="/lancamentos" element={<Lancamentos/>}/><Route path="/destaques" element={<Destaques/>}/><Route path="/videos" element={<Videos/>}/><Route path="/colabore" element={<Colabore/>}/><Route path="/app" element={<WorkspaceHome/>}/><Route path="/app/crm" element={<CrmDashboard/>}/><Route path="/app/crm/contatos" element={<Contacts/>}/><Route path="/app/crm/pipeline" element={<Placeholder area="crm" title="Pipeline comercial"/>}/><Route path="/app/crm/atividades" element={<Placeholder area="crm" title="Atividades"/>}/><Route path="/app/crm/financeiro" element={<Placeholder area="crm" title="Financeiro"/>}/><Route path="/app/site" element={<CmsDashboard/>}/><Route path="/app/site/conteudos" element={<Contents/>}/>{['paginas','midia','categorias','midia-kit','configuracoes'].map(p=><Route key={p} path={`/app/site/${p}`} element={<Placeholder area="cms" title={({paginas:'Páginas',midia:'Media Manager',categorias:'Categorias','midia-kit':'Mídia Kit',configuracoes:'Configurações'} as Record<string,string>)[p]}/>}/>)}<Route path="/home" element={<Navigate to="/" replace/>}/><Route path="*" element={<NotFound/>}/></Routes> }

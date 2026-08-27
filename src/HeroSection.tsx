@@ -12,7 +12,12 @@ function SmartLink({ to, className, children }: { to: string; className?: string
 export function HeroSection({ hero = readRenderableHero() }: { hero?: HeroHighlight }) {
   return <>
     <section className="portal-hero editorial-hero" aria-label="Destaque principal">
-      <div className="editorial-hero-background" aria-hidden="true" />
+      <div className="editorial-hero-background" aria-hidden="true">
+        <div className="hero-stage-light hero-stage-light-a" />
+        <div className="hero-stage-light hero-stage-light-b" />
+        <div className="hero-stage-light hero-stage-light-c" />
+        <div className="hero-stage-crowd" />
+      </div>
       <div className="editorial-hero-overlay" aria-hidden="true" />
       <div className="shell editorial-hero-grid">
         <div className="editorial-hero-content">
@@ -28,7 +33,7 @@ export function HeroSection({ hero = readRenderableHero() }: { hero?: HeroHighli
         </div>
 
         <div className="editorial-hero-media">
-          <div className="editorial-brand-graphic" aria-hidden="true"><img src={portalLogo} alt="" /></div>
+          <div className="editorial-brand-symbol" aria-hidden="true"><img src={portalLogo} alt="" /></div>
           {hero.image ? <img
             className="editorial-featured-image"
             src={hero.image}

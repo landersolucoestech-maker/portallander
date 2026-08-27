@@ -1,16 +1,6 @@
-/* Portal Lander Hero — the user-approved artwork is the permanent, non-editable background. */
+/* Portal Lander Hero — approved artwork permanently fixed. Cache-busted asset path. */
 .editorial-hero{position:relative;background:#020202!important}
-.editorial-hero-background{
-  position:absolute!important;
-  inset:0!important;
-  z-index:0!important;
-  pointer-events:none!important;
-  background-image:url('./hero-fixed-background.avif')!important;
-  background-repeat:no-repeat!important;
-  background-position:center center!important;
-  background-size:cover!important;
-  background-color:#020202!important;
-}
+.editorial-hero-background{position:absolute!important;inset:0!important;z-index:0!important;pointer-events:none!important;background-image:url('./hero-fixed-background-v20260827.avif')!important;background-repeat:no-repeat!important;background-position:center center!important;background-size:cover!important;background-color:#020202!important}
 .editorial-hero-background:before,.editorial-hero-background:after{display:none!important;content:none!important}
 .editorial-hero-overlay{display:none!important;background:none!important}
 .editorial-hero>.hero-noise{display:none!important}
@@ -19,32 +9,7 @@
 .editorial-hero-media{position:relative!important;z-index:3!important;background:transparent!important;overflow:visible!important}
 .editorial-hero-media:before,.editorial-hero-media:after{display:none!important;content:none!important}
 .editorial-brand-symbol,.editorial-brand-graphic{display:none!important}
-
-/* Only this artist layer remains editable. The approved background above never changes. */
-.editorial-featured-image{
-  display:block!important;
-  opacity:1!important;
-  visibility:visible!important;
-  position:absolute!important;
-  z-index:5!important;
-  left:49%!important;
-  bottom:-4%!important;
-  width:min(470px,69%)!important;
-  height:auto!important;
-  max-height:94%!important;
-  object-fit:contain!important;
-  object-position:center bottom!important;
-  transform:translateX(-50%) translate(var(--hero-image-offset-x,0px),var(--hero-image-offset-y,14px)) scale(var(--hero-image-scale,1))!important;
-  filter:drop-shadow(0 14px 34px rgba(0,0,0,.78))!important;
-}
+.editorial-featured-image{display:block!important;opacity:1!important;visibility:visible!important;position:absolute!important;z-index:5!important;left:49%!important;bottom:-4%!important;width:min(470px,69%)!important;height:auto!important;max-height:94%!important;object-fit:contain!important;object-position:center bottom!important;transform:translateX(-50%) translate(var(--hero-image-offset-x,0px),var(--hero-image-offset-y,14px)) scale(var(--hero-image-scale,1))!important;filter:drop-shadow(0 14px 34px rgba(0,0,0,.78))!important}
 .editorial-media-caption{position:absolute!important;z-index:6!important;right:4%!important;bottom:38%!important;color:#f5f5f5!important;text-shadow:0 2px 10px #000}
-
-@media(max-width:900px){
-  .editorial-hero-background{background-position:68% center!important}
-  .editorial-featured-image{left:50%!important;width:min(400px,84%)!important;bottom:-4%!important}
-}
-
-@media(max-width:620px){
-  .editorial-hero-background{background-position:72% center!important}
-  .editorial-featured-image{width:min(360px,88%)!important}
-}
+@media(max-width:900px){.editorial-hero-background{background-position:68% center!important}.editorial-featured-image{left:50%!important;width:min(400px,84%)!important;bottom:-4%!important}}
+@media(max-width:620px){.editorial-hero-background{background-position:72% center!important}.editorial-featured-image{width:min(360px,88%)!important}}

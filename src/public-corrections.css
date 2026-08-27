@@ -1,0 +1,19 @@
+/* Portal Lander — corrections requested after approved reference review */
+.editorial-hero-background{position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 71% 22%,rgba(255,0,0,.2),transparent 18%),linear-gradient(110deg,#020202 0%,#050505 49%,#190003 100%)}
+.editorial-hero-background:before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(118deg,transparent 0 90px,rgba(255,0,0,.055) 92px,transparent 97px);opacity:.75}
+.editorial-hero-overlay{position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,#020202 0%,rgba(2,2,2,.92) 39%,rgba(2,2,2,.25) 66%,rgba(0,0,0,.18) 100%)}
+.editorial-featured-image{left:53%!important;bottom:-3%!important;width:min(440px,64%)!important;max-height:92%!important;object-position:center bottom!important;transform:translateX(-50%) translateY(14px) scale(1)!important}
+.editorial-brand-graphic{pointer-events:none}
+
+.pl-thumb.has-image{background-size:cover!important;background-position:center!important;background-repeat:no-repeat!important}
+.pl-thumb.has-image:before{display:none!important}
+.pl-card .pl-thumb.has-image{min-height:126px}
+.pl-release .pl-thumb.has-image{min-height:205px}
+.pl-feature .pl-thumb.has-image{min-height:205px}
+.pl-mini .pl-thumb.has-image{min-height:56px}
+.pl-gallery .pl-thumb.has-image{min-height:120px}
+.pl-podcast .pl-thumb.has-image{min-height:55px;aspect-ratio:1.15}
+.pl-center-link{display:flex;justify-content:center;margin-top:14px}.pl-center-link a,.pl-outline-button{border:1px solid #4a2224;color:#fff;text-decoration:none;padding:9px 22px;font-family:'Bebas Neue','Arial Narrow',sans-serif;font-size:12px;letter-spacing:.04em}.pl-outline-button{display:flex;justify-content:center;margin-top:12px}
+.pl-whatsapp{position:relative;overflow:hidden;padding-right:112px}.pl-whatsapp:after{content:'';position:absolute;right:-28px;bottom:-18px;width:145px;height:205px;border:1px solid #315b38;border-radius:22px;transform:rotate(-7deg);background:linear-gradient(180deg,#181818,#060606);box-shadow:0 0 0 7px #050505,0 0 26px rgba(0,255,80,.1)}.pl-whatsapp:before{content:'';position:absolute;right:8px;bottom:15px;width:92px;height:156px;z-index:2;background:linear-gradient(180deg,#132416,#08100a);border-radius:14px;box-shadow:inset 0 0 0 1px #315b38}.pl-phone-visual{position:absolute;right:18px;bottom:70px;z-index:3;width:74px;height:85px;display:flex;align-items:center;justify-content:center;color:#34d058;font-size:8px;font-weight:900;transform:rotate(-7deg)}
+
+@media(max-width:760px){.editorial-featured-image{left:50%!important;width:min(390px,84%)!important;bottom:-4%!important;transform:translateX(-50%) translateY(18px) scale(.94)!important}.pl-whatsapp{padding-right:96px}}

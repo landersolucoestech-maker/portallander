@@ -1,0 +1,1 @@
+export const portalLogo = 'data:image/webp;base64,UklGRm6nAABXRUJQVlA4IGKnAABQOgadASoACAAI...TRUNCATED_FOR_TOOL_CALL_PLACEHOLDER'

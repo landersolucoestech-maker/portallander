@@ -2,7 +2,6 @@ import { ArrowRight } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { portalLogo } from './brandAsset'
 import { readRenderableHero, type HeroHighlight } from './heroModel'
-import type { CSSProperties } from 'react'
 
 function SmartLink({ to, className, children }: { to: string; className?: string; children: React.ReactNode }) {
   const external = /^https?:\/\//i.test(to)
@@ -11,19 +10,9 @@ function SmartLink({ to, className, children }: { to: string; className?: string
 }
 
 export function HeroSection({ hero = readRenderableHero() }: { hero?: HeroHighlight }) {
-  const mediaStyle = {
-    '--hero-image-x': `${hero.imagePositionX}%`,
-    '--hero-image-y': `${hero.imagePositionY}%`,
-    '--hero-image-scale': hero.imageScale,
-    '--hero-image-offset-x': `${hero.imageOffsetX}px`,
-    '--hero-image-offset-y': `${hero.imageOffsetY}px`,
-    '--hero-overlay': hero.overlay,
-    ...(hero.backgroundImage ? { backgroundImage: `url(${hero.backgroundImage})` } : {}),
-  } as CSSProperties
-
   return <>
     <section className="portal-hero editorial-hero" aria-label="Destaque principal">
-      <div className="editorial-hero-background" style={mediaStyle} aria-hidden="true" />
+      <div className="editorial-hero-background" aria-hidden="true" />
       <div className="editorial-hero-overlay" aria-hidden="true" />
       <div className="shell editorial-hero-grid">
         <div className="editorial-hero-content">
@@ -38,7 +27,7 @@ export function HeroSection({ hero = readRenderableHero() }: { hero?: HeroHighli
           </div>
         </div>
 
-        <div className="editorial-hero-media" style={mediaStyle}>
+        <div className="editorial-hero-media">
           <div className="editorial-brand-graphic" aria-hidden="true"><img src={portalLogo} alt="" /></div>
           {hero.image ? <img
             className="editorial-featured-image"

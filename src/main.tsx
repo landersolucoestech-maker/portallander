@@ -9,6 +9,7 @@ import './public-tweaks.css'
 import './public-mockup.css'
 import './hero-editable.css'
 import './public-reference.css'
+import './public-corrections.css'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

@@ -1,7 +1,7 @@
 import { ArrowRight } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { portalLogo } from './brandAsset'
-import { readRenderableHero, type HeroHighlight } from './heroModel'
+import { defaultHeroHighlight, readRenderableHero, type HeroHighlight } from './heroModel'
 
 function SmartLink({ to, className, children }: { to: string; className?: string; children: React.ReactNode }) {
   const external = /^https?:\/\//i.test(to)
@@ -12,12 +12,7 @@ function SmartLink({ to, className, children }: { to: string; className?: string
 export function HeroSection({ hero = readRenderableHero() }: { hero?: HeroHighlight }) {
   return <>
     <section className="portal-hero editorial-hero" aria-label="Destaque principal">
-      <div className="editorial-hero-background" aria-hidden="true">
-        <div className="hero-stage-light hero-stage-light-a" />
-        <div className="hero-stage-light hero-stage-light-b" />
-        <div className="hero-stage-light hero-stage-light-c" />
-        <div className="hero-stage-crowd" />
-      </div>
+      <div className="editorial-hero-background" aria-hidden="true" />
       <div className="editorial-hero-overlay" aria-hidden="true" />
       <div className="shell editorial-hero-grid">
         <div className="editorial-hero-content">
@@ -34,13 +29,17 @@ export function HeroSection({ hero = readRenderableHero() }: { hero?: HeroHighli
 
         <div className="editorial-hero-media">
           <div className="editorial-brand-symbol" aria-hidden="true"><img src={portalLogo} alt="" /></div>
-          {hero.image ? <img
+          <img
             className="editorial-featured-image"
-            src={hero.image}
-            alt={hero.imageAlt}
+            src={hero.image || defaultHeroHighlight.image}
+            alt={hero.imageAlt || defaultHeroHighlight.imageAlt}
             fetchPriority="high"
             decoding="async"
-          /> : <div className="editorial-image-missing" role="img" aria-label={hero.imageAlt}><span>IMAGEM PRINCIPAL</span><small>Defina o asset real no Gerenciador do Site</small></div>}
+            onError={event => {
+              const fallback = defaultHeroHighlight.image
+              if (event.currentTarget.src !== fallback) event.currentTarget.src = fallback
+            }}
+          />
           <span className="editorial-media-caption" aria-hidden="true">NOTÍCIAS · FUNK · CULTURA · ENTRETENIMENTO</span>
         </div>
       </div>

@@ -1,4 +1,4 @@
-import { ArrowRight, Bell, Building2, ChevronDown, FileText, Flame, Globe2, Images, LayoutDashboard, Menu, Mic2, Music2, Newspaper, Play, Search, Settings, Star, Tags, Video, X, Zap } from 'lucide-react'
+import { Bell, Building2, ChevronDown, FileText, Flame, Globe2, Images, LayoutDashboard, Menu, Mic2, Music2, Newspaper, Play, Search, Settings, Star, Tags, Video, X, Zap } from 'lucide-react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
 import { useState } from 'react'
 import LegacyApp from './App'

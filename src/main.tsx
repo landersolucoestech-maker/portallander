@@ -8,6 +8,7 @@ import './public-logo.css'
 import './public-tweaks.css'
 import './public-mockup.css'
 import './hero-editable.css'
+import './public-reference.css'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

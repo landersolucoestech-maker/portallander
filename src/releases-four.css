@@ -1,0 +1,13 @@
+.pl-release-row{
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+}
+.pl-release-row>.pl-release:nth-child(n+5){
+  display:none!important;
+}
+
+@media(max-width:1050px){
+  .pl-release-row{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+@media(max-width:560px){
+  .pl-release-row{grid-template-columns:1fr!important}
+}

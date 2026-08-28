@@ -28,8 +28,8 @@ export function ColaborePageBridge(){
         <div className="public-shell colabore-hero-grid">
           <div className="colabore-hero-copy">
             <span className="colabore-eyebrow">PARTICIPE DO PORTAL</span>
-            <h1>COLABORE<br/><em>COM A GENTE.</em></h1>
-            <p>Tem uma notícia, vídeo, foto, denúncia, história ou pauta que merece espaço? Envie para o Portal Lander. Nossa equipe analisa o material antes da publicação.</p>
+            <h1>SUA HISTÓRIA<br/><em>PODE VIRAR NOTÍCIA.</em></h1>
+            <p>Tem uma pauta, vídeo, foto, denúncia, lançamento ou história relevante? Envie seu material para o Portal Lander. Nossa equipe editorial analisa cada envio antes da publicação.</p>
             <div className="colabore-hero-points">
               <span><ShieldCheck size={17}/> Material analisado pela equipe editorial</span>
               <span><CheckCircle2 size={17}/> Envio gratuito e sem compromisso de publicação</span>

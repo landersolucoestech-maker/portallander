@@ -61,10 +61,7 @@ export function NewsAdBridge() {
   }, [])
 
   useEffect(() => {
-    if (location.pathname !== '/noticias') {
-      setTarget(null)
-      return
-    }
+    if (location.pathname !== '/noticias') return
     const frame = window.requestAnimationFrame(() => {
       const element = document.querySelector<HTMLElement>('.news-reference-banner')
       if (element) {
@@ -76,9 +73,10 @@ export function NewsAdBridge() {
   }, [location.pathname])
 
   useEffect(() => {
-    if (!target) return
-    target.style.display = config.active ? '' : 'none'
-  }, [target, config.active])
+    if (location.pathname !== '/noticias') return
+    const element = document.querySelector<HTMLElement>('.news-reference-banner')
+    if (element) element.style.display = config.active ? '' : 'none'
+  }, [location.pathname, config.active])
 
   if (location.pathname === '/app/site/noticias/anuncio') return <NewsAdManagerPage/>
 

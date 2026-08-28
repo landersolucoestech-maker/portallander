@@ -1,4 +1,4 @@
-import { Bell, Building2, ChevronDown, FileText, Images, LayoutDashboard, Newspaper, Settings, Star, Tags } from 'lucide-react'
+import { Bell, Building2, ChevronDown, FileText, Images, LayoutDashboard, Newspaper, Palette, Settings, Star, Tags } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Link, NavLink, useLocation } from 'react-router-dom'
@@ -15,6 +15,7 @@ function ManagedAdContent({ config }: { config: HomeAdConfig }) {
     {config.image && <img className="pl-ad-image" src={config.image} alt={config.imageAlt} />}
     <div className="pl-ad-shade" aria-hidden="true" />
     <div className="pl-ad-content">
+      {config.logo && <img className="pl-ad-logo" src={config.logo} alt={config.logoAlt || 'Logo do anunciante'} style={{width:`${config.logoWidth}px`}} />}
       {config.title && <b><em>{config.title}</em></b>}
       {config.subtitle && <span>{config.subtitle}</span>}
       {config.buttonLabel && (/^https?:\/\//i.test(config.buttonUrl)
@@ -26,6 +27,7 @@ function ManagedAdContent({ config }: { config: HomeAdConfig }) {
 
 const siteNav = [
   ['Visão geral', LayoutDashboard, '/app/site'],
+  ['Marca & Logos', Palette, '/app/site/marca'],
   ['Home · Hero', Star, '/app/site/home/hero'],
   ['Home · Anúncio', Newspaper, '/app/site/home/anuncio'],
   ['Conteúdos', FileText, '/app/site/conteudos'],
@@ -76,6 +78,6 @@ export function HomeAdBridge() {
 
   return <>
     {location.pathname === '/' && target && createPortal(<ManagedAdContent config={config}/>, target)}
-    {location.pathname.startsWith('/app/site') && location.pathname !== '/app/site/home/anuncio' && <Link className="site-ad-shortcut" to="/app/site/home/anuncio"><Newspaper size={16}/> Conteúdo · Home · Anúncio</Link>}
+    {location.pathname.startsWith('/app/site') && !['/app/site/home/anuncio','/app/site/marca'].includes(location.pathname) && <Link className="site-ad-shortcut" to="/app/site/home/anuncio"><Newspaper size={16}/> Conteúdo · Home · Anúncio</Link>}
   </>
 }

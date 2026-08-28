@@ -54,6 +54,20 @@ export function HomePageAdjustmentsBridge() {
       }
     })
 
+    const homeMain = document.querySelector<HTMLElement>('.public-page .pl-main')
+    const ad = homeMain?.querySelector<HTMLElement>(':scope > .pl-ad') || null
+    const categorySection = Array.from(homeMain?.querySelectorAll<HTMLElement>(':scope > section.pl-section') || [])
+      .find(section => section.querySelector('.pl-section-head h2')?.textContent?.trim().toUpperCase() === 'NAVEGUE POR CATEGORIAS') || null
+
+    const adOriginalParent = ad?.parentElement || null
+    const adOriginalNextSibling = ad?.nextSibling || null
+
+    if (ad && categorySection) {
+      categorySection.dataset.homeTemporarilyHidden = 'true'
+      categorySection.style.display = 'none'
+      categorySection.insertAdjacentElement('beforebegin', ad)
+    }
+
     return () => {
       originals.forEach(({ anchor, label, href }) => {
         setAnchorLabel(anchor, label)
@@ -64,6 +78,14 @@ export function HomePageAdjustmentsBridge() {
         section.style.removeProperty('display')
         delete section.dataset.homeTemporarilyHidden
       })
+      if (categorySection) {
+        categorySection.style.removeProperty('display')
+        delete categorySection.dataset.homeTemporarilyHidden
+      }
+      if (ad && adOriginalParent) {
+        if (adOriginalNextSibling && adOriginalNextSibling.parentNode === adOriginalParent) adOriginalParent.insertBefore(ad, adOriginalNextSibling)
+        else adOriginalParent.appendChild(ad)
+      }
     }
   }, [location.pathname])
 

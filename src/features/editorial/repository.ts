@@ -22,12 +22,12 @@ export interface EditorialRepository {
 class BundledReadOnlyEditorialRepository implements EditorialRepository {
   async listPages() { return legacyEditorialPages.map(page => ({ ...page, seo: { ...page.seo } })) }
   async listContents() { return legacyEditorialContents.map(content => ({ ...content, seo: { ...content.seo }, tags: [...content.tags], media: [...content.media], body: [...content.body] })) }
-  async createPage(_: EditorialPage): Promise<EditorialPage> { throw new EditorialPersistenceUnavailableError() }
-  async updatePage(_: EditorialPage): Promise<EditorialPage> { throw new EditorialPersistenceUnavailableError() }
-  async deletePage(_: string): Promise<void> { throw new EditorialPersistenceUnavailableError() }
-  async createContent(_: EditorialContent): Promise<EditorialContent> { throw new EditorialPersistenceUnavailableError() }
-  async updateContent(_: EditorialContent): Promise<EditorialContent> { throw new EditorialPersistenceUnavailableError() }
-  async deleteContent(_: string): Promise<void> { throw new EditorialPersistenceUnavailableError() }
+  async createPage(): Promise<EditorialPage> { throw new EditorialPersistenceUnavailableError() }
+  async updatePage(): Promise<EditorialPage> { throw new EditorialPersistenceUnavailableError() }
+  async deletePage(): Promise<void> { throw new EditorialPersistenceUnavailableError() }
+  async createContent(): Promise<EditorialContent> { throw new EditorialPersistenceUnavailableError() }
+  async updateContent(): Promise<EditorialContent> { throw new EditorialPersistenceUnavailableError() }
+  async deleteContent(): Promise<void> { throw new EditorialPersistenceUnavailableError() }
 }
 
 export const editorialRepository: EditorialRepository = new BundledReadOnlyEditorialRepository()

@@ -8,6 +8,7 @@ import { NewsPageBridge } from './NewsPageBridge'
 import { NewsAdBridge } from './NewsAdBridge'
 import { ArticlePageBridge } from './ArticlePageBridge'
 import { ClickableCardsBridge } from './ClickableCardsBridge'
+import { HomePageAdjustmentsBridge } from './HomePageAdjustmentsBridge'
 import './styles.css'
 import './public.css'
 import './public-logo.css'
@@ -38,6 +39,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
       <NewsAdBridge />
       <ArticlePageBridge />
       <ClickableCardsBridge />
+      <HomePageAdjustmentsBridge />
     </HashRouter>
   </React.StrictMode>,
 )

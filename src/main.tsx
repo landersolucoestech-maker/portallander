@@ -6,6 +6,7 @@ import { HomeAdBridge } from './HomeAdBridge'
 import { HeaderBrandBridge } from './HeaderBrandBridge'
 import { NewsPageBridge } from './NewsPageBridge'
 import { NewsAdBridge } from './NewsAdBridge'
+import { ArticlePageBridge } from './ArticlePageBridge'
 import './styles.css'
 import './public.css'
 import './public-logo.css'
@@ -23,6 +24,7 @@ import './header-active-indicator.css'
 import './header-brand-manager.css'
 import './news-reference-page.css'
 import './news-hero-upload.css'
+import './article-page.css'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
@@ -32,6 +34,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
       <HeaderBrandBridge />
       <NewsPageBridge />
       <NewsAdBridge />
+      <ArticlePageBridge />
     </HashRouter>
   </React.StrictMode>,
 )

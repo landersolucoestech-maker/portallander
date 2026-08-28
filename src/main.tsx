@@ -9,6 +9,7 @@ import { NewsAdBridge } from './NewsAdBridge'
 import { ArticlePageBridge } from './ArticlePageBridge'
 import { ClickableCardsBridge } from './ClickableCardsBridge'
 import { HomePageAdjustmentsBridge } from './HomePageAdjustmentsBridge'
+import { HomeSidebarAdBridge } from './HomeSidebarAdBridge'
 import './styles.css'
 import './public.css'
 import './public-logo.css'
@@ -28,6 +29,7 @@ import './news-reference-page.css'
 import './news-hero-upload.css'
 import './article-page.css'
 import './clickable-cards.css'
+import './home-sidebar-ad.css'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
@@ -40,6 +42,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
       <ArticlePageBridge />
       <ClickableCardsBridge />
       <HomePageAdjustmentsBridge />
+      <HomeSidebarAdBridge />
     </HashRouter>
   </React.StrictMode>,
 )

@@ -1,6 +1,6 @@
 import { useLayoutEffect } from 'react'
 import { useLocation } from 'react-router-dom'
-import { portalLogo } from '../../brandAsset'
+import { portalLogo } from '../../../shared/branding/assets/brandAsset'
 
 export function HomeSidebarAdBridge(){
   const location=useLocation()

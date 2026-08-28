@@ -5,10 +5,10 @@ import { portalLogo } from './brandAsset'
 
 const categories = [
   ['Notícias', Zap, '/noticias'],
-  ['Polêmicas', Flame, '/polemicas'],
+  ['Músicas', Flame, '/musicas'],
   ['Bastidores', Mic2, '/bastidores'],
   ['Lançamentos', Music2, '/lancamentos'],
-  ['Destaques', Star, '/destaques'],
+  ['Cultura', Star, '/cultura'],
   ['Vídeos', Video, '/videos'],
 ] as const
 
@@ -21,7 +21,7 @@ const images=[
 ]
 
 const articles=[
-  {slug:'mc-cabelinho-lanca-melhor-so-e-fas-vao-a-loucura',category:'LANÇAMENTO',title:'MC Cabelinho lança “Melhor Só” e fãs vão à loucura',dek:'Novo álbum do MC Cabelinho já está disponível em todas as plataformas e promete ser um dos maiores do ano.',image:images[0]},
+  {slug:'mc-cabelinho-lanca-melhor-so-e-fas-vao-a-loucura',category:'LANÇAMENTO',title:'MC Cabelinho lança “Melhor Só” e fãs vão à loucura',dek:'Novo lançamento chega com produção de alto nível, letra intensa e visualizer impactante.',image:images[0]},
   {slug:'bastidores-do-clipe-de-orochi-viralizam-na-web',category:'BASTIDORES',title:'Bastidores do clipe de Orochi viralizam na web',dek:'Imagens de gravação e detalhes da produção movimentaram as redes e chamaram atenção dos fãs.',image:images[1]},
   {slug:'treta-mc-poze-alfineta-oruam-nas-redes-sociais',category:'POLÊMICA',title:'Treta! MC Poze alfineta Oruam nas redes sociais',dek:'Troca de indiretas colocou os artistas no centro das conversas nas redes.',image:images[2]},
   {slug:'a-arte-do-funk-artistas-que-transformam-a-quebrada',category:'CULTURA',title:'A arte do funk: artistas que transformam a quebrada',dek:'Música, estética e território se encontram em uma geração que amplia a força cultural das periferias.',image:images[3]},
@@ -59,41 +59,44 @@ function ShareButtons(){return <div className="article-share-buttons"><a href="#
 
 function Sidebar(){return <aside className="article-sidebar">
   <section className="article-most"><div className="article-side-title"><h2>MAIS LIDAS</h2><span/></div>{ranked.map((item,i)=><Link className="article-ranked" key={item.slug} to={`/noticia/${item.slug}`}><b>{String(i+1).padStart(2,'0')}</b><img src={item.image} alt=""/><div><h3>{item.title}</h3><small>Há {i*2+3} horas</small></div></Link>)}</section>
-  <section className="article-newsletter-box"><h2>RECEBA AS PRINCIPAIS<br/>NOTÍCIAS</h2><p>Inscreva-se e receba as notícias mais quentes do funk e da cultura urbana em primeira mão.</p><input type="email" placeholder="Seu melhor e-mail"/><button>INSCREVER-SE</button></section>
-  <section className="article-ad-box"><img src={portalLogo} alt="Portal Lander"/><h2>ANUNCIE AQUI</h2><p>SUA MARCA NO<br/>RITMO CERTO!</p><Link to="/anuncie">SAIBA MAIS →</Link></section>
+  <section className="article-ad-box"><div className="article-ad-overlay"><span>PUBLICIDADE</span><h2>ANUNCIE<br/><em>AQUI</em></h2><i/><p>SUA MARCA NO<br/>RITMO CERTO!</p><Link to="/anuncie">SAIBA MAIS →</Link></div></section>
 </aside>}
 
 function ArticleFooter(){return <footer className="article-footer"><div className="article-footer-grid">
-  <div><img src={portalLogo} alt="Portal Lander"/><p>O maior portal de notícias sobre funk, cultura urbana e entretenimento. Conteúdo real, direto e sem filtro.</p></div>
+  <div><img src={portalLogo} alt="Portal Lander"/><p>O melhor do funk, trap e cultura urbana você encontra aqui.</p></div>
   <div><h4>NAVEGAÇÃO</h4>{categories.map(([label,,to])=><Link key={to} to={to}>{label}</Link>)}<Link to="/colabore">Colabore</Link></div>
-  <div><h4>INSTITUCIONAL</h4><Link to="/sobre">Sobre o Portal</Link><Link to="/contato">Fale Conosco</Link><Link to="/politica">Política de Privacidade</Link><Link to="/termos">Termos de Uso</Link></div>
-  <div><h4>AJUDA</h4><Link to="/faq">Perguntas Frequentes</Link><Link to="/anuncie">Como Anunciar</Link><Link to="/regras">Regras de Publicação</Link></div>
-  <div><h4>SIGA O PORTAL LANDER</h4><div className="article-social"><span>◎</span><span>♪</span><span>▶</span><span>𝕏</span><span>◉</span></div></div>
+  <div><h4>INSTITUCIONAL</h4><Link to="/sobre">Sobre o Portal Lander</Link><Link to="/equipe">Equipe</Link><Link to="/politica">Política de Privacidade</Link><Link to="/termos">Termos de Uso</Link></div>
+  <div className="article-footer-news"><h4>RECEBA AS PRINCIPAIS NOTÍCIAS</h4><p>Sua melhor fonte de informação sobre funk e cultura urbana.</p><div><input placeholder="Seu e-mail"/><button>→</button></div></div>
 </div><div className="article-copyright">© 2026 Portal Lander. Todos os direitos reservados.</div></footer>}
 
 function ArticlePage({article}:{article:Article}){
   const index=Math.max(0,articles.findIndex(item=>item.slug===article.slug))
   const previous=articles[(index-1+articles.length)%articles.length]
   const next=articles[(index+1)%articles.length]
+  const related=[articles[(index+1)%articles.length],articles[(index+2)%articles.length],articles[(index+3)%articles.length]]
   const tags=[article.category, ...article.title.replace(/[“”]/g,'').split(' ').filter(w=>w.length>4).slice(0,4)].map(t=>t.toUpperCase())
-  return <div className="article-page"><ArticleHeader/><main className="article-shell">
-    <div className="article-breadcrumb"><Link to="/">Início</Link><span>›</span><Link to="/noticias">Notícias</Link><span>›</span><span>{article.title}</span></div>
-    <div className="article-category">{article.category}</div>
-    <h1>{article.title}</h1>
-    <p className="article-dek">{article.dek}</p>
-    <div className="article-author-row"><div className="article-author"><span className="article-author-avatar">PL</span><span>Por Portal Lander <b>●</b></span><i/> <span>28 de agosto de 2026</span><i/> <span>Há 2 horas</span></div><div className="article-share"><span>Compartilhe:</span><ShareButtons/></div></div>
-    <div className="article-layout"><article className="article-content">
+  return <div className="article-page"><ArticleHeader/>
+    <section className="article-hero"><div className="article-hero-inner">
+      <div className="article-breadcrumb"><Link to="/">Início</Link><span>›</span><Link to="/noticias">Notícias</Link><span>›</span><span>{article.title}</span></div>
+      <div className="article-category">{article.category}</div>
+      <h1>{article.title}</h1>
+      <p className="article-dek">{article.dek}</p>
+      <div className="article-author-row"><div className="article-author"><span className="article-author-avatar">PL</span><span>Por Portal Lander <b>●</b></span><i/><span>28 de agosto de 2026</span><i/><span>Há 2 horas</span><i/><span>8 min de leitura</span></div><div className="article-share"><span>Compartilhe:</span><ShareButtons/></div></div>
+    </div></section>
+    <main className="article-shell"><div className="article-layout"><article className="article-content">
       <figure><img src={article.image} alt={article.title}/><figcaption>{article.title} — Foto: Divulgação</figcaption></figure>
-      <p><strong>{article.title.split(' ').slice(0,3).join(' ')}</strong> está entre os assuntos que mais movimentam a cena nesta semana. A repercussão cresceu nas redes sociais e colocou o tema no centro das conversas entre fãs, artistas e profissionais do mercado.</p>
-      <p>O assunto ganhou força pela combinação entre música, comportamento e cultura urbana. Comentários, vídeos e recortes publicados nas plataformas ampliaram o alcance e fizeram o conteúdo circular rapidamente.</p>
-      <p>Para além dos números, o episódio mostra como o público acompanha cada movimento da cena em tempo real e transforma lançamentos, bastidores e declarações em conversas nacionais.</p>
-      <blockquote><span>❞</span><p>“A cena muda rápido, mas o que permanece é a conexão com o público e a força de cada história.”</p><cite>— Portal Lander</cite></blockquote>
-      <p>O Portal Lander continuará acompanhando os próximos desdobramentos, atualizações e possíveis novidades relacionadas ao tema.</p>
+      <p><strong>{article.title.split(' ').slice(0,3).join(' ')}</strong> está de volta com tudo. O assunto já nasce como um dos grandes destaques do cenário do funk e da cultura nacional.</p>
+      <p>Com produção pesada e uma proposta que mistura vivência, ambição e superação, o conteúdo apresenta evolução artística e capacidade de transformar histórias reais em poesia.</p>
+      <blockquote><p>“Essa música é sobre escolha, sobre entender que nem sempre estar acompanhado é estar bem. É sobre voar sozinho e ainda assim fazer tudo tremer.”</p><cite>— MC Cabelinho</cite></blockquote>
+      <h2>PRODUÇÃO E SONORIDADE</h2>
+      <p>O beat envolvente, com elementos de trap e funk, cria a atmosfera perfeita para a mensagem da faixa. A produção ficou por conta de nomes de peso que já colaboraram em outros sucessos.</p>
+      <p>O visualizer, lançado junto com a faixa, também chama atenção pela estética urbana, moderna e cinematográfica.</p>
       <div className="article-tags"><b>TAGS:</b>{tags.map(t=><span key={t}>{t}</span>)}</div>
       <div className="article-share-bottom"><span>Compartilhe:</span><ShareButtons/></div>
       <div className="article-prev-next"><Link to={`/noticia/${previous.slug}`}><span>ANTERIOR</span><b>{previous.title}</b></Link><Link to={`/noticia/${next.slug}`}><span>PRÓXIMA</span><b>{next.title}</b><strong>›</strong></Link></div>
-    </article><Sidebar/></div>
-  </main><ArticleFooter/></div>
+      <section className="article-related"><div className="article-side-title"><h2>RELACIONADAS</h2><span/></div><div className="article-related-grid">{related.map(item=><Link key={item.slug} to={`/noticia/${item.slug}`}><img src={item.image} alt=""/><small>{item.category}</small><h3>{item.title}</h3><span>Há 4 horas</span></Link>)}</div></section>
+    </article><Sidebar/></div></main><ArticleFooter/>
+  </div>
 }
 
 export function ArticlePageBridge(){

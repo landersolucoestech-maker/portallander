@@ -47,6 +47,12 @@
 .portal-label{background:#ff161f}
 .portal-story-copy h3{font-size:31px}
 
+/* Agenda — hierarchy with softer text contrast */
+.public-page .pl-agenda-item>div:first-child strong{color:#f3f3f3;font-weight:800}
+.public-page .pl-agenda-item>div:first-child span{color:#e3171f;font-weight:800}
+.public-page .pl-agenda-item>div:last-child b{color:#d2d2d2;font-weight:700}
+.public-page .pl-agenda-item>div:last-child small{color:#858585;font-weight:500}
+
 @media(max-width:1100px){
   .public-header .public-nav{gap:18px}
   .portal-hero .shell{width:min(100% - 40px,1240px)}

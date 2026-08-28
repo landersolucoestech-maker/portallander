@@ -11,6 +11,8 @@ export type HeroSlide = {
 export type HeroCarouselConfig = { autoplay: boolean; intervalMs: number; ticker: HeroTicker; slides: HeroSlide[] }
 export type HeroArticleSource = { id: string; title: string; slug: string; category: string; summary: string; image: string; imageAlt: string; url: string }
 
+type LegacyHero = Partial<HeroSlide> & { ticker?: Partial<HeroTicker> }
+
 export const HERO_STORAGE_KEY='portal-lander:home:hero:slides:v2'
 const LEGACY_HERO_STORAGE_KEY='portal-lander:home:hero'
 
@@ -43,9 +45,10 @@ function normalizeConfig(raw:Partial<HeroCarouselConfig>|null|undefined):HeroCar
   const slides=Array.isArray(raw.slides)&&raw.slides.length?raw.slides.map((slide,index)=>normalizeSlide(slide,index)):defaultHeroConfig.slides
   return {...defaultHeroConfig,...raw,intervalMs:Math.max(3000,Number(raw.intervalMs)||7000),ticker:{...defaultHeroConfig.ticker,...(raw.ticker||{})},slides}
 }
-function legacyToConfig(raw:any):HeroCarouselConfig{
+function legacyToConfig(raw:unknown):HeroCarouselConfig{
   if(!raw||typeof raw!=='object')return defaultHeroConfig
-  return normalizeConfig({slides:[normalizeSlide({...raw,order:1,scheduledAt:''},0)],ticker:{...defaultHeroConfig.ticker,...(raw.ticker||{})}})
+  const legacy=raw as LegacyHero
+  return normalizeConfig({slides:[normalizeSlide({...legacy,order:1,scheduledAt:''},0)],ticker:{...defaultHeroConfig.ticker,...(legacy.ticker||{})}})
 }
 
 export function readHeroConfig():HeroCarouselConfig{

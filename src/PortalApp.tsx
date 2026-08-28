@@ -1,4 +1,4 @@
-import { Bell, Building2, ChevronDown, FileText, Flame, Globe2, Images, LayoutDashboard, Menu, Mic2, Music2, Newspaper, Play, Search, Settings, Star, Tags, Video, X, Zap } from 'lucide-react'
+import { Bell, Building2, ChevronDown, FileText, Globe2, Images, LayoutDashboard, Menu, Mic2, Music2, Newspaper, Play, Search, Settings, Star, Tags, Video, X, Zap } from 'lucide-react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
 import { useState } from 'react'
 import LegacyApp from './App'
@@ -27,10 +27,10 @@ const IMG = {
 
 const publicCategories = [
   ['Notícias', Zap, '/noticias'],
-  ['Polêmicas', Flame, '/polemicas'],
+  ['Músicas', Music2, '/musicas'],
   ['Bastidores', Mic2, '/bastidores'],
   ['Lançamentos', Music2, '/lancamentos'],
-  ['Destaques', Star, '/destaques'],
+  ['Cultura', Star, '/cultura'],
   ['Vídeos', Video, '/videos'],
 ] as const
 
@@ -114,7 +114,7 @@ function HomeContent(){return <div className="pl-main public-shell">
     <aside className="pl-whatsapp"><div className="pl-phone-visual"><span>WHATSAPP</span></div><h3>PORTAL LANDER<br/>NO SEU WHATSAPP!</h3><p>Receba as principais notícias em primeira mão.</p><Link to="/whatsapp">QUERO RECEBER →</Link></aside>
   </div>
 
-  <section className="pl-section"><SectionHead title="NAVEGUE POR CATEGORIAS"/><div className="pl-categories">{publicCategories.map(([label,Icon,to])=><Link className="pl-category" to={to} key={to}><Icon/><h3>{label}</h3><p>{label==='Notícias'?'Fique por dentro de tudo o que acontece no cenário.':label==='Polêmicas'?'As tretas e assuntos mais quentes do momento.':label==='Bastidores'?'O que rola por trás das câmeras e dos palcos.':label==='Lançamentos'?'Músicas, clipes e álbuns fresquinhos pra você.':label==='Destaques'?'Histórias, estilo, arte e potência da quebrada.':'Conteúdo exclusivo em vídeo pra você assistir.'}</p></Link>)}</div></section>
+  <section className="pl-section"><SectionHead title="NAVEGUE POR CATEGORIAS"/><div className="pl-categories">{publicCategories.map(([label,Icon,to])=><Link className="pl-category" to={to} key={to}><Icon/><h3>{label}</h3><p>{label==='Notícias'?'Fique por dentro de tudo o que acontece no cenário.':label==='Músicas'?'Faixas, tendências e novidades que movimentam a cena.':label==='Bastidores'?'O que rola por trás das câmeras e dos palcos.':label==='Lançamentos'?'Músicas, clipes e álbuns fresquinhos pra você.':label==='Cultura'?'Histórias, estilo, arte e potência da quebrada.':'Conteúdo exclusivo em vídeo pra você assistir.'}</p></Link>)}</div></section>
 
   <div className="pl-release-agenda">
     <section className="pl-section"><SectionHead title="LANÇAMENTOS" link="/lancamentos"/><div className="pl-release-row">{releases.map(r=><article className="pl-release" key={r.title}><ImageThumb src={r.image} badge="▶"/><div className="pl-card-body"><h3>{r.title}</h3><div className="pl-meta"><span>2026</span></div></div></article>)}</div></section>
@@ -132,9 +132,11 @@ function PublicHome(){return <div className="public-page"><PublicHeader/><main><
 
 const pageIntros:Record<string,{title:string;eyebrow:string;intro:string}> = {
   '/noticias':{title:'NOTÍCIAS',eyebrow:'AGORA NO PORTAL',intro:'As principais notícias do funk, cultura urbana e entretenimento em uma cobertura direta e atualizada.'},
+  '/musicas':{title:'MÚSICAS',eyebrow:'NO PLAY',intro:'Faixas, artistas e movimentos que estão definindo o som da cena agora.'},
   '/polemicas':{title:'POLÊMICAS',eyebrow:'SEM FILTRO',intro:'As discussões, declarações e histórias que colocaram a cena no centro da conversa.'},
   '/bastidores':{title:'BASTIDORES',eyebrow:'POR TRÁS DA CENA',intro:'O que acontece antes, durante e depois do que aparece para o público.'},
   '/lancamentos':{title:'LANÇAMENTOS',eyebrow:'MÚSICA NOVA',intro:'Singles, clipes e projetos que acabaram de chegar no funk e na cultura urbana.'},
+  '/cultura':{title:'CULTURA',eyebrow:'IDENTIDADE',intro:'Arte, comportamento, territórios e histórias que movimentam a cultura urbana.'},
   '/destaques':{title:'DESTAQUES',eyebrow:'NO RADAR',intro:'O conteúdo mais forte do Portal Lander reunido em uma seleção editorial.'},
   '/videos':{title:'VÍDEOS',eyebrow:'ASSISTA',intro:'Entrevistas, bastidores, coberturas e conteúdos em vídeo do Portal Lander.'},
 }
@@ -178,6 +180,7 @@ function HeroManagerPage(){
 
 export default function PortalApp(){
   const location=useLocation()
+  if(location.pathname.startsWith('/noticia/')) return null
   if(location.pathname==='/') return <PublicHome/>
   if(pageIntros[location.pathname]) return <PublicListing path={location.pathname}/>
   if(location.pathname==='/app/site/home/hero') return <HeroManagerPage/>

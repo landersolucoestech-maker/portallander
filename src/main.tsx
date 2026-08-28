@@ -43,6 +43,7 @@ import './public-search-suggestions.css'
 import './public-typography-system.css'
 import './brand-assets-manager.css'
 import './colabore-page.css'
+import './colabore-hero-width-fix.css'
 
 const REQUIRED_PUBLIC_FONTS = [
   '400 16px "Bebas Neue"',

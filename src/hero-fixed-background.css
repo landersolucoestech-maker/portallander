@@ -1,6 +1,6 @@
 /* Portal Lander Hero — approved artwork is the permanent, non-editable background. */
 .editorial-hero{position:relative;background:#020202!important;overflow:hidden!important}
-.editorial-hero-background{position:absolute!important;inset:0!important;z-index:0!important;pointer-events:none!important;background-image:url('./hero-approved-background-fixed.jpg')!important;background-repeat:no-repeat!important;background-position:center center!important;background-size:cover!important;background-color:#020202!important}
+.editorial-hero-background{position:absolute!important;inset:0!important;z-index:0!important;pointer-events:none!important;background-image:url('./hero-approved-background-hq.jpg')!important;background-repeat:no-repeat!important;background-position:center center!important;background-size:cover!important;background-color:#020202!important}
 .editorial-hero-background:before,.editorial-hero-background:after{display:none!important;content:none!important}
 .editorial-hero-overlay{display:none!important;background:none!important}
 .editorial-hero>.hero-noise{display:none!important}

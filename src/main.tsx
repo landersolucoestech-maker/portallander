@@ -31,6 +31,7 @@ import './article-page.css'
 import './clickable-cards.css'
 import './home-sidebar-ad.css'
 import './home-trending.css'
+import './bastidores-three-grid.css'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

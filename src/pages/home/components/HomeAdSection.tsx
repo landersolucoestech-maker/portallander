@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { defaultHomeAdConfig, readHomeAdConfig, type HomeAdConfig } from './adModel'
+import { defaultHomeAdConfig, readHomeAdConfig, type HomeAdConfig } from '../models/adModel'
 
 function SmartAdLink({ to, children }: { to: string; children: React.ReactNode }) {
   if (/^https?:\/\//i.test(to)) return <a href={to} target="_blank" rel="noreferrer">{children}</a>

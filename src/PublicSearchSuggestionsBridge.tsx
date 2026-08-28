@@ -17,8 +17,6 @@ const SEARCH_ITEMS:SearchItem[] = [
   {title:'Ludmilla confirma nova turnê “Numanice #4”',type:'Lançamento',route:'/noticia/ludmilla-confirma-nova-turne-numanice-4',terms:'ludmilla numanice turne'},
   {title:'Entenda a treta entre Mainstreet e Pineapple',type:'Notícias',route:'/noticia/entenda-a-treta-entre-mainstreet-e-pineapple',terms:'mainstreet pineapple treta'},
   {title:'Como foi a gravação do clipe “Malvadão 3” de Xamã',type:'Bastidores',route:'/noticia/como-foi-a-gravacao-do-clipe-malvadao-3-de-xama',terms:'xama malvadao 3 clipe'},
-  {title:'Oruam — Liberado',type:'Música',route:'/lancamentos',terms:'oruam liberado'},
-  {title:'WIU — Manual de Cria',type:'Música',route:'/lancamentos',terms:'wiu manual cria'},
 ]
 
 const normalize=(value:string)=>value.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim()

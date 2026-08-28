@@ -1,11 +1,11 @@
-import { useEffect } from 'react'
+import { useLayoutEffect } from 'react'
 import { useLocation } from 'react-router-dom'
 import { portalLogo } from './brandAsset'
 
 export function HomeSidebarAdBridge(){
   const location=useLocation()
 
-  useEffect(()=>{
+  useLayoutEffect(()=>{
     document.querySelectorAll('.pl-home-sidebar-ad').forEach(node=>node.remove())
     if(location.pathname!=='/') return
 
@@ -25,6 +25,8 @@ export function HomeSidebarAdBridge(){
     `
 
     mostRead.appendChild(ad)
+
+    return ()=>ad.remove()
   },[location.pathname])
 
   return null

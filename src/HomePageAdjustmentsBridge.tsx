@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useLayoutEffect } from 'react'
 import { useLocation } from 'react-router-dom'
 
 const HOME_MENU = [
@@ -27,7 +27,7 @@ function setAnchorLabel(anchor: HTMLAnchorElement, label: string) {
 export function HomePageAdjustmentsBridge() {
   const location = useLocation()
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (location.pathname !== '/') return
 
     const headerLinks = Array.from(document.querySelectorAll<HTMLAnchorElement>('.public-header .public-links a'))

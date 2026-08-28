@@ -5,9 +5,9 @@
 .news-reference-page .pl-page-hero .public-shell{position:relative;z-index:1}
 .news-reference-page .pl-page-hero span{font:500 12px/1.2 Arial,sans-serif;color:#888;text-transform:none;letter-spacing:0}
 .news-reference-page .pl-page-hero span:before{content:'Início  ›  ';color:#777}
-.news-reference-page .pl-page-hero h1{font-family:Impact,'Arial Narrow',sans-serif;font-size:48px;line-height:.95;margin:25px 0 12px;letter-spacing:.5px;position:relative;width:max-content}
-.news-reference-page .pl-page-hero h1:after{content:'';display:block;width:31px;height:2px;background:#f11;margin-top:9px}
-.news-reference-page .pl-page-hero p{max-width:370px;color:#c8c8c8;font:400 14px/1.45 Arial,sans-serif;margin:0}
+.news-reference-page .pl-page-hero h1{font-family:Impact,'Arial Narrow',sans-serif!important;font-size:52px!important;line-height:.94!important;margin:22px 0 14px!important;letter-spacing:.2px!important;position:relative;width:max-content;color:#fff!important;font-weight:900!important}
+.news-reference-page .pl-page-hero h1:after{content:'';display:block;width:31px;height:2px;background:#f11;margin-top:10px}
+.news-reference-page .pl-page-hero p{max-width:430px!important;color:#c8c8c8!important;font-family:Arial,sans-serif!important;font-size:14px!important;font-weight:400!important;line-height:1.5!important;margin:0!important}
 .news-reference-controls{max-width:1180px;margin:0 auto 22px;border:1px solid #282828;border-radius:5px;min-height:76px;padding:15px;display:flex;align-items:center;gap:10px;background:#050505}
 .news-reference-tabs{display:flex;align-items:center;gap:7px;flex:1}
 .news-reference-tabs button,.news-reference-sort{height:40px;border:0;background:transparent;color:#eee;padding:0 18px;font-family:'Arial Narrow',Arial,sans-serif;font-weight:700;font-size:12px;text-transform:uppercase;cursor:pointer}
@@ -60,7 +60,7 @@
   .news-reference-sidebar-ad .news-sidebar-ad-content{display:flex;min-height:0}
   .news-sidebar-ad-image{height:210px;min-height:210px;border-right:0;border-bottom:1px solid #262626}
   .news-reference-card .pl-thumb{height:220px}
-  .news-reference-page .pl-page-hero h1{font-size:40px}
+  .news-reference-page .pl-page-hero h1{font-size:40px!important}
   .news-reference-controls{align-items:stretch}
   .news-reference-tabs{width:100%}
   .news-reference-sort{width:100%}

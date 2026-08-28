@@ -10,6 +10,7 @@ import { ArticlePageBridge } from './ArticlePageBridge'
 import { ClickableCardsBridge } from './ClickableCardsBridge'
 import { HomePageAdjustmentsBridge } from './HomePageAdjustmentsBridge'
 import { HomeSidebarAdBridge } from './HomeSidebarAdBridge'
+import { PublicSearchSuggestionsBridge } from './PublicSearchSuggestionsBridge'
 import './styles.css'
 import './public.css'
 import './public-logo.css'
@@ -36,6 +37,7 @@ import './home-trending.css'
 import './bastidores-three-grid.css'
 import './article-route-fix.css'
 import './public-header-system.css'
+import './public-search-suggestions.css'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
@@ -49,6 +51,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
       <ClickableCardsBridge />
       <HomePageAdjustmentsBridge />
       <HomeSidebarAdBridge />
+      <PublicSearchSuggestionsBridge />
     </HashRouter>
   </React.StrictMode>,
 )

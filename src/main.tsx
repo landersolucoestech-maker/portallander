@@ -12,7 +12,7 @@ import { ClickableCardsBridge } from './ClickableCardsBridge'
 import { HomePageAdjustmentsBridge } from './HomePageAdjustmentsBridge'
 import { HomeSidebarAdBridge } from './HomeSidebarAdBridge'
 import { PublicSearchSuggestionsBridge } from './PublicSearchSuggestionsBridge'
-import { ColaborePageBridge } from './ColaborePageBridge'
+import { ColaborePageBridge } from './pages/colabore/ColaborePageBridge'
 import './public-styles.css'
 
 const REQUIRED_PUBLIC_FONTS = [

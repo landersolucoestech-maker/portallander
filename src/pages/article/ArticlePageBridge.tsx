@@ -1,0 +1,1 @@
+export { ArticlePageBridge } from '../../ArticlePageBridge'

@@ -30,6 +30,13 @@
   color:#fff;
 }
 
+.colabore-page .colabore-form select option:hover,
+.colabore-page .colabore-form select option:focus,
+.colabore-page .colabore-form select option:checked{
+  background:#151515 linear-gradient(0deg,#151515 0%,#151515 100%);
+  color:#fff;
+}
+
 .colabore-page .colabore-title-type-grid{
   margin-top:0;
 }

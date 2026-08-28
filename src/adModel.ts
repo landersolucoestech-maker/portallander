@@ -8,6 +8,9 @@ export type HomeAdConfig = {
   buttonUrl: string
   image: string
   imageAlt: string
+  logo: string
+  logoAlt: string
+  logoWidth: number
   height: number
   contentWidth: number
   align: HomeAdAlign
@@ -23,6 +26,9 @@ export const defaultHomeAdConfig: HomeAdConfig = {
   buttonUrl: '/anuncie',
   image: '',
   imageAlt: 'Anúncio em destaque no Portal Lander',
+  logo: '',
+  logoAlt: 'Logo do anunciante',
+  logoWidth: 140,
   height: 440,
   contentWidth: 1180,
   align: 'center',
@@ -35,6 +41,7 @@ function normalize(raw: Partial<HomeAdConfig> | null | undefined): HomeAdConfig 
     ...raw,
     height: Math.min(900, Math.max(120, Number(raw.height) || defaultHomeAdConfig.height)),
     contentWidth: Math.min(1600, Math.max(320, Number(raw.contentWidth) || defaultHomeAdConfig.contentWidth)),
+    logoWidth: Math.min(320, Math.max(60, Number(raw.logoWidth) || defaultHomeAdConfig.logoWidth)),
     align: raw.align === 'left' || raw.align === 'right' ? raw.align : 'center',
   }
 }

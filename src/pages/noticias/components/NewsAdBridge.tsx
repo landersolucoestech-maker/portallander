@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Link, NavLink, useLocation } from 'react-router-dom'
 import { NewsAdEditor } from './NewsAdEditor'
-import { isNewsAdValid, readNewsAdConfig, type NewsAdConfig } from './newsAdModel'
+import { isNewsAdValid, readNewsAdConfig, type NewsAdConfig } from '../models/newsAdModel'
 
 function ManagedNewsAdContent({ config }: { config: NewsAdConfig }) {
   const valid=isNewsAdValid(config)

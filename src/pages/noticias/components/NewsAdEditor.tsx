@@ -1,6 +1,6 @@
 import { Image as ImageIcon, RotateCcw, Save, Trash2, Upload } from 'lucide-react'
 import { useRef, useState } from 'react'
-import { defaultNewsAdConfig, isNewsAdValid, readNewsAdConfig, resetNewsAdConfig, writeNewsAdConfig, type NewsAdConfig } from './newsAdModel'
+import { defaultNewsAdConfig, isNewsAdValid, readNewsAdConfig, resetNewsAdConfig, writeNewsAdConfig, type NewsAdConfig } from '../models/newsAdModel'
 
 function Field({ label, children, hint }: { label: string; children: React.ReactNode; hint?: string }) {
   return <label className="home-ad-editor-field"><span>{label}</span>{children}{hint && <small>{hint}</small>}</label>

@@ -2,8 +2,8 @@ import { Bell, Building2, ChevronDown, FileText, Images, LayoutDashboard, Newspa
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Link, NavLink, useLocation } from 'react-router-dom'
-import { HomeAdEditor } from '../../HomeAdEditor'
-import { readHomeAdConfig, type HomeAdConfig } from '../../adModel'
+import { HomeAdEditor } from './HomeAdEditor'
+import { readHomeAdConfig, type HomeAdConfig } from './adModel'
 
 function ManagedAdContent({ config }: { config: HomeAdConfig }) {
   if (!config.active) return null

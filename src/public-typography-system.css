@@ -132,9 +132,24 @@
 .article-page .article-related-grid a>span{font-family:var(--pl-font-body)!important;font-size:9px!important}
 .article-page .article-prev-next span{font-family:var(--pl-font-body)!important;font-size:9px!important}
 .article-page .article-prev-next b{font-family:var(--pl-font-body)!important;font-size:11px!important;line-height:1.35!important}
-.article-page .article-footer h4{font-family:var(--pl-font-display)!important;font-size:14px!important;font-weight:400!important}
-.article-page .article-footer p{font-size:10px!important;line-height:1.5!important}
-.article-page .article-footer a{font-size:9px!important;line-height:1.4!important}
+
+/* Footer: same system, but large enough to remain legible. */
+.public-page .public-footer,
+.public-page .pl-footer-grid,
+.article-page .article-footer{
+  font-family:var(--pl-font-body)!important;
+}
+.public-page .pl-footer-col h4{font-size:16px!important;line-height:1.05!important;font-weight:400!important}
+.public-page .pl-footer-col a{font-size:11px!important;line-height:1.55!important;font-weight:var(--pl-weight-normal)!important}
+.public-page .pl-footer-about p{font-size:11px!important;line-height:1.6!important;font-weight:var(--pl-weight-normal)!important}
+.public-page .pl-footer-bottom,
+.public-page .pl-footer-bottom small,
+.public-page .pl-copyright,
+.public-page .public-footer small{font-size:10px!important;line-height:1.45!important}
+.article-page .article-footer h4{font-family:var(--pl-font-display)!important;font-size:16px!important;line-height:1.05!important;font-weight:400!important}
+.article-page .article-footer p{font-size:12px!important;line-height:1.55!important}
+.article-page .article-footer a{font-size:11px!important;line-height:1.5!important}
+.article-page .article-copyright{font-size:10px!important;line-height:1.45!important}
 
 /* Header remains compact but now follows one scale everywhere. */
 .public-header .public-links a{font-size:14px!important;font-weight:400!important}
@@ -144,4 +159,6 @@
   .news-reference-page .news-page-intro-copy h1{font-size:40px!important}
   .article-page .article-hero h1{font-size:34px!important}
   .public-page .pl-section-head h2{font-size:23px!important}
+  .public-page .pl-footer-col h4,.article-page .article-footer h4{font-size:15px!important}
+  .public-page .pl-footer-col a,.public-page .pl-footer-about p,.article-page .article-footer a{font-size:11px!important}
 }

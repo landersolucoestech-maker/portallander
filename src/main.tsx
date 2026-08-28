@@ -44,6 +44,7 @@ import './public-typography-system.css'
 import './brand-assets-manager.css'
 import './colabore-page.css'
 import './public-inner-hero-system.css'
+import './colabore-surgical-fix.css'
 
 const REQUIRED_PUBLIC_FONTS = [
   '400 16px "Bebas Neue"',

@@ -38,6 +38,7 @@ import './bastidores-three-grid.css'
 import './article-route-fix.css'
 import './public-header-system.css'
 import './public-search-suggestions.css'
+import './public-typography-system.css'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

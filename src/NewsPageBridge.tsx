@@ -18,7 +18,7 @@ export function NewsPageBridge(){
     if(!root) return
     const isNews=location.pathname==='/noticias'
     root.classList.toggle('news-reference-page',isNews)
-    document.querySelectorAll('.news-reference-controls,.news-reference-banner').forEach(n=>n.remove())
+    document.querySelectorAll('.news-reference-controls,.news-reference-sidebar-ad,.news-reference-banner').forEach(n=>n.remove())
     if(!isNews) return
     const layout=root.querySelector('.pl-listing-layout') as HTMLElement|null
     const grid=root.querySelector('.pl-listing-grid') as HTMLElement|null
@@ -42,7 +42,13 @@ export function NewsPageBridge(){
         p.textContent=['Versos pesados, bastidores e tudo que movimenta a cena do funk e da cultura urbana.','Artistas, lançamentos, polêmicas e acontecimentos que estão repercutindo nas redes.','Acompanhe as histórias e novidades que movimentam o cenário nacional.'][i%3]
         title.insertAdjacentElement('afterend',p)
       }
-      if(meta&&!meta.querySelector('.bookmark')){meta.classList.add('news-reference-meta');const b=document.createElement('span');b.className='bookmark';b.textContent='♡';meta.appendChild(b)}
+      if(meta&&!meta.querySelector('.bookmark')){
+        meta.classList.add('news-reference-meta')
+        const b=document.createElement('span')
+        b.className='bookmark'
+        b.textContent='♡'
+        meta.appendChild(b)
+      }
     })
 
     const originals=Array.from(grid.children)
@@ -54,6 +60,7 @@ export function NewsPageBridge(){
       card.dataset.category=categoryMap[i%categoryMap.length]
       card.dataset.title=title.toLowerCase()
       card.dataset.articleSlug=slugify(title)
+      card.dataset.sourceOrder=String(i)
     })
 
     grid.innerHTML=''
@@ -63,6 +70,7 @@ export function NewsPageBridge(){
         const clone=source.cloneNode(true) as HTMLElement
         clone.dataset.pageSource=String(page+1)
         clone.dataset.articleSlug=source.dataset.articleSlug||''
+        clone.dataset.sourceOrder=String(page*baseCards.length+i)
         clone.dataset.clickableCard='true'
         clone.tabIndex=0
         clone.setAttribute('role','link')
@@ -72,16 +80,22 @@ export function NewsPageBridge(){
       }
     }
 
+    const adSlot=document.createElement('aside')
+    adSlot.className='news-reference-sidebar-ad'
+    adSlot.setAttribute('aria-label','Publicidade')
+    grid.appendChild(adSlot)
+
     const controls=document.createElement('div')
     controls.className='news-reference-controls'
-    controls.innerHTML='<div class="news-reference-tabs"><button class="active" data-filter="todas">Todas</button><button data-filter="funk">Funk</button><button data-filter="trap">Trap</button><button data-filter="rap">Rap</button><button data-filter="cultura">Cultura</button><button data-filter="entretenimento">Entretenimento</button></div><button class="news-reference-sort">Mais recentes <span>⌄</span></button><label class="news-reference-search"><input placeholder="Buscar notícias..."/><span>⌕</span></label>'
+    controls.innerHTML='<div class="news-reference-tabs"><button class="active" data-filter="todas">Todas</button><button data-filter="funk">Funk</button><button data-filter="trap">Trap</button><button data-filter="rap">Rap</button><button data-filter="cultura">Cultura</button><button data-filter="entretenimento">Entretenimento</button></div><button class="news-reference-sort" data-direction="desc">Mais recentes <span>⌄</span></button><label class="news-reference-search"><input placeholder="Buscar notícias..."/><span>⌕</span></label>'
     layout.parentElement?.insertBefore(controls,layout)
 
     let activeFilter='todas'
     let search=''
     let currentPage=1
+    let sortDirection:'desc'|'asc'='desc'
     const pageSize=12
-    const allCards=Array.from(grid.children) as HTMLElement[]
+    const allCards=Array.from(grid.querySelectorAll<HTMLElement>('.news-reference-card'))
 
     const openCard=(card:HTMLElement)=>{
       const slug=card.dataset.articleSlug||slugify(card.querySelector('h3')?.textContent||'')
@@ -123,11 +137,19 @@ export function NewsPageBridge(){
         const title=card.dataset.title||''
         return (activeFilter==='todas'||category===activeFilter) && (!search||title.includes(search))
       })
-      const totalPages=Math.max(1,Math.ceil(filtered.length/pageSize))
+      const ordered=sortDirection==='desc' ? filtered : [...filtered].reverse()
+      const totalPages=Math.max(1,Math.ceil(ordered.length/pageSize))
       if(currentPage>totalPages) currentPage=totalPages
-      allCards.forEach(card=>card.style.display='none')
+      allCards.forEach(card=>{
+        card.style.display='none'
+        card.classList.remove('news-reference-first-six')
+      })
       const start=(currentPage-1)*pageSize
-      filtered.slice(start,start+pageSize).forEach(card=>card.style.display='')
+      const visible=ordered.slice(start,start+pageSize)
+      visible.forEach((card,index)=>{
+        card.style.display=''
+        if(index<6) card.classList.add('news-reference-first-six')
+      })
       buildPagination(totalPages)
     }
 
@@ -139,6 +161,15 @@ export function NewsPageBridge(){
         button.classList.add('active')
         render()
       })
+    })
+
+    const sortButton=controls.querySelector<HTMLButtonElement>('.news-reference-sort')
+    sortButton?.addEventListener('click',()=>{
+      sortDirection=sortDirection==='desc'?'asc':'desc'
+      sortButton.dataset.direction=sortDirection
+      sortButton.firstChild!.textContent=sortDirection==='desc'?'Mais recentes ':'Mais antigas '
+      currentPage=1
+      render()
     })
 
     const input=controls.querySelector<HTMLInputElement>('.news-reference-search input')
@@ -158,12 +189,6 @@ export function NewsPageBridge(){
     })
 
     render()
-
-    const banner=document.createElement('div')
-    banner.className='news-reference-banner'
-    const logo=(document.querySelector('.public-brand img') as HTMLImageElement|null)?.src||''
-    banner.innerHTML=`<img src="${logo}" alt="Portal Lander"><strong>ANUNCIE AQUI <span>SUA MARCA NO RITMO CERTO!</span></strong><a href="#/anuncie">SAIBA MAIS →</a>`
-    section.appendChild(banner)
 
     return ()=>{
       grid.removeEventListener('click',onGridClick)

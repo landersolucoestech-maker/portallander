@@ -15,6 +15,7 @@ import './hero-fixed-background.css'
 import './hero-carousel.css'
 import './featured-grid.css'
 import './home-ad-manager.css'
+import './releases-four.css'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

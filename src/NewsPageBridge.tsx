@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useLayoutEffect } from 'react'
 import { useLocation } from 'react-router-dom'
 
 function slugify(value:string){
@@ -13,7 +13,7 @@ function slugify(value:string){
 
 export function NewsPageBridge(){
   const location=useLocation()
-  useEffect(()=>{
+  useLayoutEffect(()=>{
     const root=document.querySelector('.public-page') as HTMLElement|null
     if(!root) return
     const isNews=location.pathname==='/noticias'

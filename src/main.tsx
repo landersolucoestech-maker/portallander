@@ -12,6 +12,7 @@ import { ClickableCardsBridge } from './ClickableCardsBridge'
 import { HomePageAdjustmentsBridge } from './HomePageAdjustmentsBridge'
 import { HomeSidebarAdBridge } from './HomeSidebarAdBridge'
 import { PublicSearchSuggestionsBridge } from './PublicSearchSuggestionsBridge'
+import { ColaborePageBridge } from './ColaborePageBridge'
 import './styles.css'
 import './public.css'
 import './public-logo.css'
@@ -41,6 +42,7 @@ import './public-header-system.css'
 import './public-search-suggestions.css'
 import './public-typography-system.css'
 import './brand-assets-manager.css'
+import './colabore-page.css'
 
 const REQUIRED_PUBLIC_FONTS = [
   '400 16px "Bebas Neue"',
@@ -68,6 +70,7 @@ function mountApp() {
         <NewsPageBridge />
         <NewsAdBridge />
         <ArticlePageBridge />
+        <ColaborePageBridge />
         <ClickableCardsBridge />
         <HomePageAdjustmentsBridge />
         <HomeSidebarAdBridge />

@@ -66,10 +66,7 @@ export function NewsAdBridge() {
   }, [])
 
   useEffect(() => {
-    if (location.pathname !== '/noticias') {
-      setTarget(null)
-      return
-    }
+    if (location.pathname !== '/noticias') return
     const frame = window.requestAnimationFrame(() => {
       const element = document.querySelector<HTMLElement>('.news-reference-sidebar-ad')
       if (element) setTarget(element)

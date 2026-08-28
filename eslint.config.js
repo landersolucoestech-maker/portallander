@@ -17,7 +17,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ['src/PortalApp.tsx'],
+    files: ['src/app/PortalApp.tsx'],
     rules: {
       '@typescript-eslint/no-unused-vars': 'off',
     },

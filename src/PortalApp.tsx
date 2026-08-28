@@ -1,1 +1,1 @@
-export { default } from './app/PortalApp'
+export { default, PublicHeader, PublicFooter } from './app/PortalApp'

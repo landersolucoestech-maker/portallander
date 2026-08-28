@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client'
 import { HashRouter } from 'react-router-dom'
 import App from './PortalApp'
 import { HomeAdBridge } from './HomeAdBridge'
+import { HeaderBrandBridge } from './HeaderBrandBridge'
 import './styles.css'
 import './public.css'
 import './public-logo.css'
@@ -17,12 +18,14 @@ import './featured-grid.css'
 import './home-ad-manager.css'
 import './releases-four.css'
 import './header-active-indicator.css'
+import './header-brand-manager.css'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <HashRouter>
       <App />
       <HomeAdBridge />
+      <HeaderBrandBridge />
     </HashRouter>
   </React.StrictMode>,
 )

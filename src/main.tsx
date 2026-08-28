@@ -30,6 +30,7 @@ import './news-hero-upload.css'
 import './article-page.css'
 import './clickable-cards.css'
 import './home-sidebar-ad.css'
+import './home-trending.css'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

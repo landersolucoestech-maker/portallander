@@ -13,9 +13,9 @@
 @import './releases-four.css';
 @import './shared/branding/header-active-indicator.css';
 @import './shared/branding/header-brand-manager.css';
-@import './news-reference-page.css';
-@import './news-hero-upload.css';
-@import './news-hero-reference.css';
+@import './pages/noticias/news-reference-page.css';
+@import './pages/noticias/news-hero-upload.css';
+@import './pages/noticias/news-hero-reference.css';
 @import './pages/article/article-page.css';
 @import './pages/article/article-hero-shared.css';
 @import './shared/behaviors/clickable-cards.css';

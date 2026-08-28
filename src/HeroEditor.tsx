@@ -1,4 +1,4 @@
-import { Copy, Eye, Image as ImageIcon, Plus, RotateCcw, Save, Trash2, Upload, ChevronUp, ChevronDown } from 'lucide-react'
+import { Copy, Image as ImageIcon, Plus, RotateCcw, Save, Trash2, Upload, ChevronUp, ChevronDown } from 'lucide-react'
 import { useMemo, useRef, useState } from 'react'
 import { HeroSection } from './HeroSection'
 import { applyArticleToSlide, defaultHeroConfig, defaultHeroSlide, heroArticles, readHeroConfig, resetHeroConfig, writeHeroConfig, type HeroCarouselConfig, type HeroSlide } from './heroModel'

@@ -4,6 +4,7 @@ import { HashRouter } from 'react-router-dom'
 import App from './PortalApp'
 import { HomeAdBridge } from './HomeAdBridge'
 import { HeaderBrandBridge } from './HeaderBrandBridge'
+import { BrandAssetsBridge } from './BrandAssetsBridge'
 import { NewsPageBridge } from './NewsPageBridge'
 import { NewsAdBridge } from './NewsAdBridge'
 import { ArticlePageBridge } from './ArticlePageBridge'
@@ -39,6 +40,7 @@ import './article-route-fix.css'
 import './public-header-system.css'
 import './public-search-suggestions.css'
 import './public-typography-system.css'
+import './brand-assets-manager.css'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
@@ -46,6 +48,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
       <App />
       <HomeAdBridge />
       <HeaderBrandBridge />
+      <BrandAssetsBridge />
       <NewsPageBridge />
       <NewsAdBridge />
       <ArticlePageBridge />

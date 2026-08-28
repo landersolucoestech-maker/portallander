@@ -1,9 +1,9 @@
 import { Bell, Building2, ChevronDown, FileImage, FileText, Images, LayoutDashboard, Newspaper, Palette, RotateCcw, Save, Settings, Star, Tags, Upload } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
-import { defaultHeaderBrandConfig, readHeaderBrandConfig, resetHeaderBrandConfig, writeHeaderBrandConfig, type HeaderBrandConfig } from './headerBrandModel'
-import { defaultFooterBrandConfig, readFooterBrandConfig, resetFooterBrandConfig, writeFooterBrandConfig, type FooterBrandConfig } from './footerBrandModel'
-import { defaultHomeAdConfig, readHomeAdConfig, resetHomeAdConfig, writeHomeAdConfig, type HomeAdConfig } from './adModel'
+import { defaultHeaderBrandConfig, readHeaderBrandConfig, resetHeaderBrandConfig, writeHeaderBrandConfig, type HeaderBrandConfig } from '../models/headerBrandModel'
+import { defaultFooterBrandConfig, readFooterBrandConfig, resetFooterBrandConfig, writeFooterBrandConfig, type FooterBrandConfig } from '../models/footerBrandModel'
+import { defaultHomeAdConfig, readHomeAdConfig, resetHomeAdConfig, writeHomeAdConfig, type HomeAdConfig } from '../../../pages/home/models/adModel'
 
 const siteNav = [
   ['Visão geral', LayoutDashboard, '/app/site'],

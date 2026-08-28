@@ -1,7 +1,7 @@
 import { Image as ImageIcon, RotateCcw, Save, Trash2, Upload } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
-import { defaultHeaderBrandConfig, readHeaderBrandConfig, resetHeaderBrandConfig, writeHeaderBrandConfig, type HeaderBrandConfig } from './headerBrandModel'
+import { defaultHeaderBrandConfig, readHeaderBrandConfig, resetHeaderBrandConfig, writeHeaderBrandConfig, type HeaderBrandConfig } from '../models/headerBrandModel'
 
 function applyBrand(config:HeaderBrandConfig){
   const anchor=document.querySelector<HTMLAnchorElement>('.public-header .public-brand')

@@ -1,5 +1,6 @@
 import { useLayoutEffect } from 'react'
 import { useLocation } from 'react-router-dom'
+import { isNewsAdValid, readNewsAdConfig } from './newsAdModel'
 
 function slugify(value:string){
   return value
@@ -30,6 +31,9 @@ export function NewsPageBridge(){
     section.querySelector('.pl-section-head')?.remove()
     grid.classList.remove('pl-listing-grid')
     grid.classList.add('news-reference-grid')
+
+    const adIsValid=isNewsAdValid(readNewsAdConfig())
+    grid.classList.toggle('has-news-ad',adIsValid)
 
     Array.from(grid.children).forEach((card,i)=>{
       card.classList.add('news-reference-card')
@@ -83,6 +87,7 @@ export function NewsPageBridge(){
     const adSlot=document.createElement('aside')
     adSlot.className='news-reference-sidebar-ad'
     adSlot.setAttribute('aria-label','Publicidade')
+    adSlot.style.display=adIsValid?'':'none'
     grid.appendChild(adSlot)
 
     const controls=document.createElement('div')

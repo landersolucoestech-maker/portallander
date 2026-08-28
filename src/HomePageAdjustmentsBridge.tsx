@@ -54,6 +54,13 @@ export function HomePageAdjustmentsBridge() {
       }
     })
 
+    const whatsappSection = document.querySelector<HTMLElement>('.public-page .pl-whatsapp')
+    if (whatsappSection) {
+      whatsappSection.dataset.homeTemporarilyHidden = 'true'
+      whatsappSection.style.display = 'none'
+      hiddenSections.push(whatsappSection)
+    }
+
     const homeMain = document.querySelector<HTMLElement>('.public-page .pl-main')
     const ad = homeMain?.querySelector<HTMLElement>(':scope > .pl-ad') || null
     const categorySection = Array.from(homeMain?.querySelectorAll<HTMLElement>(':scope > section.pl-section') || [])

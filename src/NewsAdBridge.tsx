@@ -3,22 +3,27 @@ import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Link, NavLink, useLocation } from 'react-router-dom'
 import { NewsAdEditor } from './NewsAdEditor'
-import { readNewsAdConfig, type NewsAdConfig } from './newsAdModel'
+import { isNewsAdValid, readNewsAdConfig, type NewsAdConfig } from './newsAdModel'
 
 function ManagedNewsAdContent({ config }: { config: NewsAdConfig }) {
-  if (!config.active) return null
-  const style = {
-    ['--home-ad-height' as string]: `${config.height}px`,
-    ['--home-ad-content-width' as string]: `${config.contentWidth}px`,
-  }
-  return <div className={`home-ad-portal align-${config.align}`} style={style}>
-    {config.image && <img className="pl-ad-image" src={config.image} alt={config.imageAlt} />}
-    <div className="pl-ad-content">
-      {config.title && <b><em>{config.title}</em></b>}
-      {config.subtitle && <span>{config.subtitle}</span>}
-      {config.buttonLabel && (/^https?:\/\//i.test(config.buttonUrl)
-        ? <a href={config.buttonUrl} target="_blank" rel="noreferrer">{config.buttonLabel}</a>
-        : <Link to={config.buttonUrl || '/'}>{config.buttonLabel}</Link>)}
+  const valid=isNewsAdValid(config)
+  if(!valid) return null
+  const backgroundStyle=config.background
+    ? { backgroundImage:`linear-gradient(180deg,rgba(0,0,0,.28),rgba(0,0,0,.72)),url(${config.background})` }
+    : undefined
+  const external=/^https?:\/\//i.test(config.buttonUrl)
+  const target=config.openInNewTab?'_blank':undefined
+  const rel=config.openInNewTab?'noreferrer':undefined
+  return <div className={`news-sidebar-ad-content align-${config.align}`} style={backgroundStyle}>
+    {config.image && <img className="news-sidebar-ad-image" src={config.image} alt={config.imageAlt}/>} 
+    <div className="news-sidebar-ad-copy">
+      {config.label && <span className="news-sidebar-ad-label">{config.label}</span>}
+      {config.title && <strong>{config.title}</strong>}
+      {config.subtitle && <p>{config.subtitle}</p>}
+      {config.buttonLabel && (external || config.openInNewTab
+        ? <a href={config.buttonUrl || '#/anuncie'} target={target} rel={rel}>{config.buttonLabel}</a>
+        : <Link to={config.buttonUrl || '/anuncie'}>{config.buttonLabel}</Link>)}
+      {(config.advertiser || config.campaign) && <small>{[config.advertiser,config.campaign].filter(Boolean).join(' · ')}</small>}
     </div>
   </div>
 }
@@ -61,22 +66,25 @@ export function NewsAdBridge() {
   }, [])
 
   useEffect(() => {
-    if (location.pathname !== '/noticias') return
+    if (location.pathname !== '/noticias') {
+      setTarget(null)
+      return
+    }
     const frame = window.requestAnimationFrame(() => {
-      const element = document.querySelector<HTMLElement>('.news-reference-banner')
-      if (element) {
-        element.classList.add('pl-ad-managed')
-        setTarget(element)
-      }
+      const element = document.querySelector<HTMLElement>('.news-reference-sidebar-ad')
+      if (element) setTarget(element)
     })
     return () => window.cancelAnimationFrame(frame)
   }, [location.pathname])
 
   useEffect(() => {
     if (location.pathname !== '/noticias') return
-    const element = document.querySelector<HTMLElement>('.news-reference-banner')
-    if (element) element.style.display = config.active ? '' : 'none'
-  }, [location.pathname, config.active])
+    const valid=isNewsAdValid(config)
+    const element=document.querySelector<HTMLElement>('.news-reference-sidebar-ad')
+    const grid=document.querySelector<HTMLElement>('.news-reference-grid')
+    if(element) element.style.display=valid?'':'none'
+    if(grid) grid.classList.toggle('has-news-ad',valid)
+  }, [location.pathname, config])
 
   if (location.pathname === '/app/site/noticias/anuncio') return <NewsAdManagerPage/>
 

@@ -5,6 +5,7 @@ import App from './PortalApp'
 import { HomeAdBridge } from './HomeAdBridge'
 import { HeaderBrandBridge } from './HeaderBrandBridge'
 import { NewsPageBridge } from './NewsPageBridge'
+import { NewsAdBridge } from './NewsAdBridge'
 import './styles.css'
 import './public.css'
 import './public-logo.css'
@@ -29,6 +30,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
       <HomeAdBridge />
       <HeaderBrandBridge />
       <NewsPageBridge />
+      <NewsAdBridge />
     </HashRouter>
   </React.StrictMode>,
 )

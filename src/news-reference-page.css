@@ -11,7 +11,8 @@
 .news-reference-tabs{display:flex;align-items:center;gap:7px;flex:1}
 .news-reference-tabs button,.news-reference-sort{height:40px;border:0;background:transparent;color:#eee;padding:0 18px;font-family:'Arial Narrow',Arial,sans-serif;font-weight:700;font-size:12px;text-transform:uppercase;cursor:pointer}
 .news-reference-tabs button.active{border:1px solid #e11;border-radius:3px;color:#fff}
-.news-reference-sort{border:1px solid #2b2b2b;border-radius:3px;min-width:150px;display:flex;justify-content:space-between;align-items:center}
+.news-reference-sort{border:1px solid #2b2b2b;border-radius:3px;min-width:150px;display:flex;justify-content:space-between;align-items:center;background:#050505!important;color:#fff!important;color-scheme:dark}
+.news-reference-sort option{background:#050505!important;color:#fff!important}
 .news-reference-search{height:40px;width:260px;border:1px solid #2b2b2b;border-radius:3px;display:flex;align-items:center;padding:0 13px;gap:10px}
 .news-reference-search input{width:100%;background:transparent;border:0;outline:0;color:#fff;font-size:12px}
 .news-reference-grid{max-width:1170px;margin:0 auto;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;align-items:stretch}

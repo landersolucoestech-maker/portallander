@@ -1,6 +1,16 @@
 import { useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
 
+function slugify(value:string){
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g,'')
+    .toLowerCase()
+    .replace(/[“”"'’]/g,'')
+    .replace(/[^a-z0-9]+/g,'-')
+    .replace(/^-+|-+$/g,'')
+}
+
 export function NewsPageBridge(){
   const location=useLocation()
   useEffect(()=>{
@@ -40,8 +50,10 @@ export function NewsPageBridge(){
     const baseCards=Array.from(grid.children) as HTMLElement[]
     const categoryMap=['funk','trap','rap','cultura','entretenimento','funk','trap','rap','cultura','entretenimento','funk','rap']
     baseCards.forEach((card,i)=>{
+      const title=(card.querySelector('h3')?.textContent||'').trim()
       card.dataset.category=categoryMap[i%categoryMap.length]
-      card.dataset.title=(card.querySelector('h3')?.textContent||'').toLowerCase()
+      card.dataset.title=title.toLowerCase()
+      card.dataset.articleSlug=slugify(title)
     })
 
     grid.innerHTML=''
@@ -50,6 +62,12 @@ export function NewsPageBridge(){
         const source=baseCards[(i+page)%baseCards.length]
         const clone=source.cloneNode(true) as HTMLElement
         clone.dataset.pageSource=String(page+1)
+        clone.dataset.articleSlug=source.dataset.articleSlug||''
+        clone.dataset.clickableCard='true'
+        clone.tabIndex=0
+        clone.setAttribute('role','link')
+        clone.setAttribute('aria-label',`Abrir ${clone.querySelector('h3')?.textContent?.trim()||'notícia'}`)
+        clone.style.cursor='pointer'
         grid.appendChild(clone)
       }
     }
@@ -65,19 +83,27 @@ export function NewsPageBridge(){
     const pageSize=12
     const allCards=Array.from(grid.children) as HTMLElement[]
 
-    allCards.forEach(card=>{
-      card.tabIndex=0
-      card.setAttribute('role','link')
-      card.style.cursor='pointer'
-      const openArticle=()=>{window.location.hash='#/noticia/mc-cabelinho-lanca-melhor-so-e-fas-vao-a-loucura'}
-      card.addEventListener('click',event=>{
-        if((event.target as HTMLElement).closest('.bookmark')) return
-        openArticle()
-      })
-      card.addEventListener('keydown',event=>{
-        if(event.key==='Enter'||event.key===' '){event.preventDefault();openArticle()}
-      })
-    })
+    const openCard=(card:HTMLElement)=>{
+      const slug=card.dataset.articleSlug||slugify(card.querySelector('h3')?.textContent||'')
+      if(!slug) return
+      window.location.hash=`/noticia/${slug}`
+    }
+
+    const onGridClick=(event:MouseEvent)=>{
+      const target=event.target as HTMLElement
+      if(target.closest('.bookmark')) return
+      const card=target.closest<HTMLElement>('.news-reference-card')
+      if(card) openCard(card)
+    }
+    const onGridKeyDown=(event:KeyboardEvent)=>{
+      if(event.key!=='Enter'&&event.key!==' ') return
+      const card=(event.target as HTMLElement).closest<HTMLElement>('.news-reference-card')
+      if(!card) return
+      event.preventDefault()
+      openCard(card)
+    }
+    grid.addEventListener('click',onGridClick)
+    grid.addEventListener('keydown',onGridKeyDown)
 
     const buildPagination=(totalPages:number)=>{
       if(!pagination) return
@@ -138,6 +164,11 @@ export function NewsPageBridge(){
     const logo=(document.querySelector('.public-brand img') as HTMLImageElement|null)?.src||''
     banner.innerHTML=`<img src="${logo}" alt="Portal Lander"><strong>ANUNCIE AQUI <span>SUA MARCA NO RITMO CERTO!</span></strong><a href="#/anuncie">SAIBA MAIS →</a>`
     section.appendChild(banner)
+
+    return ()=>{
+      grid.removeEventListener('click',onGridClick)
+      grid.removeEventListener('keydown',onGridKeyDown)
+    }
   },[location.pathname])
   return null
 }

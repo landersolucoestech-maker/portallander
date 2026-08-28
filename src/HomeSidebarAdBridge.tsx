@@ -24,7 +24,7 @@ export function HomeSidebarAdBridge(){
       </div>
     `
 
-    mostRead.insertAdjacentElement('afterend',ad)
+    mostRead.appendChild(ad)
   },[location.pathname])
 
   return null

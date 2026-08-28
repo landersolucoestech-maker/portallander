@@ -54,11 +54,33 @@ export function HomePageAdjustmentsBridge() {
       }
     })
 
-    const whatsappSection = document.querySelector<HTMLElement>('.public-page .pl-whatsapp')
+    const whatsappSection = document.querySelector<HTMLElement>('.public-page .pl-latest-wrap .pl-whatsapp')
+    const whatsappOriginalClass = whatsappSection?.className || ''
+    const whatsappOriginalHtml = whatsappSection?.innerHTML || ''
+
     if (whatsappSection) {
-      whatsappSection.dataset.homeTemporarilyHidden = 'true'
-      whatsappSection.style.display = 'none'
-      hiddenSections.push(whatsappSection)
+      whatsappSection.className = 'pl-trending'
+      whatsappSection.innerHTML = `
+        <div class="pl-section-head pl-trending-head"><h2>EM ALTA</h2><a href="#/noticias">VER TODOS</a></div>
+        <div class="pl-trending-list">
+          <a class="pl-trending-item" href="#/noticia/veigh-bate-recorde-com-novo-album-dos-predios-deluxe">
+            <span class="pl-trending-rank">01</span>
+            <div><strong>Veigh bate recorde com novo álbum “Dos Prédios Deluxe”</strong><small>Há 3 horas</small></div>
+          </a>
+          <a class="pl-trending-item" href="#/noticia/mc-ryan-sp-cancela-show-de-ultima-hora-e-web-reage">
+            <span class="pl-trending-rank">02</span>
+            <div><strong>MC Ryan SP cancela show de última hora e web reage</strong><small>Há 4 horas</small></div>
+          </a>
+          <a class="pl-trending-item" href="#/noticia/festival-de-trap-2025-anuncia-line-up-pesado">
+            <span class="pl-trending-rank">03</span>
+            <div><strong>Festival de Trap 2025 anuncia line-up pesado</strong><small>Há 5 horas</small></div>
+          </a>
+          <a class="pl-trending-item" href="#/noticia/ludmilla-confirma-nova-turne-numanice-4">
+            <span class="pl-trending-rank">04</span>
+            <div><strong>Ludmilla confirma nova turnê “Numanice 4”</strong><small>Há 6 horas</small></div>
+          </a>
+        </div>
+      `
     }
 
     const homeMain = document.querySelector<HTMLElement>('.public-page .pl-main')
@@ -85,6 +107,10 @@ export function HomePageAdjustmentsBridge() {
         section.style.removeProperty('display')
         delete section.dataset.homeTemporarilyHidden
       })
+      if (whatsappSection) {
+        whatsappSection.className = whatsappOriginalClass
+        whatsappSection.innerHTML = whatsappOriginalHtml
+      }
       if (categorySection) {
         categorySection.style.removeProperty('display')
         delete categorySection.dataset.homeTemporarilyHidden

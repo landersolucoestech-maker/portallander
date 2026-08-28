@@ -1,4 +1,4 @@
-.pl-trending{align-self:start;border:1px solid #272727;border-radius:5px;background:#0a0a0a;overflow:hidden;margin-top:14px}
+.pl-trending{align-self:start;width:100%;max-width:100%;box-sizing:border-box;border:1px solid #272727;border-radius:5px;background:#0a0a0a;overflow:hidden;margin-top:14px}
 .pl-trending-head{margin:0;padding:18px 18px 14px;border-bottom:1px solid #242424}
 .pl-trending-head h2{margin:0}
 .pl-trending-list{display:flex;flex-direction:column}

@@ -60,7 +60,7 @@ export function HeroSection({ config, previewIndex = 0, disableAutoplay = false 
 
         <div className="editorial-hero-media" style={mediaStyle}>
           <img className="editorial-featured-image" src={hero.image || defaultHeroSlide.image} alt={hero.imageAlt || defaultHeroSlide.imageAlt} fetchPriority="high" decoding="async" style={{ objectPosition: `${hero.imagePositionX}% ${hero.imagePositionY}%` }} onError={event => { if (event.currentTarget.src !== defaultHeroSlide.image) event.currentTarget.src = defaultHeroSlide.image }} />
-          <span className="editorial-media-caption" aria-hidden="true">NOTÍCIAS · FUNK · CULTURA · ENTRETENIMENTO</span>
+          {hero.mediaCaption && <span className="editorial-media-caption">{hero.mediaCaption}</span>}
         </div>
       </div>
 

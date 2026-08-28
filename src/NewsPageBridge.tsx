@@ -94,7 +94,7 @@ export function NewsPageBridge(){
 
     const controls=document.createElement('div')
     controls.className='news-reference-controls'
-    controls.innerHTML='<div class="news-reference-tabs"><button class="active" data-filter="todas">Todas</button><button data-filter="funk">Funk</button><button data-filter="trap">Trap</button><button data-filter="rap">Rap</button><button data-filter="cultura">Cultura</button><button data-filter="entretenimento">Entretenimento</button></div><button class="news-reference-sort" data-direction="desc">Mais recentes <span>⌄</span></button><label class="news-reference-search"><input placeholder="Buscar notícias..."/><span>⌕</span></label>'
+    controls.innerHTML='<div class="news-reference-tabs"><button class="active" data-filter="todas">Todas</button><button data-filter="funk">Funk</button><button data-filter="trap">Trap</button><button data-filter="rap">Rap</button><button data-filter="cultura">Cultura</button><button data-filter="entretenimento">Entretenimento</button></div><select class="news-reference-sort" aria-label="Ordenar notícias"><option value="desc" selected>Mais recentes</option><option value="asc">Mais antigas</option></select>'
     grid.parentElement?.insertBefore(controls,grid)
 
     let pagination=root.querySelector<HTMLElement>('.pl-pagination,.news-reference-pagination')
@@ -106,7 +106,6 @@ export function NewsPageBridge(){
     pagination.classList.add('news-reference-pagination')
 
     let activeFilter='todas'
-    let search=''
     let currentPage=1
     let sortDirection:'desc'|'asc'='desc'
     const pageSize=14
@@ -146,8 +145,7 @@ export function NewsPageBridge(){
     const render=()=>{
       const filtered=allCards.filter(card=>{
         const category=card.dataset.category||''
-        const title=card.dataset.title||''
-        return (activeFilter==='todas'||category===activeFilter)&&(!search||title.includes(search))
+        return activeFilter==='todas'||category===activeFilter
       })
       const ordered=sortDirection==='desc'?filtered:[...filtered].reverse()
       const totalPages=Math.max(1,Math.ceil(ordered.length/pageSize))
@@ -174,18 +172,9 @@ export function NewsPageBridge(){
       })
     })
 
-    const sortButton=controls.querySelector<HTMLButtonElement>('.news-reference-sort')
-    sortButton?.addEventListener('click',()=>{
-      sortDirection=sortDirection==='desc'?'asc':'desc'
-      sortButton.dataset.direction=sortDirection
-      if(sortButton.firstChild)sortButton.firstChild.textContent=sortDirection==='desc'?'Mais recentes ':'Mais antigas '
-      currentPage=1
-      render()
-    })
-
-    const input=controls.querySelector<HTMLInputElement>('.news-reference-search input')
-    input?.addEventListener('input',()=>{
-      search=(input.value||'').trim().toLowerCase()
+    const sortSelect=controls.querySelector<HTMLSelectElement>('.news-reference-sort')
+    sortSelect?.addEventListener('change',()=>{
+      sortDirection=sortSelect.value==='asc'?'asc':'desc'
       currentPage=1
       render()
     })

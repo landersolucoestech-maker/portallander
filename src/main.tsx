@@ -16,6 +16,7 @@ import './hero-carousel.css'
 import './featured-grid.css'
 import './home-ad-manager.css'
 import './releases-four.css'
+import './header-active-indicator.css'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

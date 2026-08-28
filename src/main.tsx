@@ -11,6 +11,7 @@ import './hero-editable.css'
 import './public-reference.css'
 import './public-corrections.css'
 import './hero-fixed-background.css'
+import './hero-carousel.css'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

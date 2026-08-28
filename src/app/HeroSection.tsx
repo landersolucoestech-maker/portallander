@@ -1,1 +1,1 @@
-export { HeroSection } from '../pages/home/HeroSection'
+export { HeroSection } from '../pages/home/components/HeroSection'

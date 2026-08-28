@@ -1,1 +1,1 @@
-export { HeroEditor } from '../pages/home/HeroEditor'
+export { HeroEditor } from '../pages/home/components/HeroEditor'

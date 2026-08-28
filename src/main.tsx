@@ -5,9 +5,7 @@ import App from './app/PortalApp'
 import { HomeAdBridge } from './pages/home/components/HomeAdBridge'
 import { HeaderBrandBridge } from './shared/branding/components/HeaderBrandBridge'
 import { BrandAssetsBridge } from './shared/branding/components/BrandAssetsBridge'
-import { NewsPageBridge } from './pages/noticias/components/NewsPageBridge'
 import { NewsAdBridge } from './pages/noticias/components/NewsAdBridge'
-import { ArticlePageBridge } from './pages/article/components/ArticlePageBridge'
 import { ClickableCardsBridge } from './shared/behaviors/components/ClickableCardsBridge'
 import { HomePageAdjustmentsBridge } from './pages/home/components/HomePageAdjustmentsBridge'
 import { HomeSidebarAdBridge } from './pages/home/components/HomeSidebarAdBridge'
@@ -16,12 +14,7 @@ import { ColaborePageBridge } from './pages/colabore/components/ColaborePageBrid
 import './styles/public-styles.css'
 
 const REQUIRED_PUBLIC_FONTS = [
-  '400 16px "Bebas Neue"',
-  '400 16px "Montserrat"',
-  '500 16px "Montserrat"',
-  '600 16px "Montserrat"',
-  '700 16px "Montserrat"',
-  '800 16px "Montserrat"',
+  '400 16px "Bebas Neue"','400 16px "Montserrat"','500 16px "Montserrat"','600 16px "Montserrat"','700 16px "Montserrat"','800 16px "Montserrat"',
 ]
 
 async function waitForPublicFonts() {
@@ -32,29 +25,12 @@ async function waitForPublicFonts() {
 
 function mountApp() {
   ReactDOM.createRoot(document.getElementById('root')!).render(
-    <React.StrictMode>
-      <HashRouter>
-        <App />
-        <HomeAdBridge />
-        <HeaderBrandBridge />
-        <BrandAssetsBridge />
-        <NewsPageBridge />
-        <NewsAdBridge />
-        <ArticlePageBridge />
-        <ClickableCardsBridge />
-        <HomePageAdjustmentsBridge />
-        <HomeSidebarAdBridge />
-        <PublicSearchSuggestionsBridge />
-        <ColaborePageBridge />
-      </HashRouter>
-    </React.StrictMode>,
+    <React.StrictMode><HashRouter><App/><HomeAdBridge/><HeaderBrandBridge/><BrandAssetsBridge/><NewsAdBridge/><ClickableCardsBridge/><HomePageAdjustmentsBridge/><HomeSidebarAdBridge/><PublicSearchSuggestionsBridge/><ColaborePageBridge/></HashRouter></React.StrictMode>,
   )
 }
 
-void waitForPublicFonts()
-  .catch(() => undefined)
-  .finally(() => {
-    document.documentElement.classList.remove('pl-fonts-loading')
-    document.documentElement.classList.add('pl-fonts-ready')
-    mountApp()
-  })
+void waitForPublicFonts().catch(() => undefined).finally(() => {
+  document.documentElement.classList.remove('pl-fonts-loading')
+  document.documentElement.classList.add('pl-fonts-ready')
+  mountApp()
+})

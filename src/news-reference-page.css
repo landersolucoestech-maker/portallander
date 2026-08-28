@@ -2,7 +2,7 @@
 .news-reference-page{background:#030303;min-height:100vh;color:#fff}
 .news-reference-page .pl-page-hero{min-height:175px;padding:32px 0 26px;border-bottom:0;background:radial-gradient(circle at 78% 45%,rgba(210,0,0,.15),transparent 26%),#030303;position:relative;overflow:hidden}
 .news-reference-page .pl-page-hero:after{content:'PL';position:absolute;right:15%;top:-45px;font-family:Impact,sans-serif;font-size:210px;font-style:italic;color:rgba(255,255,255,.035);transform:rotate(-8deg)}
-.news-reference-page .pl-page-hero .public-shell{position:relative;z-index:1;display:flex!important;flex-flow:column nowrap!important;align-items:flex-start!important;justify-content:flex-start!important;grid-template-columns:none!important}
+.news-reference-page .pl-page-hero>.public-shell,.news-reference-page .pl-page-hero .public-shell{position:relative!important;z-index:1;display:flex!important;flex-flow:column nowrap!important;align-items:flex-start!important;justify-content:flex-start!important;grid-template-columns:none!important}
 .news-reference-page .pl-page-hero .public-shell>*{float:none!important;position:relative;align-self:flex-start!important}
 .news-reference-page .pl-page-hero span{display:block!important;width:100%!important;font:500 12px/1.2 Arial,sans-serif;color:#888;text-transform:none;letter-spacing:0}
 .news-reference-page .pl-page-hero span:before{content:'Início  ›  ';color:#777}

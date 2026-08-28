@@ -8,25 +8,21 @@ function SmartAdLink({ to, children }: { to: string; children: React.ReactNode }
 }
 
 export function HomeAdSection({ config }: { config?: HomeAdConfig }) {
-  const [runtime, setRuntime] = useState<HomeAdConfig>(() => config || readHomeAdConfig())
+  const [runtime, setRuntime] = useState<HomeAdConfig>(() => readHomeAdConfig())
 
   useEffect(() => {
-    if (config) {
-      setRuntime(config)
-      return
-    }
+    if (config) return
     const sync = () => setRuntime(readHomeAdConfig())
     window.addEventListener('portal-lander:home-ad-updated', sync)
     return () => window.removeEventListener('portal-lander:home-ad-updated', sync)
   }, [config])
 
-  const ad = runtime || defaultHomeAdConfig
+  const ad = config || runtime || defaultHomeAdConfig
   if (!ad.active) return null
 
   const style = {
     ['--home-ad-height' as string]: `${ad.height}px`,
     ['--home-ad-content-width' as string]: `${ad.contentWidth}px`,
-    ['--home-ad-image' as string]: ad.image ? `url("${ad.image}")` : 'none',
   }
 
   return <section className={`pl-ad pl-ad-dynamic align-${ad.align}`} style={style} aria-label="Publicidade">

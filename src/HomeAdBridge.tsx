@@ -61,10 +61,7 @@ export function HomeAdBridge() {
   }, [])
 
   useEffect(() => {
-    if (location.pathname !== '/') {
-      setTarget(null)
-      return
-    }
+    if (location.pathname !== '/') return
     const frame = window.requestAnimationFrame(() => {
       const element = document.querySelector<HTMLElement>('.pl-ad')
       if (element) {
@@ -78,7 +75,7 @@ export function HomeAdBridge() {
   if (location.pathname === '/app/site/home/anuncio') return <HomeAdManagerPage/>
 
   return <>
-    {target && createPortal(<ManagedAdContent config={config}/>, target)}
+    {location.pathname === '/' && target && createPortal(<ManagedAdContent config={config}/>, target)}
     {location.pathname.startsWith('/app/site') && location.pathname !== '/app/site/home/anuncio' && <Link className="site-ad-shortcut" to="/app/site/home/anuncio"><Newspaper size={16}/> Conteúdo · Home · Anúncio</Link>}
   </>
 }

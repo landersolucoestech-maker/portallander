@@ -22,6 +22,7 @@ import './releases-four.css'
 import './header-active-indicator.css'
 import './header-brand-manager.css'
 import './news-reference-page.css'
+import './news-hero-upload.css'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

@@ -65,6 +65,20 @@ export function NewsPageBridge(){
     const pageSize=12
     const allCards=Array.from(grid.children) as HTMLElement[]
 
+    allCards.forEach(card=>{
+      card.tabIndex=0
+      card.setAttribute('role','link')
+      card.style.cursor='pointer'
+      const openArticle=()=>{window.location.hash='#/noticia/mc-cabelinho-lanca-melhor-so-e-fas-vao-a-loucura'}
+      card.addEventListener('click',event=>{
+        if((event.target as HTMLElement).closest('.bookmark')) return
+        openArticle()
+      })
+      card.addEventListener('keydown',event=>{
+        if(event.key==='Enter'||event.key===' '){event.preventDefault();openArticle()}
+      })
+    })
+
     const buildPagination=(totalPages:number)=>{
       if(!pagination) return
       pagination.classList.remove('pl-pagination')

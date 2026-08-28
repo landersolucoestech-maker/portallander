@@ -2,13 +2,20 @@ import { CheckCircle2, Send, ShieldCheck, Upload } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { PublicFooter, PublicHeader } from './PortalApp'
-import './colabore-form-type-select.css'
 
 type SubmissionType='noticia'|'video'|'foto'|'pauta'|''
+
+const submissionLabels:Record<Exclude<SubmissionType,''>,string>={
+  noticia:'Notícia / Pauta',
+  video:'Vídeo',
+  foto:'Foto / Galeria',
+  pauta:'Sugestão de Pauta',
+}
 
 export function ColaborePageBridge(){
   const location=useLocation()
   const [type,setType]=useState<SubmissionType>('')
+  const [typeOpen,setTypeOpen]=useState(false)
   const [fileName,setFileName]=useState('')
   const [sent,setSent]=useState(false)
   const fileRef=useRef<HTMLInputElement>(null)
@@ -16,10 +23,15 @@ export function ColaborePageBridge(){
 
   const submit=(e:React.FormEvent<HTMLFormElement>)=>{
     e.preventDefault()
+    if(!type){
+      setTypeOpen(true)
+      return
+    }
     setSent(true)
     window.setTimeout(()=>setSent(false),5000)
     e.currentTarget.reset()
     setType('')
+    setTypeOpen(false)
     setFileName('')
   }
 
@@ -66,13 +78,29 @@ export function ColaborePageBridge(){
             <div className="colabore-field-grid colabore-title-type-grid">
               <label>Título<input required name="titulo" placeholder="Resuma o assunto em uma frase"/></label>
               <label>Assunto / Tipo de conteúdo
-                <select required name="tipo" value={type} onChange={e=>setType(e.target.value as SubmissionType)}>
-                  <option value="" disabled>Selecione o tipo de conteúdo</option>
-                  <option value="noticia">Notícia / Pauta</option>
-                  <option value="video">Vídeo</option>
-                  <option value="foto">Foto / Galeria</option>
-                  <option value="pauta">Sugestão de Pauta</option>
-                </select>
+                <div className={`colabore-type-select${typeOpen?' open':''}`}>
+                  <button
+                    type="button"
+                    className={`colabore-type-trigger${type?' has-value':''}`}
+                    aria-haspopup="listbox"
+                    aria-expanded={typeOpen}
+                    onClick={()=>setTypeOpen(open=>!open)}
+                  >
+                    <span>{type?submissionLabels[type]:'Selecione o tipo de conteúdo'}</span>
+                    <i aria-hidden="true"/>
+                  </button>
+                  {typeOpen&&<div className="colabore-type-menu" role="listbox" aria-label="Assunto / Tipo de conteúdo">
+                    {(Object.entries(submissionLabels) as [Exclude<SubmissionType,''>,string][]).map(([value,label])=><button
+                      key={value}
+                      type="button"
+                      role="option"
+                      aria-selected={type===value}
+                      className={type===value?'selected':''}
+                      onClick={()=>{setType(value);setTypeOpen(false)}}
+                    >{label}</button>)}
+                  </div>}
+                  <input type="hidden" name="tipo" value={type}/>
+                </div>
               </label>
             </div>
 

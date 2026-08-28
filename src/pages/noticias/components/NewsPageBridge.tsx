@@ -1,6 +1,6 @@
 import { useLayoutEffect } from 'react'
 import { useLocation } from 'react-router-dom'
-import { isNewsAdValid, readNewsAdConfig } from '../../newsAdModel'
+import { isNewsAdValid, readNewsAdConfig } from '../models/newsAdModel'
 
 function slugify(value:string){
   return value

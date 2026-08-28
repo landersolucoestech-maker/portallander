@@ -13,7 +13,7 @@ import './public-corrections.css'
 import './hero-fixed-background.css'
 import './hero-carousel.css'
 import './featured-grid.css'
-import './public-ad-height.css'
+import './home-ad-manager.css'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

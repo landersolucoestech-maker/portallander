@@ -12,7 +12,7 @@
   transform:translateX(-50%);
   z-index:0;
   pointer-events:none;
-  background-image:linear-gradient(90deg,rgba(0,0,0,.97) 0%,rgba(0,0,0,.90) 28%,rgba(0,0,0,.62) 46%,rgba(0,0,0,.18) 68%,rgba(0,0,0,.04) 100%),url('./hero-approved-background-fixed.png');
+  background-image:linear-gradient(90deg,rgba(0,0,0,.96) 0%,rgba(0,0,0,.86) 25%,rgba(0,0,0,.56) 43%,rgba(0,0,0,.16) 66%,rgba(0,0,0,.05) 100%),url('./hero-approved-background-fixed.png');
   background-size:cover;
   background-position:center right;
   background-repeat:no-repeat;

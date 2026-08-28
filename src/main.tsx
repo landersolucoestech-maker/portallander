@@ -70,11 +70,11 @@ function mountApp() {
         <NewsPageBridge />
         <NewsAdBridge />
         <ArticlePageBridge />
-        <ColaborePageBridge />
         <ClickableCardsBridge />
         <HomePageAdjustmentsBridge />
         <HomeSidebarAdBridge />
         <PublicSearchSuggestionsBridge />
+        <ColaborePageBridge />
       </HashRouter>
     </React.StrictMode>,
   )

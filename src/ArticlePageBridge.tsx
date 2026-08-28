@@ -1,11 +1,11 @@
-import { Flame, Link as LinkIcon, Menu, Mic2, Music2, Search, Star, Video, X, Zap } from 'lucide-react'
+import { Link as LinkIcon, Menu, Mic2, Music2, Search, Star, Video, X, Zap } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
 import { portalLogo } from './brandAsset'
 
 const categories = [
   ['Notícias', Zap, '/noticias'],
-  ['Músicas', Flame, '/musicas'],
+  ['Músicas', Music2, '/musicas'],
   ['Bastidores', Mic2, '/bastidores'],
   ['Lançamentos', Music2, '/lancamentos'],
   ['Cultura', Star, '/cultura'],
@@ -38,71 +38,24 @@ const articles=[
 ]
 
 type Article = typeof articles[number]
-
-function fallbackFromSlug(slug:string):Article{
-  const title=slug.split('-').map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' ')
-  return {slug,category:'NOTÍCIAS',title,dek:'Confira os principais detalhes e repercussões deste assunto no Portal Lander.',image:images[0]}
-}
-
+function fallbackFromSlug(slug:string):Article{const title=slug.split('-').map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' ');return {slug,category:'NOTÍCIAS',title,dek:'Confira os principais detalhes e repercussões deste assunto no Portal Lander.',image:images[0]}}
 const ranked=articles.slice(8,13)
 
+/* IMPORTANT: public pages use the exact same header DOM/classes as the homepage. */
 function ArticleHeader(){
   const [open,setOpen]=useState(false)
-  return <header className="article-header"><div className="article-header-inner">
-    <Link to="/" className="article-logo"><img src={portalLogo} alt="Portal Lander"/></Link>
-    <nav className={open?'article-nav open':'article-nav'}>{categories.map(([label,Icon,to])=><NavLink key={to} to={to}><Icon size={14}/>{label}</NavLink>)}<NavLink to="/colabore">Colabore</NavLink></nav>
-    <div className="article-header-actions"><button aria-label="Buscar"><Search size={17}/></button><Link to="/app">Área interna</Link><button className="article-menu" onClick={()=>setOpen(v=>!v)}>{open?<X size={18}/>:<Menu size={18}/>}</button></div>
+  return <header className="public-header"><div className="public-nav">
+    <Link to="/" className="public-brand" aria-label="Portal Lander"><img src={portalLogo} alt="Portal Lander"/></Link>
+    <nav className={open?'public-links open':'public-links'}>
+      {categories.map(([label,Icon,to])=><NavLink key={to} to={to}><Icon size={15}/>{label}</NavLink>)}
+      <NavLink to="/colabore">Colabore</NavLink>
+    </nav>
+    <div className="nav-actions"><button className="public-search" aria-label="Buscar"><Search size={18}/></button><Link className="public-internal" to="/app">Área interna</Link><button className="public-menu" onClick={()=>setOpen(!open)} aria-label="Abrir menu">{open?<X/>:<Menu/>}</button></div>
   </div></header>
 }
 
 function ShareButtons(){return <div className="article-share-buttons"><a href="#" aria-label="Facebook">f</a><a href="#" aria-label="X">𝕏</a><a href="#" aria-label="WhatsApp">◉</a><a href="#" aria-label="Copiar link"><LinkIcon size={16}/></a></div>}
-
-function Sidebar(){return <aside className="article-sidebar">
-  <section className="article-most"><div className="article-side-title"><h2>MAIS LIDAS</h2><span/></div>{ranked.map((item,i)=><Link className="article-ranked" key={item.slug} to={`/noticia/${item.slug}`}><b>{String(i+1).padStart(2,'0')}</b><img src={item.image} alt=""/><div><h3>{item.title}</h3><small>Há {i*2+3} horas</small></div></Link>)}</section>
-  <section className="article-ad-box"><div className="article-ad-overlay"><span>PUBLICIDADE</span><h2>ANUNCIE<br/><em>AQUI</em></h2><i/><p>SUA MARCA NO<br/>RITMO CERTO!</p><Link to="/anuncie">SAIBA MAIS →</Link></div></section>
-</aside>}
-
-function ArticleFooter(){return <footer className="article-footer"><div className="article-footer-grid">
-  <div><img src={portalLogo} alt="Portal Lander"/><p>O melhor do funk, trap e cultura urbana você encontra aqui.</p></div>
-  <div><h4>NAVEGAÇÃO</h4>{categories.map(([label,,to])=><Link key={to} to={to}>{label}</Link>)}<Link to="/colabore">Colabore</Link></div>
-  <div><h4>INSTITUCIONAL</h4><Link to="/sobre">Sobre o Portal Lander</Link><Link to="/equipe">Equipe</Link><Link to="/politica">Política de Privacidade</Link><Link to="/termos">Termos de Uso</Link></div>
-  <div className="article-footer-news"><h4>RECEBA AS PRINCIPAIS NOTÍCIAS</h4><p>Sua melhor fonte de informação sobre funk e cultura urbana.</p><div><input placeholder="Seu e-mail"/><button>→</button></div></div>
-</div><div className="article-copyright">© 2026 Portal Lander. Todos os direitos reservados.</div></footer>}
-
-function ArticlePage({article}:{article:Article}){
-  const index=Math.max(0,articles.findIndex(item=>item.slug===article.slug))
-  const previous=articles[(index-1+articles.length)%articles.length]
-  const next=articles[(index+1)%articles.length]
-  const related=[articles[(index+1)%articles.length],articles[(index+2)%articles.length],articles[(index+3)%articles.length]]
-  const tags=[article.category, ...article.title.replace(/[“”]/g,'').split(' ').filter(w=>w.length>4).slice(0,4)].map(t=>t.toUpperCase())
-  return <div className="article-page"><ArticleHeader/>
-    <section className="article-hero"><div className="article-hero-inner">
-      <div className="article-breadcrumb"><Link to="/">Início</Link><span>›</span><Link to="/noticias">Notícias</Link><span>›</span><span>{article.title}</span></div>
-      <div className="article-category">{article.category}</div>
-      <h1>{article.title}</h1>
-      <p className="article-dek">{article.dek}</p>
-      <div className="article-author-row"><div className="article-author"><span className="article-author-avatar">PL</span><span>Por Portal Lander <b>●</b></span><i/><span>28 de agosto de 2026</span><i/><span>Há 2 horas</span><i/><span>8 min de leitura</span></div><div className="article-share"><span>Compartilhe:</span><ShareButtons/></div></div>
-    </div></section>
-    <main className="article-shell"><div className="article-layout"><article className="article-content">
-      <figure><img src={article.image} alt={article.title}/><figcaption>{article.title} — Foto: Divulgação</figcaption></figure>
-      <p><strong>{article.title.split(' ').slice(0,3).join(' ')}</strong> está de volta com tudo. O assunto já nasce como um dos grandes destaques do cenário do funk e da cultura nacional.</p>
-      <p>Com produção pesada e uma proposta que mistura vivência, ambição e superação, o conteúdo apresenta evolução artística e capacidade de transformar histórias reais em poesia.</p>
-      <blockquote><p>“Essa música é sobre escolha, sobre entender que nem sempre estar acompanhado é estar bem. É sobre voar sozinho e ainda assim fazer tudo tremer.”</p><cite>— MC Cabelinho</cite></blockquote>
-      <h2>PRODUÇÃO E SONORIDADE</h2>
-      <p>O beat envolvente, com elementos de trap e funk, cria a atmosfera perfeita para a mensagem da faixa. A produção ficou por conta de nomes de peso que já colaboraram em outros sucessos.</p>
-      <p>O visualizer, lançado junto com a faixa, também chama atenção pela estética urbana, moderna e cinematográfica.</p>
-      <div className="article-tags"><b>TAGS:</b>{tags.map(t=><span key={t}>{t}</span>)}</div>
-      <div className="article-share-bottom"><span>Compartilhe:</span><ShareButtons/></div>
-      <div className="article-prev-next"><Link to={`/noticia/${previous.slug}`}><span>ANTERIOR</span><b>{previous.title}</b></Link><Link to={`/noticia/${next.slug}`}><span>PRÓXIMA</span><b>{next.title}</b><strong>›</strong></Link></div>
-      <section className="article-related"><div className="article-side-title"><h2>RELACIONADAS</h2><span/></div><div className="article-related-grid">{related.map(item=><Link key={item.slug} to={`/noticia/${item.slug}`}><img src={item.image} alt=""/><small>{item.category}</small><h3>{item.title}</h3><span>Há 4 horas</span></Link>)}</div></section>
-    </article><Sidebar/></div></main><ArticleFooter/>
-  </div>
-}
-
-export function ArticlePageBridge(){
-  const location=useLocation()
-  const slug=location.pathname.startsWith('/noticia/')?decodeURIComponent(location.pathname.slice('/noticia/'.length)):''
-  const article=useMemo(()=>articles.find(item=>item.slug===slug)||fallbackFromSlug(slug),[slug])
-  if(!slug) return null
-  return <div className="article-route-overlay"><ArticlePage article={article}/></div>
-}
+function Sidebar(){return <aside className="article-sidebar"><section className="article-most"><div className="article-side-title"><h2>MAIS LIDAS</h2><span/></div>{ranked.map((item,i)=><Link className="article-ranked" key={item.slug} to={`/noticia/${item.slug}`}><b>{String(i+1).padStart(2,'0')}</b><img src={item.image} alt=""/><div><h3>{item.title}</h3><small>Há {i*2+3} horas</small></div></Link>)}</section><section className="article-ad-box"><div className="article-ad-overlay"><span>PUBLICIDADE</span><h2>ANUNCIE<br/><em>AQUI</em></h2><i/><p>SUA MARCA NO<br/>RITMO CERTO!</p><Link to="/anuncie">SAIBA MAIS →</Link></div></section></aside>}
+function ArticleFooter(){return <footer className="article-footer"><div className="article-footer-grid"><div><img src={portalLogo} alt="Portal Lander"/><p>O melhor do funk, trap e cultura urbana você encontra aqui.</p></div><div><h4>NAVEGAÇÃO</h4>{categories.map(([label,,to])=><Link key={to} to={to}>{label}</Link>)}<Link to="/colabore">Colabore</Link></div><div><h4>INSTITUCIONAL</h4><Link to="/sobre">Sobre o Portal Lander</Link><Link to="/equipe">Equipe</Link><Link to="/politica">Política de Privacidade</Link><Link to="/termos">Termos de Uso</Link></div><div className="article-footer-news"><h4>RECEBA AS PRINCIPAIS NOTÍCIAS</h4><p>Sua melhor fonte de informação sobre funk e cultura urbana.</p><div><input placeholder="Seu e-mail"/><button>→</button></div></div></div><div className="article-copyright">© 2026 Portal Lander. Todos os direitos reservados.</div></footer>}
+function ArticlePage({article}:{article:Article}){const index=Math.max(0,articles.findIndex(item=>item.slug===article.slug));const previous=articles[(index-1+articles.length)%articles.length];const next=articles[(index+1)%articles.length];const related=[articles[(index+1)%articles.length],articles[(index+2)%articles.length],articles[(index+3)%articles.length]];const tags=[article.category,...article.title.replace(/[“”]/g,'').split(' ').filter(w=>w.length>4).slice(0,4)].map(t=>t.toUpperCase());return <div className="article-page"><ArticleHeader/><section className="article-hero"><div className="article-hero-inner"><div className="article-breadcrumb"><Link to="/">Início</Link><span>›</span><Link to="/noticias">Notícias</Link><span>›</span><span>{article.title}</span></div><div className="article-category">{article.category}</div><h1>{article.title}</h1><p className="article-dek">{article.dek}</p><div className="article-author-row"><div className="article-author"><span className="article-author-avatar">PL</span><span>Por Portal Lander <b>●</b></span><i/><span>28 de agosto de 2026</span><i/><span>Há 2 horas</span><i/><span>8 min de leitura</span></div><div className="article-share"><span>Compartilhe:</span><ShareButtons/></div></div></div></section><main className="article-shell"><div className="article-layout"><article className="article-content"><figure><img src={article.image} alt={article.title}/><figcaption>{article.title} — Foto: Divulgação</figcaption></figure><p><strong>{article.title.split(' ').slice(0,3).join(' ')}</strong> está de volta com tudo. O assunto já nasce como um dos grandes destaques do cenário do funk e da cultura nacional.</p><p>Com produção pesada e uma proposta que mistura vivência, ambição e superação, o conteúdo apresenta evolução artística e capacidade de transformar histórias reais em poesia.</p><blockquote><p>“Essa música é sobre escolha, sobre entender que nem sempre estar acompanhado é estar bem. É sobre voar sozinho e ainda assim fazer tudo tremer.”</p><cite>— MC Cabelinho</cite></blockquote><h2>PRODUÇÃO E SONORIDADE</h2><p>O beat envolvente, com elementos de trap e funk, cria a atmosfera perfeita para a mensagem da faixa. A produção ficou por conta de nomes de peso que já colaboraram em outros sucessos.</p><p>O visualizer, lançado junto com a faixa, também chama atenção pela estética urbana, moderna e cinematográfica.</p><div className="article-tags"><b>TAGS:</b>{tags.map(t=><span key={t}>{t}</span>)}</div><div className="article-share-bottom"><span>Compartilhe:</span><ShareButtons/></div><div className="article-prev-next"><Link to={`/noticia/${previous.slug}`}><span>ANTERIOR</span><b>{previous.title}</b></Link><Link to={`/noticia/${next.slug}`}><span>PRÓXIMA</span><b>{next.title}</b><strong>›</strong></Link></div><section className="article-related"><div className="article-side-title"><h2>RELACIONADAS</h2><span/></div><div className="article-related-grid">{related.map(item=><Link key={item.slug} to={`/noticia/${item.slug}`}><img src={item.image} alt=""/><small>{item.category}</small><h3>{item.title}</h3><span>Há 4 horas</span></Link>)}</div></section></article><Sidebar/></div></main><ArticleFooter/></div>}
+export function ArticlePageBridge(){const location=useLocation();const slug=location.pathname.startsWith('/noticia/')?decodeURIComponent(location.pathname.slice('/noticia/'.length)):'';const article=useMemo(()=>articles.find(item=>item.slug===slug)||fallbackFromSlug(slug),[slug]);if(!slug)return null;return <div className="article-route-overlay"><ArticlePage article={article}/></div>}

@@ -1,0 +1,161 @@
+/* Scoped surgical corrections for Colabore only. */
+
+.colabore-page .colabore-hero{
+  width:min(1170px,calc(100% - 40px));
+  min-height:300px;
+  margin:0 auto;
+  border:0!important;
+  outline:0!important;
+  box-shadow:none!important;
+  background:#030303!important;
+  position:relative;
+  overflow:hidden;
+}
+
+.colabore-page .colabore-hero::before{
+  content:''!important;
+  display:block!important;
+  position:absolute;
+  inset:0;
+  width:100%;
+  transform:none;
+  pointer-events:none;
+  z-index:0;
+  background-image:linear-gradient(90deg,rgba(0,0,0,.96) 0%,rgba(0,0,0,.86) 25%,rgba(0,0,0,.56) 43%,rgba(0,0,0,.16) 66%,rgba(0,0,0,.05) 100%),url('./hero-approved-background-fixed.png');
+  background-size:cover;
+  background-position:center right;
+  background-repeat:no-repeat;
+}
+
+.colabore-page .colabore-hero::after{
+  display:none!important;
+  content:none!important;
+}
+
+.colabore-page .colabore-hero-grid{
+  width:100%;
+  height:300px!important;
+  min-height:300px!important;
+  max-height:300px!important;
+  margin:0;
+  padding:32px 4px 42px!important;
+  box-sizing:border-box;
+}
+
+.colabore-page .colabore-type-select{
+  position:relative;
+  width:100%;
+}
+
+.colabore-page .colabore-type-trigger{
+  width:100%;
+  min-height:43px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  border:1px solid #303030;
+  background:#030303;
+  color:#5e5e5e;
+  padding:12px 13px;
+  outline:0;
+  font-family:'Montserrat',Arial,sans-serif;
+  font-size:13px;
+  text-align:left;
+  border-radius:0;
+  cursor:pointer;
+}
+
+.colabore-page .colabore-type-trigger.has-value{
+  color:#fff;
+}
+
+.colabore-page .colabore-type-select.open .colabore-type-trigger,
+.colabore-page .colabore-type-trigger:focus{
+  border-color:#e31313;
+}
+
+.colabore-page .colabore-type-trigger i{
+  width:0;
+  height:0;
+  border-left:5px solid transparent;
+  border-right:5px solid transparent;
+  border-top:6px solid #777;
+  flex:0 0 auto;
+}
+
+.colabore-page .colabore-type-menu{
+  position:absolute;
+  top:calc(100% + 1px);
+  left:0;
+  right:0;
+  z-index:100;
+  border:1px solid #303030;
+  background:#030303;
+  box-shadow:none;
+}
+
+.colabore-page .colabore-type-menu button{
+  width:100%;
+  display:block;
+  padding:10px 13px;
+  border:0;
+  border-bottom:1px solid #151515;
+  background:#030303;
+  color:#fff;
+  font-family:'Montserrat',Arial,sans-serif;
+  font-size:13px;
+  text-align:left;
+  cursor:pointer;
+}
+
+.colabore-page .colabore-type-menu button:last-child{
+  border-bottom:0;
+}
+
+.colabore-page .colabore-type-menu button:hover,
+.colabore-page .colabore-type-menu button:focus,
+.colabore-page .colabore-type-menu button.selected{
+  background:#151515;
+  color:#fff;
+  outline:0;
+}
+
+@media(max-width:980px){
+  .colabore-page .colabore-hero{
+    width:calc(100% - 36px);
+    min-height:260px;
+  }
+  .colabore-page .colabore-hero::before{
+    background-position:62% center;
+  }
+  .colabore-page .colabore-hero-grid{
+    height:260px!important;
+    min-height:260px!important;
+    max-height:260px!important;
+    padding:32px 4px 42px!important;
+  }
+}
+
+@media(max-width:620px){
+  .colabore-page .colabore-title-type-grid{
+    grid-template-columns:1fr;
+    gap:0;
+  }
+}
+
+@media(max-width:600px){
+  .colabore-page .colabore-hero{
+    width:calc(100% - 28px);
+    min-height:235px;
+  }
+  .colabore-page .colabore-hero::before{
+    background-position:68% center;
+  }
+  .colabore-page .colabore-hero-grid{
+    height:235px!important;
+    min-height:235px!important;
+    max-height:235px!important;
+    padding:28px 0 30px!important;
+  }
+}

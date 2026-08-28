@@ -4,7 +4,7 @@ export type HeroTitleSegment = { text: string; emphasis: boolean }
 export type HeroTicker = { active: boolean; label: string; text: string; url: string }
 export type HeroSlideStatus = 'active' | 'inactive'
 export type HeroSlide = {
-  id: string; status: HeroSlideStatus; order: number; eyebrow: string; category: string; title: HeroTitleSegment[]; description: string;
+  id: string; status: HeroSlideStatus; order: number; eyebrow: string; category: string; title: HeroTitleSegment[]; description: string; mediaCaption: string;
   image: string; imageAlt: string; imagePositionX: number; imagePositionY: number; imageScale: number; imageOffsetX: number; imageOffsetY: number;
   primaryCtaLabel: string; primaryCtaUrl: string; secondaryCtaLabel: string; secondaryCtaUrl: string; articleId: string; publishedAt: string; scheduledAt: string;
 }
@@ -25,6 +25,7 @@ export const defaultHeroSlide:HeroSlide={
   id:'dj-stay-main',status:'active',order:1,eyebrow:'PORTAL LANDER • EM DESTAQUE',category:'Destaques',
   title:[{text:'O QUE ESTÁ',emphasis:false},{text:'PEGANDO',emphasis:true},{text:'AGORA.',emphasis:true}],
   description:'Notícias, polêmicas, lançamentos, bastidores e tudo que acontece no funk, na cultura urbana e no entretenimento.',
+  mediaCaption:'NOTÍCIAS · FUNK · CULTURA · ENTRETENIMENTO',
   image:heroDjStay,imageAlt:'DJ Stay em destaque no Portal Lander',imagePositionX:50,imagePositionY:18,imageScale:1.04,imageOffsetX:0,imageOffsetY:18,
   primaryCtaLabel:'VER AGORA',primaryCtaUrl:'/noticias',secondaryCtaLabel:'EXPLORAR DESTAQUES',secondaryCtaUrl:'/destaques',articleId:'dj-stay-setembro',publishedAt:'2026-08-27T18:00',scheduledAt:'',
 }
@@ -38,7 +39,7 @@ export const defaultHeroConfig:HeroCarouselConfig={
 function normalizeSlide(raw:Partial<HeroSlide>|null|undefined,index=0):HeroSlide{
   const base={...defaultHeroSlide,id:index===0?defaultHeroSlide.id:`hero-slide-${Date.now()}-${index}`,order:index+1}
   if(!raw)return base
-  return {...base,...raw,image:raw.image||base.image,title:Array.isArray(raw.title)&&raw.title.length?raw.title.map(segment=>({text:String(segment?.text??''),emphasis:Boolean(segment?.emphasis)})):base.title}
+  return {...base,...raw,image:raw.image||base.image,mediaCaption:String(raw.mediaCaption??base.mediaCaption),title:Array.isArray(raw.title)&&raw.title.length?raw.title.map(segment=>({text:String(segment?.text??''),emphasis:Boolean(segment?.emphasis)})):base.title}
 }
 function normalizeConfig(raw:Partial<HeroCarouselConfig>|null|undefined):HeroCarouselConfig{
   if(!raw)return defaultHeroConfig

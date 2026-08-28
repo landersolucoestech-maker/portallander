@@ -1,4 +1,4 @@
-import { portalLogo } from './brandAsset'
+import { portalLogo } from '../assets/brandAsset'
 
 export type HeaderBrandAlignment='left'|'center'|'right'
 export type HeaderBrandConfig={

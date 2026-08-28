@@ -1,4 +1,4 @@
-import { Facebook, Flame, Link as LinkIcon, Menu, Mic2, Music2, Search, Star, Video, X, Youtube, Zap } from 'lucide-react'
+import { Flame, Link as LinkIcon, Menu, Mic2, Music2, Search, Star, Video, X, Zap } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
 import { portalLogo } from './brandAsset'
@@ -55,7 +55,7 @@ function ArticleHeader(){
   </div></header>
 }
 
-function ShareButtons(){return <div className="article-share-buttons"><a href="#" aria-label="Facebook"><Facebook size={16}/></a><a href="#" aria-label="X">𝕏</a><a href="#" aria-label="WhatsApp">◉</a><a href="#" aria-label="Copiar link"><LinkIcon size={16}/></a></div>}
+function ShareButtons(){return <div className="article-share-buttons"><a href="#" aria-label="Facebook">f</a><a href="#" aria-label="X">𝕏</a><a href="#" aria-label="WhatsApp">◉</a><a href="#" aria-label="Copiar link"><LinkIcon size={16}/></a></div>}
 
 function Sidebar(){return <aside className="article-sidebar">
   <section className="article-most"><div className="article-side-title"><h2>MAIS LIDAS</h2><span/></div>{ranked.map((item,i)=><Link className="article-ranked" key={item.slug} to={`/noticia/${item.slug}`}><b>{String(i+1).padStart(2,'0')}</b><img src={item.image} alt=""/><div><h3>{item.title}</h3><small>Há {i*2+3} horas</small></div></Link>)}</section>
@@ -68,7 +68,7 @@ function ArticleFooter(){return <footer className="article-footer"><div classNam
   <div><h4>NAVEGAÇÃO</h4>{categories.map(([label,,to])=><Link key={to} to={to}>{label}</Link>)}<Link to="/colabore">Colabore</Link></div>
   <div><h4>INSTITUCIONAL</h4><Link to="/sobre">Sobre o Portal</Link><Link to="/contato">Fale Conosco</Link><Link to="/politica">Política de Privacidade</Link><Link to="/termos">Termos de Uso</Link></div>
   <div><h4>AJUDA</h4><Link to="/faq">Perguntas Frequentes</Link><Link to="/anuncie">Como Anunciar</Link><Link to="/regras">Regras de Publicação</Link></div>
-  <div><h4>SIGA O PORTAL LANDER</h4><div className="article-social"><span>◎</span><span>♪</span><Youtube size={15}/><span>𝕏</span><span>◉</span></div></div>
+  <div><h4>SIGA O PORTAL LANDER</h4><div className="article-social"><span>◎</span><span>♪</span><span>▶</span><span>𝕏</span><span>◉</span></div></div>
 </div><div className="article-copyright">© 2026 Portal Lander. Todos os direitos reservados.</div></footer>}
 
 function ArticlePage({article}:{article:Article}){

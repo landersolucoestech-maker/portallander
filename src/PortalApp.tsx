@@ -103,7 +103,7 @@ function PublicFooter(){return <>
 
 function HomeContent(){return <div className="pl-main public-shell">
   <div className="pl-grid-main">
-    <section className="pl-section"><SectionHead title="EM DESTAQUE"/><div className="pl-card-grid">{stories.slice(0,4).map(s=><Card key={s.title} item={s}/>)}</div><div className="pl-center-link"><Link to="/destaques">EXPLORAR DESTAQUES</Link></div></section>
+    <section className="pl-section"><SectionHead title="EM DESTAQUE"/><div className="pl-card-grid">{stories.slice(0,6).map(s=><Card key={s.title} item={s}/>)}</div><div className="pl-center-link"><Link to="/destaques">EXPLORAR DESTAQUES</Link></div></section>
     <aside className="pl-most"><SectionHead title="MAIS LIDAS"/>{ranked.map((r,i)=><div className="pl-ranked" key={r}><strong>{String(i+1).padStart(2,'0')}</strong><div><h4>{r}</h4><small>Há {i+3} horas</small></div></div>)}<Link className="pl-outline-button" to="/noticias">VER TODOS</Link></aside>
   </div>
 

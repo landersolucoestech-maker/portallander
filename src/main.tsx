@@ -4,6 +4,7 @@ import { HashRouter } from 'react-router-dom'
 import App from './PortalApp'
 import { HomeAdBridge } from './HomeAdBridge'
 import { HeaderBrandBridge } from './HeaderBrandBridge'
+import { NewsPageBridge } from './NewsPageBridge'
 import './styles.css'
 import './public.css'
 import './public-logo.css'
@@ -27,6 +28,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
       <App />
       <HomeAdBridge />
       <HeaderBrandBridge />
+      <NewsPageBridge />
     </HashRouter>
   </React.StrictMode>,
 )

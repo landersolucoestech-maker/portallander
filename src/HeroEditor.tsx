@@ -11,11 +11,42 @@ function makeSlide(order:number):HeroSlide{
   return {...defaultHeroSlide,id:`hero-slide-${Date.now()}`,order,title:defaultHeroSlide.title.map(item=>({...item})),eyebrow:'PORTAL LANDER • EM DESTAQUE'}
 }
 
+async function optimizeImageForPreview(file:File):Promise<string>{
+  const objectUrl=URL.createObjectURL(file)
+  try{
+    const image=new Image()
+    image.decoding='async'
+    image.src=objectUrl
+    await new Promise<void>((resolve,reject)=>{image.onload=()=>resolve();image.onerror=()=>reject(new Error('Não foi possível carregar a imagem selecionada.'))})
+
+    const render=(maxDimension:number,quality:number)=>{
+      const ratio=Math.min(1,maxDimension/Math.max(image.naturalWidth,image.naturalHeight))
+      const width=Math.max(1,Math.round(image.naturalWidth*ratio))
+      const height=Math.max(1,Math.round(image.naturalHeight*ratio))
+      const canvas=document.createElement('canvas')
+      canvas.width=width
+      canvas.height=height
+      const context=canvas.getContext('2d')
+      if(!context)throw new Error('Canvas indisponível para otimização da imagem.')
+      context.drawImage(image,0,0,width,height)
+      return canvas.toDataURL('image/webp',quality)
+    }
+
+    let dataUrl=render(2000,.9)
+    if(dataUrl.length>3_200_000)dataUrl=render(1600,.84)
+    if(dataUrl.length>3_200_000)dataUrl=render(1280,.78)
+    return dataUrl
+  }finally{
+    URL.revokeObjectURL(objectUrl)
+  }
+}
+
 export function HeroEditor(){
   const [draft,setDraft]=useState<HeroCarouselConfig>(()=>readHeroConfig())
   const [selectedId,setSelectedId]=useState(()=>readHeroConfig().slides[0]?.id||defaultHeroSlide.id)
   const [saved,setSaved]=useState(false)
   const [libraryOpen,setLibraryOpen]=useState(false)
+  const [uploading,setUploading]=useState(false)
   const fileRef=useRef<HTMLInputElement>(null)
 
   const selectedIndex=Math.max(0,draft.slides.findIndex(slide=>slide.id===selectedId))
@@ -30,11 +61,18 @@ export function HeroEditor(){
   const remove=()=>{if(draft.slides.length<=1)return;const remaining=draft.slides.filter(item=>item.id!==slide.id).map((item,index)=>({...item,order:index+1}));setDraft(current=>({...current,slides:remaining}));setSelectedId(remaining[0].id);setSaved(false)}
   const move=(delta:number)=>{const sorted=[...ordered];const index=sorted.findIndex(item=>item.id===slide.id);const target=index+delta;if(target<0||target>=sorted.length)return;[sorted[index],sorted[target]]=[sorted[target],sorted[index]];const normalized=sorted.map((item,i)=>({...item,order:i+1}));setDraft(current=>({...current,slides:current.slides.map(item=>normalized.find(n=>n.id===item.id)!) }));setSaved(false)}
 
-  const upload=(file?:File)=>{
-    if(!file)return
-    if(!file.type.startsWith('image/'))return
-    if(file.size>1_800_000){alert('Para este protótipo frontend, use imagem de até 1,8 MB. O storage definitivo será conectado depois.');return}
-    const reader=new FileReader();reader.onload=()=>updateSlide({image:String(reader.result||'')});reader.readAsDataURL(file)
+  const upload=async(file?:File)=>{
+    if(!file||!file.type.startsWith('image/'))return
+    setUploading(true)
+    try{
+      const optimized=await optimizeImageForPreview(file)
+      updateSlide({image:optimized,imageAlt:slide.imageAlt||file.name.replace(/\.[^.]+$/,'')})
+    }catch(error){
+      console.error(error)
+    }finally{
+      setUploading(false)
+      if(fileRef.current)fileRef.current.value=''
+    }
   }
 
   return <div className="hero-editor">
@@ -67,8 +105,8 @@ export function HeroEditor(){
         <div className="hero-editor-section-head"><span>Imagem principal</span><h2>Artista / notícia em destaque</h2></div>
         <div className="hero-media-picker">
           <div className="hero-media-preview">{slide.image?<img src={slide.image} alt="Preview da imagem principal"/>:<ImageIcon size={32}/>}</div>
-          <div className="hero-media-picker-actions"><input ref={fileRef} type="file" accept="image/*" hidden onChange={e=>upload(e.target.files?.[0])}/><button className="button outline" onClick={()=>fileRef.current?.click()}><Upload size={16}/> Fazer upload</button><button className="button outline" onClick={()=>setLibraryOpen(true)}><ImageIcon size={16}/> Biblioteca de mídia</button></div>
-          <small>Upload local do protótipo: a imagem é salva no navegador. O storage definitivo será conectado depois; o background fixo nunca é substituído por este campo.</small>
+          <div className="hero-media-picker-actions"><input ref={fileRef} type="file" accept="image/*" hidden onChange={e=>void upload(e.target.files?.[0])}/><button className="button outline" disabled={uploading} onClick={()=>fileRef.current?.click()}><Upload size={16}/> {uploading?'Processando...':'Fazer upload'}</button><button className="button outline" onClick={()=>setLibraryOpen(true)}><ImageIcon size={16}/> Biblioteca de mídia</button></div>
+          <small>Você pode selecionar imagens grandes: o CMS otimiza automaticamente resolução e peso para o preview deste frontend. O background fixo nunca é substituído por este campo. A persistência definitiva será ligada ao storage posteriormente.</small>
         </div>
         <Field label="Texto alternativo"><input value={slide.imageAlt} onChange={e=>updateSlide({imageAlt:e.target.value})}/></Field>
         <div className="hero-editor-grid two">

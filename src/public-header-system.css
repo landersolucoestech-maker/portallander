@@ -1,8 +1,10 @@
-/* Portal Lander public header constitution.
-   RULE: every current and future PUBLIC page must reuse this header language.
-   Do not create page-specific navigation typography/icon colors. */
+/* PORTAL LANDER — GLOBAL PUBLIC HEADER CONTRACT
+   This is a project-level invariant, not a page override.
+   EVERY current and future PUBLIC route must render the same header/menu used by Home.
+   No public page may define its own menu typography, icon color, spacing or geometry. */
 :root{--pl-header-red:#ff1a1a;--pl-header-font:'Montserrat',Arial,sans-serif}
 
+/* Shared typography and navigation behavior. */
 .public-header .public-links a,
 .article-header .article-nav a{
   font-family:var(--pl-header-font)!important;
@@ -13,6 +15,11 @@
   text-transform:uppercase!important;
   color:#d2d2d2!important;
   text-decoration:none!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  gap:7px!important;
+  position:relative!important;
+  white-space:nowrap!important;
 }
 .public-header .public-links a svg,
 .article-header .article-nav a svg{
@@ -26,34 +33,27 @@
 .public-header .public-links a.active,
 .article-header .article-nav a:hover,
 .article-header .article-nav a.active{color:#fff!important}
-
 .public-header .public-links a:after,
 .article-header .article-nav a:after{
-  content:''!important;
-  position:absolute!important;
-  left:0!important;
-  right:100%!important;
-  height:2px!important;
-  background:var(--pl-header-red)!important;
-  transition:right .2s ease!important;
+  content:''!important;position:absolute!important;left:0!important;right:100%!important;bottom:-11px!important;height:2px!important;background:var(--pl-header-red)!important;transition:right .2s ease!important
 }
-.public-header .public-links a:hover:after,
-.public-header .public-links a.active:after,
-.article-header .article-nav a:hover:after,
-.article-header .article-nav a.active:after{right:0!important}
+.public-header .public-links a:hover:after,.public-header .public-links a.active:after,
+.article-header .article-nav a:hover:after,.article-header .article-nav a.active:after{right:0!important}
 
-/* Same header geometry on listing, home and editorial routes. */
-.article-header{height:86px!important;background:rgba(0,0,0,.96)!important;border-bottom:1px solid #202020!important;backdrop-filter:blur(12px)!important}
-.article-header-inner{height:86px!important;width:min(1240px,calc(100% - 40px))!important;max-width:1240px!important;margin:0 auto!important;display:flex!important;align-items:center!important;gap:28px!important}
+/* Editorial route must be geometrically identical to the Home public header. */
+.article-header{position:sticky!important;top:0!important;z-index:50!important;height:auto!important;background:rgba(0,0,0,.96)!important;border-bottom:1px solid #202020!important;backdrop-filter:blur(12px)!important}
+.article-header-inner{height:86px!important;width:min(1240px,calc(100% - 40px))!important;max-width:1240px!important;margin:0 auto!important;padding:0!important;display:flex!important;align-items:center!important;gap:28px!important}
 .article-logo{display:inline-flex!important;align-items:center!important;width:180px!important;height:64px!important;overflow:hidden!important;flex:0 0 180px!important}
 .article-logo img{width:100%!important;height:100%!important;object-fit:contain!important}
-.article-nav{display:flex!important;align-items:center!important;justify-content:center!important;gap:22px!important;flex:1!important}
-.article-nav a{display:inline-flex!important;align-items:center!important;gap:7px!important;position:relative!important}
-.article-nav a:after{bottom:-11px!important}
+.article-nav{display:flex!important;align-items:center!important;justify-content:center!important;gap:22px!important;flex:1!important;overflow:visible!important}
 .article-header-actions{display:flex!important;align-items:center!important;gap:10px!important}
-.article-header-actions>button{width:40px!important;height:40px!important;border:1px solid #303030!important;background:#101010!important;color:#fff!important}
-.article-header-actions>a{height:40px!important;display:inline-flex!important;align-items:center!important;padding:0 14px!important;border:1px solid #3a3a3a!important;background:transparent!important;color:#fff!important;font-family:var(--pl-header-font)!important;font-size:11px!important;font-weight:800!important;letter-spacing:.08em!important;text-transform:uppercase!important}
+.article-header-actions>button{width:40px!important;height:40px!important;display:grid!important;place-items:center!important;border:1px solid #303030!important;background:#101010!important;color:#fff!important;padding:0!important}
+.article-header-actions>a{height:40px!important;display:inline-flex!important;align-items:center!important;padding:0 14px!important;border:1px solid #3a3a3a!important;background:transparent!important;color:#fff!important;font-family:var(--pl-header-font)!important;font-size:11px!important;font-weight:800!important;letter-spacing:.08em!important;text-transform:uppercase!important;text-decoration:none!important}
 .article-menu{display:none!important}
+
+/* ArticlePageBridge historically used Flame for Músicas. Hide it and draw the same Music2 mark used by Home. */
+.article-nav>a:nth-child(2)>svg{display:none!important}
+.article-nav>a:nth-child(2):before{content:'';display:block;width:15px;height:15px;flex:0 0 15px;background:var(--pl-header-red);-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='8' cy='18' r='4'/%3E%3Cpath d='M12 18V2l7 4'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='8' cy='18' r='4'/%3E%3Cpath d='M12 18V2l7 4'/%3E%3C/svg%3E") center/contain no-repeat}
 
 @media(max-width:1100px){
   .article-nav{display:none!important}
@@ -62,8 +62,7 @@
   .article-nav.open a{width:100%!important;padding:8px 0!important}
 }
 @media(max-width:760px){
-  .article-header,.article-header-inner{height:72px!important}
-  .article-header-inner{width:min(100% - 26px,1240px)!important}
+  .article-header-inner{height:72px!important;width:min(100% - 26px,1240px)!important}
   .article-logo{width:145px!important;height:54px!important;flex-basis:145px!important}
   .article-header-actions>a{display:none!important}
   .article-nav.open{top:72px!important}

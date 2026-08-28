@@ -94,7 +94,7 @@ export function NewsPageBridge(){
 
     const controls=document.createElement('div')
     controls.className='news-reference-controls'
-    controls.innerHTML='<div class="news-reference-tabs"><button class="active" data-filter="todas">Todas</button><button data-filter="funk">Funk</button><button data-filter="trap">Trap</button><button data-filter="rap">Rap</button><button data-filter="cultura">Cultura</button><button data-filter="entretenimento">Entretenimento</button></div><select class="news-reference-sort" aria-label="Ordenar notícias"><option value="desc" selected>Mais recentes</option><option value="asc">Mais antigas</option></select>'
+    controls.innerHTML='<div class="news-reference-tabs"><button class="active" data-filter="todas">Todas</button><button data-filter="funk">Funk</button><button data-filter="trap">Trap</button><button data-filter="rap">Rap</button><button data-filter="cultura">Cultura</button><button data-filter="entretenimento">Entretenimento</button></div><div class="news-reference-sort-wrap" style="position:relative;min-width:150px"><button type="button" class="news-reference-sort" aria-haspopup="listbox" aria-expanded="false" style="width:100%;background:#050505;color:#fff;border:1px solid #2b2b2b">Mais recentes <span>⌄</span></button><div class="news-reference-sort-menu" role="listbox" style="display:none;position:absolute;top:calc(100% + 2px);left:0;right:0;z-index:50;background:#050505;border:1px solid #2b2b2b"><button type="button" role="option" data-sort="desc" aria-selected="true" style="display:block;width:100%;padding:10px 14px;border:0;background:#050505;color:#fff;text-align:left;cursor:pointer">Mais recentes</button><button type="button" role="option" data-sort="asc" aria-selected="false" style="display:block;width:100%;padding:10px 14px;border:0;background:#050505;color:#fff;text-align:left;cursor:pointer">Mais antigas</button></div></div>'
     grid.parentElement?.insertBefore(controls,grid)
 
     let pagination=root.querySelector<HTMLElement>('.pl-pagination,.news-reference-pagination')
@@ -172,12 +172,36 @@ export function NewsPageBridge(){
       })
     })
 
-    const sortSelect=controls.querySelector<HTMLSelectElement>('.news-reference-sort')
-    sortSelect?.addEventListener('change',()=>{
-      sortDirection=sortSelect.value==='asc'?'asc':'desc'
-      currentPage=1
-      render()
+    const sortButton=controls.querySelector<HTMLButtonElement>('.news-reference-sort')
+    const sortMenu=controls.querySelector<HTMLElement>('.news-reference-sort-menu')
+    const sortOptions=controls.querySelectorAll<HTMLButtonElement>('.news-reference-sort-menu [data-sort]')
+    const closeSortMenu=()=>{
+      if(!sortButton||!sortMenu)return
+      sortMenu.style.display='none'
+      sortButton.setAttribute('aria-expanded','false')
+    }
+    sortButton?.addEventListener('click',()=>{
+      if(!sortMenu)return
+      const opening=sortMenu.style.display==='none'
+      sortMenu.style.display=opening?'block':'none'
+      sortButton.setAttribute('aria-expanded',opening?'true':'false')
     })
+    sortOptions.forEach(option=>{
+      option.addEventListener('mouseenter',()=>{option.style.background='#171717'})
+      option.addEventListener('mouseleave',()=>{option.style.background='#050505'})
+      option.addEventListener('click',()=>{
+        sortDirection=option.dataset.sort==='asc'?'asc':'desc'
+        currentPage=1
+        if(sortButton)sortButton.childNodes[0].textContent=sortDirection==='desc'?'Mais recentes ':'Mais antigas '
+        sortOptions.forEach(item=>item.setAttribute('aria-selected',item===option?'true':'false'))
+        closeSortMenu()
+        render()
+      })
+    })
+    const onDocumentClick=(event:MouseEvent)=>{
+      if(!(event.target as HTMLElement).closest('.news-reference-sort-wrap'))closeSortMenu()
+    }
+    document.addEventListener('click',onDocumentClick)
 
     const onPaginationClick=(event:MouseEvent)=>{
       const button=(event.target as HTMLElement).closest('button') as HTMLButtonElement|null
@@ -195,6 +219,7 @@ export function NewsPageBridge(){
       grid.removeEventListener('click',onGridClick)
       grid.removeEventListener('keydown',onGridKeyDown)
       pagination?.removeEventListener('click',onPaginationClick)
+      document.removeEventListener('click',onDocumentClick)
     }
   },[location.pathname])
 

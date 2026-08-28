@@ -13,7 +13,7 @@ import { HomePageAdjustmentsBridge } from './pages/home/HomePageAdjustmentsBridg
 import { HomeSidebarAdBridge } from './pages/home/HomeSidebarAdBridge'
 import { PublicSearchSuggestionsBridge } from './shared/behaviors/PublicSearchSuggestionsBridge'
 import { ColaborePageBridge } from './pages/colabore/ColaborePageBridge'
-import './public-styles.css'
+import './styles/public-styles.css'
 
 const REQUIRED_PUBLIC_FONTS = [
   '400 16px "Bebas Neue"',

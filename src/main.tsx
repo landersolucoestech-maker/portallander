@@ -34,6 +34,7 @@ import './clickable-cards.css'
 import './home-sidebar-ad.css'
 import './home-trending.css'
 import './bastidores-three-grid.css'
+import './article-route-fix.css'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

@@ -7,12 +7,12 @@ import { HeaderBrandBridge } from './shared/branding/components/HeaderBrandBridg
 import { BrandAssetsBridge } from './shared/branding/components/BrandAssetsBridge'
 import { NewsPageBridge } from './pages/noticias/components/NewsPageBridge'
 import { NewsAdBridge } from './pages/noticias/components/NewsAdBridge'
-import { ArticlePageBridge } from './pages/article/ArticlePageBridge'
+import { ArticlePageBridge } from './pages/article/components/ArticlePageBridge'
 import { ClickableCardsBridge } from './shared/behaviors/components/ClickableCardsBridge'
 import { HomePageAdjustmentsBridge } from './pages/home/components/HomePageAdjustmentsBridge'
 import { HomeSidebarAdBridge } from './pages/home/components/HomeSidebarAdBridge'
 import { PublicSearchSuggestionsBridge } from './shared/behaviors/components/PublicSearchSuggestionsBridge'
-import { ColaborePageBridge } from './pages/colabore/ColaborePageBridge'
+import { ColaborePageBridge } from './pages/colabore/components/ColaborePageBridge'
 import './styles/public-styles.css'
 
 const REQUIRED_PUBLIC_FONTS = [

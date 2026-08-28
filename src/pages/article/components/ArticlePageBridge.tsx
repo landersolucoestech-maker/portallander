@@ -1,8 +1,8 @@
 import { Link as LinkIcon } from 'lucide-react'
 import { useMemo } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { portalLogo } from '../../brandAsset'
-import { PublicHeader } from '../../PortalApp'
+import { portalLogo } from '../../../shared/branding/assets/brandAsset'
+import { PublicHeader } from '../../../app/PortalApp'
 
 const categories=[['Notícias','/noticias'],['Músicas','/musicas'],['Bastidores','/bastidores'],['Lançamentos','/lancamentos'],['Cultura','/cultura'],['Vídeos','/videos']] as const
 const images=['https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?auto=format&fit=crop&w=1500&q=88','https://images.unsplash.com/photo-1524650359799-842906ca1c06?auto=format&fit=crop&w=1500&q=88','https://images.unsplash.com/photo-1501386761578-eac5c94b800a?auto=format&fit=crop&w=1500&q=88','https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?auto=format&fit=crop&w=1500&q=88','https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&w=1500&q=88']

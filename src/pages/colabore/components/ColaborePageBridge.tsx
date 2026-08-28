@@ -1,7 +1,7 @@
 import { CheckCircle2, Send, ShieldCheck, Upload } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
-import { PublicFooter, PublicHeader } from '../../PortalApp'
+import { PublicFooter, PublicHeader } from '../../../app/PortalApp'
 
 type SubmissionType='noticia'|'video'|'foto'|'pauta'|''
 

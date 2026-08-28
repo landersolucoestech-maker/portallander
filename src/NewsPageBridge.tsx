@@ -14,76 +14,78 @@ function slugify(value:string){
 
 export function NewsPageBridge(){
   const location=useLocation()
+
   useLayoutEffect(()=>{
-    const root=document.querySelector('.public-page') as HTMLElement|null
-    if(!root) return
-    const isNews=location.pathname==='/noticias'
-    root.classList.toggle('news-reference-page',isNews)
-    document.querySelectorAll('.news-reference-controls,.news-reference-sidebar-ad,.news-reference-banner').forEach(n=>n.remove())
-    if(!isNews) return
-    const layout=root.querySelector('.pl-listing-layout') as HTMLElement|null
-    const grid=root.querySelector('.pl-listing-grid') as HTMLElement|null
-    const pagination=root.querySelector('.pl-pagination') as HTMLElement|null
-    if(!layout||!grid) return
-    const section=grid.parentElement as HTMLElement
-    layout.classList.remove('pl-listing-layout','public-shell')
-    layout.querySelector('aside')?.remove()
-    section.querySelector('.pl-section-head')?.remove()
+    if(location.pathname!=='/noticias')return
+
+    const root=document.querySelector<HTMLElement>('.public-page')
+    const grid=document.querySelector<HTMLElement>('.pl-listing-grid,.news-reference-grid')
+    if(!root||!grid)return
+
+    root.classList.add('news-reference-page')
+    document.querySelectorAll('.news-reference-controls,.news-reference-sidebar-ad').forEach(node=>node.remove())
+
     grid.classList.remove('pl-listing-grid')
     grid.classList.add('news-reference-grid')
 
-    const adIsValid=isNewsAdValid(readNewsAdConfig())
-    grid.classList.toggle('has-news-ad',adIsValid)
+    const legacyFilter=root.querySelector<HTMLElement>('.pl-filter')
+    if(legacyFilter)legacyFilter.style.display='none'
 
-    Array.from(grid.children).forEach((card,i)=>{
-      card.classList.add('news-reference-card')
-      const body=card.querySelector('.pl-card-body')
+    Array.from(grid.children).forEach((card,index)=>{
+      const element=card as HTMLElement
+      element.classList.add('news-reference-card')
+      const body=element.querySelector<HTMLElement>('.pl-card-body')
       body?.classList.add('news-reference-card-body')
-      const title=card.querySelector('h3')
-      const meta=card.querySelector('.pl-meta')
+      const title=element.querySelector<HTMLElement>('h3')
+      const meta=element.querySelector<HTMLElement>('.pl-meta')
       if(title&&body&&!body.querySelector('p')){
         const p=document.createElement('p')
-        p.textContent=['Versos pesados, bastidores e tudo que movimenta a cena do funk e da cultura urbana.','Artistas, lançamentos, polêmicas e acontecimentos que estão repercutindo nas redes.','Acompanhe as histórias e novidades que movimentam o cenário nacional.'][i%3]
+        p.textContent=[
+          'Versos pesados, bastidores e tudo que movimenta a cena do funk e da cultura urbana.',
+          'Artistas, lançamentos, polêmicas e acontecimentos que estão repercutindo nas redes.',
+          'Acompanhe as histórias e novidades que movimentam o cenário nacional.',
+        ][index%3]
         title.insertAdjacentElement('afterend',p)
       }
       if(meta&&!meta.querySelector('.bookmark')){
         meta.classList.add('news-reference-meta')
-        const b=document.createElement('span')
-        b.className='bookmark'
-        b.textContent='♡'
-        meta.appendChild(b)
+        const bookmark=document.createElement('span')
+        bookmark.className='bookmark'
+        bookmark.textContent='♡'
+        meta.appendChild(bookmark)
       }
     })
 
-    const originals=Array.from(grid.children)
-    for(let i=0;i<4&&originals.length;i++) grid.appendChild(originals[i%originals.length].cloneNode(true))
-    const baseCards=Array.from(grid.children) as HTMLElement[]
+    const seed=Array.from(grid.querySelectorAll<HTMLElement>('.news-reference-card'))
+    if(seed.length===0)return
+
     const categoryMap=['funk','trap','rap','cultura','entretenimento','funk','trap','rap','cultura','entretenimento','funk','rap']
-    baseCards.forEach((card,i)=>{
+    seed.forEach((card,index)=>{
       const title=(card.querySelector('h3')?.textContent||'').trim()
-      card.dataset.category=categoryMap[i%categoryMap.length]
+      card.dataset.category=categoryMap[index%categoryMap.length]
       card.dataset.title=title.toLowerCase()
       card.dataset.articleSlug=slugify(title)
-      card.dataset.sourceOrder=String(i)
     })
 
     grid.innerHTML=''
     for(let page=0;page<15;page++){
-      for(let i=0;i<baseCards.length;i++){
-        const source=baseCards[(i+page)%baseCards.length]
+      seed.forEach((source,index)=>{
         const clone=source.cloneNode(true) as HTMLElement
-        clone.dataset.pageSource=String(page+1)
+        clone.dataset.category=source.dataset.category||categoryMap[index%categoryMap.length]
+        clone.dataset.title=source.dataset.title||''
         clone.dataset.articleSlug=source.dataset.articleSlug||''
-        clone.dataset.sourceOrder=String(page*baseCards.length+i)
+        clone.dataset.sourceOrder=String(page*seed.length+index)
         clone.dataset.clickableCard='true'
         clone.tabIndex=0
         clone.setAttribute('role','link')
         clone.setAttribute('aria-label',`Abrir ${clone.querySelector('h3')?.textContent?.trim()||'notícia'}`)
         clone.style.cursor='pointer'
         grid.appendChild(clone)
-      }
+      })
     }
 
+    const adIsValid=isNewsAdValid(readNewsAdConfig())
+    grid.classList.toggle('has-news-ad',adIsValid)
     const adSlot=document.createElement('aside')
     adSlot.className='news-reference-sidebar-ad'
     adSlot.setAttribute('aria-label','Publicidade')
@@ -93,7 +95,15 @@ export function NewsPageBridge(){
     const controls=document.createElement('div')
     controls.className='news-reference-controls'
     controls.innerHTML='<div class="news-reference-tabs"><button class="active" data-filter="todas">Todas</button><button data-filter="funk">Funk</button><button data-filter="trap">Trap</button><button data-filter="rap">Rap</button><button data-filter="cultura">Cultura</button><button data-filter="entretenimento">Entretenimento</button></div><button class="news-reference-sort" data-direction="desc">Mais recentes <span>⌄</span></button><label class="news-reference-search"><input placeholder="Buscar notícias..."/><span>⌕</span></label>'
-    layout.parentElement?.insertBefore(controls,layout)
+    grid.parentElement?.insertBefore(controls,grid)
+
+    let pagination=root.querySelector<HTMLElement>('.pl-pagination,.news-reference-pagination')
+    if(!pagination){
+      pagination=document.createElement('div')
+      grid.parentElement?.appendChild(pagination)
+    }
+    pagination.classList.remove('pl-pagination')
+    pagination.classList.add('news-reference-pagination')
 
     let activeFilter='todas'
     let search=''
@@ -104,20 +114,19 @@ export function NewsPageBridge(){
 
     const openCard=(card:HTMLElement)=>{
       const slug=card.dataset.articleSlug||slugify(card.querySelector('h3')?.textContent||'')
-      if(!slug) return
-      window.location.hash=`/noticia/${slug}`
+      if(slug)window.location.hash=`#/noticia/${slug}`
     }
 
     const onGridClick=(event:MouseEvent)=>{
       const target=event.target as HTMLElement
-      if(target.closest('.bookmark')) return
+      if(target.closest('.bookmark'))return
       const card=target.closest<HTMLElement>('.news-reference-card')
-      if(card) openCard(card)
+      if(card)openCard(card)
     }
     const onGridKeyDown=(event:KeyboardEvent)=>{
-      if(event.key!=='Enter'&&event.key!==' ') return
+      if(event.key!=='Enter'&&event.key!==' ')return
       const card=(event.target as HTMLElement).closest<HTMLElement>('.news-reference-card')
-      if(!card) return
+      if(!card)return
       event.preventDefault()
       openCard(card)
     }
@@ -125,35 +134,32 @@ export function NewsPageBridge(){
     grid.addEventListener('keydown',onGridKeyDown)
 
     const buildPagination=(totalPages:number)=>{
-      if(!pagination) return
-      pagination.classList.remove('pl-pagination')
-      pagination.classList.add('news-reference-pagination')
+      if(!pagination)return
       const pages:number[]=[]
       if(totalPages<=7){for(let i=1;i<=totalPages;i++)pages.push(i)}
       else if(currentPage<=4){pages.push(1,2,3,4,5,-1,totalPages)}
       else if(currentPage>=totalPages-3){pages.push(1,-1,totalPages-4,totalPages-3,totalPages-2,totalPages-1,totalPages)}
       else{pages.push(1,-1,currentPage-1,currentPage,currentPage+1,-1,totalPages)}
-      pagination.innerHTML=pages.map(p=>p===-1?'<button type="button" disabled>...</button>':`<button type="button" data-page="${p}" class="${p===currentPage?'active':''}">${p}</button>`).join('')+`<button type="button" data-next="true" ${currentPage>=totalPages?'disabled':''}>PRÓXIMA →</button>`
+      pagination.innerHTML=pages.map(page=>page===-1?'<button type="button" disabled>...</button>':`<button type="button" data-page="${page}" class="${page===currentPage?'active':''}">${page}</button>`).join('')+`<button type="button" data-next="true" ${currentPage>=totalPages?'disabled':''}>PRÓXIMA →</button>`
     }
 
     const render=()=>{
       const filtered=allCards.filter(card=>{
         const category=card.dataset.category||''
         const title=card.dataset.title||''
-        return (activeFilter==='todas'||category===activeFilter) && (!search||title.includes(search))
+        return (activeFilter==='todas'||category===activeFilter)&&(!search||title.includes(search))
       })
-      const ordered=sortDirection==='desc' ? filtered : [...filtered].reverse()
+      const ordered=sortDirection==='desc'?filtered:[...filtered].reverse()
       const totalPages=Math.max(1,Math.ceil(ordered.length/pageSize))
-      if(currentPage>totalPages) currentPage=totalPages
+      if(currentPage>totalPages)currentPage=totalPages
       allCards.forEach(card=>{
         card.style.display='none'
         card.classList.remove('news-reference-first-six')
       })
       const start=(currentPage-1)*pageSize
-      const visible=ordered.slice(start,start+pageSize)
-      visible.forEach((card,index)=>{
+      ordered.slice(start,start+pageSize).forEach((card,index)=>{
         card.style.display=''
-        if(index<6) card.classList.add('news-reference-first-six')
+        if(index<6)card.classList.add('news-reference-first-six')
       })
       buildPagination(totalPages)
     }
@@ -172,7 +178,7 @@ export function NewsPageBridge(){
     sortButton?.addEventListener('click',()=>{
       sortDirection=sortDirection==='desc'?'asc':'desc'
       sortButton.dataset.direction=sortDirection
-      sortButton.firstChild!.textContent=sortDirection==='desc'?'Mais recentes ':'Mais antigas '
+      if(sortButton.firstChild)sortButton.firstChild.textContent=sortDirection==='desc'?'Mais recentes ':'Mais antigas '
       currentPage=1
       render()
     })
@@ -184,21 +190,24 @@ export function NewsPageBridge(){
       render()
     })
 
-    pagination?.addEventListener('click',(event)=>{
+    const onPaginationClick=(event:MouseEvent)=>{
       const button=(event.target as HTMLElement).closest('button') as HTMLButtonElement|null
-      if(!button||button.disabled) return
-      if(button.dataset.page) currentPage=Number(button.dataset.page)
-      else if(button.dataset.next==='true') currentPage+=1
+      if(!button||button.disabled)return
+      if(button.dataset.page)currentPage=Number(button.dataset.page)
+      else if(button.dataset.next==='true')currentPage+=1
       render()
       controls.scrollIntoView({behavior:'smooth',block:'start'})
-    })
+    }
+    pagination.addEventListener('click',onPaginationClick)
 
     render()
 
-    return ()=>{
+    return()=>{
       grid.removeEventListener('click',onGridClick)
       grid.removeEventListener('keydown',onGridKeyDown)
+      pagination?.removeEventListener('click',onPaginationClick)
     }
   },[location.pathname])
+
   return null
 }

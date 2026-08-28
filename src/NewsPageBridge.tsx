@@ -94,7 +94,7 @@ export function NewsPageBridge(){
     let search=''
     let currentPage=1
     let sortDirection:'desc'|'asc'='desc'
-    const pageSize=12
+    const pageSize=14
     const allCards=Array.from(grid.querySelectorAll<HTMLElement>('.news-reference-card'))
 
     const openCard=(card:HTMLElement)=>{

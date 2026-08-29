@@ -44,11 +44,15 @@ const crmRoutes=await read('src/features/crm/CrmRoutes.tsx')
 for(const forbidden of ['CrmDirectoryPages','CrmOperations','CrmWorkspace']){
   if(crmRoutes.includes(forbidden))failures.push(`CrmRoutes não pode depender de ${forbidden}.`)
 }
+if(/path=["']\/app\/crm/.test(crmRoutes))failures.push('CrmRoutes deve usar paths relativos ao escopo /app/crm/*.')
+if(!crmRoutes.includes('<Route index'))failures.push('CrmRoutes deve declarar o dashboard como rota index.')
 
 const siteRoutes=await read('src/features/site-manager/SiteManagerRoutes.tsx')
 for(const forbidden of ['SiteManagerCatalogPages','SiteManagerOperations','SiteManagerWorkspace']){
   if(siteRoutes.includes(forbidden))failures.push(`SiteManagerRoutes não pode depender de ${forbidden}.`)
 }
+if(/path=["']\/app\/site/.test(siteRoutes))failures.push('SiteManagerRoutes deve usar paths relativos ao escopo /app/site/*.')
+if(!siteRoutes.includes('<Route index'))failures.push('SiteManagerRoutes deve declarar o dashboard como rota index.')
 
 const adminEntry=await read('src/styles/admin-entry.css')
 for(const required of ['admin-system.css','admin-workspaces.css','admin-brand.css','admin-responsive.css','admin-accessibility.css']){

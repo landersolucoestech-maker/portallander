@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import type { LucideIcon } from 'lucide-react'
-import { Bell, Building2, ChevronDown, Gauge, Search } from 'lucide-react'
-import { Link, NavLink } from 'react-router-dom'
+import { Bell, Building2, ChevronDown, Gauge } from 'lucide-react'
+import { Link, NavLink, useLocation } from 'react-router-dom'
 import { ADMIN_CAPABILITIES } from './adminCapabilities'
 import { portalLogo } from '../branding/assets/brandAsset'
 
@@ -15,15 +15,19 @@ export type AdminShellAction={label:string;onClick?:()=>void;disabled?:boolean;d
 
 const isNavGroup=(item:AdminNavItem):item is AdminNavGroup=>!Array.isArray(item)
 
+const AGENDA_HEADER:AdminShellHeader={
+  title:'Agenda',
+  description:'Agenda operacional para reuniões, entrevistas, coberturas, follow-ups, compromissos editoriais e comerciais.'
+}
+
 export function AdminShell({area,items,children,header,headerAction,headerActions}:{area:AdminArea;items:readonly AdminNavItem[];children:ReactNode;header?:AdminShellHeader;headerAction?:AdminShellAction;headerActions?:readonly AdminShellAction[]}){
   const context=area==='crm'?'CRM':'Gerenciador do Site'
-  const [query,setQuery]=useState('')
+  const location=useLocation()
+  const isAgenda=location.pathname==='/app/crm/events'
+  const effectiveHeader=header??(isAgenda?AGENDA_HEADER:undefined)
   const [notificationsOpen,setNotificationsOpen]=useState(false)
   const [accountOpen,setAccountOpen]=useState(false)
   const notificationsRef=useRef<HTMLDivElement>(null)
-  const normalizedQuery=query.trim().toLocaleLowerCase('pt-BR')
-  const flatItems=useMemo(()=>items.flatMap(item=>isNavGroup(item)?item.children:[item]),[items])
-  const searchResults=useMemo(()=>normalizedQuery?flatItems.filter(([label])=>label.toLocaleLowerCase('pt-BR').includes(normalizedQuery)).slice(0,6):[],[flatItems,normalizedQuery])
   const actions=headerActions??(headerAction?[headerAction]:[])
 
   useEffect(()=>{
@@ -35,7 +39,7 @@ export function AdminShell({area,items,children,header,headerAction,headerAction
     return()=>document.removeEventListener('pointerdown',closeOnOutsidePointer)
   },[notificationsOpen])
 
-  return <div className="app-shell">
+  return <div className={`app-shell${isAgenda?' app-shell-agenda':''}`}>
     <a className="admin-skip-link" href="#admin-main">Pular para o conteúdo</a>
     <aside className="sidebar" aria-label={`Navegação do ${context}`}>
       <div className="sidebar-head">
@@ -57,22 +61,12 @@ export function AdminShell({area,items,children,header,headerAction,headerAction
     </aside>
 
     <div className="workspace">
-      <header className={`workspace-top${header?' workspace-top-page':''}`}>
-        {header?<div className="workspace-page-heading"><h1>{header.title}</h1><p>{header.description}</p></div>:<>
-          <div className="workspace-identity">
-            <span className="workspace-name">Portal Lander</span>
-            <span className="workspace-divider" aria-hidden="true"/>
-            <span className="workspace-context">{context}</span>
-          </div>
-          <div className="workspace-search-wrap">
-            <label className="workspace-search">
-              <span className="sr-only">Buscar seção no {context}</span>
-              <Search size={16} aria-hidden="true"/>
-              <input type="search" value={query} onChange={event=>setQuery(event.target.value)} placeholder="Buscar uma seção..." autoComplete="off"/>
-            </label>
-            {normalizedQuery&&<nav className="workspace-search-results" aria-label="Resultados da busca interna">{searchResults.length?searchResults.map(([label,Icon,to])=><Link key={to} to={to} onClick={()=>setQuery('')}><Icon size={15} aria-hidden="true"/><span>{label}</span></Link>):<span className="workspace-search-empty">Nenhuma seção encontrada.</span>}</nav>}
-          </div>
-        </>}
+      <header className={`workspace-top${effectiveHeader?' workspace-top-page':''}`}>
+        {effectiveHeader?<div className="workspace-page-heading"><h1>{effectiveHeader.title}</h1><p>{effectiveHeader.description}</p></div>:<div className="workspace-identity">
+          <span className="workspace-name">Portal Lander</span>
+          <span className="workspace-divider" aria-hidden="true"/>
+          <span className="workspace-context">{context}</span>
+        </div>}
         <div className="workspace-actions">
           {actions.map(action=><button key={action.label} className={`button ${action.variant==='secondary'?'outline workspace-header-secondary':'dark'} workspace-primary-action`} type="button" onClick={action.onClick} disabled={action.disabled} title={action.disabled?action.disabledReason:undefined}>{action.label}</button>)}
           <div className="workspace-popover-wrap" ref={notificationsRef}>
@@ -89,12 +83,14 @@ export function AdminShell({area,items,children,header,headerAction,headerAction
           </div>
         </div>
       </header>
-      <main className="workspace-main" id="admin-main" tabIndex={-1}>{children}</main>
+      <main className={`workspace-main${isAgenda?' workspace-main-agenda':''}`} id="admin-main" tabIndex={-1}>{children}</main>
     </div>
   </div>
 }
 
 export function AdminPageHeader({eyebrow,title,description,action,disabled=false,disabledReason}:{eyebrow:string;title:string;description?:string;action?:string;disabled?:boolean;disabledReason?:string}){
+  const location=useLocation()
+  if(location.pathname==='/app/crm/events')return null
   const reason=disabledReason||'Requer uma camada persistente ainda não conectada.'
   return <div className="admin-page-header">
     <div className="admin-page-header-copy"><span className="admin-breadcrumb">{eyebrow}</span><h1>{title}</h1>{description&&<p>{description}</p>}</div>

@@ -1,4 +1,4 @@
-import { BarChart3, BriefcaseBusiness, CalendarDays, CircleDollarSign, FileText, Globe2, Images, LayoutDashboard, Megaphone, Newspaper, Settings, Tags, TrendingUp, Users } from 'lucide-react'
+import { BarChart3, BriefcaseBusiness, CalendarDays, CircleDollarSign, FileText, Globe2, Images, LayoutDashboard, Megaphone, Newspaper, PanelsTopLeft, Settings, Tags, TrendingUp, Users } from 'lucide-react'
 import type { AdminNavItem } from './AdminUi'
 
 export const CRM_NAV: readonly AdminNavItem[] = [
@@ -14,6 +14,7 @@ export const CRM_NAV: readonly AdminNavItem[] = [
 
 export const SITE_MANAGER_NAV: readonly AdminNavItem[] = [
   ['Dashboard',LayoutDashboard,'/app/site'],
+  ['Hero da Home',PanelsTopLeft,'/app/site/home/hero'],
   ['Páginas',Globe2,'/app/site/paginas'],
   ['Conteúdos',FileText,'/app/site/conteudos'],
   ['Categorias',Tags,'/app/site/categorias'],

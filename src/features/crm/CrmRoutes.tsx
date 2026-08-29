@@ -1,6 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { ChatPage, OperationsPage } from '../operations/OperationsPage'
-import { ContractCategoriesPage, ContractTemplatesPage, ContractVariablesPage } from '../operations/ContractRegistryPages'
+import { ContractTemplatesPage, ContractVariablesPage } from '../operations/ContractRegistryPages'
 import { ContractsPage } from '../operations/ContractsPage'
 import { PaginatedMarketingPage } from '../operations/PaginatedMarketingPage'
 import { PaginatedOperationsPage } from '../operations/PaginatedOperationsPage'
@@ -21,7 +21,7 @@ export default function CrmRoutes(){
     <Route path="internal-chat" element={<Navigate to="/app/crm/chat" replace/>}/>
     <Route path="contracts" element={<ContractsPage/>}/>
     <Route path="contracts/templates" element={<ContractTemplatesPage/>}/>
-    <Route path="contracts/categorias" element={<ContractCategoriesPage/>}/>
+    <Route path="contracts/categorias" element={<Navigate to="/app/crm/contracts" replace/>}/>
     <Route path="contracts/variaveis" element={<ContractVariablesPage/>}/>
     <Route path="integrations" element={<Navigate to="/app/crm/settings" replace/>}/>
     <Route path="relatorios" element={<ReportsPage/>}/>

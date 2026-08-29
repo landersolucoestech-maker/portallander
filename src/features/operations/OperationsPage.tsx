@@ -3,13 +3,15 @@ import { CRM_NAV } from '../../shared/internal/adminNavigation'
 import { AdminKpi, AdminNotice, AdminPageHeader, AdminShell } from '../../shared/internal/AdminUi'
 import { operationsModuleByKey } from './modules'
 
+const crmLabel=(value:string)=>value.replace(/backoffice/gi,'CRM').replace(/cada workspace/gi,'o CRM')
+
 export function OperationsPage(){
   const {moduleKey='accounting'}=useParams()
   const module=operationsModuleByKey(moduleKey)??operationsModuleByKey('accounting')!
   const Icon=module.icon
   return <AdminShell area="crm" items={CRM_NAV}>
-    <AdminPageHeader eyebrow={`CRM / ${module.eyebrow}`} title={module.title} description={module.description}/>
-    <AdminNotice title="Módulo adaptado do arquivo de referência" description={module.note}/>
+    <AdminPageHeader eyebrow={`CRM / ${module.eyebrow}`} title={module.title} description={crmLabel(module.description)}/>
+    <AdminNotice title="Módulo adaptado do arquivo de referência" description={crmLabel(module.note)}/>
 
     <div className="admin-kpi-grid operations-kpi-grid">
       {module.kpis.map(item=><AdminKpi key={item.label} label={item.label} value={item.value} detail={item.detail} icon={<Icon size={16}/>}/>) }
@@ -27,7 +29,7 @@ export function OperationsPage(){
     </div>
 
     <section className="table-card operations-table-card">
-      <table><thead><tr><th>Registro / fluxo</th><th>Contexto</th><th>Status</th><th>Resumo</th></tr></thead><tbody>{module.rows.map(row=><tr key={`${row.primary}-${row.status}`}><td><strong>{row.primary}</strong></td><td>{row.secondary}</td><td><span className="status">{row.status}</span></td><td>{row.meta}</td></tr>)}</tbody></table>
+      <table><thead><tr><th>Registro / fluxo</th><th>Contexto</th><th>Status</th><th>Resumo</th></tr></thead><tbody>{module.rows.map(row=><tr key={`${row.primary}-${row.status}`}><td><strong>{row.primary}</strong></td><td>{row.secondary}</td><td><span className="status">{row.status}</span></td><td>{crmLabel(row.meta)}</td></tr>)}</tbody></table>
     </section>
   </AdminShell>
 }

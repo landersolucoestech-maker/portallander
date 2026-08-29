@@ -1,4 +1,4 @@
-import { BarChart3, CircleDollarSign, FileText, Globe2, Home, Images, LayoutDashboard, Megaphone, Newspaper, Palette, PanelsTopLeft, Settings, Tags, Users } from 'lucide-react'
+import { BarChart3, CalendarDays, CircleDollarSign, FileSignature, FileText, Globe2, Headphones, Home, Images, LayoutDashboard, Megaphone, MessageSquareText, Newspaper, Palette, PanelsTopLeft, PlugZap, Settings, Tags, Users, UsersRound } from 'lucide-react'
 import type { AdminNavItem } from './AdminUi'
 
 export const CRM_NAV: readonly AdminNavItem[] = [
@@ -7,6 +7,19 @@ export const CRM_NAV: readonly AdminNavItem[] = [
   ['Campanhas',Megaphone,'/app/crm/campanhas'],
   ['Relatórios',BarChart3,'/app/crm/relatorios'],
   ['Financeiro',CircleDollarSign,'/app/crm/financeiro'],
+]
+
+export const OPERATIONS_NAV: readonly AdminNavItem[] = [
+  ['Contabilidade',CircleDollarSign,'/app/operations/accounting'],
+  ['Contratos',FileSignature,'/app/operations/contracts'],
+  ['Agenda',CalendarDays,'/app/operations/events'],
+  ['Integrações',PlugZap,'/app/operations/integrations'],
+  ['Marketing',Megaphone,'/app/operations/marketing'],
+  ['Atendimento',Headphones,'/app/operations/musicchat'],
+  ['Chat Interno',MessageSquareText,'/app/operations/internal-chat'],
+  ['Relatórios',BarChart3,'/app/operations/reports'],
+  ['RH',UsersRound,'/app/operations/rh'],
+  ['Configurações',Settings,'/app/operations/settings'],
 ]
 
 export const SITE_MANAGER_NAV: readonly AdminNavItem[] = [

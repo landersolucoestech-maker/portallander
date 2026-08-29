@@ -1,14 +1,60 @@
-import type { AuditLogRow, OperationalDashboard } from './types'
+import { editorialReadModel } from '../editorial/repository'
+import type { EditorialActivity, PortalDashboard, PortalDashboardItem } from './types'
 
-const API_PREFIX='/api/v1'
+const toItem=(content:(typeof editorialReadModel.contents)[number]):PortalDashboardItem=>{
+  const page=editorialReadModel.getPageById(content.pageId)
+  return {
+    id:content.id,
+    pageId:content.pageId,
+    pageSlug:page?.slug??'',
+    title:content.title,
+    slug:content.slug,
+    category:content.tags[0]??'Sem categoria',
+    author:content.author,
+    coverImage:content.coverImage,
+    status:content.status,
+    publishedAt:content.publishedAt,
+    updatedAt:content.updatedAt,
+  }
+}
 
-async function request<T>(path:string):Promise<T>{
-  const response=await fetch(`${API_PREFIX}${path}`,{credentials:'include',headers:{Accept:'application/json'}})
-  if(!response.ok)throw new Error(`API ${response.status}: ${response.statusText}`)
-  return response.json() as Promise<T>
+function sameMonth(raw:string|undefined,now:Date){
+  if(!raw)return false
+  const date=new Date(raw)
+  return date.getUTCFullYear()===now.getUTCFullYear()&&date.getUTCMonth()===now.getUTCMonth()
 }
 
 export const dashboardApi={
-  getOperational:()=>request<OperationalDashboard>('/analytics/dashboard'),
-  getActivity:(limit:number)=>request<AuditLogRow[]>(`/audit-logs?limit=${encodeURIComponent(String(limit))}`),
+  async getOperational():Promise<PortalDashboard>{
+    const now=new Date()
+    const contents=editorialReadModel.contents
+    const published=contents.filter(item=>item.status==='published'&&item.active)
+    const recentPublications=[...published].sort((a,b)=>(b.publishedAt??b.updatedAt).localeCompare(a.publishedAt??a.updatedAt)).slice(0,4).map(toItem)
+    const recentUpdates=[...contents].sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt)).slice(0,5).map(toItem)
+    return {
+      published_count:published.length,
+      draft_count:contents.filter(item=>item.status==='draft').length,
+      archived_count:contents.filter(item=>item.status==='archived').length,
+      published_this_month:published.filter(item=>sameMonth(item.publishedAt,now)).length,
+      category_count:new Set(contents.flatMap(item=>item.tags)).size,
+      page_count:editorialReadModel.pages.length,
+      recent_publications:recentPublications,
+      recent_updates:recentUpdates,
+      generated_at:now.toISOString(),
+    }
+  },
+  async getActivity(limit:number):Promise<EditorialActivity[]>{
+    return [...editorialReadModel.contents]
+      .sort((a,b)=>(b.publishedAt??b.updatedAt).localeCompare(a.publishedAt??a.updatedAt))
+      .slice(0,limit)
+      .map(content=>({
+        id:`${content.id}:${content.publishedAt?'published':'updated'}`,
+        action:content.publishedAt?'published':'updated',
+        title:content.title,
+        category:content.tags[0]??'Sem categoria',
+        occurred_at:content.publishedAt??content.updatedAt,
+        pageSlug:editorialReadModel.getPageById(content.pageId)?.slug??'',
+        slug:content.slug,
+      }))
+  },
 }

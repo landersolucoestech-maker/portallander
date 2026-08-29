@@ -1,3 +1,5 @@
+import { homeAdPersistence } from './adPersistence'
+
 export type HomeAdAlign = 'left' | 'center' | 'right'
 
 export type HomeAdConfig = {
@@ -47,9 +49,8 @@ function normalize(raw: Partial<HomeAdConfig> | null | undefined): HomeAdConfig 
 }
 
 export function readHomeAdConfig(): HomeAdConfig {
-  if (typeof window === 'undefined') return defaultHomeAdConfig
   try {
-    const value = window.localStorage.getItem(HOME_AD_STORAGE_KEY)
+    const value = homeAdPersistence.read(HOME_AD_STORAGE_KEY)
     return value ? normalize(JSON.parse(value)) : defaultHomeAdConfig
   } catch {
     return defaultHomeAdConfig
@@ -57,13 +58,11 @@ export function readHomeAdConfig(): HomeAdConfig {
 }
 
 export function writeHomeAdConfig(config: HomeAdConfig) {
-  if (typeof window === 'undefined') return
-  window.localStorage.setItem(HOME_AD_STORAGE_KEY, JSON.stringify(normalize(config)))
-  window.dispatchEvent(new CustomEvent('portal-lander:home-ad-updated'))
+  homeAdPersistence.write(HOME_AD_STORAGE_KEY, JSON.stringify(normalize(config)))
+  homeAdPersistence.notify()
 }
 
 export function resetHomeAdConfig() {
-  if (typeof window === 'undefined') return
-  window.localStorage.removeItem(HOME_AD_STORAGE_KEY)
-  window.dispatchEvent(new CustomEvent('portal-lander:home-ad-updated'))
+  homeAdPersistence.remove(HOME_AD_STORAGE_KEY)
+  homeAdPersistence.notify()
 }

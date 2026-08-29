@@ -9,8 +9,9 @@ export type AdminArea = 'crm' | 'cms'
 export type AdminNavItem = readonly [label: string, icon: LucideIcon, to: string]
 
 type AdminShellHeader={title:string;description:string}
+type AdminShellAction={label:string;onClick?:()=>void;disabled?:boolean;disabledReason?:string}
 
-export function AdminShell({area,items,children,header}:{area:AdminArea;items:readonly AdminNavItem[];children:ReactNode;header?:AdminShellHeader}){
+export function AdminShell({area,items,children,header,headerAction}:{area:AdminArea;items:readonly AdminNavItem[];children:ReactNode;header?:AdminShellHeader;headerAction?:AdminShellAction}){
   const context=area==='crm'?'CRM':'Gerenciador do Site'
   const [query,setQuery]=useState('')
   const [notificationsOpen,setNotificationsOpen]=useState(false)
@@ -47,6 +48,7 @@ export function AdminShell({area,items,children,header}:{area:AdminArea;items:re
           </div>
         </>}
         <div className="workspace-actions">
+          {headerAction&&<button className="button dark workspace-primary-action" type="button" onClick={headerAction.onClick} disabled={headerAction.disabled} title={headerAction.disabled?headerAction.disabledReason:undefined}>{headerAction.label}</button>}
           <div className="workspace-popover-wrap">
             <button className="icon-button" type="button" aria-label="Abrir notificações" aria-expanded={notificationsOpen} onClick={()=>{setNotificationsOpen(value=>!value);setAccountOpen(false)}}><Bell size={17} aria-hidden="true"/></button>
             {notificationsOpen&&<div className="workspace-popover notifications-popover" role="status"><strong>{ADMIN_CAPABILITIES.notifications.label}</strong><p>{ADMIN_CAPABILITIES.notifications.description}</p></div>}

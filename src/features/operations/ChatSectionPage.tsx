@@ -1,4 +1,4 @@
-import { Headphones, MessageSquareText, MoreHorizontal, Paperclip, Plus, Search, Send, Settings, Users } from 'lucide-react'
+import { Headphones, MessageSquareText, MoreHorizontal, Paperclip, Plus, Search, Send, Users } from 'lucide-react'
 import { useState } from 'react'
 import { CRM_NAV } from '../../shared/internal/adminNavigation'
 import { AdminPageHeader, AdminShell } from '../../shared/internal/AdminUi'

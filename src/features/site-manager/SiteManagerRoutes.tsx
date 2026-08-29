@@ -5,6 +5,7 @@ import { HeaderBrandManagerPage } from './pages/HeaderBrandManagerPage'
 import { HomeAdManagerPage } from './pages/HomeAdManagerPage'
 import { HomeManagerPage } from './pages/HomeManagerPage'
 import { MediaKitPage } from './pages/MediaKitPage'
+import { NewsAdManagerPage } from './pages/NewsAdManagerPage'
 import { SiteCategoriesPage } from './pages/SiteCategoriesPage'
 import { SiteContentsPage } from './pages/SiteContentsPage'
 import { SiteManagerDashboardPage } from './pages/SiteManagerDashboardPage'
@@ -24,6 +25,7 @@ export default function SiteManagerRoutes(){
     <Route path="paginas" element={<SitePagesPage/>}/>
     <Route path="categorias" element={<SiteCategoriesPage/>}/>
     <Route path="midia" element={<SiteMediaPage/>}/>
+    <Route path="noticias/anuncio" element={<NewsAdManagerPage/>}/>
     <Route path="midia-kit" element={<MediaKitPage/>}/>
     <Route path="configuracoes" element={<SiteSettingsPage/>}/>
     <Route path="*" element={<Navigate to="/app/site" replace/>}/>

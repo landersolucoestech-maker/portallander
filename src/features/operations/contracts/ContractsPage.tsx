@@ -1,8 +1,7 @@
-import { AlertCircle, CheckCircle, Clock, DollarSign, FileStack, FileText, PenLine, Plus, Search, Send, X } from 'lucide-react'
-import { useMemo, useState, type ReactNode } from 'react'
+import { AlertCircle, CheckCircle, Clock, DollarSign, FileStack, FileText, MoreHorizontal, PenLine, Plus, Search, Send, X } from 'lucide-react'
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { CRM_NAV } from '../../../shared/internal/adminNavigation'
 import { AdminShell } from '../../../shared/internal/AdminUi'
-import { TableRowActionMenu } from '../../../shared/internal/TableRowActionMenu'
 
 type Contract={id:string;title:string;client:string;type:string;platform:string;status:string;start:string;end:string;value:number}
 type WizardState={template:string;category:string;contractor:string;contracted:string;variables:Record<string,string>;content:string;signers:{name:string;email:string;order:number;platform:string}[];title:string;start:string;end:string;status:string;notes:string}
@@ -21,6 +20,13 @@ const EMPTY_WIZARD:WizardState={
 
 const money=(value:number)=>value.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})
 function Section({title,children}:{title:string;children:ReactNode}){return <section className="reference-form-section"><h3>{title}</h3>{children}</section>}
+function ContractActionMenu({contract,onView,onEdit,onDelete}:{contract:Contract;onView:()=>void;onEdit:()=>void;onDelete:()=>void}){
+  const [open,setOpen]=useState(false)
+  const root=useRef<HTMLDivElement>(null)
+  useEffect(()=>{if(!open)return;const close=(event:PointerEvent)=>{if(!root.current?.contains(event.target as Node))setOpen(false)};document.addEventListener('pointerdown',close);return()=>document.removeEventListener('pointerdown',close)},[open])
+  const run=(fn:()=>void)=>{setOpen(false);fn()}
+  return <div className="table-row-actions contracts-row-action-menu" ref={root}><button type="button" className="table-row-actions-trigger" aria-label={`Ações de ${contract.title}`} aria-haspopup="menu" aria-expanded={open} onClick={()=>setOpen(v=>!v)}><MoreHorizontal size={16}/></button>{open&&<div className="table-row-actions-menu" role="menu"><button type="button" role="menuitem" onClick={()=>run(onView)}>Ver</button><button type="button" role="menuitem" onClick={()=>run(onEdit)}>Editar</button><button type="button" role="menuitem" className="danger" onClick={()=>run(onDelete)}>Excluir</button></div>}</div>
+}
 
 export function ContractsPage(){
   const [contracts,setContracts]=useState<Contract[]>(INITIAL)
@@ -39,18 +45,8 @@ export function ContractsPage(){
   const [signMessage,setSignMessage]=useState('Olá, segue o contrato para assinatura digital.')
   const [signDeadline,setSignDeadline]=useState('')
 
-  const filtered=useMemo(()=>{
-    const q=query.trim().toLocaleLowerCase('pt-BR')
-    return contracts.filter(c=>(!q||`${c.title} ${c.client} ${c.type}`.toLocaleLowerCase('pt-BR').includes(q))&&(type==='Todos os tipos'||c.type===type)&&(status==='Todos os status'||c.status===status)&&(platform==='Todas as plataformas'||c.platform===platform))
-  },[contracts,query,type,status,platform])
-
-  const counts={
-    vigentes:contracts.filter(c=>c.status==='Vigente').length,
-    assinados:contracts.filter(c=>c.status==='Assinado').length,
-    aguardando:contracts.filter(c=>c.status==='Aguardando Assinatura').length,
-    analise:contracts.filter(c=>!['Vigente','Assinado','Aguardando Assinatura','Encerrado','Expirado','Rescindido','Cancelado'].includes(c.status)).length,
-    encerrados:contracts.filter(c=>['Encerrado','Expirado','Rescindido','Cancelado'].includes(c.status)).length,
-  }
+  const filtered=useMemo(()=>{const q=query.trim().toLocaleLowerCase('pt-BR');return contracts.filter(c=>(!q||`${c.title} ${c.client} ${c.type}`.toLocaleLowerCase('pt-BR').includes(q))&&(type==='Todos os tipos'||c.type===type)&&(status==='Todos os status'||c.status===status)&&(platform==='Todas as plataformas'||c.platform===platform))},[contracts,query,type,status,platform])
+  const counts={vigentes:contracts.filter(c=>c.status==='Vigente').length,assinados:contracts.filter(c=>c.status==='Assinado').length,aguardando:contracts.filter(c=>c.status==='Aguardando Assinatura').length,analise:contracts.filter(c=>!['Vigente','Assinado','Aguardando Assinatura','Encerrado','Expirado','Rescindido','Cancelado'].includes(c.status)).length,encerrados:contracts.filter(c=>['Encerrado','Expirado','Rescindido','Cancelado'].includes(c.status)).length}
   const totalValue=contracts.filter(c=>['Vigente','Assinado'].includes(c.status)).reduce((sum,c)=>sum+c.value,0)
   const allSelected=filtered.length>0&&filtered.every(c=>selected.includes(c.id))
   const hasFilters=Boolean(query)||type!=='Todos os tipos'||status!=='Todos os status'||platform!=='Todas as plataformas'
@@ -61,50 +57,19 @@ export function ContractsPage(){
   const openView=(contract:Contract)=>{setViewing(contract);setViewTab('resumo')}
   const deleteContract=(id:string)=>{setContracts(items=>items.filter(c=>c.id!==id));setSelected(ids=>ids.filter(x=>x!==id));if(viewing?.id===id)setViewing(null)}
   const saveEdit=()=>{if(!editing)return;setContracts(items=>items.map(c=>c.id===editing.id?editing:c));setEditing(null)}
-  const createContract=()=>{
-    const title=wizardState.title.trim()||`${wizardState.template} · ${wizardState.contracted||'Novo cliente'}`
-    const platformLabel=wizardState.signers[0]?.platform==='none'?'—':wizardState.signers[0]?.platform==='autentique'?'Autentique':wizardState.signers[0]?.platform==='clicksign'?'Clicksign':'DocuSign'
-    setContracts(items=>[{id:`ctr-${Date.now()}`,title,client:wizardState.contracted||'—',type:wizardState.category,platform:platformLabel,status:wizardState.status,start:wizardState.start||new Date().toISOString().slice(0,10),end:wizardState.end||new Date().toISOString().slice(0,10),value:Number(wizardState.variables['{{CONTRATO.VALOR}}']||0)},...items])
-    setWizard(false)
-  }
+  const createContract=()=>{const title=wizardState.title.trim()||`${wizardState.template} · ${wizardState.contracted||'Novo cliente'}`;const platformLabel=wizardState.signers[0]?.platform==='none'?'—':wizardState.signers[0]?.platform==='autentique'?'Autentique':wizardState.signers[0]?.platform==='clicksign'?'Clicksign':'DocuSign';setContracts(items=>[{id:`ctr-${Date.now()}`,title,client:wizardState.contracted||'—',type:wizardState.category,platform:platformLabel,status:wizardState.status,start:wizardState.start||new Date().toISOString().slice(0,10),end:wizardState.end||new Date().toISOString().slice(0,10),value:Number(wizardState.variables['{{CONTRATO.VALOR}}']||0)},...items]);setWizard(false)}
   const updateSigner=(index:number,key:'name'|'email'|'platform',value:string)=>setWizardState(state=>({...state,signers:state.signers.map((s,i)=>i===index?{...s,[key]:value}:s)}))
   const sendForSigning=()=>{if(viewing){const updated={...viewing,status:'Aguardando Assinatura',platform:viewing.platform==='—'?'Autentique':viewing.platform};setContracts(items=>items.map(c=>c.id===viewing.id?updated:c));setViewing(updated)}setSigning(false)}
 
-  return <AdminShell
-    area="crm"
-    items={CRM_NAV}
-    header={{title:'Contratos',description:'Gerencie contratos e documentação legal'}}
-    headerAction={{label:'Novo Contrato',onClick:openWizard}}
-  >
+  return <AdminShell area="crm" items={CRM_NAV} header={{title:'Contratos',description:'Gerencie contratos e documentação legal'}} headerAction={{label:'Novo Contrato',onClick:openWizard}}>
     <div className="zip-stack contracts-page">
       <div className="zip-kpi-grid contracts">{[
-        ['Total de Contratos',String(contracts.length),'na base',<FileStack size={18}/>],
-        ['Vigentes',String(counts.vigentes),'em vigor',<CheckCircle size={18}/>],
-        ['Assinados',String(counts.assinados),'aguardando vigência',<PenLine size={18}/>],
-        ['Aguardando Assinatura',String(counts.aguardando),'pendentes de assinar',<Clock size={18}/>],
-        ['Em Análise',String(counts.analise),'rascunho / negociação',<FileText size={18}/>],
-        ['Encerrados',String(counts.encerrados),'expirados / rescindidos / cancelados',<AlertCircle size={18}/>],
-        ['Valor Total',money(totalValue),'vigentes + assinados',<DollarSign size={18}/>],
+        ['Total de Contratos',String(contracts.length),'na base',<FileStack size={18}/>],['Vigentes',String(counts.vigentes),'em vigor',<CheckCircle size={18}/>],['Assinados',String(counts.assinados),'aguardando vigência',<PenLine size={18}/>],['Aguardando Assinatura',String(counts.aguardando),'pendentes de assinar',<Clock size={18}/>],['Em Análise',String(counts.analise),'rascunho / negociação',<FileText size={18}/>],['Encerrados',String(counts.encerrados),'expirados / rescindidos / cancelados',<AlertCircle size={18}/>],['Valor Total',money(totalValue),'vigentes + assinados',<DollarSign size={18}/>],
       ].map(([title,value,description,icon])=><article className="zip-metric" key={String(title)}><div className="zip-metric-icon">{icon}</div><div><span>{title}</span><strong>{value}</strong><small>{description}</small></div></article>)}</div>
 
-      <div className="zip-toolbar contracts-toolbar">
-        <label className="zip-search"><Search size={14}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Buscar por artista, tipo ou título…"/></label>
-        <select value={type} onChange={e=>setType(e.target.value)}><option>Todos os tipos</option><option>Agenciamento</option><option>Distribuição</option><option>Licenciamento</option><option>Edição</option><option>Publicidade</option><option>Evento</option><option>Parceria</option></select>
-        <select value={status} onChange={e=>setStatus(e.target.value)}><option>Todos os status</option><option>Assinado</option><option>Vigente</option><option>Aguardando Assinatura</option><option>Pendente</option><option>Rascunho</option><option>Expirado</option><option>Rescindido</option><option>Cancelado</option></select>
-        <select value={platform} onChange={e=>setPlatform(e.target.value)}><option>Todas as plataformas</option><option>Autentique</option><option>Clicksign</option><option>DocuSign</option><option>—</option></select>
-        {hasFilters&&<button className="zip-button secondary" type="button" onClick={clearFilters}><X size={14}/> Limpar</button>}
-        {hasFilters&&<span className="contracts-filter-count">{filtered.length} de {contracts.length} contratos</span>}
-      </div>
+      <div className="zip-toolbar contracts-toolbar"><label className="zip-search"><Search size={14}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Buscar por artista, tipo ou título…"/></label><select value={type} onChange={e=>setType(e.target.value)}><option>Todos os tipos</option><option>Agenciamento</option><option>Distribuição</option><option>Licenciamento</option><option>Edição</option><option>Publicidade</option><option>Evento</option><option>Parceria</option></select><select value={status} onChange={e=>setStatus(e.target.value)}><option>Todos os status</option><option>Assinado</option><option>Vigente</option><option>Aguardando Assinatura</option><option>Pendente</option><option>Rascunho</option><option>Expirado</option><option>Rescindido</option><option>Cancelado</option></select><select value={platform} onChange={e=>setPlatform(e.target.value)}><option>Todas as plataformas</option><option>Autentique</option><option>Clicksign</option><option>DocuSign</option><option>—</option></select>{hasFilters&&<button className="zip-button secondary" type="button" onClick={clearFilters}><X size={14}/> Limpar</button>}{hasFilters&&<span className="contracts-filter-count">{filtered.length} de {contracts.length} contratos</span>}</div>
 
-      <section className="zip-panel contracts-table-panel">
-        <header className="zip-panel-head"><div><h2>Lista de Contratos</h2><p>Acompanhe todos os contratos e seus vencimentos · {filtered.length} registro(s)</p></div><div className="contracts-inline-actions"><label><input type="checkbox" checked={allSelected} onChange={toggleAll}/> {selected.length?`${selected.length} selecionado(s)`:'Selecionar todos'}</label>{selected.length>0&&<button className="zip-button danger" type="button" onClick={removeSelected}>Excluir ({selected.length})</button>}</div></header>
-        <div className="zip-table-wrap"><table className="zip-table"><thead><tr><th></th><th>Título</th><th>Artista / Cliente</th><th>Tipo</th><th>Plataforma</th><th>Status</th><th>Período</th><th>Valor</th><th className="actions-col">Ações</th></tr></thead><tbody>{filtered.length?filtered.map(c=>{
-          const days=Math.ceil((new Date(c.end).getTime()-Date.now())/86400000)
-          const nearExpiry=days>=0&&days<=30
-          return <tr key={c.id}><td><input type="checkbox" checked={selected.includes(c.id)} onChange={()=>setSelected(ids=>ids.includes(c.id)?ids.filter(id=>id!==c.id):[...ids,c.id])}/></td><td><strong>{c.title}</strong></td><td>{c.client}</td><td>{c.type}</td><td>{c.platform}</td><td><div className="contracts-status-cell"><span className={`zip-badge ${c.status==='Vigente'?'zip-badge-success':c.status==='Aguardando Assinatura'?'zip-badge-warning':''}`}>{c.status}</span>{nearExpiry&&<small className="contracts-expiry-badge"><AlertCircle size={11}/>{days}d</small>}</div></td><td>{new Date(c.start).toLocaleDateString('pt-BR')} – {new Date(c.end).toLocaleDateString('pt-BR')}</td><td>{c.value?money(c.value):'—'}</td><td className="actions-col"><TableRowActionMenu label={c.title} onView={()=>openView(c)} onEdit={()=>setEditing({...c})} onDelete={()=>deleteContract(c.id)}/></td></tr>
-        }):<tr><td colSpan={9} className="contracts-empty-row">{hasFilters?'Nenhum contrato corresponde aos filtros aplicados.':'Nenhum contrato cadastrado.'}</td></tr>}</tbody></table></div>
-        {!filtered.length&&!hasFilters&&<div className="contracts-empty-action"><button className="zip-button" type="button" onClick={openWizard}><Plus size={14}/> Novo Contrato</button></div>}
-      </section>
+      <section className="zip-panel contracts-table-panel"><header className="zip-panel-head"><div><h2>Lista de Contratos</h2><p>Acompanhe todos os contratos e seus vencimentos · {filtered.length} registro(s)</p></div><div className="contracts-inline-actions"><label><input type="checkbox" checked={allSelected} onChange={toggleAll}/> {selected.length?`${selected.length} selecionado(s)`:'Selecionar todos'}</label>{selected.length>0&&<button className="zip-button danger" type="button" onClick={removeSelected}>Excluir ({selected.length})</button>}</div></header><div className="zip-table-wrap"><table className="zip-table"><thead><tr><th></th><th>Título</th><th>Artista / Cliente</th><th>Tipo</th><th>Plataforma</th><th>Status</th><th>Período</th><th>Valor</th><th className="actions-col">Ações</th></tr></thead><tbody>{filtered.length?filtered.map(c=>{const days=Math.ceil((new Date(c.end).getTime()-Date.now())/86400000);const nearExpiry=days>=0&&days<=30;return <tr key={c.id}><td><input type="checkbox" checked={selected.includes(c.id)} onChange={()=>setSelected(ids=>ids.includes(c.id)?ids.filter(id=>id!==c.id):[...ids,c.id])}/></td><td><strong>{c.title}</strong></td><td>{c.client}</td><td>{c.type}</td><td>{c.platform}</td><td><div className="contracts-status-cell"><span className={`zip-badge ${c.status==='Vigente'?'zip-badge-success':c.status==='Aguardando Assinatura'?'zip-badge-warning':''}`}>{c.status}</span>{nearExpiry&&<small className="contracts-expiry-badge"><AlertCircle size={11}/>{days}d</small>}</div></td><td>{new Date(c.start).toLocaleDateString('pt-BR')} – {new Date(c.end).toLocaleDateString('pt-BR')}</td><td>{c.value?money(c.value):'—'}</td><td className="actions-col"><ContractActionMenu contract={c} onView={()=>openView(c)} onEdit={()=>setEditing({...c})} onDelete={()=>deleteContract(c.id)}/></td></tr>}):<tr><td colSpan={9} className="contracts-empty-row">{hasFilters?'Nenhum contrato corresponde aos filtros aplicados.':'Nenhum contrato cadastrado.'}</td></tr>}</tbody></table></div>{!filtered.length&&!hasFilters&&<div className="contracts-empty-action"><button className="zip-button" type="button" onClick={openWizard}><Plus size={14}/> Novo Contrato</button></div>}</section>
     </div>
 
     {editing&&<div className="reference-modal-backdrop" onMouseDown={e=>e.target===e.currentTarget&&setEditing(null)}><section className="reference-modal"><header className="reference-modal-head"><div><span>CONTRATOS</span><h2>Editar Contrato</h2></div><button className="reference-modal-close" onClick={()=>setEditing(null)}><X size={17}/></button></header><div className="reference-modal-body reference-form"><div className="reference-form-grid"><label className="wide"><span>Título</span><input value={editing.title} onChange={e=>setEditing(v=>v?{...v,title:e.target.value}:v)}/></label><label><span>Artista / Cliente</span><input value={editing.client} onChange={e=>setEditing(v=>v?{...v,client:e.target.value}:v)}/></label><label><span>Tipo</span><input value={editing.type} onChange={e=>setEditing(v=>v?{...v,type:e.target.value}:v)}/></label><label><span>Status</span><select value={editing.status} onChange={e=>setEditing(v=>v?{...v,status:e.target.value}:v)}><option>Rascunho</option><option>Aguardando Assinatura</option><option>Assinado</option><option>Vigente</option><option>Encerrado</option></select></label><label><span>Plataforma</span><select value={editing.platform} onChange={e=>setEditing(v=>v?{...v,platform:e.target.value}:v)}><option>—</option><option>Autentique</option><option>Clicksign</option><option>DocuSign</option></select></label><label><span>Início</span><input type="date" value={editing.start} onChange={e=>setEditing(v=>v?{...v,start:e.target.value}:v)}/></label><label><span>Fim</span><input type="date" value={editing.end} onChange={e=>setEditing(v=>v?{...v,end:e.target.value}:v)}/></label><label><span>Valor</span><input type="number" value={editing.value} onChange={e=>setEditing(v=>v?{...v,value:Number(e.target.value)}:v)}/></label></div></div><footer className="reference-modal-footer"><button className="zip-button secondary" onClick={()=>setEditing(null)}>Cancelar</button><button className="zip-button" onClick={saveEdit}>Salvar Alterações</button></footer></section></div>}

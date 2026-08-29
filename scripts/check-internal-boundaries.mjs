@@ -11,6 +11,9 @@ for(const required of ['hero-public.css','home-ad-public.css'])if(!publicStyles.
 const globalStyles=await read('src/styles/styles.css')
 for(const selector of ['.app-shell{','.sidebar{','.workspace-top{','.admin-kpi-grid{'])if(globalStyles.includes(selector))failures.push(`styles.css contém seletor administrativo legado: ${selector}`)
 
+const adminSystem=await read('src/styles/admin-system.css')
+for(const selector of ['.workspace-picker{','.workspace-cards{','.workspace-card{'])if(adminSystem.includes(selector))failures.push(`admin-system.css não pode manter estilos da seleção de workspace antiga: ${selector}`)
+
 const main=await read('src/main.tsx')
 if(main.includes('Bridge'))failures.push('main.tsx deve permanecer livre de bridges globais.')
 if(!main.includes('<React.StrictMode><HashRouter><App/></HashRouter></React.StrictMode>'))failures.push('main.tsx deve montar somente App dentro do HashRouter.')
@@ -33,7 +36,7 @@ if(!loginPage.includes('to="/app/workspaces"'))failures.push('Login deve expor s
 for(const forbidden of ['localStorage.setItem','sessionStorage.setItem','setAuthenticated(true)','loginSuccess'])if(loginPage.includes(forbidden))failures.push(`Login não pode fabricar autenticação local: ${forbidden}`)
 
 const workspacePage=await read('src/features/access/WorkspacePage.tsx')
-for(const required of ['to="/app/crm"','to="/app/site"','Esta tela não representa uma sessão autenticada.'])if(!workspacePage.includes(required))failures.push(`WorkspacePage deve manter: ${required}`)
+for(const required of ["to:'/app/crm'","to:'/app/site'",'Esta tela não representa uma sessão autenticada.'])if(!workspacePage.includes(required))failures.push(`WorkspacePage deve manter: ${required}`)
 
 const publicHome=await read('src/pages/home/PublicHome.tsx')
 if(!publicHome.includes("from './models/homeReadModel'"))failures.push('PublicHome deve consumir models/homeReadModel.')

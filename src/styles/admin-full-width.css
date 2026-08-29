@@ -1,0 +1,13 @@
+.app-shell .workspace-main{
+  width:100%;
+  max-width:none;
+  margin:0;
+  padding:24px 24px 46px;
+  box-sizing:border-box;
+}
+
+@media(max-width:760px){
+  .app-shell .workspace-main{
+    padding:20px 16px 86px;
+  }
+}

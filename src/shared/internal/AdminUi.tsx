@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import type { LucideIcon } from 'lucide-react'
-import { Bell, Building2, ChevronDown } from 'lucide-react'
+import { Bell, Building2, ChevronDown, LogOut, Settings, UserRound } from 'lucide-react'
 import { Link, NavLink } from 'react-router-dom'
 import { portalLogo } from '../branding/assets/brandAsset'
 
@@ -19,14 +19,28 @@ export function AdminShell({area,items,children,header,headerAction,headerAction
   const [notificationsOpen,setNotificationsOpen]=useState(false)
   const [accountOpen,setAccountOpen]=useState(false)
   const notificationsRef=useRef<HTMLDivElement>(null)
+  const accountRef=useRef<HTMLDivElement>(null)
   const actions=headerActions??(headerAction?[headerAction]:[])
 
   useEffect(()=>{
-    if(!notificationsOpen)return
-    const closeOnOutsidePointer=(event:PointerEvent)=>{if(notificationsRef.current&&!notificationsRef.current.contains(event.target as Node))setNotificationsOpen(false)}
+    if(!notificationsOpen&&!accountOpen)return
+    const closeOnOutsidePointer=(event:PointerEvent)=>{
+      const target=event.target as Node
+      if(notificationsOpen&&notificationsRef.current&&!notificationsRef.current.contains(target))setNotificationsOpen(false)
+      if(accountOpen&&accountRef.current&&!accountRef.current.contains(target))setAccountOpen(false)
+    }
+    const closeOnEscape=(event:KeyboardEvent)=>{
+      if(event.key!=='Escape')return
+      setNotificationsOpen(false)
+      setAccountOpen(false)
+    }
     document.addEventListener('pointerdown',closeOnOutsidePointer)
-    return()=>document.removeEventListener('pointerdown',closeOnOutsidePointer)
-  },[notificationsOpen])
+    document.addEventListener('keydown',closeOnEscape)
+    return()=>{
+      document.removeEventListener('pointerdown',closeOnOutsidePointer)
+      document.removeEventListener('keydown',closeOnEscape)
+    }
+  },[notificationsOpen,accountOpen])
 
   const renderActions=()=>actions.map(action=><button key={action.label} className={`button ${action.variant==='secondary'?'outline workspace-header-secondary':'dark'} workspace-primary-action`} type="button" onClick={action.onClick} disabled={action.disabled} title={action.disabled?action.disabledReason:undefined}>{action.label}</button>)
 
@@ -43,7 +57,7 @@ export function AdminShell({area,items,children,header,headerAction,headerAction
     <div className="workspace">
       <header className={`workspace-top${header?' workspace-top-page':''}`}>
         {header?<div className="workspace-page-heading"><h1>{header.title}</h1><p>{header.description}</p></div>:<div className="workspace-identity"><span className="workspace-name">Portal Lander</span><span className="workspace-divider"/><span className="workspace-context">{context}</span></div>}
-        <div className="workspace-actions">{renderActions()}<div className="workspace-popover-wrap" ref={notificationsRef}><button className="icon-button" type="button" aria-label="Abrir notificações" aria-expanded={notificationsOpen} onClick={()=>{setNotificationsOpen(value=>!value);setAccountOpen(false)}}><Bell size={17}/></button>{notificationsOpen&&<div className="workspace-popover notifications-popover" role="status"><strong>Notificações</strong><p>Nenhuma notificação no momento.</p></div>}</div><div className="workspace-popover-wrap"><button className="account-button" type="button" aria-label="Abrir menu da conta" aria-haspopup="menu" aria-expanded={accountOpen} onClick={()=>{setAccountOpen(value=>!value);setNotificationsOpen(false)}}><span>PL</span><div><b>Administrador</b></div><ChevronDown size={14}/></button>{accountOpen&&<div className="workspace-popover account-popover" role="menu"><div className="account-popover-note">Área administrativa do Portal Lander.</div><Link to="/app/workspaces" role="menuitem">Trocar workspace</Link><Link to="/app/login" role="menuitem">Tela de login</Link><Link to="/" role="menuitem">Voltar ao site público</Link></div>}</div></div>
+        <div className="workspace-actions">{renderActions()}<div className="workspace-popover-wrap" ref={notificationsRef}><button className="icon-button notification-button" type="button" aria-label="Abrir notificações" aria-expanded={notificationsOpen} onClick={()=>{setNotificationsOpen(value=>!value);setAccountOpen(false)}}><Bell size={17}/></button>{notificationsOpen&&<div className="workspace-popover notifications-popover" role="status"><strong>Notificações</strong><p>Nenhuma notificação no momento.</p></div>}</div><div className="workspace-popover-wrap" ref={accountRef}><button className="account-button" type="button" aria-label="Abrir menu da conta" aria-haspopup="menu" aria-expanded={accountOpen} onClick={()=>{setAccountOpen(value=>!value);setNotificationsOpen(false)}}><span>PL</span><div><b>Administrador</b></div><ChevronDown size={14}/></button>{accountOpen&&<div className="workspace-popover account-popover" role="menu" aria-label="Menu da conta"><Link to="/app/profile" role="menuitem" onClick={()=>setAccountOpen(false)}><UserRound size={15}/><span>Meu perfil</span></Link><Link to="/app/settings" role="menuitem" onClick={()=>setAccountOpen(false)}><Settings size={15}/><span>Configurações</span></Link><Link className="account-popover-logout" to="/app/login" role="menuitem" onClick={()=>setAccountOpen(false)}><LogOut size={15}/><span>Sair</span></Link></div>}</div></div>
       </header>
       <main className="workspace-main" id="admin-main" tabIndex={-1}>{children}</main>
     </div>

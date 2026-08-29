@@ -1,4 +1,5 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
+import { OperationsPage } from '../operations/OperationsPage'
 import { CampaignsPage } from './pages/CampaignsPage'
 import { ContactsPage } from './pages/ContactsPage'
 import { CrmDashboardPage } from './pages/CrmDashboardPage'
@@ -12,6 +13,7 @@ export default function CrmRoutes(){
     <Route path="campanhas" element={<CampaignsPage/>}/>
     <Route path="relatorios" element={<ReportsPage/>}/>
     <Route path="financeiro" element={<FinancePage/>}/>
+    <Route path=":moduleKey" element={<OperationsPage/>}/>
     <Route path="*" element={<Navigate to="/app/crm" replace/>}/>
   </Routes>
 }

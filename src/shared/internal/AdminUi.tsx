@@ -11,7 +11,7 @@ export type AdminNavGroup = {label:string;icon:LucideIcon;children:readonly Admi
 export type AdminNavItem = AdminNavLink | AdminNavGroup
 
 type AdminShellHeader={title:string;description:string}
-export type AdminShellAction={label:string;onClick?:()=>void;disabled?:boolean;disabledReason?:string}
+export type AdminShellAction={label:string;onClick?:()=>void;disabled?:boolean;disabledReason?:string;variant?:'primary'|'secondary'}
 
 const isNavGroup=(item:AdminNavItem):item is AdminNavGroup=>!Array.isArray(item)
 
@@ -74,7 +74,7 @@ export function AdminShell({area,items,children,header,headerAction,headerAction
           </div>
         </>}
         <div className="workspace-actions">
-          {actions.map(action=><button key={action.label} className="button dark workspace-primary-action" type="button" onClick={action.onClick} disabled={action.disabled} title={action.disabled?action.disabledReason:undefined}>{action.label}</button>)}
+          {actions.map(action=><button key={action.label} className={`button ${action.variant==='secondary'?'outline workspace-header-secondary':'dark'} workspace-primary-action`} type="button" onClick={action.onClick} disabled={action.disabled} title={action.disabled?action.disabledReason:undefined}>{action.label}</button>)}
           <div className="workspace-popover-wrap" ref={notificationsRef}>
             <button className="icon-button" type="button" aria-label="Abrir notificações" aria-expanded={notificationsOpen} onClick={()=>{setNotificationsOpen(value=>!value);setAccountOpen(false)}}><Bell size={17} aria-hidden="true"/></button>
             {notificationsOpen&&<div className="workspace-popover notifications-popover" role="status"><strong>{ADMIN_CAPABILITIES.notifications.label}</strong><p>{ADMIN_CAPABILITIES.notifications.description}</p></div>}

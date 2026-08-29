@@ -10,8 +10,17 @@
 .operations-table-card{margin-top:18px;overflow:auto}
 .operations-table-card table{min-width:760px}
 .operations-table-card td:last-child{font-weight:750;color:#444}
+.crm-module-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.crm-module-card{min-width:0;min-height:72px;display:flex;align-items:center;gap:10px;padding:12px;border:1px solid var(--admin-line);border-radius:9px;background:#fafafa;color:#222;transition:border-color .15s ease,background .15s ease,transform .15s ease}
+.crm-module-card:hover{border-color:#c7c7c7;background:#fff;transform:translateY(-1px)}
+.crm-module-icon{width:34px;height:34px;flex:0 0 34px;display:grid;place-items:center;border-radius:8px;background:#111;color:#fff}
+.crm-module-card>div{min-width:0;display:grid;gap:3px}
+.crm-module-card strong{font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.crm-module-card small{font-size:8px;color:#888;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .app-shell .sidebar nav{min-height:0;overflow-y:auto;overscroll-behavior:contain;padding-right:2px;scrollbar-width:thin;scrollbar-color:#383838 transparent}
 .app-shell .sidebar nav::-webkit-scrollbar{width:5px}
 .app-shell .sidebar nav::-webkit-scrollbar-thumb{background:#383838;border-radius:999px}
 .app-shell .sidebar nav a{flex:0 0 auto}
-@media(max-width:760px){.operations-capability-grid{grid-template-columns:1fr}.operations-table-card{margin-top:14px}}
+@media(max-width:1200px){.crm-module-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:760px){.operations-capability-grid{grid-template-columns:1fr}.operations-table-card{margin-top:14px}.crm-module-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:480px){.crm-module-grid{grid-template-columns:1fr}}

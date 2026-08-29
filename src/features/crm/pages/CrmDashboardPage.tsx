@@ -2,7 +2,7 @@ import { BriefcaseBusiness, TrendingUp, UserPlus, Users } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { CRM_NAV } from '../../../shared/internal/adminNavigation'
 import { AdminKpi, AdminNotice, AdminShell } from '../../../shared/internal/AdminUi'
-import { formatCurrency, statusClass } from '../model'
+import { formatCurrency } from '../model'
 import { CRM_DEMO_DESCRIPTION, CRM_PIPELINE_STAGES } from '../presentation'
 import { crmReadModel } from '../repository'
 
@@ -29,15 +29,9 @@ export function CrmDashboardPage(){
         {activities.map(item=><div className="activity-row" key={item.id}><span>{item.time}</span><div><b>{item.title}</b><small>{item.channel}</small></div></div>)}
       </section>
     </div>
-    <div className="dashboard-wide-grid">
-      <section className="admin-card">
-        <div className="admin-card-head"><div><span>Comercial</span><h2>Negócios do snapshot</h2></div><Link className="dashboard-card-link" to="/app/crm/negocios">VER NEGÓCIOS</Link></div>
-        <div className="dashboard-summary-list">{deals.map(deal=><div className="dashboard-summary-row" key={deal.id}><div><b>{deal.title}</b><small>{deal.company} · {deal.owner}</small></div><span className={`status ${statusClass(deal.stage)}`}>{deal.stage}</span><strong>{formatCurrency(deal.value)}</strong></div>)}</div>
-      </section>
-      <section className="admin-card">
-        <div className="admin-card-head"><div><span>Pipeline</span><h2>Valor por etapa</h2></div><Link className="dashboard-card-link" to="/app/crm/pipeline">ABRIR PIPELINE</Link></div>
-        <div className="dashboard-stage-list">{stageTotals.map(item=><div className="dashboard-stage" key={item.stage}><span>{item.stage}</span><div className="dashboard-stage-track"><span style={{width:`${Math.max(4,(item.total/maxStageValue)*100)}%`}}/></div><small>{formatCurrency(item.total)}</small></div>)}</div>
-      </section>
-    </div>
+    <section className="admin-card admin-grid-spaced">
+      <div className="admin-card-head"><div><span>Pipeline</span><h2>Valor por etapa</h2></div><Link className="dashboard-card-link" to="/app/crm/pipeline">ABRIR PIPELINE</Link></div>
+      <div className="dashboard-stage-list">{stageTotals.map(item=><div className="dashboard-stage" key={item.stage}><span>{item.stage}</span><div className="dashboard-stage-track"><span style={{width:`${Math.max(4,(item.total/maxStageValue)*100)}%`}}/></div><small>{formatCurrency(item.total)}</small></div>)}</div>
+    </section>
   </AdminShell>
 }

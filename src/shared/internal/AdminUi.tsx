@@ -24,7 +24,7 @@ export function AdminShell({area,items,children}:{area:AdminArea;items:readonly 
         <span>{context}</span>
       </div>
       <nav aria-label={`Seções do ${context}`}>{items.map(([label,Icon,to])=><NavLink key={to} end={to==='/app/crm'||to==='/app/site'} to={to}><Icon size={17} aria-hidden="true"/><span>{label}</span></NavLink>)}</nav>
-      <div className="sidebar-bottom"><NavLink to="/app"><Building2 size={17} aria-hidden="true"/><span>Trocar workspace</span></NavLink></div>
+      <div className="sidebar-bottom"><NavLink to="/app/workspaces"><Building2 size={17} aria-hidden="true"/><span>Trocar workspace</span></NavLink></div>
     </aside>
 
     <div className="workspace">
@@ -53,7 +53,7 @@ export function AdminShell({area,items,children}:{area:AdminArea;items:readonly 
               <div><b>Administrador local</b><small>Sem autenticação server-side</small></div>
               <ChevronDown size={14} aria-hidden="true"/>
             </button>
-            {accountOpen&&<div className="workspace-popover account-popover" role="menu"><div className="account-popover-note">{ADMIN_CAPABILITIES.adminAuth.description}</div><Link to="/app" role="menuitem">Trocar workspace</Link><Link to="/" role="menuitem">Voltar ao site público</Link></div>}
+            {accountOpen&&<div className="workspace-popover account-popover" role="menu"><div className="account-popover-note">{ADMIN_CAPABILITIES.adminAuth.description}</div><Link to="/app/workspaces" role="menuitem">Trocar workspace</Link><Link to="/app/login" role="menuitem">Tela de login</Link><Link to="/" role="menuitem">Voltar ao site público</Link></div>}
           </div>
         </div>
       </header>

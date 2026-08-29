@@ -22,11 +22,11 @@ for(const required of ["from '../dashboard/DashboardPage'",'<Route index element
 for(const forbidden of ['Contacts','Leads','Integration','repository','demoSnapshot'])if(crmWorkspace.includes(forbidden))failures.push(`CrmWorkspace não pode conter módulo CRM/Integrações: ${forbidden}`)
 
 const dashboard=await read('src/features/dashboard/DashboardPage.tsx')
-for(const required of ['Visão geral editorial do Portal Lander','Conteúdos Publicados','Rascunhos','Publicações no Mês','Categorias Editoriais','Atividades Recentes','Últimas Atualizações','Publicações Recentes'])if(!dashboard.includes(required))failures.push(`Dashboard editorial deve preservar: ${required}`)
-for(const forbidden of ['Artistas Cadastrados','Contratos Vigentes','Receita Total','Eventos do Mês','Artistas em Destaque','streams','Math.random','fake data','mockDashboard'])if(dashboard.includes(forbidden))failures.push(`Dashboard não pode reintroduzir domínio musical/dado fabricado: ${forbidden}`)
+for(const required of ['Visão executiva e operacional do Portal Lander','Faturamento do Mês','A Receber','Contratos Ativos','Publicações Contratadas Pendentes','Atenção Necessária','Próximos Compromissos','Pipeline Comercial','Operação Editorial','Receita por Origem','Atividades Recentes'])if(!dashboard.includes(required))failures.push(`Dashboard executivo deve preservar: ${required}`)
+for(const forbidden of ['Conteúdos Publicados','Categorias Editoriais','Últimas Atualizações','Publicações Recentes','Artistas Cadastrados','Contratos Vigentes','Receita Total','Eventos do Mês','Artistas em Destaque','streams','Math.random','fake data','mockDashboard'])if(dashboard.includes(forbidden))failures.push(`Dashboard não pode reintroduzir dashboard editorial/musical ou dado fabricado: ${forbidden}`)
 
 const dashboardApi=await read('src/features/dashboard/api.ts')
-for(const required of ['editorialReadModel','published_count','draft_count','published_this_month','category_count','recent_publications','recent_updates'])if(!dashboardApi.includes(required))failures.push(`Dashboard datasource deve usar domínio editorial real: ${required}`)
+for(const required of ['editorialReadModel','published_count','draft_count','published_this_month','category_count','recent_publications','recent_updates'])if(!dashboardApi.includes(required))failures.push(`Dashboard datasource deve manter a fonte editorial real disponível: ${required}`)
 
 const operationalHook=await read('src/features/dashboard/hooks/useOperationalDashboard.ts')
 for(const required of ["queryKey:['portal-dashboard']",'staleTime:30_000','refetchInterval:60_000'])if(!operationalHook.includes(required))failures.push(`useOperationalDashboard deve preservar ${required}`)

@@ -14,7 +14,7 @@ type CrmRecord=CrmContact|CrmLead
 
 const contactStatuses=['Todos','Contato','Cliente','Parceiro','Inativo'] as const
 const leadStatuses=['Todos','Novo','Contatado','Qualificado','Proposta','Negociação','Convertido','Perdido'] as const
-const contactCategories=['Artista / Banda','Empresário / Manager','Gravadora / Selo','Assessoria','Agência','Marca / Empresa','Anunciante','Produtora','Influenciador / Criador','Imprensa / Veículo','Fotógrafo / Videomaker','Evento / Festival','Parceiro','Fornecedor','Outro'] as const
+const contactCategories=['Artista / Banda','Empresário / Manager','Gravadora / Selo','Assessoria','Agência','Marca / Empresa','Anunciante','Produtor','Produtora','Influenciador / Criador','Imprensa / Veículo','Fotógrafo / Videomaker','Evento / Festival','Parceiro','Fornecedor','Prestador de serviço','Outro'] as const
 const leadTypes=['Anunciante','Marca / Empresa','Artista / Banda','Gravadora / Selo','Assessoria','Agência','Produtora','Parceiro','Evento / Festival','Outro'] as const
 const leadInterests=['Anunciar no Portal Lander','Publieditorial','Banner / mídia display','Divulgação de lançamento','Divulgação de evento','Cobertura de evento','Entrevista','Parceria','Mídia Kit','Patrocínio','Produção de conteúdo','Outro'] as const
 const sources=['Anuncie Aqui','Colabore','Site','WhatsApp','Instagram','Facebook','E-mail','Indicação','Evento','Google','Meta Ads','Prospecção','Outro'] as const
@@ -78,7 +78,14 @@ export function ContactsPage(){
   const sourceOptions=['Todos',...Array.from(new Set((isLeads?crmReadModel.leads:crmReadModel.contacts).map(item=>item.source)))]
   const filterAOptions=isLeads?sourceOptions:['Todos',...Array.from(new Set(crmReadModel.contacts.map(item=>item.category)))]
   const filterBOptions=isLeads?['Todos','Frio','Morno','Quente']:sourceOptions
-  const kpis=isLeads?[['Total de leads',String(metrics.leads),'Base demonstrativa',Target],['Qualificados',String(metrics.qualifiedLeads),'Proposta ou negociação',BadgeCheck],['Leads quentes',String(metrics.hotLeads),'Prioridade comercial',Flame],['Convertidos',String(metrics.convertedLeads),'Relacionamento convertido',UserCheck]] as const:[['Total de contatos',String(metrics.contacts),'Base demonstrativa',Users],['Clientes',String(metrics.clients),'Relacionamento comercial',UserCheck],['Parceiros',String(crmReadModel.contacts.filter(item=>item.status==='Parceiro').length),'Rede de relacionamento',Users],['Com follow-up',String(crmReadModel.contacts.filter(item=>item.nextFollowUp).length),'Acompanhamento previsto',UserPlus]] as const
+  const supplierCount=crmReadModel.contacts.filter(item=>item.category==='Fornecedor').length
+  const serviceProviderCategories=new Set(['Produtor','Produtora','Assessoria','Fotógrafo / Videomaker','Prestador de serviço'])
+  const serviceProviderCount=crmReadModel.contacts.filter(item=>serviceProviderCategories.has(item.category)).length
+  const negotiationCount=crmReadModel.leads.filter(item=>item.status==='Negociação').length
+  const proposalsSentCount=crmReadModel.leads.filter(item=>item.status==='Proposta').length
+  const closedContractsCount=crmReadModel.leads.filter(item=>item.status==='Convertido').length
+  const estimatedPipelineValue=crmReadModel.leads.filter(item=>!['Convertido','Perdido'].includes(item.status)).reduce((sum,item)=>sum+item.potentialValue,0)
+  const kpis=isLeads?[['Total de leads',String(metrics.leads),'Base demonstrativa',Target],['Em negociação',String(negotiationCount),'Oportunidades em negociação',Flame],['Propostas enviadas',String(proposalsSentCount),'Propostas comerciais abertas',BadgeCheck],['Contratos fechados',String(closedContractsCount),'Negócios convertidos',UserCheck],['Valor estimado',formatCurrency(estimatedPipelineValue),'Pipeline comercial em aberto',Target]] as const:[['Total de contatos',String(metrics.contacts),'Base demonstrativa',Users],['Clientes',String(metrics.clients),'Relacionamento comercial',UserCheck],['Parceiros',String(crmReadModel.contacts.filter(item=>item.status==='Parceiro').length),'Rede de relacionamento',Users],['Fornecedores',String(supplierCount),'Fornecedores cadastrados',UserPlus],['Prestadores',String(serviceProviderCount),'Prestadores de serviço',UserPlus]] as const
   const baseRecords=useMemo<readonly CrmRecord[]>(()=>isLeads?crmReadModel.leads:crmReadModel.contacts,[isLeads])
   const records=useMemo(()=>baseRecords.filter(record=>{
     const lead=isLeads?record as CrmLead:null

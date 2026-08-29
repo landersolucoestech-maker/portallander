@@ -11,10 +11,10 @@ const DataTable=({headers,rows}:{headers:string[];rows:ReactNode[][]})=><div cla
 
 const unavailable='Disponível quando a camada persistente do módulo Contratos estiver conectada.'
 const contractHeaderActions:readonly AdminShellAction[]=[
-  {label:'Templates',disabled:true,disabledReason:unavailable},
-  {label:'Categorias',disabled:true,disabledReason:unavailable},
-  {label:'Variáveis',disabled:true,disabledReason:unavailable},
-  {label:'Novo contrato',disabled:true,disabledReason:unavailable},
+  {label:'Templates',variant:'secondary',disabled:true,disabledReason:unavailable},
+  {label:'Categorias',variant:'secondary',disabled:true,disabledReason:unavailable},
+  {label:'Variáveis',variant:'secondary',disabled:true,disabledReason:unavailable},
+  {label:'Novo contrato',variant:'primary',disabled:true,disabledReason:unavailable},
 ]
 
 export function ContractsPage(){

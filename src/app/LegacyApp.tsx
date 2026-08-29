@@ -1,7 +1,7 @@
 import { ArrowRight, BriefcaseBusiness, Globe2 } from 'lucide-react'
 import { Link, Navigate, Route, Routes } from 'react-router-dom'
 import { ActivitiesPage, ContactsPage, CrmDashboard, CrmPlaceholder, DealsPage, PipelinePage } from '../features/crm/CrmWorkspace'
-import { SiteContents, SiteManagerDashboard, SiteManagerPlaceholder, SitePages } from '../features/site-manager/SiteManagerWorkspace'
+import { SiteCategories, SiteContents, SiteManagerDashboard, SiteManagerPlaceholder, SiteMedia, SitePages } from '../features/site-manager/SiteManagerWorkspace'
 
 function WorkspaceHome(){
   return <div className="workspace-picker">
@@ -25,8 +25,6 @@ const crmPlaceholders = [
 ] as const
 
 const sitePlaceholders = [
-  ['midia','Mídia'],
-  ['categorias','Categorias'],
   ['midia-kit','Mídia Kit'],
   ['configuracoes','Configurações'],
 ] as const
@@ -43,6 +41,8 @@ export default function LegacyApp(){
     <Route path="/app/site" element={<SiteManagerDashboard/>}/>
     <Route path="/app/site/conteudos" element={<SiteContents/>}/>
     <Route path="/app/site/paginas" element={<SitePages/>}/>
+    <Route path="/app/site/categorias" element={<SiteCategories/>}/>
+    <Route path="/app/site/midia" element={<SiteMedia/>}/>
     {sitePlaceholders.map(([path,title])=><Route key={path} path={`/app/site/${path}`} element={<SiteManagerPlaceholder title={title}/>}/>)}
     <Route path="*" element={<Navigate to="/app" replace/>}/>
   </Routes>

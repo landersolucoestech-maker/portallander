@@ -1,4 +1,4 @@
-import { Copy, FileStack, Search, Tags, Variable } from 'lucide-react'
+import { Copy, Search } from 'lucide-react'
 import { useMemo, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { CRM_NAV } from '../../shared/internal/adminNavigation'

@@ -21,6 +21,7 @@ export const SITE_MANAGER_NAV: readonly AdminNavItem[] = [
   ['Conteúdos',FileText,'/app/site/conteudos'],
   ['Categorias',Tags,'/app/site/categorias'],
   ['Mídia',Images,'/app/site/midia'],
+  ['Publicidade',Megaphone,'/app/site/noticias/anuncio'],
   ['Mídia Kit',Newspaper,'/app/site/midia-kit'],
   ['Configurações',Settings,'/app/site/configuracoes'],
 ]

@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import HeroManagerPage from './HeroManagerPage'
+import { BrandAssetsManagerPage } from './pages/BrandAssetsManagerPage'
 import { HeaderBrandManagerPage } from './pages/HeaderBrandManagerPage'
 import { HomeAdManagerPage } from './pages/HomeAdManagerPage'
 import { HomeManagerPage } from './pages/HomeManagerPage'
@@ -17,6 +18,7 @@ export default function SiteManagerRoutes(){
     <Route path="home" element={<HomeManagerPage/>}/>
     <Route path="home/hero" element={<HeroManagerPage/>}/>
     <Route path="home/anuncio" element={<HomeAdManagerPage/>}/>
+    <Route path="marca" element={<BrandAssetsManagerPage/>}/>
     <Route path="cabecalho" element={<HeaderBrandManagerPage/>}/>
     <Route path="conteudos" element={<SiteContentsPage/>}/>
     <Route path="paginas" element={<SitePagesPage/>}/>

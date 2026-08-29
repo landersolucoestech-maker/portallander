@@ -1,5 +1,4 @@
-import { Activity, FileText, FolderOpen, Newspaper, Tags } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Activity, AlertTriangle, Briefcase, Calendar, ClipboardList, DollarSign, FileText, Newspaper, PieChart, Wallet } from 'lucide-react'
 import { AdminShell } from '../../shared/internal/AdminUi'
 import { CRM_WORKSPACE_NAV } from '../../shared/internal/adminNavigation'
 import { useActivityHistory } from './hooks/useActivityHistory'
@@ -15,34 +14,61 @@ function DashboardSkeleton(){
   return <div className="dashboard-reference-kpis" aria-label="Carregando dashboard">{Array.from({length:4},(_,index)=><article key={index} className="dashboard-stat-card dashboard-stat-skeleton"><span/><strong/><small/></article>)}</div>
 }
 
+function UnavailableState({label}:{label:string}){
+  return <div className="dashboard-compact-empty"><strong>—</strong><span>{label}</span></div>
+}
+
 export default function DashboardPage(){
   const {metrics,dashboard,isLoading}=useMetrics()
   const activity=useActivityHistory(8)
+  const operationalAlerts:readonly string[]=[]
 
-  return <AdminShell area="crm" items={CRM_WORKSPACE_NAV} header={{title:'Dashboard',description:'Visão geral editorial do Portal Lander'}}>
+  return <AdminShell area="crm" items={CRM_WORKSPACE_NAV} header={{title:'Dashboard',description:'Visão executiva e operacional do Portal Lander'}}>
     <section className="dashboard-reference-page" aria-busy={isLoading}>
       {isLoading?<DashboardSkeleton/>:<div className="dashboard-reference-kpis">
-        <article className="dashboard-stat-card"><div><span>Conteúdos Publicados</span><strong>{metrics.published??'—'}</strong><small>Total editorial disponível</small></div><Newspaper size={17} aria-hidden="true"/></article>
-        <article className="dashboard-stat-card"><div><span>Rascunhos</span><strong>{metrics.drafts??'—'}</strong><small>Conteúdos ainda não publicados</small></div><FileText size={17} aria-hidden="true"/></article>
-        <article className="dashboard-stat-card"><div><span>Publicações no Mês</span><strong>{metrics.publishedThisMonth??'—'}</strong><small>Mês atual</small></div><FolderOpen size={17} aria-hidden="true"/></article>
-        <article className="dashboard-stat-card"><div><span>Categorias Editoriais</span><strong>{metrics.categories??'—'}</strong><small>Categorias em uso nos conteúdos</small></div><Tags size={17} aria-hidden="true"/></article>
+        <article className="dashboard-stat-card"><div><span>Faturamento do Mês</span><strong>—</strong><small>Fonte financeira ainda não disponível</small></div><DollarSign size={17} aria-hidden="true"/></article>
+        <article className="dashboard-stat-card"><div><span>A Receber</span><strong>—</strong><small>Sem fonte financeira ativa</small></div><Wallet size={17} aria-hidden="true"/></article>
+        <article className="dashboard-stat-card"><div><span>Contratos Ativos</span><strong>—</strong><small>Módulo de contratos ainda não conectado</small></div><FileText size={17} aria-hidden="true"/></article>
+        <article className="dashboard-stat-card"><div><span>Publicações Contratadas Pendentes</span><strong>—</strong><small>Sem obrigação comercial modelada</small></div><ClipboardList size={17} aria-hidden="true"/></article>
       </div>}
 
-      <div className="dashboard-reference-split">
-        <section className="dashboard-reference-panel">
-          <div className="dashboard-section-heading"><div><h2>Atividades Recentes</h2><p>Movimentações editoriais registradas nos conteúdos</p></div><Activity size={18} aria-hidden="true"/></div>
-          <div className="dashboard-panel-body dashboard-activity-list">{activity.isLoading?<div className="dashboard-skeleton-list"><span/><span/><span/></div>:activity.data?.length?activity.data.map(item=><article key={item.id}><span className="dashboard-activity-icon"><Newspaper size={14}/></span><div><strong>{item.action==='published'?'Conteúdo publicado':'Conteúdo atualizado'}</strong><p>{item.title} · {item.category}</p></div><time>{formatDate(item.occurred_at)}</time></article>):<div className="dashboard-empty"><Activity size={24}/><strong>Nenhuma atividade editorial</strong><p>As movimentações editoriais aparecerão aqui conforme os conteúdos forem atualizados.</p></div>}</div>
-        </section>
+      <div className={`dashboard-reference-split${operationalAlerts.length?'':' dashboard-reference-split-single'}`}>
+        {operationalAlerts.length>0&&<section className="dashboard-reference-panel dashboard-attention-panel">
+          <div className="dashboard-section-heading"><div><h2>Atenção Necessária</h2><p>Ocorrências operacionais que exigem ação</p></div><AlertTriangle size={18} aria-hidden="true"/></div>
+          <div className="dashboard-panel-body dashboard-alert-list">{operationalAlerts.map(item=><div key={item}>{item}</div>)}</div>
+        </section>}
 
         <section className="dashboard-reference-panel">
-          <div className="dashboard-section-heading"><div><h2>Últimas Atualizações</h2><p>Conteúdos editados mais recentemente</p></div><FileText size={18} aria-hidden="true"/></div>
-          <div className="dashboard-panel-body dashboard-update-list">{dashboard?.recent_updates.length?dashboard.recent_updates.map(item=><Link key={item.id} to={`/${item.pageSlug}/${item.slug}`} className="dashboard-update-row"><div><strong>{item.title}</strong><span>{item.category}</span></div><time>{formatDate(item.updatedAt)}</time></Link>):<div className="dashboard-empty"><FileText size={24}/><strong>Nenhuma atualização recente</strong><p>Os conteúdos atualizados aparecerão aqui.</p></div>}</div>
+          <div className="dashboard-section-heading"><div><h2>Próximos Compromissos</h2><p>Agenda operacional do Portal Lander</p></div><Calendar size={18} aria-hidden="true"/></div>
+          <div className="dashboard-panel-body"><UnavailableState label="A agenda será exibida aqui quando houver uma fonte operacional disponível."/></div>
         </section>
       </div>
 
-      <section className="dashboard-reference-panel dashboard-editorial-highlights">
-        <div className="dashboard-section-heading"><div><h2>Publicações Recentes</h2><p>Conteúdos publicados mais recentemente</p></div><Newspaper size={18} aria-hidden="true"/></div>
-        <div className="dashboard-panel-body">{dashboard?.recent_publications.length?<div className="dashboard-editorial-grid">{dashboard.recent_publications.map(item=><article key={item.id} className="dashboard-editorial-card">{item.coverImage&&<img src={item.coverImage} alt=""/>}<div className="dashboard-editorial-card-body"><span>{item.category}</span><h3>{item.title}</h3><p>{item.author} · {formatDate(item.publishedAt)}</p><Link to={`/${item.pageSlug}/${item.slug}`}>Ver publicação</Link></div></article>)}</div>:<div className="dashboard-empty"><Newspaper size={24}/><strong>Nenhuma publicação disponível</strong><p>As publicações recentes aparecerão aqui.</p></div>}</div>
+      <div className="dashboard-management-grid">
+        <section className="dashboard-reference-panel">
+          <div className="dashboard-section-heading"><div><h2>Pipeline Comercial</h2><p>Resumo das oportunidades comerciais</p></div><Briefcase size={18} aria-hidden="true"/></div>
+          <div className="dashboard-panel-body"><UnavailableState label="Os estágios comerciais aparecerão aqui quando o CRM for reconstruído."/></div>
+        </section>
+
+        <section className="dashboard-reference-panel">
+          <div className="dashboard-section-heading"><div><h2>Operação Editorial</h2><p>Visão compacta da operação de conteúdo</p></div><Newspaper size={18} aria-hidden="true"/></div>
+          <div className="dashboard-panel-body dashboard-operational-list">
+            <div><span>Rascunhos</span><strong>{metrics.drafts??'—'}</strong></div>
+            <div><span>Publicadas no mês</span><strong>{metrics.publishedThisMonth??'—'}</strong></div>
+            <div><span>Total publicadas</span><strong>{metrics.published??'—'}</strong></div>
+            <div><span>Arquivadas</span><strong>{dashboard?.archived_count??'—'}</strong></div>
+          </div>
+        </section>
+
+        <section className="dashboard-reference-panel">
+          <div className="dashboard-section-heading"><div><h2>Receita por Origem</h2><p>Composição das receitas do Portal Lander</p></div><PieChart size={18} aria-hidden="true"/></div>
+          <div className="dashboard-panel-body"><UnavailableState label="A distribuição de receita será exibida quando o financeiro possuir dados categorizados."/></div>
+        </section>
+      </div>
+
+      <section className="dashboard-reference-panel dashboard-activity-wide">
+        <div className="dashboard-section-heading"><div><h2>Atividades Recentes</h2><p>Atividades operacionais disponíveis no sistema</p></div><Activity size={18} aria-hidden="true"/></div>
+        <div className="dashboard-panel-body dashboard-activity-list">{activity.isLoading?<div className="dashboard-skeleton-list"><span/><span/><span/></div>:activity.data?.length?activity.data.map(item=><article key={item.id}><span className="dashboard-activity-icon"><Newspaper size={14}/></span><div><strong>{item.action==='published'?'Conteúdo publicado':'Conteúdo atualizado'}</strong><p>{item.title} · {item.category}</p></div><time>{formatDate(item.occurred_at)}</time></article>):<div className="dashboard-empty"><Activity size={24}/><strong>Nenhuma atividade registrada</strong><p>As atividades disponíveis aparecerão aqui conforme o sistema for utilizado.</p></div>}</div>
       </section>
     </section>
   </AdminShell>

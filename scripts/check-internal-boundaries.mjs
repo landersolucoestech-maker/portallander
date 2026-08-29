@@ -5,7 +5,7 @@ const read = path => readFile(new URL(`../${path}`, import.meta.url),'utf8')
 const failures=[]
 
 const publicStyles=await read('src/styles/public-styles.css')
-for(const forbidden of ['admin-system','admin-workspaces','admin-entry','admin-header','admin-dashboard','admin-brand','admin-responsive','admin-accessibility','header-brand-manager.css','brand-assets-manager.css','home-ad-manager.css','hero-editable.css','clickable-cards.css'])if(publicStyles.includes(forbidden))failures.push(`public-styles.css não pode carregar stylesheet administrativo/legado: ${forbidden}`)
+for(const forbidden of ['admin-system','admin-workspaces','admin-entry','admin-header','admin-dashboard','admin-brand','admin-responsive','admin-accessibility','admin-access.css','header-brand-manager.css','brand-assets-manager.css','home-ad-manager.css','hero-editable.css','clickable-cards.css'])if(publicStyles.includes(forbidden))failures.push(`public-styles.css não pode carregar stylesheet administrativo/legado: ${forbidden}`)
 for(const required of ['hero-public.css','home-ad-public.css'])if(!publicStyles.includes(required))failures.push(`public-styles.css deve carregar ${required}.`)
 
 const globalStyles=await read('src/styles/styles.css')
@@ -22,16 +22,33 @@ if(portalApp.includes('return null'))failures.push('PortalApp não pode produzir
 if(!portalApp.includes('return <PublicNotFound/>'))failures.push('PortalApp deve renderizar 404 explícito para rotas desconhecidas.')
 for(const forbidden of ['const stories','const ranked','const releases','const agenda','function HomeContent','function Card('])if(portalApp.includes(forbidden))failures.push(`PortalApp voltou a concentrar implementação da Home: ${forbidden}`)
 
+const internalApp=await read('src/app/InternalApp.tsx')
+for(const required of ["from '../features/access/LoginPage'","from '../features/access/WorkspacePage'",'path="/app/login"','path="/app/workspaces"','to="/app/login"'])if(!internalApp.includes(required))failures.push(`InternalApp deve manter o fluxo de acesso explícito: ${required}`)
+for(const forbidden of ['function WorkspaceHome','workspace-picker','workspace-card'])if(internalApp.includes(forbidden))failures.push(`InternalApp não pode voltar a embutir a antiga seleção de workspace: ${forbidden}`)
+
+const loginPage=await read('src/features/access/LoginPage.tsx')
+if(!loginPage.includes('Autenticação ainda não conectada'))failures.push('Login deve informar explicitamente que a autenticação não está conectada.')
+if(!loginPage.includes('nenhuma credencial digitada aqui será aceita ou simulada'))failures.push('Login não pode simular credenciais ou sessão autenticada.')
+if(!loginPage.includes('to="/app/workspaces"'))failures.push('Login deve expor somente a entrada explícita para o ambiente frontend atual.')
+for(const forbidden of ['localStorage.setItem','sessionStorage.setItem','setAuthenticated(true)','loginSuccess'])if(loginPage.includes(forbidden))failures.push(`Login não pode fabricar autenticação local: ${forbidden}`)
+
+const workspacePage=await read('src/features/access/WorkspacePage.tsx')
+for(const required of ['to="/app/crm"','to="/app/site"','Esta tela não representa uma sessão autenticada.'])if(!workspacePage.includes(required))failures.push(`WorkspacePage deve manter: ${required}`)
+
 const publicHome=await read('src/pages/home/PublicHome.tsx')
 if(!publicHome.includes("from './models/homeReadModel'"))failures.push('PublicHome deve consumir models/homeReadModel.')
 if(!publicHome.includes("from './components/HomeAdSection'"))failures.push('PublicHome deve renderizar HomeAdSection diretamente.')
 for(const forbidden of ['const IMG=','const stories:','const ranked=','const releases=','const agenda=','document.querySelector','innerHTML','createPortal'])if(publicHome.includes(forbidden))failures.push(`PublicHome voltou a usar implementação proibida: ${forbidden}`)
 
 const publicChrome=await read('src/shared/public/PublicChrome.tsx')
-for(const required of ["from '../branding/models/headerBrandModel'","from '../branding/models/footerBrandModel'"])if(!publicChrome.includes(required))failures.push(`PublicChrome deve consumir ${required}.`)
+for(const required of ["from '../branding/models/headerBrandModel'","from '../branding/models/footerBrandModel'",'to="/app/login"'])if(!publicChrome.includes(required))failures.push(`PublicChrome deve consumir/manter ${required}.`)
 for(const forbidden of ['MutationObserver','document.querySelector','innerHTML','HeaderBrandBridge','BrandAssetsBridge','PublicSearchSuggestionsBridge'])if(publicChrome.includes(forbidden))failures.push(`PublicChrome não pode usar comportamento imperativo: ${forbidden}`)
 if(!publicChrome.includes('editorialReadModel.contents'))failures.push('As sugestões de busca devem ser derivadas do catálogo editorial real.')
 if(!publicChrome.includes('Newsletter ainda não conectada. Nenhuma inscrição foi enviada.'))failures.push('Newsletter deve informar explicitamente quando não existe integração de inscrição.')
+
+const adminUi=await read('src/shared/internal/AdminUi.tsx')
+if(!adminUi.includes('to="/app/workspaces"'))failures.push('AdminUi deve apontar Trocar workspace para /app/workspaces.')
+if(!adminUi.includes('to="/app/login"'))failures.push('AdminUi deve manter acesso explícito à tela de login local.')
 
 const homeAd=await read('src/pages/home/components/HomeAdSection.tsx')
 if(!homeAd.includes('pl-ad-logo'))failures.push('HomeAdSection deve renderizar a logo publicitária configurada.')
@@ -77,7 +94,7 @@ if(!siteRoutes.includes('<Route index'))failures.push('SiteManagerRoutes deve de
 for(const required of ['path="home"','path="home/anuncio"','path="marca"','path="cabecalho"','path="noticias/anuncio"'])if(!siteRoutes.includes(required))failures.push(`SiteManagerRoutes deve manter a rota ${required}.`)
 
 const adminEntry=await read('src/styles/admin-entry.css')
-for(const required of ['admin-system.css','admin-workspaces.css','admin-brand.css','admin-home.css','admin-hero.css','admin-hero-editor.css','admin-home-ad-editor.css','header-brand-manager.css','brand-assets-manager.css','admin-responsive.css','admin-accessibility.css'])if(!adminEntry.includes(required))failures.push(`admin-entry.css deve carregar ${required}.`)
+for(const required of ['admin-system.css','admin-workspaces.css','admin-brand.css','admin-home.css','admin-hero.css','admin-hero-editor.css','admin-home-ad-editor.css','admin-access.css','header-brand-manager.css','brand-assets-manager.css','admin-responsive.css','admin-accessibility.css'])if(!adminEntry.includes(required))failures.push(`admin-entry.css deve carregar ${required}.`)
 
 if(failures.length){console.error('Falha nos boundaries da aplicação:');failures.forEach(item=>console.error(`- ${item}`));process.exit(1)}
 console.log('Application boundaries OK')

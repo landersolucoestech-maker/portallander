@@ -15,42 +15,9 @@
   box-shadow:none !important;
 }
 .news-reference-page .pl-page-hero::before{display:none!important;content:none!important}
-.news-reference-page .pl-page-hero::after{display:none !important;content:none !important;}
-.news-reference-page .pl-page-hero .public-shell{
-  width:100%;
-  margin:0;
-  padding:0 4px;
-  position:relative;
-  z-index:2;
-}
-.news-reference-page .pl-page-hero h1{
-  font-size:64px;
-  margin:28px 0 14px;
-  text-shadow:0 2px 14px rgba(0,0,0,.75);
-}
-.news-reference-page .pl-page-hero p{
-  max-width:520px;
-  font-size:16px;
-  line-height:1.55;
-  color:#d0d0d0;
-  text-shadow:0 2px 12px rgba(0,0,0,.9);
-}
-html.route-noticias .pl-listing-layout{visibility:hidden!important}
-html.route-noticias .news-reference-page .news-reference-grid{visibility:visible!important}
-@media(max-width:980px){
-  .news-reference-page .pl-page-hero{
-    width:calc(100% - 36px);
-    background-position:62% center !important;
-  }
-  .news-reference-page .pl-page-hero h1{font-size:54px}
-}
-@media(max-width:600px){
-  .news-reference-page .pl-page-hero{
-    width:calc(100% - 28px);
-    padding:28px 0 30px;
-    background-position:68% center !important;
-  }
-  .news-reference-page .pl-page-hero .public-shell{width:100%;padding:0}
-  .news-reference-page .pl-page-hero h1{font-size:44px;margin-top:22px}
-  .news-reference-page .pl-page-hero p{max-width:88%;font-size:14px}
-}
+.news-reference-page .pl-page-hero::after{display:none!important;content:none!important}
+.news-reference-page .pl-page-hero .public-shell{width:100%;margin:0;padding:0 4px;position:relative;z-index:2}
+.news-reference-page .pl-page-hero h1{font-size:64px;margin:28px 0 14px;text-shadow:0 2px 14px rgba(0,0,0,.75)}
+.news-reference-page .pl-page-hero p{max-width:520px;font-size:16px;line-height:1.55;color:#d0d0d0;text-shadow:0 2px 12px rgba(0,0,0,.9)}
+@media(max-width:980px){.news-reference-page .pl-page-hero{width:calc(100% - 36px);background-position:62% center !important}.news-reference-page .pl-page-hero h1{font-size:54px}}
+@media(max-width:600px){.news-reference-page .pl-page-hero{width:calc(100% - 28px);padding:28px 0 30px;background-position:68% center !important}.news-reference-page .pl-page-hero .public-shell{width:100%;padding:0}.news-reference-page .pl-page-hero h1{font-size:44px;margin-top:22px}.news-reference-page .pl-page-hero p{max-width:88%;font-size:14px}}

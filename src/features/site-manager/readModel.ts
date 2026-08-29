@@ -23,4 +23,6 @@ export const siteManagerReadModel = {
   get media(){return buildMedia()},
   get publishedContents(){return editorialReadModel.contents.filter(content=>content.status==='published'&&content.active)},
   get menuPages(){return editorialReadModel.pages.filter(page=>page.showInMainMenu)},
+  getPageById(id:string){return editorialReadModel.getPageById(id)},
+  countContents(pageId:string){return editorialReadModel.countContents(pageId)},
 }

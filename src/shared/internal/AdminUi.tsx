@@ -15,22 +15,49 @@ export type AdminShellAction={label:string;onClick?:()=>void;disabled?:boolean;d
 
 const isNavGroup=(item:AdminNavItem):item is AdminNavGroup=>!Array.isArray(item)
 
-const AGENDA_HEADER:AdminShellHeader={
-  title:'Agenda',
-  description:'Agenda operacional para reuniões, entrevistas, coberturas, follow-ups, compromissos editoriais e comerciais.'
+const PROMOTED_HEADERS:Record<string,AdminShellHeader>={
+  '/app/crm/events':{
+    title:'Agenda',
+    description:'Agenda operacional para reuniões, entrevistas, coberturas, follow-ups, compromissos editoriais e comerciais.'
+  },
+  '/app/crm/marketing/visao-geral':{
+    title:'Marketing',
+    description:'Visão geral das iniciativas, campanhas e execução do setor.'
+  },
+  '/app/crm/marketing/briefing':{
+    title:'Briefing',
+    description:'Estratégia, público, objetivos, mensagens e entregáveis.'
+  },
+  '/app/crm/marketing/calendario':{
+    title:'Marketing · Calendário',
+    description:'Planejamento de publicações, campanhas e entregas.'
+  },
+  '/app/crm/marketing/campanhas':{
+    title:'Campanhas',
+    description:'Campanhas, canais, orçamento, status e desempenho.'
+  },
+  '/app/crm/marketing/ia-criativa':{
+    title:'IA Criativa',
+    description:'Criação, perfil, pitching, tendências, métricas e histórico.'
+  },
+  '/app/crm/marketing/metricas':{
+    title:'Métricas',
+    description:'Performance de marketing por campanha e plataforma.'
+  }
 }
 
-const MARKETING_CALENDAR_HEADER:AdminShellHeader={
-  title:'Marketing · Calendário',
-  description:'Planejamento de publicações, campanhas e entregas.'
+const routeShellClass=(pathname:string)=>{
+  if(pathname==='/app/crm/events')return ' app-shell-agenda'
+  if(pathname==='/app/crm/marketing/visao-geral')return ' app-shell-marketing-overview'
+  if(pathname==='/app/crm/marketing/calendario')return ' app-shell-marketing-calendar'
+  return ''
 }
 
 export function AdminShell({area,items,children,header,headerAction,headerActions}:{area:AdminArea;items:readonly AdminNavItem[];children:ReactNode;header?:AdminShellHeader;headerAction?:AdminShellAction;headerActions?:readonly AdminShellAction[]}){
   const context=area==='crm'?'CRM':'Gerenciador do Site'
   const location=useLocation()
-  const isAgenda=location.pathname==='/app/crm/events'
-  const isMarketingCalendar=location.pathname==='/app/crm/marketing/calendario'
-  const effectiveHeader=header??(isAgenda?AGENDA_HEADER:isMarketingCalendar?MARKETING_CALENDAR_HEADER:undefined)
+  const promotedHeader=PROMOTED_HEADERS[location.pathname]
+  const effectiveHeader=header??promotedHeader
   const [notificationsOpen,setNotificationsOpen]=useState(false)
   const [accountOpen,setAccountOpen]=useState(false)
   const notificationsRef=useRef<HTMLDivElement>(null)
@@ -45,7 +72,7 @@ export function AdminShell({area,items,children,header,headerAction,headerAction
     return()=>document.removeEventListener('pointerdown',closeOnOutsidePointer)
   },[notificationsOpen])
 
-  return <div className={`app-shell${isAgenda?' app-shell-agenda':''}`}>
+  return <div className={`app-shell${routeShellClass(location.pathname)}`}>
     <a className="admin-skip-link" href="#admin-main">Pular para o conteúdo</a>
     <aside className="sidebar" aria-label={`Navegação do ${context}`}>
       <div className="sidebar-head">
@@ -89,14 +116,14 @@ export function AdminShell({area,items,children,header,headerAction,headerAction
           </div>
         </div>
       </header>
-      <main className={`workspace-main${isAgenda?' workspace-main-agenda':''}`} id="admin-main" tabIndex={-1}>{children}</main>
+      <main className="workspace-main" id="admin-main" tabIndex={-1}>{children}</main>
     </div>
   </div>
 }
 
 export function AdminPageHeader({eyebrow,title,description,action,disabled=false,disabledReason}:{eyebrow:string;title:string;description?:string;action?:string;disabled?:boolean;disabledReason?:string}){
   const location=useLocation()
-  if(location.pathname==='/app/crm/events'||location.pathname==='/app/crm/marketing/calendario')return null
+  if(PROMOTED_HEADERS[location.pathname])return null
   const reason=disabledReason||'Requer uma camada persistente ainda não conectada.'
   return <div className="admin-page-header">
     <div className="admin-page-header-copy"><span className="admin-breadcrumb">{eyebrow}</span><h1>{title}</h1>{description&&<p>{description}</p>}</div>

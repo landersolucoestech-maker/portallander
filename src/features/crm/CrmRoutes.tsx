@@ -1,5 +1,5 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
-import { ChatPage, OperationsPage } from '../operations/OperationsPage'
+import { OperationsPage } from '../operations/OperationsPage'
 import { ContractTemplatesPage, ContractVariablesPage } from '../operations/ContractRegistryPages'
 import { ContractsPage } from '../operations/ContractsPage'
 import { MarketingReferencePage } from '../operations/MarketingReferencePage'
@@ -8,6 +8,7 @@ import { ReportsReferencePage } from '../operations/ReportsReferencePage'
 import { AccountingReferencePage } from '../operations/AccountingReferencePage'
 import { RHReferencePage } from '../operations/RHReferencePage'
 import { SettingsReferencePage } from '../operations/SettingsReferencePage'
+import { ChatReferencePage } from '../operations/ChatReferencePage'
 import { ContactsPage } from './pages/ContactsPage'
 import { CrmDashboardPage } from './pages/CrmDashboardPage'
 import { ReportsPage } from './pages/ReportsPage'
@@ -19,7 +20,7 @@ export default function CrmRoutes(){
     <Route path="campanhas" element={<Navigate to="/app/crm/marketing/campanhas" replace/>}/>
     <Route path="marketing" element={<Navigate to="/app/crm/marketing/visao-geral" replace/>}/>
     <Route path="marketing/:sectionKey" element={<MarketingReferencePage/>}/>
-    <Route path="chat" element={<ChatPage/>}/>
+    <Route path="chat" element={<ChatReferencePage/>}/>
     <Route path="musicchat" element={<Navigate to="/app/crm/chat" replace/>}/>
     <Route path="internal-chat" element={<Navigate to="/app/crm/chat" replace/>}/>
     <Route path="contracts" element={<ContractsPage/>}/>

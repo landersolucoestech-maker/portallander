@@ -4,7 +4,16 @@ import type { AdminNavItem } from './AdminUi'
 export const CRM_NAV: readonly AdminNavItem[] = [
   ['Dashboard',LayoutDashboard,'/app/crm'],
   ['CRM',Users,'/app/crm/contatos'],
-  ['Contratos',FileSignature,'/app/crm/contracts'],
+  {
+    label:'Contratos',
+    icon:FileSignature,
+    children:[
+      ['Contratos',FileSignature,'/app/crm/contracts'],
+      ['Templates',FileText,'/app/crm/contracts/templates'],
+      ['Variáveis',Tags,'/app/crm/contracts/variaveis'],
+      ['Categorias',Tags,'/app/crm/contracts/categorias'],
+    ],
+  },
   ['Agenda',CalendarDays,'/app/crm/events'],
   {
     label:'Marketing',
@@ -19,18 +28,39 @@ export const CRM_NAV: readonly AdminNavItem[] = [
       ['Tarefas',Tags,'/app/crm/marketing/tarefas'],
     ],
   },
-  ['Chat',MessageSquareText,'/app/crm/chat'],
+  {
+    label:'Chat',
+    icon:MessageSquareText,
+    children:[
+      ['MusicChat',MessageSquareText,'/app/crm/chat'],
+      ['Automações',Settings,'/app/crm/chat/automacoes'],
+    ],
+  },
   ['Relatórios',BarChart3,'/app/crm/reports'],
   ['RH',UsersRound,'/app/crm/rh'],
   {
     label:'Financeiro',
     icon:CircleDollarSign,
     children:[
-      ['Visão Financeira',CircleDollarSign,'/app/crm/financeiro'],
+      ['Financeiro',CircleDollarSign,'/app/crm/financeiro'],
       ['Contabilidade',BarChart3,'/app/crm/financeiro/contabilidade'],
+      ['Nota Fiscal',FileText,'/app/crm/financeiro/nota-fiscal'],
+      ['Categorias Financeiras',Tags,'/app/crm/financeiro/categorias'],
+      ['Regras Financeiras',Settings,'/app/crm/financeiro/regras'],
+      ['Regras de Transação',Settings,'/app/crm/financeiro/regras-transacao'],
     ],
   },
-  ['Configurações',Settings,'/app/crm/settings'],
+  {
+    label:'Configurações',
+    icon:Settings,
+    children:[
+      ['Configurações',Settings,'/app/crm/settings'],
+      ['Meu Perfil',Users,'/app/crm/settings/perfil'],
+      ['Usuários',UsersRound,'/app/crm/settings/usuarios'],
+      ['Audit Trail',FileText,'/app/crm/settings/audit-trail'],
+      ['Billing',CircleDollarSign,'/app/crm/settings/billing'],
+    ],
+  },
 ]
 
 export const SITE_MANAGER_NAV: readonly AdminNavItem[] = [

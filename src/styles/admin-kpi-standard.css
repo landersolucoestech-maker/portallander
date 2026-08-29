@@ -1,27 +1,26 @@
-/* KPI DESIGN SYSTEM — fonte única para todos os KPI cards do sistema interno.
-   Normaliza os três padrões legados existentes: AdminKpi, Metric/zip e ref-kpi. */
+/* KPI DESIGN SYSTEM — alinhado ao arquivo de referência real.
+   Mantém consistência entre AdminKpi, Metric/zip e ref-kpi sem inflar a escala original. */
 
 .app-shell .admin-kpi-grid,
 .app-shell .zip-kpi-grid,
 .app-shell .ref-kpi-grid{
-  gap:12px!important;
+  gap:16px!important;
 }
 
 .app-shell .admin-kpi,
 .app-shell .zip-metric,
 .app-shell .ref-kpi{
   box-sizing:border-box!important;
-  height:116px!important;
-  min-height:116px!important;
-  padding:16px!important;
+  height:auto!important;
+  min-height:92px!important;
+  padding:14px 16px!important;
   border:1px solid var(--admin-line)!important;
-  border-radius:10px!important;
+  border-radius:8px!important;
   background:var(--admin-surface,#fff)!important;
-  box-shadow:0 1px 2px rgba(0,0,0,.025)!important;
+  box-shadow:none!important;
   overflow:hidden;
 }
 
-/* AdminKpi: preserva a estrutura vertical, mas usa os mesmos tokens visuais. */
 .app-shell .admin-kpi{
   display:flex!important;
   flex-direction:column!important;
@@ -36,7 +35,6 @@
   gap:10px!important;
 }
 
-/* Metric/ref: mesma distribuição horizontal, dimensões e espaçamento. */
 .app-shell .zip-metric,
 .app-shell .ref-kpi{
   display:flex!important;
@@ -49,19 +47,18 @@
 .app-shell .ref-kpi>div:last-child{
   min-width:0!important;
   display:grid!important;
-  gap:4px!important;
+  gap:3px!important;
 }
 
-/* Ícones padronizados. */
 .app-shell .admin-kpi-icon,
 .app-shell .zip-metric-icon,
 .app-shell .ref-kpi-icon{
   box-sizing:border-box!important;
-  width:36px!important;
-  height:36px!important;
-  min-width:36px!important;
-  flex:0 0 36px!important;
-  border-radius:9px!important;
+  width:34px!important;
+  height:34px!important;
+  min-width:34px!important;
+  flex:0 0 34px!important;
+  border-radius:8px!important;
   display:grid!important;
   place-items:center!important;
 }
@@ -69,56 +66,53 @@
 .app-shell .admin-kpi-icon{
   color:var(--admin-accent)!important;
   background:var(--admin-accent-soft)!important;
-  border:1px solid #ffdadd!important;
+  border:0!important;
 }
 
-/* Títulos padronizados. */
 .app-shell .admin-kpi-label,
 .app-shell .zip-metric span,
 .app-shell .ref-kpi span{
-  font-size:10px!important;
+  font-size:9px!important;
   line-height:1.25!important;
-  font-weight:800!important;
-  letter-spacing:.035em!important;
-  text-transform:uppercase!important;
-  color:#666!important;
+  font-weight:750!important;
+  letter-spacing:0!important;
+  text-transform:none!important;
+  color:#777!important;
 }
 
-/* Valores padronizados. */
 .app-shell .admin-kpi>strong,
 .app-shell .zip-metric strong,
 .app-shell .ref-kpi strong{
-  font-size:24px!important;
-  line-height:1.05!important;
+  font-size:20px!important;
+  line-height:1!important;
   font-weight:800!important;
-  letter-spacing:-.035em!important;
-  color:#171717!important;
+  letter-spacing:-.03em!important;
+  color:#181818!important;
   white-space:nowrap!important;
 }
 
-/* Descrições padronizadas. */
 .app-shell .admin-kpi>small,
 .app-shell .zip-metric small,
 .app-shell .ref-kpi small{
-  font-size:10px!important;
+  font-size:9px!important;
   line-height:1.35!important;
   font-weight:500!important;
-  color:#8a8a8a!important;
+  color:#999!important;
 }
 
-/* Nenhum módulo pode reduzir o card ou a tipografia em breakpoints menores. */
+/* Contratos mantém a escala explicitamente definida para esse módulo. */
+.app-shell .zip-kpi-grid.contracts .zip-metric span{
+  font-size:11px!important;
+}
+.app-shell .zip-kpi-grid.contracts .zip-metric small{
+  font-size:10px!important;
+}
+
 @media(max-width:760px){
   .app-shell .admin-kpi,
   .app-shell .zip-metric,
   .app-shell .ref-kpi{
-    height:116px!important;
-    min-height:116px!important;
-    padding:16px!important;
-  }
-
-  .app-shell .admin-kpi>strong,
-  .app-shell .zip-metric strong,
-  .app-shell .ref-kpi strong{
-    font-size:24px!important;
+    min-height:92px!important;
+    padding:14px 16px!important;
   }
 }

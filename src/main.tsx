@@ -7,7 +7,6 @@ import { BrandAssetsBridge } from './shared/branding/components/BrandAssetsBridg
 import { NewsAdBridge } from './pages/noticias/components/NewsAdBridge'
 import { ClickableCardsBridge } from './shared/behaviors/components/ClickableCardsBridge'
 import { PublicSearchSuggestionsBridge } from './shared/behaviors/components/PublicSearchSuggestionsBridge'
-import { ColaborePageBridge } from './pages/colabore/components/ColaborePageBridge'
 import './styles/public-styles.css'
 
 const REQUIRED_PUBLIC_FONTS = [
@@ -22,7 +21,7 @@ async function waitForPublicFonts() {
 
 function mountApp() {
   ReactDOM.createRoot(document.getElementById('root')!).render(
-    <React.StrictMode><HashRouter><App/><HeaderBrandBridge/><BrandAssetsBridge/><NewsAdBridge/><ClickableCardsBridge/><PublicSearchSuggestionsBridge/><ColaborePageBridge/></HashRouter></React.StrictMode>,
+    <React.StrictMode><HashRouter><App/><HeaderBrandBridge/><BrandAssetsBridge/><NewsAdBridge/><ClickableCardsBridge/><PublicSearchSuggestionsBridge/></HashRouter></React.StrictMode>,
   )
 }
 

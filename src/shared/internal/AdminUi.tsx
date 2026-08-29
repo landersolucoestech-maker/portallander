@@ -5,14 +5,14 @@ import { Link, NavLink } from 'react-router-dom'
 import { ADMIN_CAPABILITIES } from './adminCapabilities'
 import { portalLogo } from '../branding/assets/brandAsset'
 
-export type AdminArea = 'crm' | 'cms' | 'operations'
+export type AdminArea = 'crm' | 'cms'
 export type AdminNavItem = readonly [label: string, icon: LucideIcon, to: string]
 
 type AdminShellHeader={title:string;description:string}
 type AdminShellAction={label:string;onClick?:()=>void;disabled?:boolean;disabledReason?:string}
 
 export function AdminShell({area,items,children,header,headerAction}:{area:AdminArea;items:readonly AdminNavItem[];children:ReactNode;header?:AdminShellHeader;headerAction?:AdminShellAction}){
-  const context=area==='crm'?'CRM':area==='operations'?'Backoffice':'Gerenciador do Site'
+  const context=area==='crm'?'CRM':'Gerenciador do Site'
   const [query,setQuery]=useState('')
   const [notificationsOpen,setNotificationsOpen]=useState(false)
   const [accountOpen,setAccountOpen]=useState(false)

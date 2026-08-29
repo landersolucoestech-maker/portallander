@@ -2,10 +2,6 @@
 @import './admin-workspaces.css';
 @import './admin-header.css';
 @import './admin-dashboard.css';
-@import './admin-crm-dashboard-header.css';
-@import './admin-crm.css';
-@import './admin-crm-relationships.css';
-@import './admin-reference-v2.css';
 @import './admin-nav-groups.css';
 @import './admin-table-pagination.css';
 @import './admin-brand.css';
@@ -21,4 +17,3 @@
 @import './admin-full-width.css';
 @import './admin-kpi-standard.css';
 @import './admin-fixed-sidebar.css';
-@import './admin-reference-real.css';

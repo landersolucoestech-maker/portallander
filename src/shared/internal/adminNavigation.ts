@@ -1,11 +1,5 @@
-import { FileText, Globe2, Home, Images, LayoutDashboard, Megaphone, Newspaper, Palette, PanelsTopLeft, PlugZap, Tags, Users } from 'lucide-react'
+import { FileText, Globe2, Home, Images, LayoutDashboard, Megaphone, Newspaper, Palette, PanelsTopLeft, Tags } from 'lucide-react'
 import type { AdminNavItem } from './AdminUi'
-
-export const CRM_NAV: readonly AdminNavItem[] = [
-  ['Dashboard',LayoutDashboard,'/app/crm'],
-  ['CRM',Users,'/app/crm/contatos'],
-  ['Integrações',PlugZap,'/app/crm/integrations'],
-]
 
 export const SITE_MANAGER_NAV: readonly AdminNavItem[] = [
   ['Dashboard',LayoutDashboard,'/app/site'],

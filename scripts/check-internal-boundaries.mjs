@@ -17,9 +17,9 @@ if(!main.includes('<React.StrictMode><HashRouter><App/></HashRouter></React.Stri
 
 const portalApp=await read('src/app/PortalApp.tsx')
 if(portalApp.includes('LegacyApp'))failures.push('PortalApp não pode depender de LegacyApp.')
-if(!portalApp.includes("import InternalApp from './InternalApp'"))failures.push('PortalApp deve rotear a área interna por InternalApp.')
-if(!portalApp.includes("import { PublicHome } from '../pages/home/PublicHome'"))failures.push('PortalApp deve delegar a Home para pages/home/PublicHome.')
-if(!portalApp.includes("import { ColaborePage } from '../pages/colabore/ColaborePage'"))failures.push('PortalApp deve rotear Colabore como página pública normal.')
+for(const required of ["import InternalApp from './InternalApp'","import { PublicHome } from '../pages/home/PublicHome'","import { ColaborePage } from '../pages/colabore/ColaborePage'","import { AnunciePage } from '../pages/anuncie/AnunciePage'","import { PublicNotFound } from '../shared/public/PublicNotFound'"])if(!portalApp.includes(required))failures.push(`PortalApp deve manter ${required}.`)
+if(portalApp.includes('return null'))failures.push('PortalApp não pode produzir tela vazia para rotas desconhecidas.')
+if(!portalApp.includes('return <PublicNotFound/>'))failures.push('PortalApp deve renderizar 404 explícito para rotas desconhecidas.')
 for(const forbidden of ['const stories','const ranked','const releases','const agenda','function HomeContent','function Card('])if(portalApp.includes(forbidden))failures.push(`PortalApp voltou a concentrar implementação da Home: ${forbidden}`)
 
 const publicHome=await read('src/pages/home/PublicHome.tsx')
@@ -31,6 +31,7 @@ const publicChrome=await read('src/shared/public/PublicChrome.tsx')
 for(const required of ["from '../branding/models/headerBrandModel'","from '../branding/models/footerBrandModel'"])if(!publicChrome.includes(required))failures.push(`PublicChrome deve consumir ${required}.`)
 for(const forbidden of ['MutationObserver','document.querySelector','innerHTML','HeaderBrandBridge','BrandAssetsBridge','PublicSearchSuggestionsBridge'])if(publicChrome.includes(forbidden))failures.push(`PublicChrome não pode usar comportamento imperativo: ${forbidden}`)
 if(!publicChrome.includes('editorialReadModel.contents'))failures.push('As sugestões de busca devem ser derivadas do catálogo editorial real.')
+if(!publicChrome.includes('Newsletter ainda não conectada. Nenhuma inscrição foi enviada.'))failures.push('Newsletter deve informar explicitamente quando não existe integração de inscrição.')
 
 const homeAd=await read('src/pages/home/components/HomeAdSection.tsx')
 if(!homeAd.includes('pl-ad-logo'))failures.push('HomeAdSection deve renderizar a logo publicitária configurada.')
@@ -48,6 +49,9 @@ const colabore=await read('src/pages/colabore/ColaborePage.tsx')
 for(const forbidden of ['Material recebido.','setSent(true)','Obrigado por colaborar. A equipe editorial fará a análise.','useLocation'])if(colabore.includes(forbidden))failures.push(`Colabore não pode usar implementação obsoleta: ${forbidden}`)
 if(!colabore.includes('Nenhum material foi enviado.'))failures.push('Colabore deve informar explicitamente quando não existe endpoint de envio.')
 if(!colabore.includes("from '../../shared/public/PublicChrome'"))failures.push('Colabore deve usar PublicChrome diretamente, sem ciclo por PortalApp.')
+
+const anuncie=await read('src/pages/anuncie/AnunciePage.tsx')
+if(!anuncie.includes('Nenhuma solicitação é simulada por esta página.'))failures.push('Anuncie deve permanecer honesta sobre ausência de canal comercial persistente.')
 
 const removedPaths=[
   'src/app/LegacyApp.tsx','src/app/HeroSection.tsx','src/app/brandAsset.ts',

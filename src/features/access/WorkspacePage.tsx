@@ -1,17 +1,9 @@
-import { ArrowRight, BriefcaseBusiness, Globe2, LockKeyhole, Settings2 } from 'lucide-react'
+import { ArrowRight, Globe2, LockKeyhole, Settings2 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { portalLogo } from '../../shared/branding/assets/brandAsset'
 import { ADMIN_CAPABILITIES } from '../../shared/internal/adminCapabilities'
 
 const workspaces=[
-  {
-    title:'CRM',
-    eyebrow:'RELACIONAMENTO, COMERCIAL E OPERAÇÃO',
-    description:'CRM completo do Portal Lander com contatos, leads, campanhas, contabilidade, contratos, agenda, integrações, marketing, atendimento, chat interno, relatórios, RH, financeiro e configurações.',
-    to:'/app/crm',
-    icon:BriefcaseBusiness,
-    meta:['Relacionamento e leads','Operação comercial e administrativa','Marketing, atendimento e integrações'],
-  },
   {
     title:'Gerenciador do Site',
     eyebrow:'CONTEÚDO E PUBLICAÇÃO',
@@ -33,7 +25,7 @@ export function WorkspacePage(){
       <div className="workspace-selection-heading">
         <span className="access-kicker">ÁREA INTERNA · WORKSPACES</span>
         <h1>Escolha onde você quer trabalhar.</h1>
-        <p>Os dois ambientes compartilham a mesma identidade administrativa, mas mantêm responsabilidades e navegação independentes.</p>
+        <p>O ambiente administrativo disponível atualmente é o Gerenciador do Site.</p>
       </div>
 
       <div className="workspace-selection-grid">

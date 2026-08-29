@@ -1,4 +1,4 @@
-import { BadgeCheck, Flame, Link2, Newspaper, UserPlus, Users } from 'lucide-react'
+import { BadgeCheck, CircleDollarSign, Flame, Link2, MessageSquareText, Newspaper, UserPlus, Users } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { OPERATIONS_MODULES } from '../../operations/modules'
 import { CRM_NAV } from '../../../shared/internal/adminNavigation'
@@ -6,6 +6,12 @@ import { AdminKpi, AdminNotice, AdminShell } from '../../../shared/internal/Admi
 import { statusClass } from '../model'
 import { CRM_DEMO_DESCRIPTION } from '../presentation'
 import { crmReadModel } from '../repository'
+
+const dashboardModules=[
+  ...OPERATIONS_MODULES.filter(module=>['contracts','events','integrations','marketing','reports','rh','settings'].includes(module.key)).map(module=>({key:module.key,title:module.title,eyebrow:module.eyebrow,icon:module.icon,to:module.key==='marketing'?'/app/crm/marketing/visao-geral':`/app/crm/${module.key}`})),
+  {key:'chat',title:'Chat',eyebrow:'ATENDIMENTO E EQUIPE',icon:MessageSquareText,to:'/app/crm/chat'},
+  {key:'financeiro',title:'Financeiro',eyebrow:'FINANCEIRO E CONTABILIDADE',icon:CircleDollarSign,to:'/app/crm/financeiro'},
+] as const
 
 export function CrmDashboardPage(){
   const {contacts,leads,metrics,relationships,relatedContent}=crmReadModel
@@ -25,7 +31,7 @@ export function CrmDashboardPage(){
 
     <section className="admin-card admin-grid-spaced">
       <div className="admin-card-head"><div><span>Workspace CRM</span><h2>Módulos operacionais</h2></div></div>
-      <div className="crm-module-grid">{OPERATIONS_MODULES.map(module=>{const Icon=module.icon;return <Link className="crm-module-card" to={`/app/crm/${module.key}`} key={module.key}><span className="crm-module-icon"><Icon size={17}/></span><div><strong>{module.title}</strong><small>{module.eyebrow}</small></div></Link>})}</div>
+      <div className="crm-module-grid">{dashboardModules.map(module=>{const Icon=module.icon;return <Link className="crm-module-card" to={module.to} key={module.key}><span className="crm-module-icon"><Icon size={17}/></span><div><strong>{module.title}</strong><small>{module.eyebrow}</small></div></Link>})}</div>
     </section>
 
     <div className="admin-grid admin-grid-spaced">

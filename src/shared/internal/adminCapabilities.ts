@@ -32,6 +32,11 @@ export const ADMIN_CAPABILITIES = {
     label:'Persistência do anúncio da Home',
     description:'O editor do anúncio principal da Home salva somente no armazenamento local deste navegador.',
   },
+  headerBrandPersistence: {
+    state:'browser-local',
+    label:'Persistência da logo do cabeçalho',
+    description:'A configuração da marca do cabeçalho salva somente no armazenamento local deste navegador.',
+  },
   adminAuth: {
     state:'unavailable',
     label:'Autenticação administrativa',

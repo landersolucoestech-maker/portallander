@@ -1,20 +1,36 @@
-import { BarChart3, CalendarDays, CircleDollarSign, FileSignature, FileText, Globe2, Headphones, Home, Images, LayoutDashboard, Megaphone, MessageSquareText, Newspaper, Palette, PanelsTopLeft, PlugZap, Settings, Tags, Users, UsersRound } from 'lucide-react'
+import { BarChart3, CalendarDays, CircleDollarSign, FileSignature, FileText, Globe2, Home, Images, LayoutDashboard, Megaphone, MessageSquareText, Newspaper, Palette, PanelsTopLeft, PlugZap, Settings, Tags, Users, UsersRound } from 'lucide-react'
 import type { AdminNavItem } from './AdminUi'
 
 export const CRM_NAV: readonly AdminNavItem[] = [
   ['Dashboard',LayoutDashboard,'/app/crm'],
   ['CRM',Users,'/app/crm/contatos'],
-  ['Campanhas',Megaphone,'/app/crm/campanhas'],
-  ['Contabilidade',CircleDollarSign,'/app/crm/accounting'],
   ['Contratos',FileSignature,'/app/crm/contracts'],
   ['Agenda',CalendarDays,'/app/crm/events'],
   ['Integrações',PlugZap,'/app/crm/integrations'],
-  ['Marketing',Megaphone,'/app/crm/marketing'],
-  ['Atendimento',Headphones,'/app/crm/musicchat'],
-  ['Chat Interno',MessageSquareText,'/app/crm/internal-chat'],
+  {
+    label:'Marketing',
+    icon:Megaphone,
+    children:[
+      ['Visão Geral',LayoutDashboard,'/app/crm/marketing/visao-geral'],
+      ['Briefing',FileText,'/app/crm/marketing/briefing'],
+      ['Calendário',CalendarDays,'/app/crm/marketing/calendario'],
+      ['Campanhas',Megaphone,'/app/crm/marketing/campanhas'],
+      ['IA Criativa',Images,'/app/crm/marketing/ia-criativa'],
+      ['Métricas',BarChart3,'/app/crm/marketing/metricas'],
+      ['Tarefas',Tags,'/app/crm/marketing/tarefas'],
+    ],
+  },
+  ['Chat',MessageSquareText,'/app/crm/chat'],
   ['Relatórios',BarChart3,'/app/crm/reports'],
   ['RH',UsersRound,'/app/crm/rh'],
-  ['Financeiro',CircleDollarSign,'/app/crm/financeiro'],
+  {
+    label:'Financeiro',
+    icon:CircleDollarSign,
+    children:[
+      ['Visão Financeira',CircleDollarSign,'/app/crm/financeiro'],
+      ['Contabilidade',BarChart3,'/app/crm/financeiro/contabilidade'],
+    ],
+  },
   ['Configurações',Settings,'/app/crm/settings'],
 ]
 

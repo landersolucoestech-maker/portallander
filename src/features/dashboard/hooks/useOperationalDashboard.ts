@@ -1,10 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
 import { dashboardApi } from '../api'
-import type { OperationalDashboard } from '../types'
+import type { PortalDashboard } from '../types'
 
 export function useOperationalDashboard(){
-  const query=useQuery<OperationalDashboard>({
-    queryKey:['operational-dashboard'],
+  const query=useQuery<PortalDashboard>({
+    queryKey:['portal-dashboard'],
     queryFn:dashboardApi.getOperational,
     staleTime:30_000,
     refetchInterval:60_000,

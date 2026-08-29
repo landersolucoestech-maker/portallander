@@ -1,7 +1,8 @@
-import { AlertCircle, CalendarClock, CheckCircle2, ChevronLeft, ChevronRight, CircleDollarSign, Copy, FileEdit, FileStack, PenLine, Plus, Search, X } from 'lucide-react'
+import { AlertCircle, CalendarClock, CheckCircle2, CircleDollarSign, Copy, FileEdit, FileStack, PenLine, Plus, Search, X } from 'lucide-react'
 import { useMemo, useState, type FormEvent, type ReactNode } from 'react'
 import { CRM_NAV } from '../../shared/internal/adminNavigation'
 import { AdminShell, type AdminShellAction } from '../../shared/internal/AdminUi'
+import { TableViewPagination, type TablePageSize } from '../../shared/internal/TableViewPagination'
 
 type Tone='neutral'|'success'|'warning'|'danger'|'accent'|'info'
 type ContractModal='templates'|'categories'|'variables'|'new'|null
@@ -58,7 +59,7 @@ export function ContractsPage(){
   const [statusFilter,setStatusFilter]=useState('Todos')
   const [sort,setSort]=useState('recent')
   const [page,setPage]=useState(1)
-  const [pageSize,setPageSize]=useState(5)
+  const [pageSize,setPageSize]=useState<TablePageSize>(5)
   const [categories,setCategories]=useState(INITIAL_CATEGORIES)
   const [categoryDraft,setCategoryDraft]=useState('')
   const [copiedVariable,setCopiedVariable]=useState('')
@@ -75,8 +76,6 @@ export function ContractsPage(){
   const totalPages=Math.max(1,Math.ceil(filtered.length/pageSize))
   const currentPage=Math.min(page,totalPages)
   const pageRows=filtered.slice((currentPage-1)*pageSize,currentPage*pageSize)
-  const start=filtered.length?(currentPage-1)*pageSize+1:0
-  const end=Math.min(currentPage*pageSize,filtered.length)
 
   const open=(target:ContractModal)=>setModal(target)
   const headerActions:readonly AdminShellAction[]=[
@@ -139,18 +138,7 @@ export function ContractsPage(){
 
       <section className="zip-panel contracts-table-panel">
         <header className="zip-panel-head"><div><h2>Contratos</h2><p>Documentos, status, assinatura e valor</p></div></header>
-        <div className="zip-table-wrap"><table className="zip-table"><thead><tr><th>Contrato</th><th>Tipo</th><th>Status</th><th>Assinatura</th><th className="right">Valor</th></tr></thead><tbody>{pageRows.length?pageRows.map(row=><tr key={row.id}><td><strong>{row.title}</strong></td><td>{row.type}</td><td><Badge tone={row.status==='Vigente'||row.status==='Assinado'?'success':row.status==='Rascunho'?'neutral':row.status==='Encerrado'?'danger':'warning'}>{row.status}</Badge></td><td>{row.signature}</td><td className="right"><strong>{money(row.value)}</strong></td></tr>):<tr><td colSpan={5} className="contracts-empty-row">Nenhum contrato encontrado com os filtros atuais.</td></tr>}</tbody></table></div>
-        <footer className="contracts-pagination">
-          <div className="contracts-pagination-summary">Mostrando <strong>{start}–{end}</strong> de <strong>{filtered.length}</strong> registros</div>
-          <label>Por página<select value={pageSize} onChange={event=>{setPageSize(Number(event.target.value));setPage(1)}}><option value={5}>5</option><option value={10}>10</option><option value={20}>20</option></select></label>
-          <div className="contracts-pagination-nav">
-            <button type="button" className="zip-icon" onClick={()=>setPage(1)} disabled={currentPage===1} aria-label="Primeira página">«</button>
-            <button type="button" className="zip-icon" onClick={()=>setPage(value=>Math.max(1,value-1))} disabled={currentPage===1} aria-label="Página anterior"><ChevronLeft size={15}/></button>
-            <span>Página <strong>{currentPage}</strong> de <strong>{totalPages}</strong></span>
-            <button type="button" className="zip-icon" onClick={()=>setPage(value=>Math.min(totalPages,value+1))} disabled={currentPage===totalPages} aria-label="Próxima página"><ChevronRight size={15}/></button>
-            <button type="button" className="zip-icon" onClick={()=>setPage(totalPages)} disabled={currentPage===totalPages} aria-label="Última página">»</button>
-          </div>
-        </footer>
+        <div className="tableview-surface"><div className="zip-table-wrap"><table className="zip-table"><thead><tr><th>Contrato</th><th>Tipo</th><th>Status</th><th>Assinatura</th><th className="right">Valor</th></tr></thead><tbody>{pageRows.length?pageRows.map(row=><tr key={row.id}><td><strong>{row.title}</strong></td><td>{row.type}</td><td><Badge tone={row.status==='Vigente'||row.status==='Assinado'?'success':row.status==='Rascunho'?'neutral':row.status==='Encerrado'?'danger':'warning'}>{row.status}</Badge></td><td>{row.signature}</td><td className="right"><strong>{money(row.value)}</strong></td></tr>):<tr><td colSpan={5} className="contracts-empty-row">Nenhum contrato encontrado com os filtros atuais.</td></tr>}</tbody></table></div><TableViewPagination page={currentPage} totalPages={totalPages} totalRecords={filtered.length} pageSize={pageSize} onPageChange={setPage} onPageSizeChange={size=>{setPageSize(size);setPage(1)}}/></div>
       </section>
     </div>
 

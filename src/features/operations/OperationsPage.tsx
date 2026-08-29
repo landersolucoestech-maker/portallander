@@ -1,5 +1,5 @@
 import { useParams } from 'react-router-dom'
-import { OPERATIONS_NAV } from '../../shared/internal/adminNavigation'
+import { CRM_NAV } from '../../shared/internal/adminNavigation'
 import { AdminKpi, AdminNotice, AdminPageHeader, AdminShell } from '../../shared/internal/AdminUi'
 import { operationsModuleByKey } from './modules'
 
@@ -7,8 +7,8 @@ export function OperationsPage(){
   const {moduleKey='accounting'}=useParams()
   const module=operationsModuleByKey(moduleKey)??operationsModuleByKey('accounting')!
   const Icon=module.icon
-  return <AdminShell area="operations" items={OPERATIONS_NAV}>
-    <AdminPageHeader eyebrow={`Backoffice / ${module.eyebrow}`} title={module.title} description={module.description}/>
+  return <AdminShell area="crm" items={CRM_NAV}>
+    <AdminPageHeader eyebrow={`CRM / ${module.eyebrow}`} title={module.title} description={module.description}/>
     <AdminNotice title="Módulo adaptado do arquivo de referência" description={module.note}/>
 
     <div className="admin-kpi-grid operations-kpi-grid">
@@ -22,7 +22,7 @@ export function OperationsPage(){
       </section>
       <section className="admin-card">
         <div className="admin-card-head"><div><span>Estado atual</span><h2>Limites técnicos</h2></div></div>
-        <div className="operations-state"><strong>Interface preparada</strong><p>Este módulo já possui estrutura visual e navegação próprias, mas qualquer operação que exija banco de dados, autenticação, API, OAuth, webhook ou processamento server-side permanece indisponível até esses serviços existirem.</p></div>
+        <div className="operations-state"><strong>Interface preparada</strong><p>Este módulo já faz parte do workspace CRM. Operações que exigem banco de dados, autenticação, API, OAuth, webhook ou processamento server-side permanecem indisponíveis até esses serviços existirem.</p></div>
       </section>
     </div>
 

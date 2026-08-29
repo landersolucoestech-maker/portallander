@@ -1,5 +1,5 @@
-import { ContractsReferencePage } from '../ContractsReferencePage'
+import { ContractTemplatesPage } from '../ContractRegistryPages'
 
 export function TemplatesContractsPage(){
-  return <div className="reference-route-separated"><ContractsReferencePage initialTab="templates"/></div>
+  return <ContractTemplatesPage/>
 }

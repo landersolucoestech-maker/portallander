@@ -3,12 +3,13 @@ import { ChatPage, OperationsPage } from '../operations/OperationsPage'
 import { ContractTemplatesPage, ContractVariablesPage } from '../operations/ContractRegistryPages'
 import { ContractsPage } from '../operations/ContractsPage'
 import { PaginatedMarketingPage } from '../operations/PaginatedMarketingPage'
-import { PaginatedOperationsPage } from '../operations/PaginatedOperationsPage'
 import { AgendaReferencePage } from '../operations/AgendaReferencePage'
 import { ReportsReferencePage } from '../operations/ReportsReferencePage'
+import { AccountingReferencePage } from '../operations/AccountingReferencePage'
+import { RHReferencePage } from '../operations/RHReferencePage'
+import { SettingsReferencePage } from '../operations/SettingsReferencePage'
 import { ContactsPage } from './pages/ContactsPage'
 import { CrmDashboardPage } from './pages/CrmDashboardPage'
-import { FinancePage } from './pages/FinancePage'
 import { ReportsPage } from './pages/ReportsPage'
 
 export default function CrmRoutes(){
@@ -29,10 +30,11 @@ export default function CrmRoutes(){
     <Route path="integrations" element={<Navigate to="/app/crm/settings" replace/>}/>
     <Route path="relatorios" element={<ReportsPage/>}/>
     <Route path="reports" element={<ReportsReferencePage/>}/>
-    <Route path="financeiro" element={<FinancePage/>}/>
-    <Route path="financeiro/contabilidade" element={<PaginatedOperationsPage moduleKey="accounting"/>}/>
-    <Route path="accounting" element={<Navigate to="/app/crm/financeiro/contabilidade" replace/>}/>
-    <Route path="rh" element={<PaginatedOperationsPage moduleKey="rh"/>}/>
+    <Route path="financeiro" element={<AccountingReferencePage/>}/>
+    <Route path="financeiro/contabilidade" element={<AccountingReferencePage/>}/>
+    <Route path="accounting" element={<Navigate to="/app/crm/financeiro" replace/>}/>
+    <Route path="rh" element={<RHReferencePage/>}/>
+    <Route path="settings" element={<SettingsReferencePage/>}/>
     <Route path=":moduleKey" element={<OperationsPage/>}/>
     <Route path="*" element={<Navigate to="/app/crm" replace/>}/>
   </Routes>

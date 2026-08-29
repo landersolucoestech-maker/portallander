@@ -1,0 +1,34 @@
+.app-shell :is(a,button,input,select,textarea):focus-visible,
+.workspace-picker :is(a,button,input,select,textarea):focus-visible{
+  outline:3px solid rgba(227,6,19,.28);
+  outline-offset:2px;
+}
+
+.app-shell button:disabled,
+.app-shell [aria-disabled='true']{
+  cursor:not-allowed;
+}
+
+.sidebar nav a:focus-visible,
+.sidebar-bottom a:focus-visible{
+  outline-color:#fff;
+  box-shadow:0 0 0 3px rgba(227,6,19,.65);
+}
+
+.workspace-search:focus-within{
+  border-color:#585858;
+  box-shadow:0 0 0 3px rgba(227,6,19,.18);
+}
+
+.table-card th{white-space:nowrap}
+.table-card tbody tr:focus-within{background:#fff7f7}
+
+@media (prefers-reduced-motion:reduce){
+  .app-shell *,
+  .workspace-picker *{
+    scroll-behavior:auto!important;
+    transition-duration:.01ms!important;
+    animation-duration:.01ms!important;
+    animation-iteration-count:1!important;
+  }
+}

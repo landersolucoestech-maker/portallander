@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import type { LucideIcon } from 'lucide-react'
 import { Bell, Building2, ChevronDown, Gauge, Search } from 'lucide-react'
 import { Link, NavLink } from 'react-router-dom'
@@ -16,8 +16,18 @@ export function AdminShell({area,items,children,header,headerAction}:{area:Admin
   const [query,setQuery]=useState('')
   const [notificationsOpen,setNotificationsOpen]=useState(false)
   const [accountOpen,setAccountOpen]=useState(false)
+  const notificationsRef=useRef<HTMLDivElement>(null)
   const normalizedQuery=query.trim().toLocaleLowerCase('pt-BR')
   const searchResults=useMemo(()=>normalizedQuery?items.filter(([label])=>label.toLocaleLowerCase('pt-BR').includes(normalizedQuery)).slice(0,6):[],[items,normalizedQuery])
+
+  useEffect(()=>{
+    if(!notificationsOpen)return
+    const closeOnOutsidePointer=(event:PointerEvent)=>{
+      if(notificationsRef.current&&!notificationsRef.current.contains(event.target as Node))setNotificationsOpen(false)
+    }
+    document.addEventListener('pointerdown',closeOnOutsidePointer)
+    return()=>document.removeEventListener('pointerdown',closeOnOutsidePointer)
+  },[notificationsOpen])
 
   return <div className="app-shell">
     <a className="admin-skip-link" href="#admin-main">Pular para o conteúdo</a>
@@ -49,7 +59,7 @@ export function AdminShell({area,items,children,header,headerAction}:{area:Admin
         </>}
         <div className="workspace-actions">
           {headerAction&&<button className="button dark workspace-primary-action" type="button" onClick={headerAction.onClick} disabled={headerAction.disabled} title={headerAction.disabled?headerAction.disabledReason:undefined}>{headerAction.label}</button>}
-          <div className="workspace-popover-wrap">
+          <div className="workspace-popover-wrap" ref={notificationsRef}>
             <button className="icon-button" type="button" aria-label="Abrir notificações" aria-expanded={notificationsOpen} onClick={()=>{setNotificationsOpen(value=>!value);setAccountOpen(false)}}><Bell size={17} aria-hidden="true"/></button>
             {notificationsOpen&&<div className="workspace-popover notifications-popover" role="status"><strong>{ADMIN_CAPABILITIES.notifications.label}</strong><p>{ADMIN_CAPABILITIES.notifications.description}</p></div>}
           </div>

@@ -2,7 +2,7 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import { ChatPage, OperationsPage } from '../operations/OperationsPage'
 import { ContractTemplatesPage, ContractVariablesPage } from '../operations/ContractRegistryPages'
 import { ContractsPage } from '../operations/ContractsPage'
-import { PaginatedMarketingPage } from '../operations/PaginatedMarketingPage'
+import { MarketingReferencePage } from '../operations/MarketingReferencePage'
 import { AgendaReferencePage } from '../operations/AgendaReferencePage'
 import { ReportsReferencePage } from '../operations/ReportsReferencePage'
 import { AccountingReferencePage } from '../operations/AccountingReferencePage'
@@ -18,7 +18,7 @@ export default function CrmRoutes(){
     <Route path="contatos" element={<ContactsPage/>}/>
     <Route path="campanhas" element={<Navigate to="/app/crm/marketing/campanhas" replace/>}/>
     <Route path="marketing" element={<Navigate to="/app/crm/marketing/visao-geral" replace/>}/>
-    <Route path="marketing/:sectionKey" element={<PaginatedMarketingPage/>}/>
+    <Route path="marketing/:sectionKey" element={<MarketingReferencePage/>}/>
     <Route path="chat" element={<ChatPage/>}/>
     <Route path="musicchat" element={<Navigate to="/app/crm/chat" replace/>}/>
     <Route path="internal-chat" element={<Navigate to="/app/crm/chat" replace/>}/>

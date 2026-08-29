@@ -4,16 +4,7 @@ import type { AdminNavItem } from './AdminUi'
 export const CRM_NAV: readonly AdminNavItem[] = [
   ['Dashboard',LayoutDashboard,'/app/crm'],
   ['CRM',Users,'/app/crm/contatos'],
-  {
-    label:'Contratos',
-    icon:FileSignature,
-    to:'/app/crm/contracts',
-    children:[
-      ['Templates de Contrato',FileText,'/app/crm/contracts/templates'],
-      ['Variáveis de Template',Tags,'/app/crm/contracts/variaveis'],
-      ['Categorias de Contrato',Tags,'/app/crm/contracts/categorias'],
-    ],
-  },
+  ['Contratos',FileSignature,'/app/crm/contracts'],
   {
     label:'Financeiro',
     icon:CircleDollarSign,

@@ -2,7 +2,12 @@
 .crm-tabs button{min-height:42px;padding:0 18px;border:0;border-bottom:2px solid transparent;background:transparent;color:#777;font:inherit;font-size:11px;font-weight:800;cursor:pointer;transition:color .15s ease,border-color .15s ease,background .15s ease}
 .crm-tabs button:hover{color:#222;background:#fafafa}
 .crm-tabs button.active{color:var(--admin-accent);border-bottom-color:var(--admin-accent)}
-.crm-kpi-grid{margin-bottom:16px}
+.crm-kpi-grid{grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-bottom:16px}
+.crm-kpi-grid .admin-kpi{min-width:0;padding:14px}
+.crm-kpi-grid .admin-kpi-top{gap:8px}
+.crm-kpi-grid .admin-kpi-label{font-size:9px;line-height:1.25}
+.crm-kpi-grid .admin-kpi>strong{font-size:20px;line-height:1.1;white-space:nowrap}
+.crm-kpi-grid .admin-kpi>small{font-size:9px;line-height:1.35}
 .crm-toolbar{display:flex;align-items:center;gap:10px;margin-bottom:9px}
 .crm-searchbox{min-width:0;flex:1}
 .crm-filter{flex:0 0 180px}
@@ -61,6 +66,10 @@
 .workspace-primary-action:hover:not(:disabled){background:#f1f1f1!important;border-color:#f1f1f1!important}
 .workspace-primary-action:disabled{opacity:1;color:#777!important;cursor:not-allowed}
 
+@media(max-width:1100px){
+  .crm-kpi-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+
 @media(max-width:900px){
   .crm-toolbar{align-items:stretch}
   .crm-filter{flex-basis:150px}
@@ -68,6 +77,7 @@
 }
 
 @media(max-width:640px){
+  .crm-kpi-grid{grid-template-columns:1fr}
   .crm-tabs button{flex:1;padding-inline:10px}
   .crm-toolbar{flex-direction:column}
   .crm-searchbox,.crm-filter{width:100%;flex:1 1 auto}

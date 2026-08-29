@@ -1,0 +1,46 @@
+.workspace-top.workspace-top-page{
+  grid-template-columns:minmax(0,1fr) auto;
+}
+
+.workspace-page-heading{
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  gap:2px;
+}
+
+.workspace-page-heading h1{
+  margin:0;
+  color:#fff;
+  font-size:17px;
+  line-height:1.1;
+  font-weight:780;
+  letter-spacing:-.02em;
+}
+
+.workspace-page-heading p{
+  margin:0;
+  color:#8d8d8d;
+  font-size:10px;
+  line-height:1.35;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+@media(max-width:760px){
+  .workspace-top.workspace-top-page{
+    grid-template-columns:minmax(0,1fr) auto;
+  }
+
+  .workspace-page-heading p{
+    max-width:52vw;
+  }
+}
+
+@media(max-width:520px){
+  .workspace-page-heading p{
+    display:none;
+  }
+}

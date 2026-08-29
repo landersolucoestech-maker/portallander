@@ -1,14 +1,14 @@
 import { useMemo, useState } from 'react'
-import { AlertTriangle, FileText, Globe2, Search } from 'lucide-react'
+import { FileText, Globe2, Search } from 'lucide-react'
 import { ADMIN_CAPABILITIES } from '../../../shared/internal/adminCapabilities'
-import { AdminEmpty, AdminPageHeader } from '../../../shared/internal/AdminUi'
+import { AdminEmpty, AdminNotice, AdminPageHeader } from '../../../shared/internal/AdminUi'
 import { editorialReadModel } from '../repository'
 import type { PublicationStatus } from '../model'
 
 const statuses: readonly ('all'|PublicationStatus)[]=['all','published','draft','archived']
 const persistence=ADMIN_CAPABILITIES.editorialPersistence
 
-function PersistenceNotice(){return <div className="admin-notice"><AlertTriangle size={18} aria-hidden="true"/><div><strong>{persistence.label} indisponível</strong><p>{persistence.description} Criação, edição, publicação e exclusão permanecem bloqueadas para não simular sucesso.</p></div></div>}
+function PersistenceNotice(){return <AdminNotice title={`${persistence.label} indisponível`} description={`${persistence.description} Criação, edição, publicação e exclusão permanecem bloqueadas para não simular sucesso.`}/>} 
 
 function Toolbar({placeholder,query,onQuery,status,onStatus,count,total}:{placeholder:string;query:string;onQuery:(value:string)=>void;status:(typeof statuses)[number];onStatus:(value:(typeof statuses)[number])=>void;count:number;total:number}){
   const id=`editorial-${placeholder.replace(/\W+/g,'-').toLocaleLowerCase('pt-BR')}`

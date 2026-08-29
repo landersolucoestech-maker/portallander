@@ -1,4 +1,4 @@
-import { FileText, Image, Search, Sparkles, Variable, X } from 'lucide-react'
+import { FileText, Search, Sparkles, Variable, X } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { ContractA4Preview } from './ContractA4Preview'
 

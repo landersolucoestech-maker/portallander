@@ -25,6 +25,7 @@
 .crm-pagination-button:disabled{opacity:.38;cursor:not-allowed}
 .crm-dialog-backdrop{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.55);display:grid;place-items:center;padding:24px}
 .crm-dialog{width:min(100%,620px);max-height:min(82vh,760px);overflow:auto;background:#fff;border:1px solid #ddd;border-radius:12px;box-shadow:0 24px 70px rgba(0,0,0,.24);padding:20px}
+.crm-dialog.crm-dialog-create{width:min(100%,880px);max-height:min(90vh,900px)}
 .crm-dialog-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding-bottom:15px;margin-bottom:18px;border-bottom:1px solid var(--admin-line)}
 .crm-dialog-head span{display:block;color:var(--admin-accent);font-size:9px;font-weight:850;letter-spacing:.13em;text-transform:uppercase;margin-bottom:4px}
 .crm-dialog-head h2{margin:0;font-size:20px;letter-spacing:-.025em}
@@ -32,11 +33,26 @@
 .crm-dialog-close:hover{background:#f7f7f7;color:#111}
 .crm-detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 .crm-detail-grid>div{border:1px solid var(--admin-line);border-radius:8px;padding:13px;background:#fafafa;display:flex;flex-direction:column;gap:5px}
-.crm-detail-grid span,.crm-edit-form label>span{font-size:9px;font-weight:800;color:#888;text-transform:uppercase;letter-spacing:.06em}
+.crm-detail-grid span,.crm-edit-form label>span,.crm-form-field>span{font-size:9px;font-weight:800;color:#888;text-transform:uppercase;letter-spacing:.06em}
 .crm-detail-grid strong{font-size:12px;color:#222}
 .crm-edit-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
-.crm-edit-form label{display:grid;gap:6px}
-.crm-edit-form input{height:40px;border:1px solid var(--admin-line-strong);border-radius:7px;padding:0 11px;font:inherit;font-size:11px;color:#222;background:#fff}
+.crm-edit-form label,.crm-form-field{display:grid;gap:6px}
+.crm-edit-form input,.crm-form-field input,.crm-form-field select,.crm-form-field textarea{width:100%;border:1px solid var(--admin-line-strong);border-radius:7px;padding:0 11px;font:inherit;font-size:11px;color:#222;background:#fff;outline:none;transition:border-color .15s ease,box-shadow .15s ease}
+.crm-edit-form input,.crm-form-field input,.crm-form-field select{height:40px}
+.crm-form-field textarea{min-height:96px;padding-top:10px;padding-bottom:10px;resize:vertical;line-height:1.5}
+.crm-edit-form input:focus,.crm-form-field input:focus,.crm-form-field select:focus,.crm-form-field textarea:focus{border-color:#999;box-shadow:0 0 0 3px rgba(0,0,0,.05)}
+.crm-create-form{display:grid;gap:16px}
+.crm-form-section{margin:0;padding:16px;border:1px solid var(--admin-line);border-radius:9px;background:#fcfcfc}
+.crm-form-section legend{padding:0 7px;color:#222;font-size:10px;font-weight:850;letter-spacing:.04em;text-transform:uppercase}
+.crm-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.crm-form-field-wide{grid-column:1/-1}
+.crm-form-more{border:1px solid var(--admin-line);border-radius:9px;background:#fff;overflow:hidden}
+.crm-form-more summary{cursor:pointer;list-style:none;min-height:42px;display:flex;align-items:center;padding:0 14px;color:#444;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.04em}
+.crm-form-more summary::-webkit-details-marker{display:none}
+.crm-form-more summary::after{content:'+';margin-left:auto;font-size:16px;font-weight:500;color:#777}
+.crm-form-more[open] summary{border-bottom:1px solid var(--admin-line)}
+.crm-form-more[open] summary::after{content:'−'}
+.crm-form-more .crm-form-grid{padding:14px}
 .crm-dialog-note{grid-column:1/-1;border-left:3px solid var(--admin-accent);background:#fff7f7;color:#777;padding:10px 12px;font-size:10px;line-height:1.5}
 .crm-dialog-actions{grid-column:1/-1;display:flex;align-items:center;justify-content:flex-end;gap:8px;margin-top:4px}
 .crm-delete-confirmation p{margin:0;color:#555;font-size:12px;line-height:1.65}
@@ -55,8 +71,9 @@
   .crm-tabs button{flex:1;padding-inline:10px}
   .crm-toolbar{flex-direction:column}
   .crm-searchbox,.crm-filter{width:100%;flex:1 1 auto}
-  .crm-detail-grid,.crm-edit-form{grid-template-columns:1fr}
-  .crm-dialog{padding:16px}
+  .crm-detail-grid,.crm-edit-form,.crm-form-grid{grid-template-columns:1fr}
+  .crm-dialog,.crm-dialog.crm-dialog-create{padding:16px;max-height:92vh}
+  .crm-form-section{padding:14px}
   .crm-pagination{justify-content:center}
   .workspace-primary-action{min-height:36px;padding-inline:10px;font-size:10px}
 }

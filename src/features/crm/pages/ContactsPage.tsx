@@ -62,13 +62,13 @@ export function ContactsPage(){
   >
     <AdminNotice title="Dados de demonstração" description={demoDescription}/>
 
+    <div className="admin-kpi-grid crm-kpi-grid">
+      {kpis.map(([label,value,detail,Icon])=><AdminKpi key={label} label={label} value={value} detail={detail} icon={<Icon size={16}/>}/>)}
+    </div>
+
     <div className="crm-tabs" role="tablist" aria-label="Visões do CRM">
       <button type="button" role="tab" aria-selected={!isLeads} className={!isLeads?'active':''} onClick={()=>changeTab('contacts')}>Contatos</button>
       <button type="button" role="tab" aria-selected={isLeads} className={isLeads?'active':''} onClick={()=>changeTab('leads')}>Leads</button>
-    </div>
-
-    <div className="admin-kpi-grid crm-kpi-grid">
-      {kpis.map(([label,value,detail,Icon])=><AdminKpi key={label} label={label} value={value} detail={detail} icon={<Icon size={16}/>}/>)}
     </div>
 
     <div className="crm-toolbar">

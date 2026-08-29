@@ -1,0 +1,55 @@
+.crm-tabs{display:flex;align-items:center;gap:4px;margin:0 0 14px;border-bottom:1px solid var(--admin-line)}
+.crm-tabs button{min-height:42px;padding:0 18px;border:0;border-bottom:2px solid transparent;background:transparent;color:#777;font:inherit;font-size:11px;font-weight:800;cursor:pointer;transition:color .15s ease,border-color .15s ease,background .15s ease}
+.crm-tabs button:hover{color:#222;background:#fafafa}
+.crm-tabs button.active{color:var(--admin-accent);border-bottom-color:var(--admin-accent)}
+.crm-kpi-grid{margin-bottom:16px}
+.crm-toolbar{display:flex;align-items:center;gap:10px;margin-bottom:9px}
+.crm-searchbox{min-width:0;flex:1}
+.crm-filter{flex:0 0 180px}
+.crm-results-meta{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 2px 9px;color:#888;font-size:9px;font-weight:750;text-transform:uppercase;letter-spacing:.06em}
+.crm-table-card{overflow:visible}
+.crm-table-card table{min-width:900px}
+.crm-actions-column{width:72px;text-align:center!important}
+.crm-actions-cell{text-align:center!important;position:relative}
+.crm-row-menu-wrap{position:relative;display:inline-flex}
+.crm-row-menu-button{width:34px;height:34px;border:1px solid var(--admin-line-strong);border-radius:7px;background:#fff;color:#555;display:grid;place-items:center;cursor:pointer}
+.crm-row-menu-button:hover,.crm-row-menu-button[aria-expanded=true]{background:#f7f7f7;border-color:#aaa;color:#111}
+.crm-row-menu{position:absolute;right:0;top:39px;z-index:35;width:132px;padding:5px;background:#fff;border:1px solid var(--admin-line);border-radius:8px;box-shadow:0 14px 32px rgba(0,0,0,.12);display:grid}
+.crm-row-menu button{height:34px;border:0;border-radius:5px;background:transparent;text-align:left;padding:0 10px;color:#333;font:inherit;font-size:10px;font-weight:700;cursor:pointer}
+.crm-row-menu button:hover{background:#f5f5f5}
+.crm-row-menu button.danger{color:#b8000b}
+.crm-row-menu button.danger:hover{background:#fff0f1}
+.crm-dialog-backdrop{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.55);display:grid;place-items:center;padding:24px}
+.crm-dialog{width:min(100%,620px);max-height:min(82vh,760px);overflow:auto;background:#fff;border:1px solid #ddd;border-radius:12px;box-shadow:0 24px 70px rgba(0,0,0,.24);padding:20px}
+.crm-dialog-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding-bottom:15px;margin-bottom:18px;border-bottom:1px solid var(--admin-line)}
+.crm-dialog-head span{display:block;color:var(--admin-accent);font-size:9px;font-weight:850;letter-spacing:.13em;text-transform:uppercase;margin-bottom:4px}
+.crm-dialog-head h2{margin:0;font-size:20px;letter-spacing:-.025em}
+.crm-dialog-close{width:34px;height:34px;border:1px solid var(--admin-line);border-radius:7px;background:#fff;display:grid;place-items:center;cursor:pointer;color:#555}
+.crm-dialog-close:hover{background:#f7f7f7;color:#111}
+.crm-detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.crm-detail-grid>div{border:1px solid var(--admin-line);border-radius:8px;padding:13px;background:#fafafa;display:flex;flex-direction:column;gap:5px}
+.crm-detail-grid span,.crm-edit-form label>span{font-size:9px;font-weight:800;color:#888;text-transform:uppercase;letter-spacing:.06em}
+.crm-detail-grid strong{font-size:12px;color:#222}
+.crm-edit-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.crm-edit-form label{display:grid;gap:6px}
+.crm-edit-form input{height:40px;border:1px solid var(--admin-line-strong);border-radius:7px;padding:0 11px;font:inherit;font-size:11px;color:#222;background:#fff}
+.crm-dialog-note{grid-column:1/-1;border-left:3px solid var(--admin-accent);background:#fff7f7;color:#777;padding:10px 12px;font-size:10px;line-height:1.5}
+.crm-dialog-actions{grid-column:1/-1;display:flex;align-items:center;justify-content:flex-end;gap:8px;margin-top:4px}
+.crm-delete-confirmation p{margin:0;color:#555;font-size:12px;line-height:1.65}
+.crm-delete-confirmation .crm-dialog-actions{margin-top:18px}
+.workspace-primary-action{white-space:nowrap}
+
+@media(max-width:900px){
+  .crm-toolbar{align-items:stretch}
+  .crm-filter{flex-basis:150px}
+  .crm-table-card{overflow:auto}
+}
+
+@media(max-width:640px){
+  .crm-tabs button{flex:1;padding-inline:10px}
+  .crm-toolbar{flex-direction:column}
+  .crm-searchbox,.crm-filter{width:100%;flex:1 1 auto}
+  .crm-detail-grid,.crm-edit-form{grid-template-columns:1fr}
+  .crm-dialog{padding:16px}
+  .workspace-primary-action{min-height:36px;padding-inline:10px;font-size:10px}
+}

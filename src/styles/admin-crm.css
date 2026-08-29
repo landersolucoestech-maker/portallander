@@ -37,7 +37,9 @@
 .crm-dialog-actions{grid-column:1/-1;display:flex;align-items:center;justify-content:flex-end;gap:8px;margin-top:4px}
 .crm-delete-confirmation p{margin:0;color:#555;font-size:12px;line-height:1.65}
 .crm-delete-confirmation .crm-dialog-actions{margin-top:18px}
-.workspace-primary-action{white-space:nowrap}
+.workspace-primary-action{white-space:nowrap;background:#fff!important;color:#111!important;border-color:#fff!important}
+.workspace-primary-action:hover:not(:disabled){background:#f1f1f1!important;border-color:#f1f1f1!important}
+.workspace-primary-action:disabled{opacity:1;color:#777!important;cursor:not-allowed}
 
 @media(max-width:900px){
   .crm-toolbar{align-items:stretch}

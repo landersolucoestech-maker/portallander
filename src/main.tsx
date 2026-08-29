@@ -2,7 +2,6 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { HashRouter } from 'react-router-dom'
 import App from './app/PortalApp'
-import { HeaderBrandBridge } from './shared/branding/components/HeaderBrandBridge'
 import { BrandAssetsBridge } from './shared/branding/components/BrandAssetsBridge'
 import { NewsAdBridge } from './pages/noticias/components/NewsAdBridge'
 import { ClickableCardsBridge } from './shared/behaviors/components/ClickableCardsBridge'
@@ -21,7 +20,7 @@ async function waitForPublicFonts() {
 
 function mountApp() {
   ReactDOM.createRoot(document.getElementById('root')!).render(
-    <React.StrictMode><HashRouter><App/><HeaderBrandBridge/><BrandAssetsBridge/><NewsAdBridge/><ClickableCardsBridge/><PublicSearchSuggestionsBridge/></HashRouter></React.StrictMode>,
+    <React.StrictMode><HashRouter><App/><BrandAssetsBridge/><NewsAdBridge/><ClickableCardsBridge/><PublicSearchSuggestionsBridge/></HashRouter></React.StrictMode>,
   )
 }
 

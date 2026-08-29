@@ -7,6 +7,7 @@ import { EditorialListingPage } from '../features/editorial/components/Editorial
 import { editorialReadModel } from '../features/editorial/repository'
 import { PublicHome } from '../pages/home/PublicHome'
 import { PublicFooter, PublicHeader } from '../shared/public/PublicChrome'
+import { PublicNotFound } from '../shared/public/PublicNotFound'
 
 export { PublicHeader, PublicFooter } from '../shared/public/PublicChrome'
 
@@ -34,5 +35,5 @@ export default function PortalApp(){
     }
   }
 
-  return null
+  return <PublicNotFound/>
 }

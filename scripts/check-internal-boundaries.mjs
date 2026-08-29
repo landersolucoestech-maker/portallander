@@ -22,11 +22,32 @@ for(const forbidden of ['const stories','const ranked','const releases','const a
   if(portalApp.includes(forbidden))failures.push(`PortalApp voltou a concentrar implementação da Home: ${forbidden}`)
 }
 
-for(const removedPath of ['src/app/LegacyApp.tsx','src/app/HeroSection.tsx','src/app/brandAsset.ts']){
+const removedPaths=[
+  'src/app/LegacyApp.tsx',
+  'src/app/HeroSection.tsx',
+  'src/app/brandAsset.ts',
+  'src/features/crm/CrmDirectoryPages.tsx',
+  'src/features/crm/CrmOperations.tsx',
+  'src/features/crm/CrmWorkspace.tsx',
+  'src/features/site-manager/SiteManagerCatalogPages.tsx',
+  'src/features/site-manager/SiteManagerOperations.tsx',
+  'src/features/site-manager/SiteManagerWorkspace.tsx',
+]
+for(const removedPath of removedPaths){
   try{
     await access(new URL(`../${removedPath}`,import.meta.url),constants.F_OK)
     failures.push(`${removedPath} deve permanecer removido.`)
   }catch{}
+}
+
+const crmRoutes=await read('src/features/crm/CrmRoutes.tsx')
+for(const forbidden of ['CrmDirectoryPages','CrmOperations','CrmWorkspace']){
+  if(crmRoutes.includes(forbidden))failures.push(`CrmRoutes não pode depender de ${forbidden}.`)
+}
+
+const siteRoutes=await read('src/features/site-manager/SiteManagerRoutes.tsx')
+for(const forbidden of ['SiteManagerCatalogPages','SiteManagerOperations','SiteManagerWorkspace']){
+  if(siteRoutes.includes(forbidden))failures.push(`SiteManagerRoutes não pode depender de ${forbidden}.`)
 }
 
 const adminEntry=await read('src/styles/admin-entry.css')

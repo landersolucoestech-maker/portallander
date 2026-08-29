@@ -45,3 +45,4 @@ export const ADMIN_CAPABILITIES = {
 } as const satisfies Record<string,AdminCapability>
 
 export const capabilityStatusLabel=(state:CapabilityState)=>state==='available'?'Disponível':state==='browser-local'?'Local':'Pendente'
+export const capabilityStatusClass=(state:CapabilityState)=>state==='available'?'published':state==='browser-local'?'negociacao':'draft'

@@ -1,7 +1,7 @@
 import { EllipsisVertical } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 
-export function TableRowActionMenu({label,onView,onEdit,onDelete}:{label:string;onView:()=>void;onEdit:()=>void;onDelete:()=>void}){
+export function TableRowActionMenu({label,onView,onEdit,onDelete}:{label:string;onView:()=>void;onEdit?:()=>void;onDelete:()=>void}){
   const [open,setOpen]=useState(false)
   const root=useRef<HTMLDivElement>(null)
   useEffect(()=>{
@@ -15,7 +15,7 @@ export function TableRowActionMenu({label,onView,onEdit,onDelete}:{label:string;
     <button type="button" className="table-row-actions-trigger" aria-label={`Ações de ${label}`} aria-haspopup="menu" aria-expanded={open} onClick={()=>setOpen(value=>!value)}><EllipsisVertical size={16}/></button>
     {open&&<div className="table-row-actions-menu" role="menu">
       <button type="button" role="menuitem" onClick={()=>run(onView)}>Ver</button>
-      <button type="button" role="menuitem" onClick={()=>run(onEdit)}>Editar</button>
+      {onEdit&&<button type="button" role="menuitem" onClick={()=>run(onEdit)}>Editar</button>}
       <button type="button" role="menuitem" className="danger" onClick={()=>run(onDelete)}>Excluir</button>
     </div>}
   </div>

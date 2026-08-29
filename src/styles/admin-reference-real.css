@@ -2,144 +2,26 @@
    Este arquivo deve permanecer depois dos estilos legados para neutralizar a camada sintética. */
 
 .app-shell .zip-stack{gap:24px}
+.app-shell .zip-toolbar,.app-shell .reference-toolbar{min-height:56px;padding:12px;gap:8px;border:0;border-radius:8px;background:rgba(120,120,120,.07)}
+.app-shell .zip-toolbar input,.app-shell .zip-toolbar select,.app-shell .zip-search,.app-shell .zip-button,.app-shell .zip-icon{height:32px;border-radius:6px}
+.app-shell .zip-toolbar select{min-width:132px}.app-shell .zip-toolbar select:first-of-type{min-width:100px}.app-shell .zip-search{min-width:200px}
+.app-shell .zip-panel,.app-shell .zip-calendar,.app-shell .reference-entity-list{border:1px solid var(--admin-line);border-radius:8px;background:#fff;box-shadow:none}
+.app-shell .zip-panel-head{min-height:60px;padding:14px 16px}.app-shell .zip-panel-head h2{font-size:13px}.app-shell .zip-panel-head p{font-size:10px}
+.app-shell .zip-table th{height:40px;padding:0 14px;font-size:9px;background:#fafafa}.app-shell .zip-table td{height:48px;padding:0 14px;font-size:10px}
+.app-shell .zip-kpi-grid.four,.app-shell .zip-kpi-grid.eight{grid-template-columns:repeat(4,minmax(0,1fr))}.app-shell .zip-kpi-grid.five{grid-template-columns:repeat(5,minmax(0,1fr))}.app-shell .zip-kpi-grid.six{grid-template-columns:repeat(6,minmax(0,1fr))}.app-shell .zip-kpi-grid.contracts{grid-template-columns:repeat(7,minmax(0,1fr))}
 
-.app-shell .zip-toolbar,
-.app-shell .reference-toolbar{
-  min-height:56px;
-  padding:12px;
-  gap:8px;
-  border:0;
-  border-radius:8px;
-  background:rgba(120,120,120,.07);
-}
+.reference-agenda-page .reference-calendar{width:100%}.reference-agenda-page .zip-calendar-grid>div{min-height:108px}.reference-calendar-empty-note{display:flex;align-items:center;gap:8px;margin-top:-8px;color:#8a8a8a;font-size:9px}
+.reference-calendar-event{border:0;text-align:left;padding:4px 5px;border-radius:4px;font:inherit;font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}.reference-calendar-event.commercial{background:#eef4f8;color:#486473}.reference-calendar-event.editorial{background:#fff0f1;color:#b8000b}
 
-.app-shell .zip-toolbar input,
-.app-shell .zip-toolbar select,
-.app-shell .zip-search,
-.app-shell .zip-button,
-.app-shell .zip-icon{
-  height:32px;
-  border-radius:6px;
-}
+.reference-entity-list{overflow:hidden}.reference-entity-row{min-height:58px;display:flex;align-items:center;gap:12px;padding:9px 14px;border-top:1px solid var(--admin-line)}.reference-entity-row:first-child{border-top:0}.reference-entity-row:hover{background:#fafafa}.reference-entity-icon{width:30px;height:30px;flex:0 0 30px;border-radius:6px;display:grid;place-items:center;background:#f2f2f2;color:#777}.reference-entity-copy{min-width:0;display:grid;gap:2px;flex:1}.reference-entity-copy strong{font-size:10px;color:#222}.reference-entity-copy span{font-size:9px;color:#777}.reference-entity-copy small{font-size:8px;color:#aaa}.reference-entity-actions{display:flex;align-items:center;gap:6px}.reference-entity-actions .zip-button{font-size:9px}
 
-.app-shell .zip-toolbar select{min-width:132px}
-.app-shell .zip-toolbar select:first-of-type{min-width:100px}
-.app-shell .zip-search{min-width:200px}
+.app-shell .zip-overview-grid{grid-template-columns:minmax(0,2fr) minmax(280px,1fr);gap:24px}.app-shell .zip-side-stack{gap:24px}.app-shell .zip-workspace-hero{display:none}.app-shell .zip-creative-grid,.app-shell .zip-report-grid{gap:20px}
+.app-shell-agenda .zip-kpi-grid:first-child,.app-shell-marketing-calendar .zip-kpi-grid:first-child,.app-shell-marketing-overview .zip-shortcuts{display:none!important}
 
-.app-shell .zip-panel,
-.app-shell .zip-calendar,
-.app-shell .reference-entity-list{
-  border:1px solid var(--admin-line);
-  border-radius:8px;
-  background:#fff;
-  box-shadow:none;
-}
+/* Modal/form contract cloned from the attached modules. */
+.reference-modal-backdrop{position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.48);display:grid;place-items:center;padding:24px;overflow:auto}.reference-modal{width:min(620px,100%);max-height:calc(100vh - 48px);display:flex;flex-direction:column;border:1px solid #dedede;border-radius:10px;background:#fff;box-shadow:0 24px 70px rgba(0,0,0,.25);overflow:hidden}.reference-modal-lg{width:min(880px,100%)}.reference-modal-xl{width:min(1080px,100%)}.reference-modal-head{min-height:68px;padding:14px 18px;border-bottom:1px solid var(--admin-line);display:flex;align-items:center;justify-content:space-between;gap:16px}.reference-modal-head>div{display:grid;gap:3px}.reference-modal-head span{font-size:8px;font-weight:850;letter-spacing:.11em;color:var(--admin-accent)}.reference-modal-head h2{margin:0;font-size:17px;letter-spacing:-.02em;color:#222}.reference-modal-close{width:32px;height:32px;border:1px solid var(--admin-line);border-radius:7px;background:#fff;display:grid;place-items:center;color:#666;cursor:pointer}.reference-modal-body{padding:18px;overflow:auto}.reference-modal-footer{min-height:62px;padding:12px 18px;border-top:1px solid var(--admin-line);display:flex;justify-content:flex-end;align-items:center;gap:8px;background:#fafafa}
+.reference-form{display:grid;gap:18px}.reference-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 14px}.reference-form-grid.four-col{grid-template-columns:repeat(4,minmax(0,1fr))}.reference-form-grid label{display:grid;gap:6px;min-width:0}.reference-form-grid label.wide{grid-column:1/-1}.reference-form-grid label>span,.reference-form label>span{font-size:9px;font-weight:800;color:#666}.reference-form input,.reference-form select,.reference-form textarea,.reference-dialog-input{width:100%;border:1px solid var(--admin-line-strong);border-radius:7px;background:#fff;color:#222;font:inherit;font-size:10px;outline:0}.reference-form input,.reference-form select,.reference-dialog-input{height:38px;padding:0 10px}.reference-form textarea{padding:9px 10px;resize:vertical}.reference-form input:focus,.reference-form select:focus,.reference-form textarea:focus,.reference-dialog-input:focus{border-color:#999;box-shadow:0 0 0 3px rgba(0,0,0,.04)}.reference-form-section{display:grid;gap:12px;padding-top:4px}.reference-form-section h3,.reference-view-stack section>h3{margin:0;padding-bottom:8px;border-bottom:1px solid #eee;font-size:11px;color:#333;display:flex;align-items:center;gap:6px}.reference-view-stack{display:grid;gap:20px}.reference-view-stack p{margin:0;font-size:10px;color:#666;line-height:1.6}.reference-detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 16px;padding-top:12px}.reference-detail-grid>div{display:grid;gap:4px}.reference-detail-grid span{font-size:8px;color:#888;text-transform:uppercase;font-weight:800;letter-spacing:.04em}.reference-detail-grid strong{font-size:10px;color:#252525}.reference-chip-row{display:flex;flex-wrap:wrap;gap:6px;padding-top:12px}.reference-chip-row span{min-height:24px;padding:0 8px;display:inline-flex;align-items:center;border-radius:999px;background:#f2f2f2;color:#555;font-size:8px;font-weight:750}.reference-checklist{display:grid;gap:8px;padding-top:12px}.reference-checklist label{display:flex;align-items:center;gap:8px;font-size:9px;color:#555}
 
-.app-shell .zip-panel-head{
-  min-height:60px;
-  padding:14px 16px;
-}
-.app-shell .zip-panel-head h2{font-size:13px}
-.app-shell .zip-panel-head p{font-size:10px}
-
-.app-shell .zip-table th{
-  height:40px;
-  padding:0 14px;
-  font-size:9px;
-  background:#fafafa;
-}
-.app-shell .zip-table td{
-  height:48px;
-  padding:0 14px;
-  font-size:10px;
-}
-
-/* A referência usa 4 colunas em desktop para a maioria das faixas de KPI. */
-.app-shell .zip-kpi-grid.four,
-.app-shell .zip-kpi-grid.eight{grid-template-columns:repeat(4,minmax(0,1fr))}
-.app-shell .zip-kpi-grid.five{grid-template-columns:repeat(5,minmax(0,1fr))}
-.app-shell .zip-kpi-grid.six{grid-template-columns:repeat(6,minmax(0,1fr))}
-
-/* Exceção solicitada pelo usuário: Contratos em uma única linha. */
-.app-shell .zip-kpi-grid.contracts{grid-template-columns:repeat(7,minmax(0,1fr))}
-
-/* Agenda real: toolbar + calendário ocupando toda a largura, sem painel Próximos. */
-.reference-agenda-page .reference-calendar{width:100%}
-.reference-agenda-page .zip-calendar-grid>div{min-height:108px}
-.reference-calendar-empty-note{
-  display:flex;
-  align-items:center;
-  gap:8px;
-  margin-top:-8px;
-  color:#8a8a8a;
-  font-size:9px;
-}
-
-/* Relatórios real: Importar/Exportar por entidade. */
-.reference-entity-list{overflow:hidden}
-.reference-entity-row{
-  min-height:58px;
-  display:flex;
-  align-items:center;
-  gap:12px;
-  padding:9px 14px;
-  border-top:1px solid var(--admin-line);
-}
-.reference-entity-row:first-child{border-top:0}
-.reference-entity-row:hover{background:#fafafa}
-.reference-entity-icon{
-  width:30px;
-  height:30px;
-  flex:0 0 30px;
-  border-radius:6px;
-  display:grid;
-  place-items:center;
-  background:#f2f2f2;
-  color:#777;
-}
-.reference-entity-copy{min-width:0;display:grid;gap:2px;flex:1}
-.reference-entity-copy strong{font-size:10px;color:#222}
-.reference-entity-copy span{font-size:9px;color:#777}
-.reference-entity-copy small{font-size:8px;color:#aaa}
-.reference-entity-actions{display:flex;align-items:center;gap:6px}
-.reference-entity-actions .zip-button{font-size:9px}
-
-/* Marketing real: overview 2/3 + 1/3, grids compactos e sem card artificial gigante. */
-.app-shell .zip-overview-grid{grid-template-columns:minmax(0,2fr) minmax(280px,1fr);gap:24px}
-.app-shell .zip-side-stack{gap:24px}
-.app-shell .zip-workspace-hero{display:none}
-.app-shell .zip-creative-grid,
-.app-shell .zip-report-grid{gap:20px}
-
-/* Não reintroduzir blocos que foram explicitamente removidos. */
-.app-shell-agenda .zip-kpi-grid:first-child,
-.app-shell-marketing-calendar .zip-kpi-grid:first-child,
-.app-shell-marketing-overview .zip-shortcuts{display:none!important}
-
-@media(max-width:1280px){
-  .app-shell .zip-kpi-grid.contracts{grid-template-columns:repeat(4,minmax(0,1fr))}
-  .app-shell .zip-kpi-grid.six{grid-template-columns:repeat(3,minmax(0,1fr))}
-  .app-shell .zip-kpi-grid.five{grid-template-columns:repeat(3,minmax(0,1fr))}
-}
-
-@media(max-width:900px){
-  .app-shell .zip-kpi-grid.four,
-  .app-shell .zip-kpi-grid.eight,
-  .app-shell .zip-kpi-grid.contracts{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .app-shell .zip-overview-grid,
-  .app-shell .zip-creative-grid,
-  .app-shell .zip-report-grid{grid-template-columns:1fr}
-  .reference-entity-row{align-items:flex-start;flex-wrap:wrap}
-  .reference-entity-actions{width:100%;padding-left:42px}
-}
-
-@media(max-width:640px){
-  .app-shell .zip-kpi-grid.four,
-  .app-shell .zip-kpi-grid.five,
-  .app-shell .zip-kpi-grid.six,
-  .app-shell .zip-kpi-grid.eight,
-  .app-shell .zip-kpi-grid.contracts{grid-template-columns:1fr}
-  .app-shell .zip-toolbar{align-items:stretch}
-  .app-shell .zip-toolbar>*{width:100%;min-width:0!important}
-  .reference-entity-actions{padding-left:0}
-}
+@media(max-width:1280px){.app-shell .zip-kpi-grid.contracts{grid-template-columns:repeat(4,minmax(0,1fr))}.app-shell .zip-kpi-grid.six{grid-template-columns:repeat(3,minmax(0,1fr))}.app-shell .zip-kpi-grid.five{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:900px){.app-shell .zip-kpi-grid.four,.app-shell .zip-kpi-grid.eight,.app-shell .zip-kpi-grid.contracts{grid-template-columns:repeat(2,minmax(0,1fr))}.app-shell .zip-overview-grid,.app-shell .zip-creative-grid,.app-shell .zip-report-grid{grid-template-columns:1fr}.reference-entity-row{align-items:flex-start;flex-wrap:wrap}.reference-entity-actions{width:100%;padding-left:42px}.reference-form-grid.four-col{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:640px){.app-shell .zip-kpi-grid.four,.app-shell .zip-kpi-grid.five,.app-shell .zip-kpi-grid.six,.app-shell .zip-kpi-grid.eight,.app-shell .zip-kpi-grid.contracts{grid-template-columns:1fr}.app-shell .zip-toolbar{align-items:stretch}.app-shell .zip-toolbar>*{width:100%;min-width:0!important}.reference-entity-actions{padding-left:0}.reference-modal-backdrop{padding:8px}.reference-modal{max-height:calc(100vh - 16px)}.reference-form-grid,.reference-form-grid.four-col,.reference-detail-grid{grid-template-columns:1fr}}

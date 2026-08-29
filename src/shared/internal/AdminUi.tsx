@@ -7,7 +7,7 @@ import { portalLogo } from '../branding/assets/brandAsset'
 
 export type AdminArea = 'crm' | 'cms'
 export type AdminNavLink = readonly [label: string, icon: LucideIcon, to: string]
-export type AdminNavGroup = {label:string;icon:LucideIcon;children:readonly AdminNavLink[]}
+export type AdminNavGroup = {label:string;icon:LucideIcon;to?:string;children:readonly AdminNavLink[]}
 export type AdminNavItem = AdminNavLink | AdminNavGroup
 
 type AdminShellHeader={title:string;description:string}
@@ -82,8 +82,9 @@ export function AdminShell({area,items,children,header,headerAction,headerAction
       <nav aria-label={`Seções do ${context}`}>{items.map(item=>{
         if(isNavGroup(item)){
           const GroupIcon=item.icon
+          const groupContent=<><GroupIcon size={17} aria-hidden="true"/><span>{item.label}</span><ChevronDown size={13} aria-hidden="true"/></>
           return <div className="sidebar-nav-group" key={item.label}>
-            <div className="sidebar-nav-group-label"><GroupIcon size={17} aria-hidden="true"/><span>{item.label}</span><ChevronDown size={13} aria-hidden="true"/></div>
+            {item.to?<NavLink className="sidebar-nav-group-label" to={item.to}>{groupContent}</NavLink>:<div className="sidebar-nav-group-label">{groupContent}</div>}
             <div className="sidebar-subnav">{item.children.map(([label,Icon,to])=><NavLink className="sidebar-subnav-link" key={to} to={to}><Icon size={14} aria-hidden="true"/><span>{label}</span></NavLink>)}</div>
           </div>
         }
@@ -137,8 +138,4 @@ export function AdminNotice({title,description}:{title:string;description:string
 
 export function AdminKpi({label,value,detail,icon}:{label:string;value:string;detail:string;icon:ReactNode}){
   return <div className="admin-kpi"><div className="admin-kpi-top"><span className="admin-kpi-label">{label}</span><span className="admin-kpi-icon" aria-hidden="true">{icon}</span></div><strong>{value}</strong><small>{detail}</small></div>
-}
-
-export function AdminEmpty({title,description}:{title:string;description:string}){
-  return <div className="admin-empty"><div className="admin-empty-icon" aria-hidden="true"><Gauge/></div><h2>{title}</h2><p>{description}</p></div>
 }

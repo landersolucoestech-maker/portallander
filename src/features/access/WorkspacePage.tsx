@@ -1,9 +1,17 @@
-import { ArrowRight, Globe2, LockKeyhole, Settings2 } from 'lucide-react'
+import { ArrowRight, BriefcaseBusiness, Globe2, LockKeyhole, Settings2 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { portalLogo } from '../../shared/branding/assets/brandAsset'
 import { ADMIN_CAPABILITIES } from '../../shared/internal/adminCapabilities'
 
 const workspaces=[
+  {
+    title:'CRM',
+    eyebrow:'WORKSPACE ADMINISTRATIVO',
+    description:'Workspace administrativo preservado para receber os módulos reconstruídos do zero.',
+    to:'/app/crm',
+    icon:BriefcaseBusiness,
+    meta:['Estrutura do workspace preservada','Módulo CRM removido','Integrações removidas'],
+  },
   {
     title:'Gerenciador do Site',
     eyebrow:'CONTEÚDO E PUBLICAÇÃO',
@@ -25,7 +33,7 @@ export function WorkspacePage(){
       <div className="workspace-selection-heading">
         <span className="access-kicker">ÁREA INTERNA · WORKSPACES</span>
         <h1>Escolha onde você quer trabalhar.</h1>
-        <p>O ambiente administrativo disponível atualmente é o Gerenciador do Site.</p>
+        <p>Os workspaces administrativos permanecem independentes dos módulos implementados dentro deles.</p>
       </div>
 
       <div className="workspace-selection-grid">

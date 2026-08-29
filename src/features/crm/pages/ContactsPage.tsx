@@ -1,4 +1,4 @@
-import { BadgeCheck, MoreHorizontal, Search, Target, TrendingUp, UserCheck, UserPlus, Users, UserX, X } from 'lucide-react'
+import { BadgeCheck, ChevronLeft, ChevronRight, MoreHorizontal, Search, Target, TrendingUp, UserCheck, UserPlus, Users, UserX, X } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { ADMIN_CAPABILITIES } from '../../../shared/internal/adminCapabilities'
 import { CRM_NAV } from '../../../shared/internal/adminNavigation'
@@ -7,11 +7,12 @@ import { formatCurrency, statusClass, type CrmContact, type CrmContactStatus } f
 import { crmReadModel } from '../repository'
 
 type CrmTab='contacts'|'leads'
-type DialogMode='view'|'edit'|'delete'|null
+type DialogMode='create'|'view'|'edit'|'delete'|null
 
+const PAGE_SIZE=10
 const contactStatuses: readonly ('Todos'|CrmContactStatus)[]=['Todos','Cliente','Contato']
 const leadStatuses: readonly ('Todos'|CrmContactStatus)[]=['Todos','Lead','Negociação']
-const demoDescription='Busca, filtros, abas e visualização funcionam localmente sobre o snapshot demonstrativo. Criação, gravação de edição e exclusão definitiva continuam indisponíveis até existir backend real.'
+const demoDescription='Busca, filtros, abas, paginação e visualização funcionam localmente sobre o snapshot demonstrativo. Criação, gravação de edição e exclusão definitiva continuam indisponíveis até existir backend real.'
 
 const contactKpis=[
   ['Total de contatos','248','Base demonstrativa',Users],
@@ -31,6 +32,7 @@ export function ContactsPage(){
   const [tab,setTab]=useState<CrmTab>('contacts')
   const [query,setQuery]=useState('')
   const [status,setStatus]=useState<string>('Todos')
+  const [page,setPage]=useState(1)
   const [openMenu,setOpenMenu]=useState<string|null>(null)
   const [selected,setSelected]=useState<CrmContact|null>(null)
   const [dialogMode,setDialogMode]=useState<DialogMode>(null)
@@ -50,15 +52,22 @@ export function ContactsPage(){
     return matchesQuery&&matchesStatus
   }),[baseRecords,normalized,status])
 
-  const changeTab=(next:CrmTab)=>{setTab(next);setStatus('Todos');setQuery('');setOpenMenu(null)}
-  const openDialog=(record:CrmContact,mode:Exclude<DialogMode,null>)=>{setSelected(record);setDialogMode(mode);setOpenMenu(null)}
+  const totalPages=Math.max(1,Math.ceil(records.length/PAGE_SIZE))
+  const currentPage=Math.min(page,totalPages)
+  const pagedRecords=records.slice((currentPage-1)*PAGE_SIZE,currentPage*PAGE_SIZE)
+
+  const changeTab=(next:CrmTab)=>{setTab(next);setStatus('Todos');setQuery('');setPage(1);setOpenMenu(null)}
+  const changeQuery=(value:string)=>{setQuery(value);setPage(1)}
+  const changeStatus=(value:string)=>{setStatus(value);setPage(1)}
+  const openDialog=(record:CrmContact,mode:Exclude<DialogMode,'create'|null>)=>{setSelected(record);setDialogMode(mode);setOpenMenu(null)}
+  const openCreate=()=>{setSelected(null);setDialogMode('create');setOpenMenu(null)}
   const closeDialog=()=>{setSelected(null);setDialogMode(null)}
 
   return <AdminShell
     area="crm"
     items={CRM_NAV}
     header={{title:'CRM',description:'Gestão operacional de contatos e leads do Portal Lander.'}}
-    headerAction={{label:'Novo contato',disabled:true,disabledReason:ADMIN_CAPABILITIES.crmPersistence.description}}
+    headerAction={{label:'Novo contato',onClick:openCreate}}
   >
     <AdminNotice title="Dados de demonstração" description={demoDescription}/>
 
@@ -75,18 +84,16 @@ export function ContactsPage(){
       <label className="searchbox crm-searchbox">
         <span className="sr-only">Buscar {isLeads?'leads':'contatos'}</span>
         <Search size={16} aria-hidden="true"/>
-        <input value={query} onChange={event=>setQuery(event.target.value)} placeholder={`Buscar ${isLeads?'lead':'contato'} por nome, empresa ou responsável...`}/>
+        <input value={query} onChange={event=>changeQuery(event.target.value)} placeholder={`Buscar ${isLeads?'lead':'contato'} por nome, empresa ou responsável...`}/>
       </label>
       <label className="sr-only" htmlFor="crm-status">Filtrar por status</label>
-      <select id="crm-status" className="admin-filter crm-filter" value={status} onChange={event=>setStatus(event.target.value)}>{statuses.map(value=><option key={value}>{value}</option>)}</select>
+      <select id="crm-status" className="admin-filter crm-filter" value={status} onChange={event=>changeStatus(event.target.value)}>{statuses.map(value=><option key={value}>{value}</option>)}</select>
     </div>
-
-    <div className="crm-results-meta"><span>{records.length} resultado{records.length===1?'':'s'} nesta visão</span><span>{isLeads?'Leads':'Contatos'}</span></div>
 
     <section className="table-card crm-table-card">
       <table>
         <thead><tr><th>{isLeads?'Lead':'Contato'}</th><th>Empresa</th><th>Status</th><th>Responsável</th><th>Valor relacionado</th><th className="crm-actions-column">Ações</th></tr></thead>
-        <tbody>{records.map(record=><tr key={record.id}>
+        <tbody>{pagedRecords.map(record=><tr key={record.id}>
           <td><div className="table-primary"><span className="table-avatar">{record.name.split(' ').map(part=>part[0]).join('').slice(0,2)}</span><div><b>{record.name}</b><small>{isLeads?'Lead comercial':'Contato comercial'}</small></div></div></td>
           <td>{record.company}</td>
           <td><span className={`status ${statusClass(record.status)}`}>{record.status}</span></td>
@@ -107,15 +114,31 @@ export function ContactsPage(){
       {records.length===0&&<div className="table-empty-row">Nenhum {isLeads?'lead':'contato'} corresponde aos filtros atuais.</div>}
     </section>
 
-    {selected&&dialogMode&&<div className="crm-dialog-backdrop" role="presentation" onMouseDown={event=>{if(event.target===event.currentTarget)closeDialog()}}>
-      <section className="crm-dialog" role="dialog" aria-modal="true" aria-labelledby="crm-dialog-title">
-        <div className="crm-dialog-head"><div><span>{isLeads?'Lead':'Contato'}</span><h2 id="crm-dialog-title">{dialogMode==='view'?'Detalhes do registro':dialogMode==='edit'?'Editar registro':'Confirmar exclusão'}</h2></div><button type="button" className="crm-dialog-close" aria-label="Fechar" onClick={closeDialog}><X size={18}/></button></div>
+    <nav className="crm-pagination" aria-label={`Paginação de ${isLeads?'leads':'contatos'}`}>
+      <button type="button" className="crm-pagination-button" onClick={()=>setPage(value=>Math.max(1,value-1))} disabled={currentPage===1} aria-label="Página anterior"><ChevronLeft size={16}/></button>
+      <span>Página <strong>{currentPage}</strong> de <strong>{totalPages}</strong></span>
+      <button type="button" className="crm-pagination-button" onClick={()=>setPage(value=>Math.min(totalPages,value+1))} disabled={currentPage===totalPages} aria-label="Próxima página"><ChevronRight size={16}/></button>
+    </nav>
 
-        {dialogMode==='view'&&<div className="crm-detail-grid">
+    {dialogMode&&<div className="crm-dialog-backdrop" role="presentation" onMouseDown={event=>{if(event.target===event.currentTarget)closeDialog()}}>
+      <section className="crm-dialog" role="dialog" aria-modal="true" aria-labelledby="crm-dialog-title">
+        <div className="crm-dialog-head"><div><span>{dialogMode==='create'?'Contato':isLeads?'Lead':'Contato'}</span><h2 id="crm-dialog-title">{dialogMode==='create'?'Novo contato':dialogMode==='view'?'Detalhes do registro':dialogMode==='edit'?'Editar registro':'Confirmar exclusão'}</h2></div><button type="button" className="crm-dialog-close" aria-label="Fechar" onClick={closeDialog}><X size={18}/></button></div>
+
+        {dialogMode==='create'&&<form className="crm-edit-form" onSubmit={event=>event.preventDefault()}>
+          <label><span>Nome</span><input placeholder="Nome do contato"/></label>
+          <label><span>Empresa</span><input placeholder="Empresa"/></label>
+          <label><span>Status</span><input defaultValue="Contato"/></label>
+          <label><span>Responsável</span><input placeholder="Responsável"/></label>
+          <label><span>Valor relacionado</span><input inputMode="numeric" placeholder="0"/></label>
+          <div className="crm-dialog-note">O formulário está habilitado para preenchimento, mas a criação definitiva permanece bloqueada até existir backend persistente.</div>
+          <div className="crm-dialog-actions"><button type="button" className="button outline" onClick={closeDialog}>Cancelar</button><button type="submit" className="button dark" disabled title={ADMIN_CAPABILITIES.crmPersistence.description}>Adicionar contato</button></div>
+        </form>}
+
+        {selected&&dialogMode==='view'&&<div className="crm-detail-grid">
           <div><span>Nome</span><strong>{selected.name}</strong></div><div><span>Empresa</span><strong>{selected.company}</strong></div><div><span>Status</span><strong>{selected.status}</strong></div><div><span>Responsável</span><strong>{selected.owner}</strong></div><div><span>Valor relacionado</span><strong>{formatCurrency(selected.relatedValue)}</strong></div>
         </div>}
 
-        {dialogMode==='edit'&&<form className="crm-edit-form" onSubmit={event=>event.preventDefault()}>
+        {selected&&dialogMode==='edit'&&<form className="crm-edit-form" onSubmit={event=>event.preventDefault()}>
           <label><span>Nome</span><input defaultValue={selected.name}/></label>
           <label><span>Empresa</span><input defaultValue={selected.company}/></label>
           <label><span>Status</span><input defaultValue={selected.status}/></label>
@@ -125,7 +148,7 @@ export function ContactsPage(){
           <div className="crm-dialog-actions"><button type="button" className="button outline" onClick={closeDialog}>Cancelar</button><button type="submit" className="button dark" disabled title={ADMIN_CAPABILITIES.crmPersistence.description}>Salvar alterações</button></div>
         </form>}
 
-        {dialogMode==='delete'&&<div className="crm-delete-confirmation"><p>Você está prestes a excluir <strong>{selected.name}</strong>. A exclusão definitiva exige confirmação e uma camada persistente conectada.</p><div className="crm-dialog-actions"><button type="button" className="button outline" onClick={closeDialog}>Cancelar</button><button type="button" className="button dark" disabled title={ADMIN_CAPABILITIES.crmPersistence.description}>Confirmar exclusão</button></div></div>}
+        {selected&&dialogMode==='delete'&&<div className="crm-delete-confirmation"><p>Você está prestes a excluir <strong>{selected.name}</strong>. A exclusão definitiva exige confirmação e uma camada persistente conectada.</p><div className="crm-dialog-actions"><button type="button" className="button outline" onClick={closeDialog}>Cancelar</button><button type="button" className="button dark" disabled title={ADMIN_CAPABILITIES.crmPersistence.description}>Confirmar exclusão</button></div></div>}
       </section>
     </div>}
   </AdminShell>

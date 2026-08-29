@@ -5,8 +5,8 @@ const read = path => readFile(new URL(`../${path}`, import.meta.url),'utf8')
 const failures=[]
 
 const publicStyles=await read('src/styles/public-styles.css')
-if(/admin-(system|workspaces|entry|header|dashboard|brand|responsive|accessibility|hero|home)/.test(publicStyles))failures.push('public-styles.css não pode importar folhas administrativas.')
-if(publicStyles.includes('clickable-cards.css'))failures.push('public-styles.css não pode reintroduzir o enhancer legado de cards clicáveis.')
+for(const forbidden of ['admin-system','admin-workspaces','admin-entry','admin-header','admin-dashboard','admin-brand','admin-responsive','admin-accessibility','header-brand-manager.css','brand-assets-manager.css','home-ad-manager.css','hero-editable.css','clickable-cards.css'])if(publicStyles.includes(forbidden))failures.push(`public-styles.css não pode carregar stylesheet administrativo/legado: ${forbidden}`)
+for(const required of ['hero-public.css','home-ad-public.css'])if(!publicStyles.includes(required))failures.push(`public-styles.css deve carregar ${required}.`)
 
 const globalStyles=await read('src/styles/styles.css')
 for(const selector of ['.app-shell{','.sidebar{','.workspace-top{','.admin-kpi-grid{'])if(globalStyles.includes(selector))failures.push(`styles.css contém seletor administrativo legado: ${selector}`)
@@ -61,7 +61,7 @@ const removedPaths=[
   'src/pages/colabore/components/ColaborePageBridge.tsx',
   'src/shared/branding/components/HeaderBrandBridge.tsx','src/shared/branding/components/BrandAssetsBridge.tsx',
   'src/shared/behaviors/components/ClickableCardsBridge.tsx','src/shared/behaviors/components/PublicSearchSuggestionsBridge.tsx','src/shared/behaviors/styles/clickable-cards.css',
-  'src/pages/noticias/components/NewsAdBridge.tsx','src/styles/admin-hero-bridge.css',
+  'src/pages/noticias/components/NewsAdBridge.tsx','src/pages/home/styles/home-ad-manager.css','src/pages/home/styles/hero-editable.css','src/styles/admin-hero-bridge.css',
 ]
 for(const removedPath of removedPaths){try{await access(new URL(`../${removedPath}`,import.meta.url),constants.F_OK);failures.push(`${removedPath} deve permanecer removido.`)}catch{}}
 
@@ -77,8 +77,7 @@ if(!siteRoutes.includes('<Route index'))failures.push('SiteManagerRoutes deve de
 for(const required of ['path="home"','path="home/anuncio"','path="marca"','path="cabecalho"','path="noticias/anuncio"'])if(!siteRoutes.includes(required))failures.push(`SiteManagerRoutes deve manter a rota ${required}.`)
 
 const adminEntry=await read('src/styles/admin-entry.css')
-for(const required of ['admin-system.css','admin-workspaces.css','admin-brand.css','admin-home.css','admin-hero.css','admin-responsive.css','admin-accessibility.css'])if(!adminEntry.includes(required))failures.push(`admin-entry.css deve carregar ${required}.`)
-if(adminEntry.includes('admin-hero-bridge.css'))failures.push('admin-entry.css não pode reintroduzir o stylesheet bridge antigo do Hero.')
+for(const required of ['admin-system.css','admin-workspaces.css','admin-brand.css','admin-home.css','admin-hero.css','admin-hero-editor.css','admin-home-ad-editor.css','header-brand-manager.css','brand-assets-manager.css','admin-responsive.css','admin-accessibility.css'])if(!adminEntry.includes(required))failures.push(`admin-entry.css deve carregar ${required}.`)
 
 if(failures.length){console.error('Falha nos boundaries da aplicação:');failures.forEach(item=>console.error(`- ${item}`));process.exit(1)}
 console.log('Application boundaries OK')

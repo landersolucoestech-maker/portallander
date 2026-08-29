@@ -1,9 +1,10 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import HeroManagerPage from './HeroManagerPage'
 import { SiteContents, SiteManagerDashboard, SitePages } from './SiteManagerWorkspace'
-import { MediaKitPage, SiteSettingsPage } from './SiteManagerOperations'
+import { MediaKitPage } from './pages/MediaKitPage'
 import { SiteCategoriesPage } from './pages/SiteCategoriesPage'
 import { SiteMediaPage } from './pages/SiteMediaPage'
+import { SiteSettingsPage } from './pages/SiteSettingsPage'
 
 export default function SiteManagerRoutes(){
   return <Routes>

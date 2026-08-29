@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { ChatPage, MarketingPage, OperationsPage } from '../operations/OperationsPage'
+import { ContractsPage } from '../operations/ContractsPage'
 import { ContactsPage } from './pages/ContactsPage'
 import { CrmDashboardPage } from './pages/CrmDashboardPage'
 import { FinancePage } from './pages/FinancePage'
@@ -15,6 +16,7 @@ export default function CrmRoutes(){
     <Route path="chat" element={<ChatPage/>}/>
     <Route path="musicchat" element={<Navigate to="/app/crm/chat" replace/>}/>
     <Route path="internal-chat" element={<Navigate to="/app/crm/chat" replace/>}/>
+    <Route path="contracts" element={<ContractsPage/>}/>
     <Route path="relatorios" element={<ReportsPage/>}/>
     <Route path="reports" element={<OperationsPage moduleKey="reports"/>}/>
     <Route path="financeiro" element={<FinancePage/>}/>

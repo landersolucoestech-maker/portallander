@@ -9,10 +9,9 @@
 @import '../pages/home/styles/hero-fixed-background.css';
 @import '../pages/home/styles/hero-carousel.css';
 @import '../pages/home/styles/featured-grid.css';
-@import '../pages/home/styles/home-ad-manager.css';
+@import '../pages/home/styles/home-ad-public.css';
 @import '../pages/home/styles/releases-four.css';
 @import '../shared/branding/styles/header-active-indicator.css';
-@import '../shared/branding/styles/header-brand-manager.css';
 @import '../pages/noticias/styles/news-reference-page.css';
 @import '../pages/noticias/styles/news-hero-upload.css';
 @import '../pages/noticias/styles/news-hero-reference.css';
@@ -25,7 +24,6 @@
 @import './public-header-system.css';
 @import '../shared/behaviors/styles/public-search-suggestions.css';
 @import './public-typography-system.css';
-@import '../shared/branding/styles/brand-assets-manager.css';
 @import '../pages/colabore/styles/colabore-page.css';
 @import './public-inner-hero-system.css';
 @import './editorial-system.css';

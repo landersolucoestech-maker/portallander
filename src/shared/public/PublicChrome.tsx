@@ -1,10 +1,25 @@
 import { Menu, Search, X } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { portalLogo } from '../branding/assets/brandAsset'
+import { readHeaderBrandConfig, type HeaderBrandConfig } from '../branding/models/headerBrandModel'
 import { editorialReadModel } from '../../features/editorial/repository'
 
-function PublicBrand(){return <Link to="/" className="public-brand" aria-label="Portal Lander"><img src={portalLogo} alt="Portal Lander"/></Link>}
+function PublicBrand(){
+  const [config,setConfig]=useState<HeaderBrandConfig>(()=>readHeaderBrandConfig())
+  useEffect(()=>{
+    const sync=()=>setConfig(readHeaderBrandConfig())
+    window.addEventListener('portal-lander:header-brand-updated',sync)
+    return()=>window.removeEventListener('portal-lander:header-brand-updated',sync)
+  },[])
+  if(!config.active||config.deleted||!config.image)return null
+  const justifyContent=config.alignment==='left'?'flex-start':config.alignment==='right'?'flex-end':'center'
+  const style={width:config.width,height:config.height,flex:`0 0 ${config.width}px`,justifyContent}
+  const image=<img src={config.image} alt={config.imageAlt||'Portal Lander'} style={{width:'100%',height:'100%',maxWidth:'100%',objectFit:'contain',objectPosition:`${config.alignment} center`}}/>
+  if(/^https?:\/\//i.test(config.link))return <a href={config.link} className="public-brand" aria-label="Portal Lander" style={style}>{image}</a>
+  const to=config.link.startsWith('/')?config.link:`/${config.link}`
+  return <Link to={to||'/'} className="public-brand" aria-label="Portal Lander" style={style}>{image}</Link>
+}
 
 export function PublicHeader(){
   const [open,setOpen]=useState(false)

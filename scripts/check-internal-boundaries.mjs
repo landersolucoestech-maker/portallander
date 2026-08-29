@@ -32,6 +32,7 @@ const removedPaths=[
   'src/features/site-manager/SiteManagerCatalogPages.tsx',
   'src/features/site-manager/SiteManagerOperations.tsx',
   'src/features/site-manager/SiteManagerWorkspace.tsx',
+  'src/styles/admin-hero-bridge.css',
 ]
 for(const removedPath of removedPaths){
   try{
@@ -55,9 +56,10 @@ if(/path=["']\/app\/site/.test(siteRoutes))failures.push('SiteManagerRoutes deve
 if(!siteRoutes.includes('<Route index'))failures.push('SiteManagerRoutes deve declarar o dashboard como rota index.')
 
 const adminEntry=await read('src/styles/admin-entry.css')
-for(const required of ['admin-system.css','admin-workspaces.css','admin-brand.css','admin-responsive.css','admin-accessibility.css']){
+for(const required of ['admin-system.css','admin-workspaces.css','admin-brand.css','admin-hero.css','admin-responsive.css','admin-accessibility.css']){
   if(!adminEntry.includes(required))failures.push(`admin-entry.css deve carregar ${required}.`)
 }
+if(adminEntry.includes('admin-hero-bridge.css'))failures.push('admin-entry.css não pode reintroduzir o stylesheet bridge antigo do Hero.')
 
 if(failures.length){
   console.error('Falha nos boundaries da aplicação:')

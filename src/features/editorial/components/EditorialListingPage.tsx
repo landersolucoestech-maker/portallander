@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
-import { NewsAdSection, useNewsAdRuntime } from '../../../pages/noticias/components/NewsAdSection'
+import { NewsAdSection } from '../../../pages/noticias/components/NewsAdSection'
+import { useNewsAdRuntime } from '../../../pages/noticias/hooks/useNewsAdRuntime'
 import { isNewsAdValid } from '../../../pages/noticias/models/newsAdModel'
 import { PublicFooter, PublicHeader } from '../../../shared/public/PublicChrome'
 import { useEditorialSeo } from '../hooks/useEditorialSeo'

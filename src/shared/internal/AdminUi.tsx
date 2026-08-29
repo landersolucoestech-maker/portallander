@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
 import type { LucideIcon } from 'lucide-react'
 import { Bell, Building2, ChevronDown, Gauge, Search } from 'lucide-react'
 import { Link, NavLink } from 'react-router-dom'
@@ -9,6 +9,12 @@ export type AdminNavItem = readonly [label: string, icon: LucideIcon, to: string
 
 export function AdminShell({area,items,children}:{area:AdminArea;items:readonly AdminNavItem[];children:ReactNode}){
   const context=area==='crm'?'CRM':'Gerenciador do Site'
+  const [query,setQuery]=useState('')
+  const [notificationsOpen,setNotificationsOpen]=useState(false)
+  const [accountOpen,setAccountOpen]=useState(false)
+  const normalizedQuery=query.trim().toLocaleLowerCase('pt-BR')
+  const searchResults=useMemo(()=>normalizedQuery?items.filter(([label])=>label.toLocaleLowerCase('pt-BR').includes(normalizedQuery)).slice(0,6):[],[items,normalizedQuery])
+
   return <div className="app-shell">
     <a className="admin-skip-link" href="#admin-main">Pular para o conteúdo</a>
     <aside className="sidebar" aria-label={`Navegação do ${context}`}>
@@ -27,18 +33,27 @@ export function AdminShell({area,items,children}:{area:AdminArea;items:readonly 
           <span className="workspace-divider" aria-hidden="true"/>
           <span className="workspace-context">{context}</span>
         </div>
-        <label className="workspace-search">
-          <span className="sr-only">Busca interna no {context}</span>
-          <Search size={16} aria-hidden="true"/>
-          <input type="search" placeholder={area==='crm'?'Buscar contatos, oportunidades...':'Buscar páginas, conteúdos...'}/>
-        </label>
+        <div className="workspace-search-wrap">
+          <label className="workspace-search">
+            <span className="sr-only">Buscar seção no {context}</span>
+            <Search size={16} aria-hidden="true"/>
+            <input type="search" value={query} onChange={event=>setQuery(event.target.value)} placeholder="Buscar uma seção..." autoComplete="off"/>
+          </label>
+          {normalizedQuery&&<div className="workspace-search-results" role="listbox" aria-label="Resultados da busca interna">{searchResults.length?searchResults.map(([label,Icon,to])=><Link key={to} to={to} onClick={()=>setQuery('')}><Icon size={15} aria-hidden="true"/><span>{label}</span></Link>):<span className="workspace-search-empty">Nenhuma seção encontrada.</span>}</div>}
+        </div>
         <div className="workspace-actions">
-          <button className="icon-button" type="button" aria-label="Abrir notificações"><Bell size={17} aria-hidden="true"/></button>
-          <button className="account-button" type="button" aria-label="Abrir menu da conta" aria-haspopup="menu">
-            <span aria-hidden="true">DL</span>
-            <div><b>Deyvisson</b><small>Administrador</small></div>
-            <ChevronDown size={14} aria-hidden="true"/>
-          </button>
+          <div className="workspace-popover-wrap">
+            <button className="icon-button" type="button" aria-label="Abrir notificações" aria-expanded={notificationsOpen} onClick={()=>{setNotificationsOpen(value=>!value);setAccountOpen(false)}}><Bell size={17} aria-hidden="true"/></button>
+            {notificationsOpen&&<div className="workspace-popover notifications-popover" role="status"><strong>Notificações</strong><p>Nenhuma fonte de notificações está conectada neste ambiente.</p></div>}
+          </div>
+          <div className="workspace-popover-wrap">
+            <button className="account-button" type="button" aria-label="Abrir menu da conta" aria-haspopup="menu" aria-expanded={accountOpen} onClick={()=>{setAccountOpen(value=>!value);setNotificationsOpen(false)}}>
+              <span aria-hidden="true">DL</span>
+              <div><b>Deyvisson</b><small>Administrador</small></div>
+              <ChevronDown size={14} aria-hidden="true"/>
+            </button>
+            {accountOpen&&<div className="workspace-popover account-popover" role="menu"><Link to="/app" role="menuitem">Trocar workspace</Link><Link to="/" role="menuitem">Voltar ao site público</Link></div>}
+          </div>
         </div>
       </header>
       <main className="workspace-main" id="admin-main" tabIndex={-1}>{children}</main>

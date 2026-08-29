@@ -1,6 +1,8 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
-import { ChatPage, MarketingPage, OperationsPage } from '../operations/OperationsPage'
+import { ChatPage, OperationsPage } from '../operations/OperationsPage'
 import { ContractsPage } from '../operations/ContractsPage'
+import { PaginatedMarketingPage } from '../operations/PaginatedMarketingPage'
+import { PaginatedOperationsPage } from '../operations/PaginatedOperationsPage'
 import { ContactsPage } from './pages/ContactsPage'
 import { CrmDashboardPage } from './pages/CrmDashboardPage'
 import { FinancePage } from './pages/FinancePage'
@@ -12,7 +14,7 @@ export default function CrmRoutes(){
     <Route path="contatos" element={<ContactsPage/>}/>
     <Route path="campanhas" element={<Navigate to="/app/crm/marketing/campanhas" replace/>}/>
     <Route path="marketing" element={<Navigate to="/app/crm/marketing/visao-geral" replace/>}/>
-    <Route path="marketing/:sectionKey" element={<MarketingPage/>}/>
+    <Route path="marketing/:sectionKey" element={<PaginatedMarketingPage/>}/>
     <Route path="chat" element={<ChatPage/>}/>
     <Route path="musicchat" element={<Navigate to="/app/crm/chat" replace/>}/>
     <Route path="internal-chat" element={<Navigate to="/app/crm/chat" replace/>}/>
@@ -20,8 +22,9 @@ export default function CrmRoutes(){
     <Route path="relatorios" element={<ReportsPage/>}/>
     <Route path="reports" element={<OperationsPage moduleKey="reports"/>}/>
     <Route path="financeiro" element={<FinancePage/>}/>
-    <Route path="financeiro/contabilidade" element={<OperationsPage moduleKey="accounting"/>}/>
+    <Route path="financeiro/contabilidade" element={<PaginatedOperationsPage moduleKey="accounting"/>}/>
     <Route path="accounting" element={<Navigate to="/app/crm/financeiro/contabilidade" replace/>}/>
+    <Route path="rh" element={<PaginatedOperationsPage moduleKey="rh"/>}/>
     <Route path=":moduleKey" element={<OperationsPage/>}/>
     <Route path="*" element={<Navigate to="/app/crm" replace/>}/>
   </Routes>

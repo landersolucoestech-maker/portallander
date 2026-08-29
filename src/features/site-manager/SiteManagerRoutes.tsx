@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import HeroManagerPage from './HeroManagerPage'
+import { HomeAdManagerPage } from './pages/HomeAdManagerPage'
 import { HomeManagerPage } from './pages/HomeManagerPage'
 import { MediaKitPage } from './pages/MediaKitPage'
 import { SiteCategoriesPage } from './pages/SiteCategoriesPage'
@@ -14,6 +15,7 @@ export default function SiteManagerRoutes(){
     <Route index element={<SiteManagerDashboardPage/>}/>
     <Route path="home" element={<HomeManagerPage/>}/>
     <Route path="home/hero" element={<HeroManagerPage/>}/>
+    <Route path="home/anuncio" element={<HomeAdManagerPage/>}/>
     <Route path="conteudos" element={<SiteContentsPage/>}/>
     <Route path="paginas" element={<SitePagesPage/>}/>
     <Route path="categorias" element={<SiteCategoriesPage/>}/>

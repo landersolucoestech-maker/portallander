@@ -19,6 +19,7 @@ export default function CrmRoutes(){
     <Route path="musicchat" element={<Navigate to="/app/crm/chat" replace/>}/>
     <Route path="internal-chat" element={<Navigate to="/app/crm/chat" replace/>}/>
     <Route path="contracts" element={<ContractsPage/>}/>
+    <Route path="integrations" element={<Navigate to="/app/crm/settings" replace/>}/>
     <Route path="relatorios" element={<ReportsPage/>}/>
     <Route path="reports" element={<OperationsPage moduleKey="reports"/>}/>
     <Route path="financeiro" element={<FinancePage/>}/>

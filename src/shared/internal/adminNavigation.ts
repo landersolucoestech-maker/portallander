@@ -5,21 +5,17 @@ export const CRM_NAV: readonly AdminNavItem[] = [
   ['Dashboard',LayoutDashboard,'/app/crm'],
   ['CRM',Users,'/app/crm/contatos'],
   ['Campanhas',Megaphone,'/app/crm/campanhas'],
-  ['Relatórios',BarChart3,'/app/crm/relatorios'],
+  ['Contabilidade',CircleDollarSign,'/app/crm/accounting'],
+  ['Contratos',FileSignature,'/app/crm/contracts'],
+  ['Agenda',CalendarDays,'/app/crm/events'],
+  ['Integrações',PlugZap,'/app/crm/integrations'],
+  ['Marketing',Megaphone,'/app/crm/marketing'],
+  ['Atendimento',Headphones,'/app/crm/musicchat'],
+  ['Chat Interno',MessageSquareText,'/app/crm/internal-chat'],
+  ['Relatórios',BarChart3,'/app/crm/reports'],
+  ['RH',UsersRound,'/app/crm/rh'],
   ['Financeiro',CircleDollarSign,'/app/crm/financeiro'],
-]
-
-export const OPERATIONS_NAV: readonly AdminNavItem[] = [
-  ['Contabilidade',CircleDollarSign,'/app/operations/accounting'],
-  ['Contratos',FileSignature,'/app/operations/contracts'],
-  ['Agenda',CalendarDays,'/app/operations/events'],
-  ['Integrações',PlugZap,'/app/operations/integrations'],
-  ['Marketing',Megaphone,'/app/operations/marketing'],
-  ['Atendimento',Headphones,'/app/operations/musicchat'],
-  ['Chat Interno',MessageSquareText,'/app/operations/internal-chat'],
-  ['Relatórios',BarChart3,'/app/operations/reports'],
-  ['RH',UsersRound,'/app/operations/rh'],
-  ['Configurações',Settings,'/app/operations/settings'],
+  ['Configurações',Settings,'/app/crm/settings'],
 ]
 
 export const SITE_MANAGER_NAV: readonly AdminNavItem[] = [

@@ -1,17 +1,5 @@
-import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { isNewsAdValid, readNewsAdConfig, type NewsAdConfig } from '../models/newsAdModel'
-
-export function useNewsAdRuntime(enabled=true){
-  const [config,setConfig]=useState<NewsAdConfig>(()=>readNewsAdConfig())
-  useEffect(()=>{
-    if(!enabled)return
-    const sync=()=>setConfig(readNewsAdConfig())
-    window.addEventListener('portal-lander:news-ad-updated',sync)
-    return()=>window.removeEventListener('portal-lander:news-ad-updated',sync)
-  },[enabled])
-  return config
-}
+import { isNewsAdValid, type NewsAdConfig } from '../models/newsAdModel'
 
 export function NewsAdSection({config}:{config:NewsAdConfig}){
   if(!isNewsAdValid(config))return null

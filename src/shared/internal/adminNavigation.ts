@@ -7,11 +7,23 @@ export const CRM_NAV: readonly AdminNavItem[] = [
   {
     label:'Contratos',
     icon:FileSignature,
+    to:'/app/crm/contracts',
     children:[
-      ['Contratos',FileSignature,'/app/crm/contracts'],
       ['Templates de Contrato',FileText,'/app/crm/contracts/templates'],
       ['Variáveis de Template',Tags,'/app/crm/contracts/variaveis'],
       ['Categorias de Contrato',Tags,'/app/crm/contracts/categorias'],
+    ],
+  },
+  {
+    label:'Financeiro',
+    icon:CircleDollarSign,
+    to:'/app/crm/financeiro',
+    children:[
+      ['Contabilidade',BarChart3,'/app/crm/financeiro/contabilidade'],
+      ['Notas Fiscais',FileText,'/app/crm/financeiro/nota-fiscal'],
+      ['Categorias Financeiras',Tags,'/app/crm/financeiro/categorias'],
+      ['Automações Financeiras',Settings,'/app/crm/financeiro/regras'],
+      ['Regras de Categorização Financeira',Settings,'/app/crm/financeiro/regras-transacao'],
     ],
   },
   ['Agenda',CalendarDays,'/app/crm/events'],
@@ -31,25 +43,13 @@ export const CRM_NAV: readonly AdminNavItem[] = [
   {
     label:'Chat',
     icon:MessageSquareText,
+    to:'/app/crm/chat',
     children:[
-      ['MusicChat',MessageSquareText,'/app/crm/chat'],
       ['Automações do MusicChat',Settings,'/app/crm/chat/automacoes'],
     ],
   },
-  ['Relatórios',BarChart3,'/app/crm/reports'],
   ['RH',UsersRound,'/app/crm/rh'],
-  {
-    label:'Financeiro',
-    icon:CircleDollarSign,
-    children:[
-      ['Financeiro',CircleDollarSign,'/app/crm/financeiro'],
-      ['Contabilidade',BarChart3,'/app/crm/financeiro/contabilidade'],
-      ['Notas Fiscais',FileText,'/app/crm/financeiro/nota-fiscal'],
-      ['Categorias Financeiras',Tags,'/app/crm/financeiro/categorias'],
-      ['Automações Financeiras',Settings,'/app/crm/financeiro/regras'],
-      ['Regras de Categorização Financeira',Settings,'/app/crm/financeiro/regras-transacao'],
-    ],
-  },
+  ['Relatórios',BarChart3,'/app/crm/reports'],
   {
     label:'Configurações',
     icon:Settings,
@@ -58,7 +58,6 @@ export const CRM_NAV: readonly AdminNavItem[] = [
       ['Meu Perfil',Users,'/app/crm/settings/perfil'],
       ['Usuários',UsersRound,'/app/crm/settings/usuarios'],
       ['Audit Trail',FileText,'/app/crm/settings/audit-trail'],
-      ['Billing',CircleDollarSign,'/app/crm/settings/billing'],
     ],
   },
 ]

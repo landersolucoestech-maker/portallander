@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { AdminEmpty, AdminKpi, AdminPageHeader, AdminShell, type AdminNavItem } from '../../shared/internal/AdminUi'
 import { formatCurrency, statusClass, type CrmActivity, type CrmContact, type CrmDeal } from './model'
 
-export const crmNav: readonly AdminNavItem[] = [
+const crmNav: readonly AdminNavItem[] = [
   ['Dashboard',LayoutDashboard,'/app/crm'],
   ['Contatos',Users,'/app/crm/contatos'],
   ['Negócios',BriefcaseBusiness,'/app/crm/negocios'],

@@ -7,7 +7,10 @@
 /* CRM Contatos/Leads: uma única caixa contém viewport e footer. */
 .crm-tableview-surface{border:1px solid var(--admin-line);border-radius:7px;background:#fff;overflow:visible}.crm-tableview-surface>.crm-table-card{margin:0;border:0;border-radius:7px 7px 0 0;overflow:auto}.crm-tableview-surface>.crm-table-card table{margin:0}.crm-tableview-surface>.tableview-pagination{border-radius:0 0 7px 7px}.crm-tableview-surface .table-empty-row{border-top:1px solid var(--admin-line)}
 
+/* Gerenciador do Site: tabela e paginação compartilham a mesma borda externa. */
+.cms-tableview-surface{border:1px solid var(--admin-line);border-radius:7px;background:#fff}.cms-tableview-surface>.table-card{margin:0;border:0;border-radius:0;overflow:auto}.cms-tableview-surface>.tableview-pagination{border-radius:0 0 7px 7px}
+
 /* Compatibilidade temporária com markup legado que ainda apareça fora das rotas ativas. */
 .zip-panel>.zip-table-wrap:has(+.tableview-pagination){margin:0;border:0;border-radius:0;background:#fff}.zip-panel>.zip-table-wrap:has(+.tableview-pagination) .zip-table tbody tr:last-child td{border-bottom:0}.zip-panel>.zip-table-wrap+.tableview-pagination{width:100%;border-radius:0}.zip-panel:has(>.zip-table-wrap+.tableview-pagination){overflow:hidden}
 
-@media(max-width:760px){.tableview-pagination{grid-template-columns:1fr;justify-items:center;gap:9px;padding:10px}.tableview-pagination-summary,.tableview-page-size{justify-self:center}.tableview-pagination-range{display:none}.crm-tableview-surface{overflow:hidden}}
+@media(max-width:760px){.tableview-pagination{grid-template-columns:1fr;justify-items:center;gap:9px;padding:10px}.tableview-pagination-summary,.tableview-page-size{justify-self:center}.tableview-pagination-range{display:none}.crm-tableview-surface{overflow:hidden}.cms-tableview-surface{overflow:hidden}}

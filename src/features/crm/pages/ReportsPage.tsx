@@ -1,28 +1,26 @@
-import { BriefcaseBusiness, CalendarDays, CircleDollarSign, TrendingUp } from 'lucide-react'
+import { BadgeCheck, Flame, Target, UserCheck } from 'lucide-react'
 import { CRM_NAV } from '../../../shared/internal/adminNavigation'
 import { AdminKpi, AdminNotice, AdminPageHeader, AdminShell } from '../../../shared/internal/AdminUi'
-import { formatCurrency } from '../model'
 import { CRM_DEMO_DESCRIPTION } from '../presentation'
 import { crmReadModel } from '../repository'
 
 export function ReportsPage(){
-  const closed=crmReadModel.deals.filter(deal=>deal.stage==='Fechado')
-  const averageTicket=closed.length?closed.reduce((sum,deal)=>sum+deal.value,0)/closed.length:0
-  const totalContacts=Math.max(crmReadModel.metrics.contacts,1)
-  const leadPercent=Math.round((crmReadModel.metrics.leads/totalContacts)*100)
-  const clientPercent=Math.round((crmReadModel.metrics.clients/totalContacts)*100)
-  const proposalCount=crmReadModel.deals.filter(deal=>deal.stage==='Proposta').length
-  const proposalPercent=Math.round((proposalCount/Math.max(crmReadModel.deals.length,1))*100)
+  const {contacts,leads,metrics}=crmReadModel
+  const conversionRate=Math.round((metrics.convertedLeads/Math.max(metrics.leads,1))*100)
+  const statusCounts=Array.from(new Set(leads.map(item=>item.status))).map(status=>({status,total:leads.filter(item=>item.status===status).length}))
+  const maxStatus=Math.max(...statusCounts.map(item=>item.total),1)
+  const sources=Array.from(new Set(leads.map(item=>item.source))).map(source=>({source,total:leads.filter(item=>item.source===source).length})).sort((a,b)=>b.total-a.total)
 
   return <AdminShell area="crm" items={CRM_NAV}>
-    <AdminPageHeader eyebrow="CRM / Relatórios" title="Relatórios" description="Leitura executiva da operação comercial e dos principais indicadores do funil."/>
+    <AdminPageHeader eyebrow="CRM / Relatórios" title="Relatórios" description="Leitura executiva da base de relacionamentos, aquisição e conversão de leads."/>
     <AdminNotice title="Dados de demonstração" description={CRM_DEMO_DESCRIPTION}/>
     <div className="admin-kpi-grid">
-      <AdminKpi label="Negócios" value={String(crmReadModel.deals.length)} detail="Snapshot demonstrativo" icon={<TrendingUp size={16}/>}/>
-      <AdminKpi label="Ticket fechado" value={formatCurrency(averageTicket)} detail="Média dos fechados" icon={<CircleDollarSign size={16}/>}/>
-      <AdminKpi label="Pipeline" value={formatCurrency(crmReadModel.metrics.pipelineValue)} detail="Snapshot demonstrativo" icon={<BriefcaseBusiness size={16}/>}/>
-      <AdminKpi label="Atividades" value={String(crmReadModel.activities.length)} detail="Agenda demonstrativa" icon={<CalendarDays size={16}/>}/>
+      <AdminKpi label="Leads" value={String(metrics.leads)} detail="Oportunidades demonstrativas" icon={<Target size={16}/>}/>
+      <AdminKpi label="Qualificados" value={String(metrics.qualifiedLeads)} detail="Qualificado, proposta ou negociação" icon={<BadgeCheck size={16}/>}/>
+      <AdminKpi label="Leads quentes" value={String(metrics.hotLeads)} detail="Prioridade comercial" icon={<Flame size={16}/>}/>
+      <AdminKpi label="Conversão" value={`${conversionRate}%`} detail={`${metrics.convertedLeads} convertido(s)`} icon={<UserCheck size={16}/>}/>
     </div>
-    <div className="admin-grid"><section className="admin-card"><div className="admin-card-head"><div><span>Funil</span><h2>Distribuição comercial</h2></div></div><div className="report-bars"><div><span>Contatos</span><b style={{width:'100%'}}/></div><div><span>Leads</span><b style={{width:`${Math.max(4,leadPercent)}%`}}/></div><div><span>Propostas</span><b style={{width:`${Math.max(4,proposalPercent)}%`}}/></div><div><span>Clientes</span><b style={{width:`${Math.max(4,clientPercent)}%`}}/></div></div></section><section className="admin-card"><div className="admin-card-head"><div><span>Leitura</span><h2>Indicadores prioritários</h2></div></div><p>Esta visão está pronta para receber conversão, receita, ciclo de venda, origem de leads e performance por responsável assim que uma fonte persistente for conectada.</p></section></div>
+    <div className="admin-grid admin-grid-spaced"><section className="admin-card"><div className="admin-card-head"><div><span>Status</span><h2>Distribuição dos leads</h2></div></div><div className="report-bars">{statusCounts.map(item=><div key={item.status}><span>{item.status}</span><b style={{width:`${Math.max(4,(item.total/maxStatus)*100)}%`}}/></div>)}</div></section><section className="admin-card"><div className="admin-card-head"><div><span>Origem</span><h2>Canais de entrada</h2></div></div><div className="crm-dashboard-list">{sources.map(item=><div className="crm-dashboard-row" key={item.source}><div><b>{item.source}</b><small>Origem registrada no CRM</small></div><strong>{item.total}</strong></div>)}</div></section></div>
+    <section className="admin-card admin-grid-spaced"><div className="admin-card-head"><div><span>Base</span><h2>Composição dos contatos</h2></div></div><p>{contacts.length} contatos demonstrativos distribuídos entre artistas, assessorias, gravadoras, produtores, eventos e outros relacionamentos relevantes ao Portal Lander. A estrutura está pronta para métricas reais assim que a persistência for conectada.</p></section>
   </AdminShell>
 }

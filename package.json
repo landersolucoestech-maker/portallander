@@ -8,6 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint . --max-warnings=0",
     "typecheck": "tsc -b --pretty false",
+    "check:architecture": "node scripts/check-internal-boundaries.mjs",
     "preview": "vite preview"
   },
   "dependencies": {

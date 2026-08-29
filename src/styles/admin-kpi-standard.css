@@ -1,0 +1,10 @@
+/* Padronização global dos KPI cards: mesma altura e mesmo respiro interno. */
+.admin-kpi,
+.crm-kpi-grid .admin-kpi,
+.zip-metric,
+.zip-kpi-grid.contracts .zip-metric{
+  box-sizing:border-box;
+  height:116px;
+  min-height:116px;
+  padding:16px;
+}

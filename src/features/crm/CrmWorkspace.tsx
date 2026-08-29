@@ -1,23 +1,21 @@
 import { BriefcaseBusiness, TrendingUp, UserPlus, Users } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { AdminKpi, AdminPageHeader, AdminShell } from '../../shared/internal/AdminUi'
+import { AdminKpi, AdminNotice, AdminPageHeader, AdminShell } from '../../shared/internal/AdminUi'
+import { ADMIN_CAPABILITIES } from '../../shared/internal/adminCapabilities'
 import { CRM_NAV } from '../../shared/internal/adminNavigation'
 import { formatCurrency, statusClass } from './model'
 import { crmReadModel } from './repository'
 
 const {contacts,activities,deals,metrics}=crmReadModel
 const pipelineStages=['Novo','Contato','Proposta','Negociação','Fechado'] as const
-
-function DemoNotice(){
-  return <div className="admin-notice"><div><strong>Dados de demonstração</strong><p>O CRM ainda não possui backend ou banco conectado. Estes registros servem somente para validar a estrutura visual e operacional das telas; nenhuma alteração é persistida.</p></div></div>
-}
+const demoDescription='Os registros abaixo são demonstrativos e servem somente para validar a estrutura visual e operacional. Nenhuma alteração é persistida.'
 
 export function CrmDashboard(){
   const stageTotals=pipelineStages.map(stage=>({stage,total:deals.filter(deal=>deal.stage===stage).reduce((sum,deal)=>sum+deal.value,0)}))
   const maxStageValue=Math.max(...stageTotals.map(item=>item.total),1)
   return <AdminShell area="crm" items={CRM_NAV}>
-    <AdminPageHeader eyebrow="CRM / Dashboard" title="Dashboard" description="Visão operacional de relacionamentos, oportunidades e movimentação comercial." action="Novo contato" disabled/>
-    <DemoNotice/>
+    <AdminPageHeader eyebrow="CRM / Dashboard" title="Dashboard" description="Visão operacional de relacionamentos, oportunidades e movimentação comercial." action="Novo contato" disabled disabledReason={ADMIN_CAPABILITIES.crmPersistence.description}/>
+    <AdminNotice title="Dados de demonstração" description={demoDescription}/>
     <div className="admin-kpi-grid">
       <AdminKpi label="Contatos" value={String(metrics.contacts)} detail="Base demonstrativa" icon={<Users size={16}/>}/>
       <AdminKpi label="Leads" value={String(metrics.leads)} detail="Base demonstrativa" icon={<UserPlus size={16}/>}/>
@@ -49,8 +47,8 @@ export function CrmDashboard(){
 
 export function ActivitiesPage(){
   return <AdminShell area="crm" items={CRM_NAV}>
-    <AdminPageHeader eyebrow="CRM / Atividades" title="Atividades" description="Agenda comercial consolidada para ligações, reuniões e acompanhamentos." action="Nova atividade" disabled/>
-    <DemoNotice/>
+    <AdminPageHeader eyebrow="CRM / Atividades" title="Atividades" description="Agenda comercial consolidada para ligações, reuniões e acompanhamentos." action="Nova atividade" disabled disabledReason={ADMIN_CAPABILITIES.crmPersistence.description}/>
+    <AdminNotice title="Dados de demonstração" description={demoDescription}/>
     <section className="admin-card"><div className="admin-card-head"><div><span>Agenda</span><h2>Próximas atividades</h2></div></div>{activities.map(item=><div className="activity-row" key={item.id}><span>{item.time}</span><div><b>{item.title}</b><small>{item.channel}</small></div></div>)}</section>
   </AdminShell>
 }
@@ -58,7 +56,7 @@ export function ActivitiesPage(){
 export function PipelinePage(){
   return <AdminShell area="crm" items={CRM_NAV}>
     <AdminPageHeader eyebrow="CRM / Pipeline" title="Pipeline comercial" description="Leitura das oportunidades por etapa para visualizar volume e valor em andamento."/>
-    <DemoNotice/>
+    <AdminNotice title="Dados de demonstração" description={demoDescription}/>
     <div className="pipeline-board">{pipelineStages.map(stage=>{const stageDeals=deals.filter(deal=>deal.stage===stage);const total=stageDeals.reduce((sum,deal)=>sum+deal.value,0);return <section className="pipeline-column" key={stage}><div className="pipeline-column-head"><div><span>{stage}</span><strong>{stageDeals.length}</strong></div><small>{formatCurrency(total)}</small></div>{stageDeals.length?stageDeals.map(deal=><article className="pipeline-card" key={deal.id}><span>{deal.company}</span><h3>{deal.title}</h3><strong>{formatCurrency(deal.value)}</strong><small>{deal.nextAction}</small></article>):<div className="pipeline-empty">Sem negócios nesta etapa</div>}</section>})}</div>
   </AdminShell>
 }

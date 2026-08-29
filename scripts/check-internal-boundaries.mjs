@@ -31,6 +31,12 @@ for(const forbidden of ['const IMG=','const stories:','const ranked=','const rel
 const homeManager=await read('src/features/site-manager/pages/HomeManagerPage.tsx')
 if(!homeManager.includes("from '../../../pages/home/models/homeReadModel'"))failures.push('HomeManagerPage deve consumir o mesmo homeReadModel da Home pública.')
 
+const colabore=await read('src/pages/colabore/components/ColaborePageBridge.tsx')
+for(const forbidden of ['Material recebido.','setSent(true)','Obrigado por colaborar. A equipe editorial fará a análise.']){
+  if(colabore.includes(forbidden))failures.push(`Colabore não pode simular envio persistido: ${forbidden}`)
+}
+if(!colabore.includes('Nenhum material foi enviado.'))failures.push('Colabore deve informar explicitamente quando não existe endpoint de envio.')
+
 const removedPaths=[
   'src/app/LegacyApp.tsx',
   'src/app/HeroSection.tsx',

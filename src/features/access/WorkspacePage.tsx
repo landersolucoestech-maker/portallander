@@ -1,4 +1,4 @@
-import { ArrowRight, BriefcaseBusiness, Building2, Globe2, LockKeyhole, Settings2 } from 'lucide-react'
+import { ArrowRight, BriefcaseBusiness, Globe2, LockKeyhole, Settings2 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { portalLogo } from '../../shared/branding/assets/brandAsset'
 import { ADMIN_CAPABILITIES } from '../../shared/internal/adminCapabilities'
@@ -6,19 +6,11 @@ import { ADMIN_CAPABILITIES } from '../../shared/internal/adminCapabilities'
 const workspaces=[
   {
     title:'CRM',
-    eyebrow:'RELACIONAMENTO E OPERAÇÃO COMERCIAL',
-    description:'Contatos, leads, campanhas, relatórios e visão financeira em um workspace dedicado.',
+    eyebrow:'RELACIONAMENTO, COMERCIAL E OPERAÇÃO',
+    description:'CRM completo do Portal Lander com contatos, leads, campanhas, contabilidade, contratos, agenda, integrações, marketing, atendimento, chat interno, relatórios, RH, financeiro e configurações.',
     to:'/app/crm',
     icon:BriefcaseBusiness,
-    meta:['Contatos e leads','Relacionamento 360º','Campanhas e relatórios'],
-  },
-  {
-    title:'Backoffice',
-    eyebrow:'OPERAÇÃO E ADMINISTRAÇÃO',
-    description:'Contabilidade, contratos, agenda, integrações, marketing, atendimento, chat interno, relatórios, RH e configurações.',
-    to:'/app/operations',
-    icon:Building2,
-    meta:['10 módulos operacionais','Financeiro, contratos e RH','Marketing, atendimento e integrações'],
+    meta:['Relacionamento e leads','Operação comercial e administrativa','Marketing, atendimento e integrações'],
   },
   {
     title:'Gerenciador do Site',
@@ -41,7 +33,7 @@ export function WorkspacePage(){
       <div className="workspace-selection-heading">
         <span className="access-kicker">ÁREA INTERNA · WORKSPACES</span>
         <h1>Escolha onde você quer trabalhar.</h1>
-        <p>Os ambientes compartilham a mesma identidade administrativa, mas mantêm responsabilidades e navegação independentes.</p>
+        <p>Os dois ambientes compartilham a mesma identidade administrativa, mas mantêm responsabilidades e navegação independentes.</p>
       </div>
 
       <div className="workspace-selection-grid">

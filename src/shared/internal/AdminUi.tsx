@@ -6,10 +6,14 @@ import { ADMIN_CAPABILITIES } from './adminCapabilities'
 import { portalLogo } from '../branding/assets/brandAsset'
 
 export type AdminArea = 'crm' | 'cms'
-export type AdminNavItem = readonly [label: string, icon: LucideIcon, to: string]
+export type AdminNavLink = readonly [label: string, icon: LucideIcon, to: string]
+export type AdminNavGroup = {label:string;icon:LucideIcon;children:readonly AdminNavLink[]}
+export type AdminNavItem = AdminNavLink | AdminNavGroup
 
 type AdminShellHeader={title:string;description:string}
 type AdminShellAction={label:string;onClick?:()=>void;disabled?:boolean;disabledReason?:string}
+
+const isNavGroup=(item:AdminNavItem):item is AdminNavGroup=>!Array.isArray(item)
 
 export function AdminShell({area,items,children,header,headerAction}:{area:AdminArea;items:readonly AdminNavItem[];children:ReactNode;header?:AdminShellHeader;headerAction?:AdminShellAction}){
   const context=area==='crm'?'CRM':'Gerenciador do Site'
@@ -18,7 +22,8 @@ export function AdminShell({area,items,children,header,headerAction}:{area:Admin
   const [accountOpen,setAccountOpen]=useState(false)
   const notificationsRef=useRef<HTMLDivElement>(null)
   const normalizedQuery=query.trim().toLocaleLowerCase('pt-BR')
-  const searchResults=useMemo(()=>normalizedQuery?items.filter(([label])=>label.toLocaleLowerCase('pt-BR').includes(normalizedQuery)).slice(0,6):[],[items,normalizedQuery])
+  const flatItems=useMemo(()=>items.flatMap(item=>isNavGroup(item)?item.children:[item]),[items])
+  const searchResults=useMemo(()=>normalizedQuery?flatItems.filter(([label])=>label.toLocaleLowerCase('pt-BR').includes(normalizedQuery)).slice(0,6):[],[flatItems,normalizedQuery])
 
   useEffect(()=>{
     if(!notificationsOpen)return
@@ -36,7 +41,17 @@ export function AdminShell({area,items,children,header,headerAction}:{area:Admin
         <Link to="/" className="brand" aria-label="Ir para o Portal Lander"><img src={portalLogo} alt="Portal Lander"/></Link>
         <span>{context}</span>
       </div>
-      <nav aria-label={`Seções do ${context}`}>{items.map(([label,Icon,to])=><NavLink key={to} end={to==='/app/crm'||to==='/app/site'} to={to}><Icon size={17} aria-hidden="true"/><span>{label}</span></NavLink>)}</nav>
+      <nav aria-label={`Seções do ${context}`}>{items.map(item=>{
+        if(isNavGroup(item)){
+          const GroupIcon=item.icon
+          return <div className="sidebar-nav-group" key={item.label}>
+            <div className="sidebar-nav-group-label"><GroupIcon size={17} aria-hidden="true"/><span>{item.label}</span><ChevronDown size={13} aria-hidden="true"/></div>
+            <div className="sidebar-subnav">{item.children.map(([label,Icon,to])=><NavLink className="sidebar-subnav-link" key={to} to={to}><Icon size={14} aria-hidden="true"/><span>{label}</span></NavLink>)}</div>
+          </div>
+        }
+        const [label,Icon,to]=item
+        return <NavLink key={to} end={to==='/app/crm'||to==='/app/site'} to={to}><Icon size={17} aria-hidden="true"/><span>{label}</span></NavLink>
+      })}</nav>
       <div className="sidebar-bottom"><NavLink to="/app/workspaces"><Building2 size={17} aria-hidden="true"/><span>Trocar workspace</span></NavLink></div>
     </aside>
 

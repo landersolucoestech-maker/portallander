@@ -25,6 +25,19 @@ export const demoCrmSnapshot: CrmSnapshot = {
     {id:'midia-kit-comercial',name:'Mídia Kit Comercial',status:'Planejada',channels:'Meta',budget:2000,leads:null},
     {id:'captacao-parceiros',name:'Captação Parceiros',status:'Ativa',channels:'Google',budget:3200,leads:63},
   ],
+  relationships: [
+    {id:'presslab-mariana',sourceName:'Aline Moreira',targetName:'Mariana Santos',relation:'Assessoria / artista'},
+    {id:'aurora-mariana',sourceName:'Aurora Music',targetName:'Mariana Santos',relation:'Gravadora / artista'},
+    {id:'rafael-studio',sourceName:'Rafael Alves',targetName:'Studio Sul',relation:'Produção / parceiro'},
+    {id:'bruno-orbita',sourceName:'Bruno Lima',targetName:'Festival Órbita',relation:'Mercado de eventos'},
+  ],
+  relatedContent: [
+    {id:'release-mariana',recordName:'Mariana Santos',type:'Release',title:'Novo single de Mariana Santos',status:'Em análise',date:'28/08/2026'},
+    {id:'materia-aurora',recordName:'Aurora Music',type:'Notícia',title:'Aurora Music anuncia nova fase de lançamentos',status:'Publicado',date:'27/08/2026'},
+    {id:'cobertura-orbita',recordName:'Festival Órbita',type:'Cobertura',title:'Cobertura editorial do Festival Órbita',status:'Planejado',date:'31/08/2026'},
+    {id:'publi-ponto',recordName:'Agência Ponto',type:'Publieditorial',title:'Projeto publieditorial para campanha de marca',status:'Planejado',date:'01/09/2026'},
+    {id:'campanha-norte',recordName:'Norte Produções',type:'Campanha',title:'Pacote de mídia institucional',status:'Em análise',date:'30/08/2026'},
+  ],
   metrics: {
     contacts: contacts.length,
     leads: leads.length,

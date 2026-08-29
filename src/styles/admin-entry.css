@@ -7,6 +7,7 @@
 @import './admin-hero.css';
 @import './admin-hero-editor.css';
 @import './admin-home-ad-editor.css';
+@import './admin-access.css';
 @import '../shared/branding/styles/header-brand-manager.css';
 @import '../shared/branding/styles/brand-assets-manager.css';
 @import './admin-responsive.css';

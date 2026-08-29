@@ -1,4 +1,5 @@
 export type CrmContactStatus = 'Lead' | 'Cliente' | 'Negociação' | 'Contato'
+export type CrmDealStage = 'Novo' | 'Contato' | 'Proposta' | 'Negociação' | 'Fechado'
 
 export interface CrmContact {
   id: string
@@ -16,9 +17,20 @@ export interface CrmActivity {
   channel: 'Ligação' | 'Reunião' | 'WhatsApp'
 }
 
+export interface CrmDeal {
+  id: string
+  title: string
+  company: string
+  stage: CrmDealStage
+  owner: string
+  value: number
+  nextAction: string
+}
+
 export interface CrmSnapshot {
   contacts: readonly CrmContact[]
   activities: readonly CrmActivity[]
+  deals: readonly CrmDeal[]
   metrics: {
     contacts: number
     leads: number

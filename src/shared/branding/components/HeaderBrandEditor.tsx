@@ -24,7 +24,7 @@ export function HeaderBrandEditor(){
   return <div className="header-brand-editor-page">
     <header className="header-brand-editor-top"><div><span>GERENCIADOR DO SITE / IDENTIDADE PADRÃO</span><h1>Logo principal do Portal Lander</h1><p>Esta é a marca padrão usada no cabeçalho público e na tela de autenticação. As alterações atuais permanecem locais neste navegador até existir persistência compartilhada.</p></div><div><button onClick={reset}><RotateCcw size={16}/> Restaurar padrão</button><button className="primary" onClick={save}><Save size={16}/> Salvar localmente</button></div></header>
     {saved&&<div className="header-brand-success">Logo padrão salva neste navegador e aplicada às superfícies que consomem a identidade principal.</div>}
-    <main className="header-brand-editor-grid">
+    <div className="header-brand-editor-grid">
       <section className="header-brand-panel">
         <h2>Configuração padrão</h2>
         <label>Status<select value={draft.active&&!draft.deleted?'active':'inactive'} onChange={e=>update({active:e.target.value==='active',deleted:false})}><option value="active">Ativo</option><option value="inactive">Inativo</option></select></label>
@@ -35,6 +35,6 @@ export function HeaderBrandEditor(){
         <div className="header-brand-upload"><div className="header-brand-preview">{draft.image?<img src={draft.image} alt={draft.imageAlt}/>:<ImageIcon size={34}/>}</div><input ref={fileRef} hidden type="file" accept="image/*" onChange={e=>void upload(e.target.files?.[0])}/><button onClick={()=>fileRef.current?.click()}><Upload size={16}/> Fazer upload</button><button className="danger" onClick={remove}><Trash2 size={16}/> Excluir logo local</button></div>
       </section>
       <section className="header-brand-live-preview"><h2>Preview da identidade padrão</h2><div className="header-brand-preview-header"><div className="header-brand-preview-slot" style={{width:draft.width,height:draft.height,justifyContent:draft.alignment==='left'?'flex-start':draft.alignment==='right'?'flex-end':'center'}}>{draft.active&&!draft.deleted&&draft.image?<img src={draft.image} alt={draft.imageAlt}/>:<span>Logo desativada</span>}</div><div className="header-brand-preview-menu"><span>NOTÍCIAS</span><span>MÚSICAS</span><span>BASTIDORES</span><span>LANÇAMENTOS</span></div></div></section>
-    </main>
+    </div>
   </div>
 }

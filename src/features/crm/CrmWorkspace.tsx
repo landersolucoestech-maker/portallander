@@ -6,12 +6,15 @@ import { formatCurrency, statusClass } from './model'
 import { crmReadModel } from './repository'
 
 const {contacts,activities,deals,metrics}=crmReadModel
+const pipelineStages=['Novo','Contato','Proposta','Negociação','Fechado'] as const
 
 function DemoNotice(){
   return <div className="admin-notice"><div><strong>Dados de demonstração</strong><p>O CRM ainda não possui backend ou banco conectado. Estes registros servem somente para validar a estrutura visual e operacional das telas; nenhuma alteração é persistida.</p></div></div>
 }
 
 export function CrmDashboard(){
+  const stageTotals=pipelineStages.map(stage=>({stage,total:deals.filter(deal=>deal.stage===stage).reduce((sum,deal)=>sum+deal.value,0)}))
+  const maxStageValue=Math.max(...stageTotals.map(item=>item.total),1)
   return <AdminShell area="crm" items={CRM_NAV}>
     <AdminPageHeader eyebrow="CRM / Dashboard" title="Dashboard" description="Visão operacional de relacionamentos, oportunidades e movimentação comercial." action="Novo contato" disabled/>
     <DemoNotice/>
@@ -31,6 +34,16 @@ export function CrmDashboard(){
         {activities.map(item=><div className="activity-row" key={item.id}><span>{item.time}</span><div><b>{item.title}</b><small>{item.channel}</small></div></div>)}
       </section>
     </div>
+    <div className="dashboard-wide-grid">
+      <section className="admin-card">
+        <div className="admin-card-head"><div><span>Comercial</span><h2>Negócios do snapshot</h2></div><Link className="dashboard-card-link" to="/app/crm/negocios">VER NEGÓCIOS</Link></div>
+        <div className="dashboard-summary-list">{deals.map(deal=><div className="dashboard-summary-row" key={deal.id}><div><b>{deal.title}</b><small>{deal.company} · {deal.owner}</small></div><span className={`status ${statusClass(deal.stage)}`}>{deal.stage}</span><strong>{formatCurrency(deal.value)}</strong></div>)}</div>
+      </section>
+      <section className="admin-card">
+        <div className="admin-card-head"><div><span>Pipeline</span><h2>Valor por etapa</h2></div><Link className="dashboard-card-link" to="/app/crm/pipeline">ABRIR PIPELINE</Link></div>
+        <div className="dashboard-stage-list">{stageTotals.map(item=><div className="dashboard-stage" key={item.stage}><span>{item.stage}</span><div className="dashboard-stage-track"><span style={{width:`${Math.max(4,(item.total/maxStageValue)*100)}%`}}/></div><small>{formatCurrency(item.total)}</small></div>)}</div>
+      </section>
+    </div>
   </AdminShell>
 }
 
@@ -43,10 +56,9 @@ export function ActivitiesPage(){
 }
 
 export function PipelinePage(){
-  const stages=['Novo','Contato','Proposta','Negociação','Fechado'] as const
   return <AdminShell area="crm" items={CRM_NAV}>
     <AdminPageHeader eyebrow="CRM / Pipeline" title="Pipeline comercial" description="Leitura das oportunidades por etapa para visualizar volume e valor em andamento."/>
     <DemoNotice/>
-    <div className="pipeline-board">{stages.map(stage=>{const stageDeals=deals.filter(deal=>deal.stage===stage);const total=stageDeals.reduce((sum,deal)=>sum+deal.value,0);return <section className="pipeline-column" key={stage}><div className="pipeline-column-head"><div><span>{stage}</span><strong>{stageDeals.length}</strong></div><small>{formatCurrency(total)}</small></div>{stageDeals.length?stageDeals.map(deal=><article className="pipeline-card" key={deal.id}><span>{deal.company}</span><h3>{deal.title}</h3><strong>{formatCurrency(deal.value)}</strong><small>{deal.nextAction}</small></article>):<div className="pipeline-empty">Sem negócios nesta etapa</div>}</section>})}</div>
+    <div className="pipeline-board">{pipelineStages.map(stage=>{const stageDeals=deals.filter(deal=>deal.stage===stage);const total=stageDeals.reduce((sum,deal)=>sum+deal.value,0);return <section className="pipeline-column" key={stage}><div className="pipeline-column-head"><div><span>{stage}</span><strong>{stageDeals.length}</strong></div><small>{formatCurrency(total)}</small></div>{stageDeals.length?stageDeals.map(deal=><article className="pipeline-card" key={deal.id}><span>{deal.company}</span><h3>{deal.title}</h3><strong>{formatCurrency(deal.value)}</strong><small>{deal.nextAction}</small></article>):<div className="pipeline-empty">Sem negócios nesta etapa</div>}</section>})}</div>
   </AdminShell>
 }

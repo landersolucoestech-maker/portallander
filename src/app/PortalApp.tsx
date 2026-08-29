@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { Link, Navigate, useLocation } from 'react-router-dom'
 import InternalApp from './InternalApp'
+import { AnunciePage } from '../pages/anuncie/AnunciePage'
 import { ColaborePage } from '../pages/colabore/ColaborePage'
 import { EditorialContentPage } from '../features/editorial/components/EditorialContentPage'
 import { EditorialListingPage } from '../features/editorial/components/EditorialListingPage'
@@ -17,6 +18,7 @@ export default function PortalApp(){
   const segments=useMemo(()=>path.split('/').filter(Boolean).map(decodeURIComponent),[path])
 
   if(path==='/')return <PublicHome/>
+  if(path==='/anuncie')return <AnunciePage/>
   if(path==='/colabore')return <ColaborePage/>
   if(path.startsWith('/app'))return <InternalApp/>
   if(segments[0]==='noticia'&&segments[1])return <Navigate to={`/noticias/${segments[1]}`} replace/>

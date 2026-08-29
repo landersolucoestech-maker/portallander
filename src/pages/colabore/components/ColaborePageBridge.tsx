@@ -1,4 +1,4 @@
-import { CheckCircle2, Send, ShieldCheck, Upload } from 'lucide-react'
+import { AlertTriangle, CheckCircle2, Send, ShieldCheck, Upload } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { PublicFooter, PublicHeader } from '../../../app/PortalApp'
@@ -17,22 +17,17 @@ export function ColaborePageBridge(){
   const [type,setType]=useState<SubmissionType>('')
   const [typeOpen,setTypeOpen]=useState(false)
   const [fileName,setFileName]=useState('')
-  const [sent,setSent]=useState(false)
+  const [submissionUnavailable,setSubmissionUnavailable]=useState(false)
   const fileRef=useRef<HTMLInputElement>(null)
   if(location.pathname!=='/colabore')return null
 
-  const submit=(e:React.FormEvent<HTMLFormElement>)=>{
-    e.preventDefault()
+  const submit=(event:React.FormEvent<HTMLFormElement>)=>{
+    event.preventDefault()
     if(!type){
       setTypeOpen(true)
       return
     }
-    setSent(true)
-    window.setTimeout(()=>setSent(false),5000)
-    e.currentTarget.reset()
-    setType('')
-    setTypeOpen(false)
-    setFileName('')
+    setSubmissionUnavailable(true)
   }
 
   return <div className="public-page colabore-page">
@@ -43,10 +38,10 @@ export function ColaborePageBridge(){
           <div className="colabore-hero-copy">
             <span className="colabore-eyebrow">PARTICIPE DO PORTAL</span>
             <h1>SUA HISTÓRIA<br/><em>PODE VIRAR NOTÍCIA.</em></h1>
-            <p>Tem uma pauta, vídeo, foto, denúncia, lançamento ou história relevante? Envie seu material para o Portal Lander. Nossa equipe editorial analisa cada envio antes da publicação.</p>
+            <p>Tem uma pauta, vídeo, foto, denúncia, lançamento ou história relevante? Prepare seu material para análise editorial do Portal Lander.</p>
             <div className="colabore-hero-points">
-              <span><ShieldCheck size={17}/> Material analisado pela equipe editorial</span>
-              <span><CheckCircle2 size={17}/> Envio gratuito e sem compromisso de publicação</span>
+              <span><ShieldCheck size={17}/> Material sujeito à análise da equipe editorial</span>
+              <span><CheckCircle2 size={17}/> Envio não garante publicação</span>
             </div>
           </div>
         </div>
@@ -66,7 +61,7 @@ export function ColaborePageBridge(){
 
         <div className="colabore-layout">
           <form className="colabore-form" onSubmit={submit}>
-            {sent&&<div className="colabore-success"><CheckCircle2 size={18}/><div><b>Material recebido.</b><span>Obrigado por colaborar. A equipe editorial fará a análise.</span></div></div>}
+            {submissionUnavailable&&<div className="colabore-success" role="alert"><AlertTriangle size={18}/><div><b>Envio ainda indisponível.</b><span>O formulário está pronto, mas nenhum endpoint de recebimento foi conectado. Nenhum material foi enviado.</span></div></div>}
 
             <div className="colabore-field-grid">
               <label>Seu nome<input required name="nome" placeholder="Nome completo"/></label>
@@ -79,26 +74,10 @@ export function ColaborePageBridge(){
               <label>Título<input required name="titulo" placeholder="Resuma o assunto em uma frase"/></label>
               <label>Assunto / Tipo de conteúdo
                 <div className={`colabore-type-select${typeOpen?' open':''}`}>
-                  <button
-                    type="button"
-                    className={`colabore-type-trigger${type?' has-value':''}`}
-                    aria-haspopup="listbox"
-                    aria-expanded={typeOpen}
-                    onClick={()=>setTypeOpen(open=>!open)}
-                  >
-                    <span>{type?submissionLabels[type]:'Selecione o tipo de conteúdo'}</span>
-                    <i aria-hidden="true"/>
+                  <button type="button" className={`colabore-type-trigger${type?' has-value':''}`} aria-haspopup="listbox" aria-expanded={typeOpen} onClick={()=>setTypeOpen(open=>!open)}>
+                    <span>{type?submissionLabels[type]:'Selecione o tipo de conteúdo'}</span><i aria-hidden="true"/>
                   </button>
-                  {typeOpen&&<div className="colabore-type-menu" role="listbox" aria-label="Assunto / Tipo de conteúdo">
-                    {(Object.entries(submissionLabels) as [Exclude<SubmissionType,''>,string][]).map(([value,label])=><button
-                      key={value}
-                      type="button"
-                      role="option"
-                      aria-selected={type===value}
-                      className={type===value?'selected':''}
-                      onClick={()=>{setType(value);setTypeOpen(false)}}
-                    >{label}</button>)}
-                  </div>}
+                  {typeOpen&&<div className="colabore-type-menu" role="listbox" aria-label="Assunto / Tipo de conteúdo">{(Object.entries(submissionLabels) as [Exclude<SubmissionType,''>,string][]).map(([value,label])=><button key={value} type="button" role="option" aria-selected={type===value} className={type===value?'selected':''} onClick={()=>{setType(value);setTypeOpen(false)}}>{label}</button>)}</div>}
                   <input type="hidden" name="tipo" value={type}/>
                 </div>
               </label>
@@ -107,16 +86,14 @@ export function ColaborePageBridge(){
             <label>Conte a história<textarea required name="mensagem" rows={7} placeholder="Explique o que aconteceu, quem está envolvido, quando, onde e por que isso é relevante."/></label>
             <label>Fonte ou link de referência <small>(opcional)</small><input type="url" name="fonte" placeholder="https://"/></label>
 
-            <div className="colabore-upload" onClick={()=>fileRef.current?.click()} role="button" tabIndex={0} onKeyDown={e=>{if(e.key==='Enter'||e.key===' ')fileRef.current?.click()}}>
-              <Upload size={22}/>
-              <div><b>{fileName||'Anexar arquivo'}</b><span>Imagem, vídeo ou documento de apoio.</span></div>
-              <button type="button">SELECIONAR</button>
-              <input ref={fileRef} hidden type="file" accept="image/*,video/*,.pdf,.doc,.docx" onChange={e=>setFileName(e.target.files?.[0]?.name||'')}/>
+            <div className="colabore-upload" onClick={()=>fileRef.current?.click()} role="button" tabIndex={0} onKeyDown={event=>{if(event.key==='Enter'||event.key===' ')fileRef.current?.click()}}>
+              <Upload size={22}/><div><b>{fileName||'Anexar arquivo'}</b><span>Imagem, vídeo ou documento de apoio.</span></div><button type="button">SELECIONAR</button>
+              <input ref={fileRef} hidden type="file" accept="image/*,video/*,.pdf,.doc,.docx" onChange={event=>setFileName(event.target.files?.[0]?.name||'')}/>
             </div>
 
-            <label className="colabore-consent"><input required type="checkbox"/><span>Confirmo que as informações enviadas são verdadeiras e que possuo autorização para compartilhar os materiais anexados quando necessário.</span></label>
-            <button className="colabore-submit" type="submit"><Send size={17}/> ENVIAR PARA ANÁLISE</button>
-            <p className="colabore-note">O envio não garante publicação. O Portal Lander poderá entrar em contato para confirmar informações ou solicitar material complementar.</p>
+            <label className="colabore-consent"><input required type="checkbox"/><span>Confirmo que as informações preparadas são verdadeiras e que possuo autorização para compartilhar os materiais anexados quando necessário.</span></label>
+            <button className="colabore-submit" type="submit"><Send size={17}/> VALIDAR MATERIAL</button>
+            <p className="colabore-note">O envio real será habilitado somente quando existir um endpoint seguro de recebimento e armazenamento. Até lá, esta interface não transmite dados.</p>
           </form>
         </div>
       </section>

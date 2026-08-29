@@ -15,7 +15,6 @@
   "dependencies": {
     "@tanstack/react-query": "latest",
     "@vitejs/plugin-react": "latest",
-    "date-fns": "latest",
     "lucide-react": "latest",
     "react": "latest",
     "react-dom": "latest",
@@ -24,14 +23,12 @@
   },
   "devDependencies": {
     "@eslint/js": "latest",
-    "@testing-library/react": "latest",
     "@types/react": "latest",
     "@types/react-dom": "latest",
     "eslint": "latest",
     "eslint-plugin-react-hooks": "latest",
     "eslint-plugin-react-refresh": "latest",
     "globals": "latest",
-    "jsdom": "latest",
     "typescript": "latest",
     "typescript-eslint": "latest",
     "vitest": "latest"

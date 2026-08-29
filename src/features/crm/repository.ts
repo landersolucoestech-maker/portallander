@@ -26,9 +26,11 @@ export class ReadOnlyCrmRepository implements CrmRepository {
 
   async getSnapshot() {
     return {
-      contacts: this.snapshot.contacts.map(item=>({...item,tags:[...item.tags]})),
-      leads: this.snapshot.leads.map(item=>({...item,tags:[...item.tags]})),
+      contacts: this.snapshot.contacts.map(item=>({...item,tags:[...item.tags],interactions:item.interactions.map(interaction=>({...interaction}))})),
+      leads: this.snapshot.leads.map(item=>({...item,tags:[...item.tags],interactions:item.interactions.map(interaction=>({...interaction}))})),
       campaigns: this.snapshot.campaigns.map(item=>({...item})),
+      relationships: this.snapshot.relationships.map(item=>({...item})),
+      relatedContent: this.snapshot.relatedContent.map(item=>({...item})),
       metrics: {...this.snapshot.metrics},
     }
   }

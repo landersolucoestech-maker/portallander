@@ -96,6 +96,8 @@ export function AdminShell({area,items,children,header,headerAction,headerAction
     button?.click()
   }
 
+  const renderActions=()=>actions.map(action=><button key={action.label} className={`button ${action.variant==='secondary'?'outline workspace-header-secondary':'dark'} workspace-primary-action`} type="button" onClick={action.onClick} disabled={action.disabled} title={action.disabled?action.disabledReason:undefined}>{action.label}</button>)
+
   return <div className={`app-shell${routeShellClass(location.pathname)}`}>
     <a className="admin-skip-link" href="#admin-main">Pular para o conteúdo</a>
     <aside className="sidebar" aria-label={`Navegação do ${context}`}>
@@ -126,12 +128,13 @@ export function AdminShell({area,items,children,header,headerAction,headerAction
           <span className="workspace-context">{context}</span>
         </div>}
         <div className="workspace-actions">
-          {actions.map(action=><button key={action.label} className={`button ${action.variant==='secondary'?'outline workspace-header-secondary':'dark'} workspace-primary-action`} type="button" onClick={action.onClick} disabled={action.disabled} title={action.disabled?action.disabledReason:undefined}>{action.label}</button>)}
+          {!isContractsRoute&&renderActions()}
           {isContactsRoute&&<button className="button dark workspace-primary-action crm-header-create" type="button" onClick={triggerContactsCreate}>{contactsCreateLabel}</button>}
           {isContractsRoute&&<>
             <NavLink className="button outline workspace-header-secondary workspace-primary-action" to="/app/crm/contracts/templates">Templates de Contratos</NavLink>
             <NavLink className="button outline workspace-header-secondary workspace-primary-action" to="/app/crm/contracts/variaveis">Variáveis de Contratos</NavLink>
             <NavLink className="button outline workspace-header-secondary workspace-primary-action" to="/app/crm/contracts/categorias">Categorias de Contratos</NavLink>
+            {renderActions()}
           </>}
           <div className="workspace-popover-wrap" ref={notificationsRef}>
             <button className="icon-button" type="button" aria-label="Abrir notificações" aria-expanded={notificationsOpen} onClick={()=>{setNotificationsOpen(value=>!value);setAccountOpen(false)}}><Bell size={17} aria-hidden="true"/></button>

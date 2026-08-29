@@ -1,8 +1,7 @@
 import { BriefcaseBusiness, TrendingUp, UserPlus, Users } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { ADMIN_CAPABILITIES } from '../../../shared/internal/adminCapabilities'
 import { CRM_NAV } from '../../../shared/internal/adminNavigation'
-import { AdminKpi, AdminNotice, AdminPageHeader, AdminShell } from '../../../shared/internal/AdminUi'
+import { AdminKpi, AdminNotice, AdminShell } from '../../../shared/internal/AdminUi'
 import { formatCurrency, statusClass } from '../model'
 import { CRM_DEMO_DESCRIPTION, CRM_PIPELINE_STAGES } from '../presentation'
 import { crmReadModel } from '../repository'
@@ -12,8 +11,7 @@ export function CrmDashboardPage(){
   const stageTotals=CRM_PIPELINE_STAGES.map(stage=>({stage,total:deals.filter(deal=>deal.stage===stage).reduce((sum,deal)=>sum+deal.value,0)}))
   const maxStageValue=Math.max(...stageTotals.map(item=>item.total),1)
 
-  return <AdminShell area="crm" items={CRM_NAV}>
-    <AdminPageHeader eyebrow="CRM / Dashboard" title="Dashboard" description="Visão operacional de relacionamentos, oportunidades e movimentação comercial." action="Novo contato" disabled disabledReason={ADMIN_CAPABILITIES.crmPersistence.description}/>
+  return <AdminShell area="crm" items={CRM_NAV} header={{title:'Dashboard',description:'Visão operacional de relacionamentos, oportunidades e movimentação comercial.'}}>
     <AdminNotice title="Dados de demonstração" description={CRM_DEMO_DESCRIPTION}/>
     <div className="admin-kpi-grid">
       <AdminKpi label="Contatos" value={String(metrics.contacts)} detail="Base demonstrativa" icon={<Users size={16}/>}/>

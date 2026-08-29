@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { FileText, Globe2, Search } from 'lucide-react'
 import { ADMIN_CAPABILITIES } from '../../../shared/internal/adminCapabilities'
 import { AdminEmpty, AdminNotice, AdminPageHeader } from '../../../shared/internal/AdminUi'
+import { TableViewPagination, type TablePageSize } from '../../../shared/internal/TableViewPagination'
 import { editorialReadModel } from '../repository'
 import type { PublicationStatus } from '../model'
 
@@ -18,6 +19,8 @@ function Toolbar({placeholder,query,onQuery,status,onStatus,count,total}:{placeh
 export function EditorialPagesAdmin(){
   const [query,setQuery]=useState('')
   const [status,setStatus]=useState<(typeof statuses)[number]>('all')
+  const [page,setPage]=useState(1)
+  const [pageSize,setPageSize]=useState<TablePageSize>(10)
   const normalized=query.trim().toLocaleLowerCase('pt-BR')
   const pages=useMemo(()=>editorialReadModel.pages.filter(page=>{
     const parent=page.parentId?editorialReadModel.getPageById(page.parentId)?.title||'':''
@@ -25,12 +28,17 @@ export function EditorialPagesAdmin(){
     return matchesQuery&&(status==='all'||page.status===status)
   }),[normalized,status])
   const total=editorialReadModel.pages.length
-  return <><AdminPageHeader eyebrow="Gerenciador do Site / Páginas" title="Páginas" description="Estrutura editorial, navegação, publicação e relacionamento entre páginas do portal." action="Nova página" disabled disabledReason={persistence.description}/><PersistenceNotice/><Toolbar placeholder="Buscar por título ou slug..." query={query} onQuery={setQuery} status={status} onStatus={setStatus} count={pages.length} total={total}/>{pages.length?<section className="table-card"><table><thead><tr><th>Página</th><th>Tipo</th><th>Slug</th><th>Status</th><th>Menu</th><th>Posição</th><th>Parent</th><th>Conteúdos</th><th>Atualização</th></tr></thead><tbody>{pages.map(page=><tr key={page.id}><td><div className="table-primary"><span className="table-avatar"><Globe2 size={15} aria-hidden="true"/></span><div><b>{page.title}</b><small>{page.navigationLabel}</small></div></div></td><td>{page.type}</td><td>/{page.slug}</td><td><span className={`status ${page.status}`}>{page.status}</span></td><td>{page.showInMainMenu?'Visível':'Oculta'}</td><td>{page.menuOrder}</td><td>{page.parentId?editorialReadModel.getPageById(page.parentId)?.title||page.parentId:'—'}</td><td>{editorialReadModel.countContents(page.id)}</td><td>{new Date(page.updatedAt).toLocaleDateString('pt-BR')}</td></tr>)}</tbody></table></section>:<AdminEmpty title="Nenhuma página encontrada" description="Nenhuma página corresponde à busca e ao status selecionados."/>}</>
+  const totalPages=Math.max(1,Math.ceil(pages.length/pageSize));const safePage=Math.min(page,totalPages);const visiblePages=pages.slice((safePage-1)*pageSize,safePage*pageSize)
+  const changeQuery=(value:string)=>{setQuery(value);setPage(1)}
+  const changeStatus=(value:(typeof statuses)[number])=>{setStatus(value);setPage(1)}
+  return <><AdminPageHeader eyebrow="Gerenciador do Site / Páginas" title="Páginas" description="Estrutura editorial, navegação, publicação e relacionamento entre páginas do portal." action="Nova página" disabled disabledReason={persistence.description}/><PersistenceNotice/><Toolbar placeholder="Buscar por título ou slug..." query={query} onQuery={changeQuery} status={status} onStatus={changeStatus} count={pages.length} total={total}/>{pages.length?<div className="tableview-surface cms-tableview-surface"><section className="table-card"><table><thead><tr><th>Página</th><th>Tipo</th><th>Slug</th><th>Status</th><th>Menu</th><th>Posição</th><th>Parent</th><th>Conteúdos</th><th>Atualização</th></tr></thead><tbody>{visiblePages.map(page=><tr key={page.id}><td><div className="table-primary"><span className="table-avatar"><Globe2 size={15} aria-hidden="true"/></span><div><b>{page.title}</b><small>{page.navigationLabel}</small></div></div></td><td>{page.type}</td><td>/{page.slug}</td><td><span className={`status ${page.status}`}>{page.status}</span></td><td>{page.showInMainMenu?'Visível':'Oculta'}</td><td>{page.menuOrder}</td><td>{page.parentId?editorialReadModel.getPageById(page.parentId)?.title||page.parentId:'—'}</td><td>{editorialReadModel.countContents(page.id)}</td><td>{new Date(page.updatedAt).toLocaleDateString('pt-BR')}</td></tr>)}</tbody></table></section><TableViewPagination page={safePage} totalPages={totalPages} totalRecords={pages.length} pageSize={pageSize} onPageChange={setPage} onPageSizeChange={size=>{setPageSize(size);setPage(1)}}/></div>:<AdminEmpty title="Nenhuma página encontrada" description="Nenhuma página corresponde à busca e ao status selecionados."/>}</>
 }
 
 export function EditorialContentsAdmin(){
   const [query,setQuery]=useState('')
   const [status,setStatus]=useState<(typeof statuses)[number]>('all')
+  const [page,setPage]=useState(1)
+  const [pageSize,setPageSize]=useState<TablePageSize>(10)
   const normalized=query.trim().toLocaleLowerCase('pt-BR')
   const contents=useMemo(()=>editorialReadModel.contents.filter(content=>{
     const page=editorialReadModel.getPageById(content.pageId)?.title||content.pageId
@@ -38,5 +46,8 @@ export function EditorialContentsAdmin(){
     return matchesQuery&&(status==='all'||content.status===status)
   }),[normalized,status])
   const total=editorialReadModel.contents.length
-  return <><AdminPageHeader eyebrow="Gerenciador do Site / Conteúdos" title="Conteúdos" description="Gerencie todos os conteúdos editoriais por uma única estrutura, independentemente da página ou categoria." action="Novo conteúdo" disabled disabledReason={persistence.description}/><PersistenceNotice/><Toolbar placeholder="Buscar conteúdo, autor ou slug..." query={query} onQuery={setQuery} status={status} onStatus={setStatus} count={contents.length} total={total}/>{contents.length?<section className="table-card"><table><thead><tr><th>Conteúdo</th><th>Página</th><th>Slug</th><th>Status</th><th>Autor</th><th>Atualização</th></tr></thead><tbody>{contents.map(content=><tr key={content.id}><td><div className="table-primary"><span className="table-avatar"><FileText size={15} aria-hidden="true"/></span><div><b>{content.title}</b><small>{content.summary}</small></div></div></td><td>{editorialReadModel.getPageById(content.pageId)?.title||content.pageId}</td><td>{content.slug}</td><td><span className={`status ${content.status}`}>{content.status}</span></td><td>{content.author}</td><td>{new Date(content.updatedAt).toLocaleDateString('pt-BR')}</td></tr>)}</tbody></table></section>:<AdminEmpty title="Nenhum conteúdo encontrado" description="Nenhum conteúdo corresponde à busca e ao status selecionados."/>}</>
+  const totalPages=Math.max(1,Math.ceil(contents.length/pageSize));const safePage=Math.min(page,totalPages);const visibleContents=contents.slice((safePage-1)*pageSize,safePage*pageSize)
+  const changeQuery=(value:string)=>{setQuery(value);setPage(1)}
+  const changeStatus=(value:(typeof statuses)[number])=>{setStatus(value);setPage(1)}
+  return <><AdminPageHeader eyebrow="Gerenciador do Site / Conteúdos" title="Conteúdos" description="Gerencie todos os conteúdos editoriais por uma única estrutura, independentemente da página ou categoria." action="Novo conteúdo" disabled disabledReason={persistence.description}/><PersistenceNotice/><Toolbar placeholder="Buscar conteúdo, autor ou slug..." query={query} onQuery={changeQuery} status={status} onStatus={changeStatus} count={contents.length} total={total}/>{contents.length?<div className="tableview-surface cms-tableview-surface"><section className="table-card"><table><thead><tr><th>Conteúdo</th><th>Página</th><th>Slug</th><th>Status</th><th>Autor</th><th>Atualização</th></tr></thead><tbody>{visibleContents.map(content=><tr key={content.id}><td><div className="table-primary"><span className="table-avatar"><FileText size={15} aria-hidden="true"/></span><div><b>{content.title}</b><small>{content.summary}</small></div></div></td><td>{editorialReadModel.getPageById(content.pageId)?.title||content.pageId}</td><td>{content.slug}</td><td><span className={`status ${content.status}`}>{content.status}</span></td><td>{content.author}</td><td>{new Date(content.updatedAt).toLocaleDateString('pt-BR')}</td></tr>)}</tbody></table></section><TableViewPagination page={safePage} totalPages={totalPages} totalRecords={contents.length} pageSize={pageSize} onPageChange={setPage} onPageSizeChange={size=>{setPageSize(size);setPage(1)}}/></div>:<AdminEmpty title="Nenhum conteúdo encontrado" description="Nenhum conteúdo corresponde à busca e ao status selecionados."/>}</>
 }

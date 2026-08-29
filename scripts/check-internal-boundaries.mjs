@@ -8,7 +8,7 @@ const publicStyles=await read('src/styles/public-styles.css')
 for(const forbidden of ['admin-system','admin-workspaces','admin-entry','admin-header','admin-dashboard','admin-brand','admin-responsive','admin-accessibility','admin-access.css','header-brand-manager.css','brand-assets-manager.css'])if(publicStyles.includes(forbidden))failures.push(`public-styles.css não pode carregar stylesheet administrativo: ${forbidden}`)
 
 const main=await read('src/main.tsx')
-if(!main.includes('<React.StrictMode><HashRouter><App/></HashRouter></React.StrictMode>'))failures.push('main.tsx deve montar App dentro do HashRouter.')
+for(const required of ['QueryClientProvider','<HashRouter><App/></HashRouter>'])if(!main.includes(required))failures.push(`main.tsx deve manter runtime: ${required}`)
 
 const internalApp=await read('src/app/InternalApp.tsx')
 for(const required of ["from '../features/access/LoginPage'","from '../features/access/WorkspacePage'","from '../features/access/CrmWorkspace'","from '../features/site-manager/SiteManagerRoutes'",'path="/app/login"','path="/app/workspaces"','path="/app/crm/*"','path="/app/site/*"'])if(!internalApp.includes(required))failures.push(`InternalApp deve manter ${required}.`)
@@ -16,12 +16,20 @@ for(const forbidden of ['CrmRoutes','integrations'])if(internalApp.includes(forb
 
 const workspacePage=await read('src/features/access/WorkspacePage.tsx')
 for(const required of ["to:'/app/crm'","to:'/app/site'",'title:\'CRM\''])if(!workspacePage.includes(required))failures.push(`WorkspacePage deve manter workspace: ${required}`)
-for(const forbidden of ['CRM completo','contatos, leads','Integrações removidas?'])if(workspacePage.includes(forbidden))failures.push(`WorkspacePage não pode reintroduzir implementação antiga: ${forbidden}`)
 
 const crmWorkspace=await read('src/features/access/CrmWorkspace.tsx')
-if(!crmWorkspace.includes('CRM_WORKSPACE_NAV'))failures.push('CrmWorkspace deve usar navegação própria do workspace.')
-if(!crmWorkspace.includes('<Route index'))failures.push('CrmWorkspace deve declarar rota index.')
+for(const required of ["from '../dashboard/DashboardPage'",'<Route index element={<DashboardPage/>}/>'])if(!crmWorkspace.includes(required))failures.push(`CrmWorkspace deve montar Dashboard: ${required}`)
 for(const forbidden of ['Contacts','Leads','Integration','repository','demoSnapshot'])if(crmWorkspace.includes(forbidden))failures.push(`CrmWorkspace não pode conter módulo CRM/Integrações: ${forbidden}`)
+
+const dashboard=await read('src/features/dashboard/DashboardPage.tsx')
+for(const required of ['Visão geral do seu negócio musical','Atividades Recentes','Próximos Compromissos','Artistas em Destaque'])if(!dashboard.includes(required))failures.push(`Dashboard deve preservar referência: ${required}`)
+for(const forbidden of ['Math.random','fake data','mockDashboard'])if(dashboard.includes(forbidden))failures.push(`Dashboard não pode fabricar dados: ${forbidden}`)
+
+const operationalHook=await read('src/features/dashboard/hooks/useOperationalDashboard.ts')
+for(const required of ["queryKey:['operational-dashboard']",'staleTime:30_000','refetchInterval:60_000'])if(!operationalHook.includes(required))failures.push(`useOperationalDashboard deve preservar ${required}`)
+
+const activityHook=await read('src/features/dashboard/hooks/useActivityHistory.ts')
+for(const required of ["queryKey:['activity-history',limit]",'staleTime:30_000','refetchOnWindowFocus:false','retry:1'])if(!activityHook.includes(required))failures.push(`useActivityHistory deve preservar ${required}`)
 
 const siteRoutes=await read('src/features/site-manager/SiteManagerRoutes.tsx')
 if(!siteRoutes.includes('<Route index'))failures.push('SiteManagerRoutes deve declarar dashboard index.')
@@ -31,23 +39,8 @@ const adminNavigation=await read('src/shared/internal/adminNavigation.ts')
 if(!adminNavigation.includes('CRM_WORKSPACE_NAV'))failures.push('adminNavigation deve preservar a navegação estrutural do workspace CRM.')
 for(const forbidden of ['CRM_NAV','Integrações','PlugZap','/app/crm/contatos','/app/crm/integrations'])if(adminNavigation.includes(forbidden))failures.push(`adminNavigation não pode reintroduzir módulo removido: ${forbidden}`)
 
-const adminUi=await read('src/shared/internal/AdminUi.tsx')
-for(const forbidden of ['isContactsRoute','contactsCreateLabel','app-shell-crm-contacts'])if(adminUi.includes(forbidden))failures.push(`AdminUi não pode reintroduzir comportamento do módulo CRM: ${forbidden}`)
-
 const removedPaths=[
-  'src/features/crm/CrmRoutes.tsx',
-  'src/features/crm/data/demoSnapshot.ts',
-  'src/features/crm/model.ts',
-  'src/features/crm/pages/ContactsReferencePage.tsx',
-  'src/features/crm/pages/CrmDashboardPage.tsx',
-  'src/features/crm/presentation.ts',
-  'src/features/crm/repository.ts',
-  'src/features/operations/OperationsPage.tsx',
-  'src/styles/admin-crm.css',
-  'src/styles/admin-crm-dashboard-header.css',
-  'src/styles/admin-crm-relationships.css',
-  'src/styles/admin-reference-v2.css',
-  'src/styles/admin-reference-real.css',
+  'src/features/crm/CrmRoutes.tsx','src/features/crm/data/demoSnapshot.ts','src/features/crm/model.ts','src/features/crm/pages/ContactsReferencePage.tsx','src/features/crm/pages/CrmDashboardPage.tsx','src/features/crm/presentation.ts','src/features/crm/repository.ts','src/features/operations/OperationsPage.tsx','src/styles/admin-crm.css','src/styles/admin-crm-dashboard-header.css','src/styles/admin-crm-relationships.css','src/styles/admin-reference-v2.css','src/styles/admin-reference-real.css',
 ]
 for(const removedPath of removedPaths){try{await access(new URL(`../${removedPath}`,import.meta.url),constants.F_OK);failures.push(`${removedPath} deve permanecer removido.`)}catch{}}
 

@@ -73,11 +73,11 @@ export function HomeAdEditor() {
 
   return <div className="home-ad-editor">
     <div className="hero-editor-toolbar">
-      <div><span>CONTEÚDO / HOME</span><h1>Bloco de anúncio</h1><p>Gerencie o anúncio exibido entre “Em Destaque” e “Últimas Notícias”. Você pode alterar imagem, tamanho, textos, botão, alinhamento, ocultar ou excluir o conteúdo.</p></div>
-      <div className="hero-editor-toolbar-actions"><button className="button outline" onClick={reset}><RotateCcw size={16}/> Restaurar</button><button className="button dark" onClick={save}><Save size={16}/> Salvar</button></div>
+      <div><span>CONTEÚDO / HOME</span><h1>Bloco de anúncio</h1><p>Gerencie o anúncio principal da Home. As alterações atuais permanecem somente neste navegador até existir uma fonte persistente compartilhada.</p></div>
+      <div className="hero-editor-toolbar-actions"><button className="button outline" onClick={reset}><RotateCcw size={16}/> Restaurar</button><button className="button dark" onClick={save}><Save size={16}/> Salvar localmente</button></div>
     </div>
 
-    {saved && <div className="hero-editor-success">Anúncio atualizado no estado frontend atual.</div>}
+    {saved && <div className="hero-editor-success">Anúncio salvo somente neste navegador. Nenhuma publicação compartilhada foi realizada.</div>}
 
     <div className="home-ad-editor-layout">
       <section className="panel home-ad-editor-form">
@@ -102,7 +102,7 @@ export function HomeAdEditor() {
         <Field label={`Largura útil · ${draft.contentWidth}px`}><input type="range" min="320" max="1600" step="20" value={draft.contentWidth} onChange={e => update({ contentWidth: Number(e.target.value) })}/></Field>
         <Field label="Alinhamento"><select value={draft.align} onChange={e => update({ align: e.target.value as HomeAdConfig['align'] })}><option value="left">Esquerda</option><option value="center">Centro</option><option value="right">Direita</option></select></Field>
 
-        <div className="home-ad-danger"><button onClick={remove}><Trash2 size={16}/> Excluir anúncio da Home</button><small>Isso remove o conteúdo atual e deixa o bloco inativo. Você pode restaurar depois.</small></div>
+        <div className="home-ad-danger"><button onClick={remove}><Trash2 size={16}/> Desativar e limpar anúncio local</button><small>Esta ação afeta somente o estado salvo neste navegador. Você pode restaurar os valores padrão depois.</small></div>
       </section>
 
       <section className="home-ad-preview-panel"><div className="hero-editor-preview-head"><span>PREVIEW</span><strong>Mesmo componente da Home</strong></div><div className="home-ad-preview-frame"><HomeAdSection config={draft}/></div></section>

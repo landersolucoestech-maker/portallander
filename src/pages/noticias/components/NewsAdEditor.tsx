@@ -77,11 +77,11 @@ export function NewsAdEditor() {
 
   return <div className="home-ad-editor">
     <div className="hero-editor-toolbar">
-      <div><span>CONTEÚDO / NOTÍCIAS</span><h1>Publicidade lateral</h1><p>Gerencie o único slot publicitário lateral das duas primeiras linhas de Notícias. Quando estiver inativo, vazio ou fora do período programado, a listagem retorna automaticamente ao grid normal de quatro colunas.</p></div>
-      <div className="hero-editor-toolbar-actions"><button className="button outline" onClick={reset}><RotateCcw size={16}/> Restaurar</button><button className="button dark" onClick={save}><Save size={16}/> Salvar</button></div>
+      <div><span>CONTEÚDO / NOTÍCIAS</span><h1>Publicidade lateral</h1><p>Gerencie o único slot publicitário lateral das duas primeiras linhas de Notícias. Quando estiver inativo, vazio ou fora do período programado, a listagem retorna automaticamente ao grid normal de quatro colunas. As alterações atuais permanecem somente neste navegador.</p></div>
+      <div className="hero-editor-toolbar-actions"><button className="button outline" onClick={reset}><RotateCcw size={16}/> Restaurar</button><button className="button dark" onClick={save}><Save size={16}/> Salvar localmente</button></div>
     </div>
 
-    {saved && <div className="hero-editor-success">Publicidade de Notícias atualizada no estado frontend atual.</div>}
+    {saved && <div className="hero-editor-success">Publicidade salva somente neste navegador. Nenhuma publicação compartilhada foi realizada.</div>}
 
     <div className="home-ad-editor-layout">
       <section className="panel home-ad-editor-form">
@@ -108,7 +108,7 @@ export function NewsAdEditor() {
         <Field label="Abertura do CTA"><select value={draft.openInNewTab?'new':'same'} onChange={e=>update({openInNewTab:e.target.value==='new'})}><option value="same">Mesma aba</option><option value="new">Nova aba</option></select></Field>
         <Field label="Alinhamento"><select value={draft.align} onChange={e => update({ align: e.target.value as NewsAdConfig['align'] })}><option value="left">Esquerda</option><option value="center">Centro</option><option value="right">Direita</option></select></Field>
 
-        <div className="home-ad-danger"><button onClick={remove}><Trash2 size={16}/> Excluir publicidade de Notícias</button><small>O slot fica inativo e o grid volta automaticamente para quatro colunas.</small></div>
+        <div className="home-ad-danger"><button onClick={remove}><Trash2 size={16}/> Desativar e limpar publicidade local</button><small>Esta ação afeta somente este navegador. O slot fica inativo e o grid volta automaticamente para quatro colunas.</small></div>
       </section>
 
       <section className="home-ad-preview-panel"><div className="hero-editor-preview-head"><span>PREVIEW</span><strong>{valid?'Publicidade válida':'Slot inativo / sem campanha válida'}</strong></div><div className="home-ad-preview-frame news-ad-editor-preview">{valid?<div className={`news-sidebar-ad-content align-${draft.align}`} style={draft.background?{backgroundImage:`linear-gradient(180deg,rgba(0,0,0,.28),rgba(0,0,0,.72)),url(${draft.background})`}:undefined}>{draft.image&&<img className="news-sidebar-ad-image" src={draft.image} alt={draft.imageAlt}/>}<div className="news-sidebar-ad-copy">{draft.label&&<span className="news-sidebar-ad-label">{draft.label}</span>}{draft.title&&<strong>{draft.title}</strong>}{draft.subtitle&&<p>{draft.subtitle}</p>}{draft.buttonLabel&&<a href={draft.buttonUrl||'#'} onClick={e=>e.preventDefault()}>{draft.buttonLabel}</a>}</div></div>:<div className="home-ad-empty-state">Sem publicidade ativa: a página usa 4 cards por linha.</div>}</div></section>

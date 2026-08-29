@@ -1,0 +1,27 @@
+import { BarChart3, BriefcaseBusiness, CalendarDays, CircleDollarSign, LayoutDashboard, Megaphone, TrendingUp, Users } from 'lucide-react'
+import { AdminKpi, AdminPageHeader, AdminShell, type AdminNavItem } from '../../shared/internal/AdminUi'
+
+const crmNav: readonly AdminNavItem[] = [
+  ['Dashboard',LayoutDashboard,'/app/crm'],
+  ['Contatos',Users,'/app/crm/contatos'],
+  ['Negócios',BriefcaseBusiness,'/app/crm/negocios'],
+  ['Atividades',CalendarDays,'/app/crm/atividades'],
+  ['Pipeline',TrendingUp,'/app/crm/pipeline'],
+  ['Campanhas',Megaphone,'/app/crm/campanhas'],
+  ['Relatórios',BarChart3,'/app/crm/relatorios'],
+  ['Financeiro',CircleDollarSign,'/app/crm/financeiro'],
+]
+
+function DemoNotice(){return <div className="admin-notice"><div><strong>Dados de demonstração</strong><p>Esta visualização ainda não está conectada a uma fonte persistente. Os números servem para validar a estrutura operacional do CRM.</p></div></div>}
+
+const campaigns = [
+  ['Portal Lander Institucional','Ativa','Meta + Google','R$ 4.800','148 leads'],
+  ['Mídia Kit Comercial','Planejada','Meta','R$ 2.000','—'],
+  ['Captação Parceiros','Ativa','Google','R$ 3.200','63 leads'],
+]
+
+export function CampaignsPage(){return <AdminShell area="crm" items={crmNav}><AdminPageHeader eyebrow="CRM / Campanhas" title="Campanhas" description="Acompanhe iniciativas comerciais, investimento, canais e geração de oportunidades." action="Nova campanha"/><DemoNotice/><div className="admin-kpi-grid"><AdminKpi label="Ativas" value="2" detail="Campanhas em execução" icon={<Megaphone size={16}/>}/><AdminKpi label="Planejadas" value="1" detail="Aguardando publicação" icon={<CalendarDays size={16}/>}/><AdminKpi label="Investimento" value="R$ 8 mil" detail="Orçamento demonstrativo" icon={<CircleDollarSign size={16}/>}/><AdminKpi label="Leads" value="211" detail="Atribuição demonstrativa" icon={<Users size={16}/>}/></div><section className="table-card"><table><thead><tr><th>Campanha</th><th>Status</th><th>Canais</th><th>Orçamento</th><th>Resultado</th></tr></thead><tbody>{campaigns.map(([name,status,channels,budget,result])=><tr key={name}><td><strong>{name}</strong></td><td><span className="status">{status}</span></td><td>{channels}</td><td>{budget}</td><td>{result}</td></tr>)}</tbody></table></section></AdminShell>}
+
+export function ReportsPage(){return <AdminShell area="crm" items={crmNav}><AdminPageHeader eyebrow="CRM / Relatórios" title="Relatórios" description="Leitura executiva da operação comercial e dos principais indicadores do funil."/><DemoNotice/><div className="admin-kpi-grid"><AdminKpi label="Conversão" value="18,4%" detail="Lead → cliente" icon={<TrendingUp size={16}/>}/><AdminKpi label="Ticket médio" value="R$ 20,5 mil" detail="Negócios demonstrativos" icon={<CircleDollarSign size={16}/>}/><AdminKpi label="Pipeline" value="R$ 82 mil" detail="Valor em negociação" icon={<BriefcaseBusiness size={16}/>}/><AdminKpi label="Atividades" value="37" detail="Últimos 30 dias" icon={<CalendarDays size={16}/>}/></div><div className="admin-grid"><section className="admin-card"><div className="admin-card-head"><div><span>Funil</span><h2>Distribuição comercial</h2></div></div><div className="report-bars"><div><span>Leads</span><b style={{width:'100%'}}/></div><div><span>Qualificados</span><b style={{width:'64%'}}/></div><div><span>Propostas</span><b style={{width:'41%'}}/></div><div><span>Clientes</span><b style={{width:'18%'}}/></div></div></section><section className="admin-card"><div className="admin-card-head"><div><span>Leitura</span><h2>Indicadores prioritários</h2></div></div><p>Esta visão foi preparada para receber dados reais de conversão, receita, ciclo de venda, origem de leads e performance por responsável assim que o backend do CRM estiver conectado.</p></section></div></AdminShell>}
+
+export function FinancePage(){return <AdminShell area="crm" items={crmNav}><AdminPageHeader eyebrow="CRM / Financeiro" title="Financeiro" description="Visão comercial de valores relacionados a oportunidades, fechamentos e recebimentos."/><DemoNotice/><div className="admin-kpi-grid"><AdminKpi label="Em negociação" value="R$ 49,5 mil" detail="Oportunidades abertas" icon={<TrendingUp size={16}/>}/><AdminKpi label="Fechado" value="R$ 32,5 mil" detail="Negócios demonstrativos" icon={<BriefcaseBusiness size={16}/>}/><AdminKpi label="Recebido" value="R$ 18,5 mil" detail="Referência demonstrativa" icon={<CircleDollarSign size={16}/>}/><AdminKpi label="Pendente" value="R$ 14 mil" detail="Referência demonstrativa" icon={<CalendarDays size={16}/>}/></div><section className="table-card"><table><thead><tr><th>Referência</th><th>Empresa</th><th>Status</th><th>Valor</th></tr></thead><tbody><tr><td>Renovação anual</td><td>Estúdio Horizonte</td><td><span className="status published">Recebido parcial</span></td><td><strong>R$ 32.500</strong></td></tr><tr><td>Campanha institucional</td><td>Aurora Music</td><td><span className="status negociacao">Em negociação</span></td><td><strong>R$ 24.000</strong></td></tr><tr><td>Pacote de mídia</td><td>Norte Produções</td><td><span className="status draft">Proposta</span></td><td><strong>R$ 18.000</strong></td></tr></tbody></table></section></AdminShell>}

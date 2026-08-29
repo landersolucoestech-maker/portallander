@@ -1,0 +1,35 @@
+/* Sidebar fixo no desktop: a rolagem acontece somente no conteúdo da workspace. */
+@media (min-width:761px){
+  .app-shell{
+    min-height:100vh;
+  }
+
+  .app-shell>.sidebar{
+    position:fixed;
+    top:0;
+    left:0;
+    bottom:0;
+    width:238px;
+    height:100vh;
+    z-index:50;
+    overflow-y:auto;
+    overflow-x:hidden;
+  }
+
+  .app-shell>.workspace{
+    grid-column:2;
+    min-width:0;
+  }
+}
+
+@media (min-width:761px) and (max-width:1180px){
+  .app-shell>.sidebar{
+    width:78px;
+  }
+}
+
+@media (max-width:760px){
+  .app-shell>.workspace{
+    grid-column:auto;
+  }
+}

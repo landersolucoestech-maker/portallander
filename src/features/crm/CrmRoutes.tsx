@@ -4,6 +4,8 @@ import { ContractTemplatesPage, ContractVariablesPage } from '../operations/Cont
 import { ContractsPage } from '../operations/ContractsPage'
 import { PaginatedMarketingPage } from '../operations/PaginatedMarketingPage'
 import { PaginatedOperationsPage } from '../operations/PaginatedOperationsPage'
+import { AgendaReferencePage } from '../operations/AgendaReferencePage'
+import { ReportsReferencePage } from '../operations/ReportsReferencePage'
 import { ContactsPage } from './pages/ContactsPage'
 import { CrmDashboardPage } from './pages/CrmDashboardPage'
 import { FinancePage } from './pages/FinancePage'
@@ -23,9 +25,10 @@ export default function CrmRoutes(){
     <Route path="contracts/templates" element={<ContractTemplatesPage/>}/>
     <Route path="contracts/categorias" element={<Navigate to="/app/crm/contracts" replace/>}/>
     <Route path="contracts/variaveis" element={<ContractVariablesPage/>}/>
+    <Route path="events" element={<AgendaReferencePage/>}/>
     <Route path="integrations" element={<Navigate to="/app/crm/settings" replace/>}/>
     <Route path="relatorios" element={<ReportsPage/>}/>
-    <Route path="reports" element={<OperationsPage moduleKey="reports"/>}/>
+    <Route path="reports" element={<ReportsReferencePage/>}/>
     <Route path="financeiro" element={<FinancePage/>}/>
     <Route path="financeiro/contabilidade" element={<PaginatedOperationsPage moduleKey="accounting"/>}/>
     <Route path="accounting" element={<Navigate to="/app/crm/financeiro/contabilidade" replace/>}/>

@@ -1,3 +1,4 @@
+import { demoCrmSnapshot } from './data/demoSnapshot'
 import type { CrmActivity, CrmContact, CrmDeal, CrmSnapshot } from './model'
 
 export class CrmPersistenceUnavailableError extends Error {
@@ -42,3 +43,12 @@ export class ReadOnlyCrmRepository implements CrmRepository {
   async updateActivity(): Promise<CrmActivity> { throw new CrmPersistenceUnavailableError() }
   async deleteActivity(): Promise<void> { throw new CrmPersistenceUnavailableError() }
 }
+
+export const crmRepository: CrmRepository = new ReadOnlyCrmRepository(demoCrmSnapshot)
+
+/**
+ * Read model síncrono temporário para a UI atual.
+ * Quando a API real existir, esta exportação deve ser substituída por estado carregado
+ * do backend sem alterar os componentes consumidores.
+ */
+export const crmReadModel = demoCrmSnapshot

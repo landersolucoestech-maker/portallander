@@ -69,6 +69,7 @@ export function AdminShell({area,items,children,header,headerAction,headerAction
   const notificationsRef=useRef<HTMLDivElement>(null)
   const actions=headerActions??(headerAction?[headerAction]:[])
   const isContactsRoute=location.pathname==='/app/crm/contatos'
+  const isContractsRoute=location.pathname.startsWith('/app/crm/contracts')
 
   useEffect(()=>{
     if(!notificationsOpen)return
@@ -127,6 +128,11 @@ export function AdminShell({area,items,children,header,headerAction,headerAction
         <div className="workspace-actions">
           {actions.map(action=><button key={action.label} className={`button ${action.variant==='secondary'?'outline workspace-header-secondary':'dark'} workspace-primary-action`} type="button" onClick={action.onClick} disabled={action.disabled} title={action.disabled?action.disabledReason:undefined}>{action.label}</button>)}
           {isContactsRoute&&<button className="button dark workspace-primary-action crm-header-create" type="button" onClick={triggerContactsCreate}>{contactsCreateLabel}</button>}
+          {isContractsRoute&&<>
+            <NavLink className="button outline workspace-header-secondary workspace-primary-action" to="/app/crm/contracts/templates">Templates de Contratos</NavLink>
+            <NavLink className="button outline workspace-header-secondary workspace-primary-action" to="/app/crm/contracts/variaveis">Variáveis de Contratos</NavLink>
+            <NavLink className="button outline workspace-header-secondary workspace-primary-action" to="/app/crm/contracts/categorias">Categorias de Contratos</NavLink>
+          </>}
           <div className="workspace-popover-wrap" ref={notificationsRef}>
             <button className="icon-button" type="button" aria-label="Abrir notificações" aria-expanded={notificationsOpen} onClick={()=>{setNotificationsOpen(value=>!value);setAccountOpen(false)}}><Bell size={17} aria-hidden="true"/></button>
             {notificationsOpen&&<div className="workspace-popover notifications-popover" role="status"><strong>{ADMIN_CAPABILITIES.notifications.label}</strong><p>{ADMIN_CAPABILITIES.notifications.description}</p></div>}

@@ -32,6 +32,11 @@ export const ADMIN_CAPABILITIES = {
     label:'Persistência do anúncio da Home',
     description:'O editor do anúncio principal da Home salva somente no armazenamento local deste navegador.',
   },
+  newsAdPersistence: {
+    state:'browser-local',
+    label:'Persistência da publicidade de Notícias',
+    description:'O editor da publicidade lateral de Notícias salva somente no armazenamento local deste navegador.',
+  },
   headerBrandPersistence: {
     state:'browser-local',
     label:'Persistência da logo do cabeçalho',

@@ -1,4 +1,4 @@
-import { AlertCircle, CheckCircle2, CircleDollarSign, FileEdit, Gauge, Palmtree, Search, TrendingDown, TrendingUp, UserCheck, Users } from 'lucide-react'
+import { AlertCircle, CircleDollarSign, Gauge, Palmtree, Search, TrendingDown, TrendingUp, UserCheck, Users } from 'lucide-react'
 import { useMemo, useState, type ReactNode } from 'react'
 import { CRM_NAV } from '../../shared/internal/adminNavigation'
 import { AdminPageHeader, AdminShell } from '../../shared/internal/AdminUi'

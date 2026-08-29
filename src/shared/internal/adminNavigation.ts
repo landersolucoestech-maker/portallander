@@ -9,9 +9,9 @@ export const CRM_NAV: readonly AdminNavItem[] = [
     icon:FileSignature,
     children:[
       ['Contratos',FileSignature,'/app/crm/contracts'],
-      ['Templates',FileText,'/app/crm/contracts/templates'],
-      ['Variáveis',Tags,'/app/crm/contracts/variaveis'],
-      ['Categorias',Tags,'/app/crm/contracts/categorias'],
+      ['Templates de Contrato',FileText,'/app/crm/contracts/templates'],
+      ['Variáveis de Template',Tags,'/app/crm/contracts/variaveis'],
+      ['Categorias de Contrato',Tags,'/app/crm/contracts/categorias'],
     ],
   },
   ['Agenda',CalendarDays,'/app/crm/events'],
@@ -20,7 +20,7 @@ export const CRM_NAV: readonly AdminNavItem[] = [
     icon:Megaphone,
     children:[
       ['Visão Geral',LayoutDashboard,'/app/crm/marketing/visao-geral'],
-      ['Briefing',FileText,'/app/crm/marketing/briefing'],
+      ['Briefings',FileText,'/app/crm/marketing/briefing'],
       ['Calendário',CalendarDays,'/app/crm/marketing/calendario'],
       ['Campanhas',Megaphone,'/app/crm/marketing/campanhas'],
       ['IA Criativa',Images,'/app/crm/marketing/ia-criativa'],
@@ -33,7 +33,7 @@ export const CRM_NAV: readonly AdminNavItem[] = [
     icon:MessageSquareText,
     children:[
       ['MusicChat',MessageSquareText,'/app/crm/chat'],
-      ['Automações',Settings,'/app/crm/chat/automacoes'],
+      ['Automações do MusicChat',Settings,'/app/crm/chat/automacoes'],
     ],
   },
   ['Relatórios',BarChart3,'/app/crm/reports'],
@@ -44,10 +44,10 @@ export const CRM_NAV: readonly AdminNavItem[] = [
     children:[
       ['Financeiro',CircleDollarSign,'/app/crm/financeiro'],
       ['Contabilidade',BarChart3,'/app/crm/financeiro/contabilidade'],
-      ['Nota Fiscal',FileText,'/app/crm/financeiro/nota-fiscal'],
+      ['Notas Fiscais',FileText,'/app/crm/financeiro/nota-fiscal'],
       ['Categorias Financeiras',Tags,'/app/crm/financeiro/categorias'],
-      ['Regras Financeiras',Settings,'/app/crm/financeiro/regras'],
-      ['Regras de Transação',Settings,'/app/crm/financeiro/regras-transacao'],
+      ['Automações Financeiras',Settings,'/app/crm/financeiro/regras'],
+      ['Regras de Categorização Financeira',Settings,'/app/crm/financeiro/regras-transacao'],
     ],
   },
   {

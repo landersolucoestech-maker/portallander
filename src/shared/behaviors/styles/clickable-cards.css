@@ -1,4 +1,0 @@
-[data-clickable-card="true"]{cursor:pointer}
-[data-clickable-card="true"]:focus-visible{outline:2px solid #ff1717;outline-offset:3px}
-.pl-card[data-clickable-card="true"],.news-reference-card[data-clickable-card="true"],.pl-release[data-clickable-card="true"],.pl-feature[data-clickable-card="true"],.pl-mini[data-clickable-card="true"],.pl-ranked[data-clickable-card="true"],.pl-podcast[data-clickable-card="true"],.pl-agenda-item[data-clickable-card="true"]{transition:transform .18s ease,border-color .18s ease,background-color .18s ease}
-.pl-card[data-clickable-card="true"]:hover,.news-reference-card[data-clickable-card="true"]:hover,.pl-release[data-clickable-card="true"]:hover,.pl-feature[data-clickable-card="true"]:hover,.pl-mini[data-clickable-card="true"]:hover,.pl-ranked[data-clickable-card="true"]:hover,.pl-podcast[data-clickable-card="true"]:hover,.pl-agenda-item[data-clickable-card="true"]:hover{transform:translateY(-2px);border-color:rgba(255,23,23,.55)}

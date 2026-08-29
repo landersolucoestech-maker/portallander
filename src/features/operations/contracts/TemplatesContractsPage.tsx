@@ -1,4 +1,4 @@
-import { Eye, FileText, MoreHorizontal, Pencil, Plus, Search, Sparkles, Trash2, X } from 'lucide-react'
+import { Eye, FileText, MoreHorizontal, Pencil, Search, Sparkles, Trash2, X } from 'lucide-react'
 import { useMemo, useRef, useState } from 'react'
 import { CRM_NAV } from '../../../shared/internal/adminNavigation'
 import { AdminShell } from '../../../shared/internal/AdminUi'

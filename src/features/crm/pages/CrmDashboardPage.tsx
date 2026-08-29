@@ -1,17 +1,9 @@
-import { BadgeCheck, CircleDollarSign, Flame, Link2, MessageSquareText, Newspaper, UserPlus, Users } from 'lucide-react'
-import { Link } from 'react-router-dom'
-import { OPERATIONS_MODULES } from '../../operations/modules'
+import { BadgeCheck, Flame, Link2, Newspaper, UserPlus, Users } from 'lucide-react'
 import { CRM_NAV } from '../../../shared/internal/adminNavigation'
 import { AdminKpi, AdminNotice, AdminShell } from '../../../shared/internal/AdminUi'
 import { statusClass } from '../model'
 import { CRM_DEMO_DESCRIPTION } from '../presentation'
 import { crmReadModel } from '../repository'
-
-const dashboardModules=[
-  ...OPERATIONS_MODULES.filter(module=>['contracts','events','integrations','marketing','reports','rh','settings'].includes(module.key)).map(module=>({key:module.key,title:module.title,eyebrow:module.eyebrow,icon:module.icon,to:module.key==='marketing'?'/app/crm/marketing/visao-geral':`/app/crm/${module.key}`})),
-  {key:'chat',title:'Chat',eyebrow:'ATENDIMENTO E EQUIPE',icon:MessageSquareText,to:'/app/crm/chat'},
-  {key:'financeiro',title:'Financeiro',eyebrow:'FINANCEIRO E CONTABILIDADE',icon:CircleDollarSign,to:'/app/crm/financeiro'},
-] as const
 
 export function CrmDashboardPage(){
   const {contacts,leads,metrics,relationships,relatedContent}=crmReadModel
@@ -28,11 +20,6 @@ export function CrmDashboardPage(){
       <AdminKpi label="Qualificados" value={String(metrics.qualifiedLeads)} detail="Em avanço comercial" icon={<BadgeCheck size={16}/>}/>
       <AdminKpi label="Leads quentes" value={String(metrics.hotLeads)} detail="Prioridade de acompanhamento" icon={<Flame size={16}/>}/>
     </div>
-
-    <section className="admin-card admin-grid-spaced">
-      <div className="admin-card-head"><div><span>Workspace CRM</span><h2>Módulos operacionais</h2></div></div>
-      <div className="crm-module-grid">{dashboardModules.map(module=>{const Icon=module.icon;return <Link className="crm-module-card" to={module.to} key={module.key}><span className="crm-module-icon"><Icon size={17}/></span><div><strong>{module.title}</strong><small>{module.eyebrow}</small></div></Link>})}</div>
-    </section>
 
     <div className="admin-grid admin-grid-spaced">
       <section className="admin-card"><div className="admin-card-head"><div><span>CRM</span><h2>Leads recentes</h2></div></div><div className="crm-dashboard-list">{recentLeads.map(lead=><div className="crm-dashboard-row" key={lead.id}><div><b>{lead.name}</b><small>{lead.company} · {lead.interest}</small></div><span className={`status ${statusClass(lead.status)}`}>{lead.status}</span></div>)}</div></section>

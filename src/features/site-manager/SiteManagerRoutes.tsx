@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import HeroManagerPage from './HeroManagerPage'
+import { HomeManagerPage } from './pages/HomeManagerPage'
 import { MediaKitPage } from './pages/MediaKitPage'
 import { SiteCategoriesPage } from './pages/SiteCategoriesPage'
 import { SiteContentsPage } from './pages/SiteContentsPage'
@@ -11,6 +12,7 @@ import { SiteSettingsPage } from './pages/SiteSettingsPage'
 export default function SiteManagerRoutes(){
   return <Routes>
     <Route index element={<SiteManagerDashboardPage/>}/>
+    <Route path="home" element={<HomeManagerPage/>}/>
     <Route path="home/hero" element={<HeroManagerPage/>}/>
     <Route path="conteudos" element={<SiteContentsPage/>}/>
     <Route path="paginas" element={<SitePagesPage/>}/>

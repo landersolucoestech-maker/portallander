@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
-import { ActivitiesPage, ContactsPage, CrmDashboard, DealsPage, PipelinePage } from './CrmWorkspace'
+import { ActivitiesPage, CrmDashboard, PipelinePage } from './CrmWorkspace'
+import { ContactsPage, DealsPage } from './CrmDirectoryPages'
 import { CampaignsPage, FinancePage, ReportsPage } from './CrmOperations'
 
 export default function CrmRoutes(){

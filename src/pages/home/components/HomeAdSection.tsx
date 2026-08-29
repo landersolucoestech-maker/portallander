@@ -29,6 +29,7 @@ export function HomeAdSection({ config }: { config?: HomeAdConfig }) {
     {ad.image && <img className="pl-ad-image" src={ad.image} alt={ad.imageAlt} />}
     <div className="pl-ad-shade" aria-hidden="true" />
     <div className="pl-ad-content">
+      {ad.logo && <img className="pl-ad-logo" src={ad.logo} alt={ad.logoAlt||'Logo do anunciante'} style={{width:`${ad.logoWidth}px`}}/>}
       {ad.title && <b><em>{ad.title}</em></b>}
       {ad.subtitle && <span>{ad.subtitle}</span>}
       {ad.buttonLabel && <SmartAdLink to={ad.buttonUrl}>{ad.buttonLabel}</SmartAdLink>}

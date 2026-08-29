@@ -1,17 +1,17 @@
 import { FileText, Globe2, LayoutDashboard, Newspaper } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { EditorialContentsAdmin, EditorialPagesAdmin } from '../editorial/components/EditorialAdmin'
-import { editorialReadModel } from '../editorial/repository'
 import { AdminKpi, AdminPageHeader, AdminShell } from '../../shared/internal/AdminUi'
 import { SITE_MANAGER_NAV } from '../../shared/internal/adminNavigation'
+import { siteManagerReadModel } from './readModel'
 
 const formatDate=(value:string)=>new Date(value).toLocaleDateString('pt-BR')
 
 export function SiteManagerDashboard(){
-  const pages=editorialReadModel.pages
-  const contents=editorialReadModel.contents
-  const published=contents.filter(item=>item.status==='published'&&item.active).length
-  const menuPages=pages.filter(page=>page.showInMainMenu).length
+  const pages=siteManagerReadModel.pages
+  const contents=siteManagerReadModel.contents
+  const published=siteManagerReadModel.publishedContents.length
+  const menuPages=siteManagerReadModel.menuPages.length
   const recentContents=[...contents].sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt)).slice(0,5)
   const orderedPages=[...pages].sort((a,b)=>a.menuOrder-b.menuOrder).slice(0,6)
 
@@ -26,7 +26,7 @@ export function SiteManagerDashboard(){
     <div className="dashboard-wide-grid">
       <section className="admin-card">
         <div className="admin-card-head"><div><span>Editorial</span><h2>Conteúdos atualizados recentemente</h2></div><Link className="dashboard-card-link" to="/app/site/conteudos">VER CONTEÚDOS</Link></div>
-        <div className="dashboard-summary-list">{recentContents.map(content=><div className="dashboard-summary-row" key={content.id}><div><b>{content.title}</b><small>{editorialReadModel.getPageById(content.pageId)?.title||content.pageId} · {formatDate(content.updatedAt)}</small></div><span className={`status ${content.status}`}>{content.status}</span><strong>{content.author}</strong></div>)}</div>
+        <div className="dashboard-summary-list">{recentContents.map(content=><div className="dashboard-summary-row" key={content.id}><div><b>{content.title}</b><small>{siteManagerReadModel.getPageById(content.pageId)?.title||content.pageId} · {formatDate(content.updatedAt)}</small></div><span className={`status ${content.status}`}>{content.status}</span><strong>{content.author}</strong></div>)}</div>
       </section>
       <section className="admin-card">
         <div className="admin-card-head"><div><span>Navegação</span><h2>Páginas e menu</h2></div><Link className="dashboard-card-link" to="/app/site/paginas">VER PÁGINAS</Link></div>

@@ -1,6 +1,6 @@
 import { ArrowRight, BriefcaseBusiness, Globe2 } from 'lucide-react'
 import { Link, Navigate, Route, Routes } from 'react-router-dom'
-import { ContactsPage, CrmDashboard, CrmPlaceholder } from '../features/crm/CrmWorkspace'
+import { ActivitiesPage, ContactsPage, CrmDashboard, CrmPlaceholder, DealsPage, PipelinePage } from '../features/crm/CrmWorkspace'
 import { SiteContents, SiteManagerDashboard, SiteManagerPlaceholder, SitePages } from '../features/site-manager/SiteManagerWorkspace'
 
 function WorkspaceHome(){
@@ -19,9 +19,6 @@ function WorkspaceHome(){
 }
 
 const crmPlaceholders = [
-  ['negocios','Negócios'],
-  ['atividades','Atividades'],
-  ['pipeline','Pipeline comercial'],
   ['campanhas','Campanhas'],
   ['relatorios','Relatórios'],
   ['financeiro','Financeiro'],
@@ -39,6 +36,9 @@ export default function LegacyApp(){
     <Route path="/app" element={<WorkspaceHome/>}/>
     <Route path="/app/crm" element={<CrmDashboard/>}/>
     <Route path="/app/crm/contatos" element={<ContactsPage/>}/>
+    <Route path="/app/crm/negocios" element={<DealsPage/>}/>
+    <Route path="/app/crm/atividades" element={<ActivitiesPage/>}/>
+    <Route path="/app/crm/pipeline" element={<PipelinePage/>}/>
     {crmPlaceholders.map(([path,title])=><Route key={path} path={`/app/crm/${path}`} element={<CrmPlaceholder title={title}/>}/>)}
     <Route path="/app/site" element={<SiteManagerDashboard/>}/>
     <Route path="/app/site/conteudos" element={<SiteContents/>}/>

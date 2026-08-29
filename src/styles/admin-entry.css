@@ -8,7 +8,6 @@
 @import './admin-operations.css';
 @import './admin-reference-v2.css';
 @import './admin-nav-groups.css';
-@import './admin-contracts.css';
 @import './admin-table-pagination.css';
 @import './admin-brand.css';
 @import './admin-home.css';
@@ -25,5 +24,3 @@
 @import './admin-kpi-standard.css';
 @import './admin-fixed-sidebar.css';
 @import './admin-reference-real.css';
-@import './admin-reference-chat.css';
-@import './admin-reference-contracts.css';

@@ -1,6 +1,5 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { OperationsPage } from '../operations/OperationsPage'
-import { ContractsReferencePage } from '../operations/ContractsReferencePage'
 import { MarketingReferencePage } from '../operations/MarketingReferencePage'
 import { AgendaReferencePage } from '../operations/AgendaReferencePage'
 import { ReportsReferencePage } from '../operations/ReportsReferencePage'
@@ -8,11 +7,13 @@ import { AccountingSectionPage } from '../operations/AccountingSectionPage'
 import { RHReferencePage } from '../operations/RHReferencePage'
 import { SettingsSectionPage } from '../operations/SettingsSectionPage'
 import { ChatSectionPage } from '../operations/ChatSectionPage'
+import { ContractsPage } from '../operations/contracts/ContractsPage'
+import { TemplatesContractsPage } from '../operations/contracts/TemplatesContractsPage'
+import { ContractVariablesPage } from '../operations/contracts/ContractVariablesPage'
+import { ContractCategoriesPage } from '../operations/contracts/ContractCategoriesPage'
 import { ContactsReferencePage } from './pages/ContactsReferencePage'
 import { CrmDashboardPage } from './pages/CrmDashboardPage'
 import { ReportsPage } from './pages/ReportsPage'
-
-function SeparatedContractRoute({section}:{section:'contracts'|'templates'|'variables'|'categories'}){return <div className="reference-route-separated"><ContractsReferencePage initialTab={section}/></div>}
 
 export default function CrmRoutes(){
   return <Routes>
@@ -25,10 +26,10 @@ export default function CrmRoutes(){
     <Route path="chat/automacoes" element={<ChatSectionPage section="automacoes"/>}/>
     <Route path="musicchat" element={<Navigate to="/app/crm/chat" replace/>}/>
     <Route path="internal-chat" element={<Navigate to="/app/crm/chat" replace/>}/>
-    <Route path="contracts" element={<SeparatedContractRoute section="contracts"/>}/>
-    <Route path="contracts/templates" element={<SeparatedContractRoute section="templates"/>}/>
-    <Route path="contracts/categorias" element={<SeparatedContractRoute section="categories"/>}/>
-    <Route path="contracts/variaveis" element={<SeparatedContractRoute section="variables"/>}/>
+    <Route path="contracts" element={<ContractsPage/>}/>
+    <Route path="contracts/templates" element={<TemplatesContractsPage/>}/>
+    <Route path="contracts/categorias" element={<ContractCategoriesPage/>}/>
+    <Route path="contracts/variaveis" element={<ContractVariablesPage/>}/>
     <Route path="events" element={<AgendaReferencePage/>}/>
     <Route path="integrations" element={<Navigate to="/app/crm/settings" replace/>}/>
     <Route path="relatorios" element={<ReportsPage/>}/>

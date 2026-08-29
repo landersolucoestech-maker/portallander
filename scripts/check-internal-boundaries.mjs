@@ -14,6 +14,7 @@ const portalApp=await read('src/app/PortalApp.tsx')
 if(portalApp.includes('LegacyApp'))failures.push('PortalApp não pode depender de LegacyApp.')
 if(!portalApp.includes("import InternalApp from './InternalApp'"))failures.push('PortalApp deve rotear a área interna por InternalApp.')
 if(!portalApp.includes("import { PublicHome } from '../pages/home/PublicHome'"))failures.push('PortalApp deve delegar a Home para pages/home/PublicHome.')
+if(!portalApp.includes("import { ColaborePage } from '../pages/colabore/ColaborePage'"))failures.push('PortalApp deve rotear Colabore como página pública normal.')
 for(const forbidden of ['const stories','const ranked','const releases','const agenda','function HomeContent','function Card('])if(portalApp.includes(forbidden))failures.push(`PortalApp voltou a concentrar implementação da Home: ${forbidden}`)
 
 const publicHome=await read('src/pages/home/PublicHome.tsx')
@@ -26,18 +27,19 @@ if(!homeManager.includes("from '../../../pages/home/models/homeReadModel'"))fail
 if(!homeManager.includes('/app/site/home/anuncio'))failures.push('HomeManagerPage deve expor o editor oficial do anúncio da Home.')
 
 const main=await read('src/main.tsx')
-for(const forbidden of ['HomeAdBridge','HomePageAdjustmentsBridge','HomeSidebarAdBridge'])if(main.includes(forbidden))failures.push(`main.tsx não pode remontar bridge obsoleto da Home: ${forbidden}`)
+for(const forbidden of ['HomeAdBridge','HomePageAdjustmentsBridge','HomeSidebarAdBridge','ColaborePageBridge'])if(main.includes(forbidden))failures.push(`main.tsx não pode remontar bridge obsoleto: ${forbidden}`)
 
-const colabore=await read('src/pages/colabore/components/ColaborePageBridge.tsx')
-for(const forbidden of ['Material recebido.','setSent(true)','Obrigado por colaborar. A equipe editorial fará a análise.'])if(colabore.includes(forbidden))failures.push(`Colabore não pode simular envio persistido: ${forbidden}`)
+const colabore=await read('src/pages/colabore/ColaborePage.tsx')
+for(const forbidden of ['Material recebido.','setSent(true)','Obrigado por colaborar. A equipe editorial fará a análise.','useLocation'])if(colabore.includes(forbidden))failures.push(`Colabore não pode usar implementação obsoleta: ${forbidden}`)
 if(!colabore.includes('Nenhum material foi enviado.'))failures.push('Colabore deve informar explicitamente quando não existe endpoint de envio.')
+if(!colabore.includes("from '../../shared/public/PublicChrome'"))failures.push('Colabore deve usar PublicChrome diretamente, sem ciclo por PortalApp.')
 
 const removedPaths=[
   'src/app/LegacyApp.tsx','src/app/HeroSection.tsx','src/app/brandAsset.ts',
   'src/features/crm/CrmDirectoryPages.tsx','src/features/crm/CrmOperations.tsx','src/features/crm/CrmWorkspace.tsx',
   'src/features/site-manager/SiteManagerCatalogPages.tsx','src/features/site-manager/SiteManagerOperations.tsx','src/features/site-manager/SiteManagerWorkspace.tsx',
   'src/pages/home/components/HomeAdBridge.tsx','src/pages/home/components/HomePageAdjustmentsBridge.tsx','src/pages/home/components/HomeSidebarAdBridge.tsx',
-  'src/styles/admin-hero-bridge.css',
+  'src/pages/colabore/components/ColaborePageBridge.tsx','src/styles/admin-hero-bridge.css',
 ]
 for(const removedPath of removedPaths){try{await access(new URL(`../${removedPath}`,import.meta.url),constants.F_OK);failures.push(`${removedPath} deve permanecer removido.`)}catch{}}
 

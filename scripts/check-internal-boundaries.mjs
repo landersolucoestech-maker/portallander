@@ -22,12 +22,16 @@ if(!publicHome.includes("from './models/homeReadModel'"))failures.push('PublicHo
 if(!publicHome.includes("from './components/HomeAdSection'"))failures.push('PublicHome deve renderizar HomeAdSection diretamente.')
 for(const forbidden of ['const IMG=','const stories:','const ranked=','const releases=','const agenda=','document.querySelector','innerHTML','createPortal'])if(publicHome.includes(forbidden))failures.push(`PublicHome voltou a usar implementação proibida: ${forbidden}`)
 
+const publicChrome=await read('src/shared/public/PublicChrome.tsx')
+if(!publicChrome.includes("from '../branding/models/headerBrandModel'"))failures.push('PublicChrome deve consumir a configuração da marca do cabeçalho diretamente.')
+for(const forbidden of ['MutationObserver','document.querySelector','HeaderBrandBridge'])if(publicChrome.includes(forbidden))failures.push(`PublicChrome não pode usar branding imperativo: ${forbidden}`)
+
 const homeManager=await read('src/features/site-manager/pages/HomeManagerPage.tsx')
 if(!homeManager.includes("from '../../../pages/home/models/homeReadModel'"))failures.push('HomeManagerPage deve consumir o mesmo homeReadModel da Home pública.')
 if(!homeManager.includes('/app/site/home/anuncio'))failures.push('HomeManagerPage deve expor o editor oficial do anúncio da Home.')
 
 const main=await read('src/main.tsx')
-for(const forbidden of ['HomeAdBridge','HomePageAdjustmentsBridge','HomeSidebarAdBridge','ColaborePageBridge'])if(main.includes(forbidden))failures.push(`main.tsx não pode remontar bridge obsoleto: ${forbidden}`)
+for(const forbidden of ['HomeAdBridge','HomePageAdjustmentsBridge','HomeSidebarAdBridge','ColaborePageBridge','HeaderBrandBridge'])if(main.includes(forbidden))failures.push(`main.tsx não pode remontar bridge obsoleto: ${forbidden}`)
 
 const colabore=await read('src/pages/colabore/ColaborePage.tsx')
 for(const forbidden of ['Material recebido.','setSent(true)','Obrigado por colaborar. A equipe editorial fará a análise.','useLocation'])if(colabore.includes(forbidden))failures.push(`Colabore não pode usar implementação obsoleta: ${forbidden}`)
@@ -39,7 +43,7 @@ const removedPaths=[
   'src/features/crm/CrmDirectoryPages.tsx','src/features/crm/CrmOperations.tsx','src/features/crm/CrmWorkspace.tsx',
   'src/features/site-manager/SiteManagerCatalogPages.tsx','src/features/site-manager/SiteManagerOperations.tsx','src/features/site-manager/SiteManagerWorkspace.tsx',
   'src/pages/home/components/HomeAdBridge.tsx','src/pages/home/components/HomePageAdjustmentsBridge.tsx','src/pages/home/components/HomeSidebarAdBridge.tsx',
-  'src/pages/colabore/components/ColaborePageBridge.tsx','src/styles/admin-hero-bridge.css',
+  'src/pages/colabore/components/ColaborePageBridge.tsx','src/shared/branding/components/HeaderBrandBridge.tsx','src/styles/admin-hero-bridge.css',
 ]
 for(const removedPath of removedPaths){try{await access(new URL(`../${removedPath}`,import.meta.url),constants.F_OK);failures.push(`${removedPath} deve permanecer removido.`)}catch{}}
 
@@ -54,6 +58,7 @@ if(/path=["']\/app\/site/.test(siteRoutes))failures.push('SiteManagerRoutes deve
 if(!siteRoutes.includes('<Route index'))failures.push('SiteManagerRoutes deve declarar o dashboard como rota index.')
 if(!siteRoutes.includes('path="home"'))failures.push('SiteManagerRoutes deve manter a Home como área administrativa de primeiro nível.')
 if(!siteRoutes.includes('path="home/anuncio"'))failures.push('SiteManagerRoutes deve manter o editor de anúncio dentro do domínio da Home.')
+if(!siteRoutes.includes('path="cabecalho"'))failures.push('SiteManagerRoutes deve manter o editor do cabeçalho dentro do Site Manager.')
 
 const adminEntry=await read('src/styles/admin-entry.css')
 for(const required of ['admin-system.css','admin-workspaces.css','admin-brand.css','admin-home.css','admin-hero.css','admin-responsive.css','admin-accessibility.css'])if(!adminEntry.includes(required))failures.push(`admin-entry.css deve carregar ${required}.`)

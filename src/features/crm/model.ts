@@ -1,31 +1,50 @@
-export type CrmContactStatus = 'Lead' | 'Cliente' | 'Negociação' | 'Contato'
-export type CrmDealStage = 'Novo' | 'Contato' | 'Proposta' | 'Negociação' | 'Fechado'
+export type CrmContactStatus = 'Contato' | 'Cliente' | 'Parceiro' | 'Inativo'
+export type CrmLeadStatus = 'Novo' | 'Contatado' | 'Qualificado' | 'Proposta' | 'Negociação' | 'Convertido' | 'Perdido'
+export type CrmPersonType = 'PF' | 'PJ'
+export type CrmTemperature = 'Frio' | 'Morno' | 'Quente'
 export type CrmCampaignStatus = 'Ativa' | 'Planejada'
 
 export interface CrmContact {
   id: string
   name: string
+  personType: CrmPersonType
   company: string
-  status: CrmContactStatus
+  role: string
+  category: string
+  email: string
+  phone: string
+  location: string
+  source: string
   owner: string
+  status: CrmContactStatus
+  tags: readonly string[]
+  lastInteraction: string
+  nextFollowUp?: string
+  notes?: string
   relatedValue: number
 }
 
-export interface CrmActivity {
+export interface CrmLead {
   id: string
-  time: string
-  title: string
-  channel: 'Ligação' | 'Reunião' | 'WhatsApp'
-}
-
-export interface CrmDeal {
-  id: string
-  title: string
+  name: string
   company: string
-  stage: CrmDealStage
+  role: string
+  email: string
+  phone: string
+  location: string
+  leadType: string
+  interest: string
+  source: string
   owner: string
-  value: number
+  status: CrmLeadStatus
+  temperature: CrmTemperature
+  potentialValue: number
   nextAction: string
+  nextFollowUp: string
+  campaign?: string
+  utmSource?: string
+  tags: readonly string[]
+  notes?: string
 }
 
 export interface CrmCampaign {
@@ -39,14 +58,16 @@ export interface CrmCampaign {
 
 export interface CrmSnapshot {
   contacts: readonly CrmContact[]
-  activities: readonly CrmActivity[]
-  deals: readonly CrmDeal[]
+  leads: readonly CrmLead[]
   campaigns: readonly CrmCampaign[]
   metrics: {
     contacts: number
     leads: number
     clients: number
-    pipelineValue: number
+    qualifiedLeads: number
+    hotLeads: number
+    convertedLeads: number
+    followUpsDue: number
   }
 }
 

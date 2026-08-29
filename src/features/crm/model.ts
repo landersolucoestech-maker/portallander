@@ -2,9 +2,8 @@ export type CrmContactStatus = 'Contato' | 'Cliente' | 'Parceiro' | 'Inativo'
 export type CrmLeadStatus = 'Novo' | 'Contatado' | 'Qualificado' | 'Proposta' | 'Negociação' | 'Convertido' | 'Perdido'
 export type CrmPersonType = 'PF' | 'PJ'
 export type CrmTemperature = 'Frio' | 'Morno' | 'Quente'
-export type CrmCampaignStatus = 'Ativa' | 'Planejada'
 export type CrmInteractionChannel = 'WhatsApp' | 'E-mail' | 'Ligação' | 'Reunião' | 'Formulário' | 'Instagram' | 'Sistema'
-export type CrmRelatedContentType = 'Release' | 'Notícia' | 'Entrevista' | 'Publieditorial' | 'Cobertura' | 'Campanha'
+export type CrmRelatedContentType = 'Release' | 'Notícia' | 'Entrevista' | 'Publieditorial' | 'Cobertura'
 
 export interface CrmInteraction {
   id: string
@@ -68,26 +67,15 @@ export interface CrmLead {
   potentialValue: number
   nextAction: string
   nextFollowUp: string
-  campaign?: string
   utmSource?: string
   tags: readonly string[]
   notes?: string
   interactions: readonly CrmInteraction[]
 }
 
-export interface CrmCampaign {
-  id: string
-  name: string
-  status: CrmCampaignStatus
-  channels: string
-  budget: number
-  leads: number | null
-}
-
 export interface CrmSnapshot {
   contacts: readonly CrmContact[]
   leads: readonly CrmLead[]
-  campaigns: readonly CrmCampaign[]
   relationships: readonly CrmRelationship[]
   relatedContent: readonly CrmRelatedContent[]
   metrics: {

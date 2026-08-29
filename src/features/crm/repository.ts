@@ -1,5 +1,5 @@
 import { demoCrmSnapshot } from './data/demoSnapshot'
-import type { CrmCampaign, CrmContact, CrmLead, CrmSnapshot } from './model'
+import type { CrmContact, CrmLead, CrmSnapshot } from './model'
 
 export class CrmPersistenceUnavailableError extends Error {
   constructor() {
@@ -16,9 +16,6 @@ export interface CrmRepository {
   createLead(input: CrmLead): Promise<CrmLead>
   updateLead(input: CrmLead): Promise<CrmLead>
   deleteLead(id: string): Promise<void>
-  createCampaign(input: CrmCampaign): Promise<CrmCampaign>
-  updateCampaign(input: CrmCampaign): Promise<CrmCampaign>
-  deleteCampaign(id: string): Promise<void>
 }
 
 export class ReadOnlyCrmRepository implements CrmRepository {
@@ -28,7 +25,6 @@ export class ReadOnlyCrmRepository implements CrmRepository {
     return {
       contacts: this.snapshot.contacts.map(item=>({...item,tags:[...item.tags],interactions:item.interactions.map(interaction=>({...interaction}))})),
       leads: this.snapshot.leads.map(item=>({...item,tags:[...item.tags],interactions:item.interactions.map(interaction=>({...interaction}))})),
-      campaigns: this.snapshot.campaigns.map(item=>({...item})),
       relationships: this.snapshot.relationships.map(item=>({...item})),
       relatedContent: this.snapshot.relatedContent.map(item=>({...item})),
       metrics: {...this.snapshot.metrics},
@@ -41,12 +37,7 @@ export class ReadOnlyCrmRepository implements CrmRepository {
   async createLead(): Promise<CrmLead> { throw new CrmPersistenceUnavailableError() }
   async updateLead(): Promise<CrmLead> { throw new CrmPersistenceUnavailableError() }
   async deleteLead(): Promise<void> { throw new CrmPersistenceUnavailableError() }
-  async createCampaign(): Promise<CrmCampaign> { throw new CrmPersistenceUnavailableError() }
-  async updateCampaign(): Promise<CrmCampaign> { throw new CrmPersistenceUnavailableError() }
-  async deleteCampaign(): Promise<void> { throw new CrmPersistenceUnavailableError() }
 }
 
 export const crmRepository: CrmRepository = new ReadOnlyCrmRepository(demoCrmSnapshot)
-
-/** Snapshot síncrono demonstrativo até existir API real. */
 export const crmReadModel = demoCrmSnapshot

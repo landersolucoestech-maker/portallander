@@ -11,7 +11,6 @@ import { SiteContentsPage } from './pages/SiteContentsPage'
 import { SiteManagerDashboardPage } from './pages/SiteManagerDashboardPage'
 import { SiteMediaPage } from './pages/SiteMediaPage'
 import { SitePagesPage } from './pages/SitePagesPage'
-import { SiteSettingsPage } from './pages/SiteSettingsPage'
 
 export default function SiteManagerRoutes(){
   return <Routes>
@@ -27,7 +26,6 @@ export default function SiteManagerRoutes(){
     <Route path="midia" element={<SiteMediaPage/>}/>
     <Route path="noticias/anuncio" element={<NewsAdManagerPage/>}/>
     <Route path="midia-kit" element={<MediaKitPage/>}/>
-    <Route path="configuracoes" element={<SiteSettingsPage/>}/>
     <Route path="*" element={<Navigate to="/app/site" replace/>}/>
   </Routes>
 }

@@ -16,7 +16,7 @@ function PaginatedTable({headers,rows}:{headers:string[];rows:ReactNode[][]}){
   const totalPages=Math.max(1,Math.ceil(rows.length/pageSize))
   const safePage=Math.min(page,totalPages)
   const visible=rows.slice((safePage-1)*pageSize,safePage*pageSize)
-  return <><div className="zip-table-wrap"><table className="zip-table"><thead><tr>{headers.map((header,index)=><th key={header} className={index===headers.length-1?'right':''}>{header}</th>)}</tr></thead><tbody>{visible.map((row,index)=><tr key={`${safePage}-${index}`}>{row.map((cell,cellIndex)=><td key={cellIndex} className={cellIndex===row.length-1?'right':''}>{cell}</td>)}</tr>)}</tbody></table></div><TableViewPagination page={safePage} totalPages={totalPages} totalRecords={rows.length} pageSize={pageSize} onPageChange={setPage} onPageSizeChange={size=>{setPageSize(size);setPage(1)}}/></>
+  return <div className="tableview-surface"><div className="zip-table-wrap"><table className="zip-table"><thead><tr>{headers.map((header,index)=><th key={header} className={index===headers.length-1?'right':''}>{header}</th>)}</tr></thead><tbody>{visible.map((row,index)=><tr key={`${safePage}-${index}`}>{row.map((cell,cellIndex)=><td key={cellIndex} className={cellIndex===row.length-1?'right':''}>{cell}</td>)}</tr>)}</tbody></table></div><TableViewPagination page={safePage} totalPages={totalPages} totalRecords={rows.length} pageSize={pageSize} onPageChange={setPage} onPageSizeChange={size=>{setPageSize(size);setPage(1)}}/></div>
 }
 
 const ACCOUNTING_ROWS=[

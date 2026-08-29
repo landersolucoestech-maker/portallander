@@ -1,5 +1,5 @@
 import { demoCrmSnapshot } from './data/demoSnapshot'
-import type { CrmActivity, CrmContact, CrmDeal, CrmSnapshot } from './model'
+import type { CrmActivity, CrmCampaign, CrmContact, CrmDeal, CrmSnapshot } from './model'
 
 export class CrmPersistenceUnavailableError extends Error {
   constructor() {
@@ -19,6 +19,9 @@ export interface CrmRepository {
   createActivity(input: CrmActivity): Promise<CrmActivity>
   updateActivity(input: CrmActivity): Promise<CrmActivity>
   deleteActivity(id: string): Promise<void>
+  createCampaign(input: CrmCampaign): Promise<CrmCampaign>
+  updateCampaign(input: CrmCampaign): Promise<CrmCampaign>
+  deleteCampaign(id: string): Promise<void>
 }
 
 export class ReadOnlyCrmRepository implements CrmRepository {
@@ -29,6 +32,7 @@ export class ReadOnlyCrmRepository implements CrmRepository {
       contacts: this.snapshot.contacts.map(item => ({...item})),
       activities: this.snapshot.activities.map(item => ({...item})),
       deals: this.snapshot.deals.map(item => ({...item})),
+      campaigns: this.snapshot.campaigns.map(item => ({...item})),
       metrics: {...this.snapshot.metrics},
     }
   }
@@ -42,6 +46,9 @@ export class ReadOnlyCrmRepository implements CrmRepository {
   async createActivity(): Promise<CrmActivity> { throw new CrmPersistenceUnavailableError() }
   async updateActivity(): Promise<CrmActivity> { throw new CrmPersistenceUnavailableError() }
   async deleteActivity(): Promise<void> { throw new CrmPersistenceUnavailableError() }
+  async createCampaign(): Promise<CrmCampaign> { throw new CrmPersistenceUnavailableError() }
+  async updateCampaign(): Promise<CrmCampaign> { throw new CrmPersistenceUnavailableError() }
+  async deleteCampaign(): Promise<void> { throw new CrmPersistenceUnavailableError() }
 }
 
 export const crmRepository: CrmRepository = new ReadOnlyCrmRepository(demoCrmSnapshot)

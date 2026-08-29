@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import type { LucideIcon } from 'lucide-react'
-import { Bell, Building2, ChevronDown, Gauge } from 'lucide-react'
+import { Bell, Building2, ChevronDown } from 'lucide-react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
 import { ADMIN_CAPABILITIES } from './adminCapabilities'
 import { portalLogo } from '../branding/assets/brandAsset'
@@ -16,6 +16,10 @@ export type AdminShellAction={label:string;onClick?:()=>void;disabled?:boolean;d
 const isNavGroup=(item:AdminNavItem):item is AdminNavGroup=>!Array.isArray(item)
 
 const PROMOTED_HEADERS:Record<string,AdminShellHeader>={
+  '/app/crm/contatos':{
+    title:'Contatos',
+    description:'Relacionamentos e oportunidades comerciais.'
+  },
   '/app/crm/events':{
     title:'Agenda',
     description:'Agenda operacional para reuniões, entrevistas, coberturas, follow-ups, compromissos editoriais e comerciais.'
@@ -47,6 +51,7 @@ const PROMOTED_HEADERS:Record<string,AdminShellHeader>={
 }
 
 const routeShellClass=(pathname:string)=>{
+  if(pathname==='/app/crm/contatos')return ' app-shell-crm-contacts'
   if(pathname==='/app/crm/events')return ' app-shell-agenda'
   if(pathname==='/app/crm/marketing/visao-geral')return ' app-shell-marketing-overview'
   if(pathname==='/app/crm/marketing/calendario')return ' app-shell-marketing-calendar'
@@ -60,8 +65,10 @@ export function AdminShell({area,items,children,header,headerAction,headerAction
   const effectiveHeader=header??promotedHeader
   const [notificationsOpen,setNotificationsOpen]=useState(false)
   const [accountOpen,setAccountOpen]=useState(false)
+  const [contactsCreateLabel,setContactsCreateLabel]=useState('Novo Contato')
   const notificationsRef=useRef<HTMLDivElement>(null)
   const actions=headerActions??(headerAction?[headerAction]:[])
+  const isContactsRoute=location.pathname==='/app/crm/contatos'
 
   useEffect(()=>{
     if(!notificationsOpen)return
@@ -71,6 +78,22 @@ export function AdminShell({area,items,children,header,headerAction,headerAction
     document.addEventListener('pointerdown',closeOnOutsidePointer)
     return()=>document.removeEventListener('pointerdown',closeOnOutsidePointer)
   },[notificationsOpen])
+
+  useEffect(()=>{
+    if(!isContactsRoute)return
+    const syncLabel=()=>{
+      const active=document.querySelector('.app-shell-crm-contacts .zip-tabs button.active')
+      setContactsCreateLabel(active?.textContent?.trim()==='Leads'?'Novo Lead':'Novo Contato')
+    }
+    syncLabel()
+    document.addEventListener('click',syncLabel)
+    return()=>document.removeEventListener('click',syncLabel)
+  },[isContactsRoute])
+
+  const triggerContactsCreate=()=>{
+    const button=document.querySelector<HTMLButtonElement>('.app-shell-crm-contacts .zip-toolbar .zip-button')
+    button?.click()
+  }
 
   return <div className={`app-shell${routeShellClass(location.pathname)}`}>
     <a className="admin-skip-link" href="#admin-main">Pular para o conteúdo</a>
@@ -103,6 +126,7 @@ export function AdminShell({area,items,children,header,headerAction,headerAction
         </div>}
         <div className="workspace-actions">
           {actions.map(action=><button key={action.label} className={`button ${action.variant==='secondary'?'outline workspace-header-secondary':'dark'} workspace-primary-action`} type="button" onClick={action.onClick} disabled={action.disabled} title={action.disabled?action.disabledReason:undefined}>{action.label}</button>)}
+          {isContactsRoute&&<button className="button dark workspace-primary-action crm-header-create" type="button" onClick={triggerContactsCreate}>{contactsCreateLabel}</button>}
           <div className="workspace-popover-wrap" ref={notificationsRef}>
             <button className="icon-button" type="button" aria-label="Abrir notificações" aria-expanded={notificationsOpen} onClick={()=>{setNotificationsOpen(value=>!value);setAccountOpen(false)}}><Bell size={17} aria-hidden="true"/></button>
             {notificationsOpen&&<div className="workspace-popover notifications-popover" role="status"><strong>{ADMIN_CAPABILITIES.notifications.label}</strong><p>{ADMIN_CAPABILITIES.notifications.description}</p></div>}

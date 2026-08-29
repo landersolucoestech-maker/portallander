@@ -1,8 +1,8 @@
 .access-page{--access-red:#e30613;--access-red-dark:#b8000b;--access-ink:#121212;--access-muted:#6f6f6f;--access-line:#e4e2df;min-height:100vh;background:#f4f3f1;color:var(--access-ink)}
 .access-kicker{display:inline-flex;align-items:center;gap:9px;color:var(--access-red);font-size:10px;font-weight:850;letter-spacing:.16em;text-transform:uppercase}
 .access-kicker:before{content:'';width:28px;height:2px;background:var(--access-red)}
-.access-login-page{display:grid;grid-template-columns:minmax(440px,.95fr) minmax(420px,1.05fr);grid-template-areas:'login brand'}
-.access-brand-panel{grid-area:brand;position:relative;min-height:100vh;padding:42px clamp(34px,5vw,76px);background-color:#050505;background-image:linear-gradient(90deg,rgba(0,0,0,.42),rgba(0,0,0,.08)),url('../assets/login-brand-background.webp');background-size:cover;background-position:center center;background-repeat:no-repeat;color:#fff;display:flex;flex-direction:column;overflow:hidden}
+.access-login-page{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-areas:'login brand'}
+.access-brand-panel{grid-area:brand;position:relative;min-height:100vh;padding:42px clamp(34px,5vw,76px);background-color:#050505;background-image:linear-gradient(90deg,rgba(0,0,0,.42),rgba(0,0,0,.08)),url('../assets/login-brand-background.webp');background-size:cover;background-position:64% center;background-repeat:no-repeat;color:#fff;display:flex;flex-direction:column;overflow:hidden}
 .access-brand-panel:before{content:'PL';position:absolute;right:-36px;bottom:-86px;font-family:Impact,'Arial Narrow',sans-serif;font-size:320px;font-style:italic;line-height:.8;color:rgba(255,255,255,.025);transform:rotate(-8deg);pointer-events:none}
 .access-brand-panel:after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,.48) 0%,rgba(0,0,0,.16) 52%,rgba(0,0,0,.02) 100%);pointer-events:none}
 .access-logo{position:relative;z-index:1;display:inline-flex;width:max-content}.access-logo img{height:42px;max-width:190px;object-fit:contain;object-position:left center}

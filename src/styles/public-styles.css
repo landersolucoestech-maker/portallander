@@ -3,7 +3,7 @@
 @import './public-logo.css';
 @import './public-tweaks.css';
 @import './public-mockup.css';
-@import '../pages/home/styles/hero-editable.css';
+@import '../pages/home/styles/hero-public.css';
 @import './public-reference.css';
 @import './public-corrections.css';
 @import '../pages/home/styles/hero-fixed-background.css';

@@ -1,4 +1,5 @@
 import { portalLogo } from '../assets/brandAsset'
+import { headerBrandPersistence } from './headerBrandPersistence'
 
 export type HeaderBrandAlignment='left'|'center'|'right'
 export type HeaderBrandConfig={
@@ -26,22 +27,19 @@ export const defaultHeaderBrandConfig:HeaderBrandConfig={
 }
 
 export function readHeaderBrandConfig():HeaderBrandConfig{
-  if(typeof window==='undefined')return defaultHeaderBrandConfig
   try{
-    const raw=window.localStorage.getItem(HEADER_BRAND_STORAGE_KEY)
+    const raw=headerBrandPersistence.read(HEADER_BRAND_STORAGE_KEY)
     if(!raw)return defaultHeaderBrandConfig
     return {...defaultHeaderBrandConfig,...JSON.parse(raw)}
   }catch{return defaultHeaderBrandConfig}
 }
 
 export function writeHeaderBrandConfig(config:HeaderBrandConfig){
-  if(typeof window==='undefined')return
-  window.localStorage.setItem(HEADER_BRAND_STORAGE_KEY,JSON.stringify(config))
-  window.dispatchEvent(new CustomEvent('portal-lander:header-brand-updated'))
+  headerBrandPersistence.write(HEADER_BRAND_STORAGE_KEY,JSON.stringify(config))
+  headerBrandPersistence.notify()
 }
 
 export function resetHeaderBrandConfig(){
-  if(typeof window==='undefined')return
-  window.localStorage.removeItem(HEADER_BRAND_STORAGE_KEY)
-  window.dispatchEvent(new CustomEvent('portal-lander:header-brand-updated'))
+  headerBrandPersistence.remove(HEADER_BRAND_STORAGE_KEY)
+  headerBrandPersistence.notify()
 }

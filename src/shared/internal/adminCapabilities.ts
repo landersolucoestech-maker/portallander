@@ -37,6 +37,11 @@ export const ADMIN_CAPABILITIES = {
     label:'Persistência da logo do cabeçalho',
     description:'A configuração da marca do cabeçalho salva somente no armazenamento local deste navegador.',
   },
+  footerBrandPersistence: {
+    state:'browser-local',
+    label:'Persistência da logo do rodapé',
+    description:'A configuração da marca do rodapé salva somente no armazenamento local deste navegador.',
+  },
   adminAuth: {
     state:'unavailable',
     label:'Autenticação administrativa',

@@ -1,0 +1,17 @@
+/* Limpeza estrutural por rota solicitada para Agenda e Marketing. */
+.app-shell-agenda .zip-agenda{
+  display:none!important;
+}
+
+.app-shell-agenda .zip-calendar-layout{
+  grid-template-columns:minmax(0,1fr)!important;
+}
+
+.app-shell-marketing-overview .zip-overview-grid .zip-side-stack .zip-panel:first-child{
+  display:none!important;
+}
+
+.app-shell-marketing-calendar .workspace-main>.zip-stack>.zip-kpi-grid:first-child,
+.app-shell-marketing-calendar .workspace-main>.zip-stack .zip-kpi-grid:first-child{
+  display:none!important;
+}

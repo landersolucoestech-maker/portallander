@@ -29,7 +29,7 @@ const operationalHook=await read('src/features/dashboard/hooks/useOperationalDas
 for(const required of ["queryKey:['operational-dashboard']",'staleTime:30_000','refetchInterval:60_000'])if(!operationalHook.includes(required))failures.push(`useOperationalDashboard deve preservar ${required}`)
 
 const activityHook=await read('src/features/dashboard/hooks/useActivityHistory.ts')
-for(const required of ["queryKey:['activity-history',limit]",'staleTime:30_000','refetchOnWindowFocus:false','retry:1'])if(!activityHook.includes(required))failures.push(`useActivityHistory deve preservar ${required}`)
+for(const required of ["queryKey:['activity-history',safeLimit]",'staleTime:30_000','refetchOnWindowFocus:false','retry:1'])if(!activityHook.includes(required))failures.push(`useActivityHistory deve preservar ${required}`)
 
 const siteRoutes=await read('src/features/site-manager/SiteManagerRoutes.tsx')
 if(!siteRoutes.includes('<Route index'))failures.push('SiteManagerRoutes deve declarar dashboard index.')

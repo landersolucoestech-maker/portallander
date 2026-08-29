@@ -22,6 +22,15 @@ for(const forbidden of ['const stories','const ranked','const releases','const a
   if(portalApp.includes(forbidden))failures.push(`PortalApp voltou a concentrar implementação da Home: ${forbidden}`)
 }
 
+const publicHome=await read('src/pages/home/PublicHome.tsx')
+if(!publicHome.includes("from './models/homeReadModel'"))failures.push('PublicHome deve consumir models/homeReadModel.')
+for(const forbidden of ['const IMG=','const stories:','const ranked=','const releases=','const agenda=']){
+  if(publicHome.includes(forbidden))failures.push(`PublicHome voltou a embutir dados estáticos: ${forbidden}`)
+}
+
+const homeManager=await read('src/features/site-manager/pages/HomeManagerPage.tsx')
+if(!homeManager.includes("from '../../../pages/home/models/homeReadModel'"))failures.push('HomeManagerPage deve consumir o mesmo homeReadModel da Home pública.')
+
 const removedPaths=[
   'src/app/LegacyApp.tsx',
   'src/app/HeroSection.tsx',

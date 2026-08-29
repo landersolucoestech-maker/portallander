@@ -7,7 +7,7 @@ import { CRM_DEMO_DESCRIPTION, CRM_PIPELINE_STAGES } from '../presentation'
 import { crmReadModel } from '../repository'
 
 export function CrmDashboardPage(){
-  const {contacts,activities,deals,metrics}=crmReadModel
+  const {activities,deals,metrics}=crmReadModel
   const stageTotals=CRM_PIPELINE_STAGES.map(stage=>({stage,total:deals.filter(deal=>deal.stage===stage).reduce((sum,deal)=>sum+deal.value,0)}))
   const maxStageValue=Math.max(...stageTotals.map(item=>item.total),1)
 
@@ -21,8 +21,8 @@ export function CrmDashboardPage(){
     </div>
     <div className="admin-grid">
       <section className="admin-card">
-        <div className="admin-card-head"><div><span>Relacionamentos</span><h2>Contatos recentes</h2></div><Link to="/app/crm/contatos" className="button outline">Ver todos</Link></div>
-        {contacts.map(contact=><div className="compact-row" key={contact.id}><div className="table-avatar">{contact.name.split(' ').map(part=>part[0]).join('').slice(0,2)}</div><div className="grow"><b>{contact.name}</b><small>{contact.company} · {contact.owner}</small></div><span className={`status ${statusClass(contact.status)}`}>{contact.status}</span><strong>{formatCurrency(contact.relatedValue)}</strong></div>)}
+        <div className="admin-card-head"><div><span>Atividades</span><h2>Atividades recentes</h2></div><Link to="/app/crm/atividades" className="button outline">Ver todas</Link></div>
+        {activities.map(item=><div className="activity-row" key={`recent-${item.id}`}><span>{item.time}</span><div><b>{item.title}</b><small>{item.channel}</small></div></div>)}
       </section>
       <section className="admin-card">
         <div className="admin-card-head"><div><span>Agenda comercial</span><h2>Próximas atividades</h2></div><Link to="/app/crm/atividades" className="button outline">Abrir agenda</Link></div>

@@ -5,7 +5,7 @@ const read = path => readFile(new URL(`../${path}`, import.meta.url),'utf8')
 const failures=[]
 
 const publicStyles=await read('src/styles/public-styles.css')
-if(/admin-(system|workspaces|entry|header|dashboard|brand|responsive|accessibility|hero)/.test(publicStyles)){
+if(/admin-(system|workspaces|entry|header|dashboard|brand|responsive|accessibility|hero|home)/.test(publicStyles)){
   failures.push('public-styles.css não pode importar folhas administrativas.')
 }
 
@@ -54,9 +54,10 @@ for(const forbidden of ['SiteManagerCatalogPages','SiteManagerOperations','SiteM
 }
 if(/path=["']\/app\/site/.test(siteRoutes))failures.push('SiteManagerRoutes deve usar paths relativos ao escopo /app/site/*.')
 if(!siteRoutes.includes('<Route index'))failures.push('SiteManagerRoutes deve declarar o dashboard como rota index.')
+if(!siteRoutes.includes('path="home"'))failures.push('SiteManagerRoutes deve manter a Home como área administrativa de primeiro nível.')
 
 const adminEntry=await read('src/styles/admin-entry.css')
-for(const required of ['admin-system.css','admin-workspaces.css','admin-brand.css','admin-hero.css','admin-responsive.css','admin-accessibility.css']){
+for(const required of ['admin-system.css','admin-workspaces.css','admin-brand.css','admin-home.css','admin-hero.css','admin-responsive.css','admin-accessibility.css']){
   if(!adminEntry.includes(required))failures.push(`admin-entry.css deve carregar ${required}.`)
 }
 if(adminEntry.includes('admin-hero-bridge.css'))failures.push('admin-entry.css não pode reintroduzir o stylesheet bridge antigo do Hero.')

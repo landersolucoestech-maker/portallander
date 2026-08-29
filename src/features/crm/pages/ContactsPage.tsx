@@ -1,5 +1,5 @@
 import { BadgeCheck, ChevronLeft, ChevronRight, MoreHorizontal, Search, Target, TrendingUp, UserCheck, UserPlus, Users, UserX, X } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
 import { ADMIN_CAPABILITIES } from '../../../shared/internal/adminCapabilities'
 import { CRM_NAV } from '../../../shared/internal/adminNavigation'
 import { AdminKpi, AdminNotice, AdminShell } from '../../../shared/internal/AdminUi'
@@ -28,7 +28,7 @@ const leadKpis=[
   ['Em conversão','11','Snapshot demonstrativo',TrendingUp],
 ] as const
 
-function FormField({label,children,wide=false}:{label:string;children:React.ReactNode;wide?:boolean}){
+function FormField({label,children,wide=false}:{label:string;children:ReactNode;wide?:boolean}){
   return <label className={wide?'crm-form-field crm-form-field-wide':'crm-form-field'}><span>{label}</span>{children}</label>
 }
 

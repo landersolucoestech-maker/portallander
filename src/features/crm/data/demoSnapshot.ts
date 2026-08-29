@@ -23,6 +23,11 @@ export const demoCrmSnapshot: CrmSnapshot = {
     { id:'horizonte-retencao', title:'Renovação anual', company:'Estúdio Horizonte', stage:'Fechado', owner:'Deyvisson', value:32500, nextAction:'Onboarding comercial' },
     { id:'bl-divulgacao', title:'Divulgação de evento', company:'BL Eventos', stage:'Contato', owner:'Equipe', value:7500, nextAction:'Confirmar briefing' },
   ],
+  campaigns: [
+    { id:'portal-institucional', name:'Portal Lander Institucional', status:'Ativa', channels:'Meta + Google', budget:4800, leads:148 },
+    { id:'midia-kit-comercial', name:'Mídia Kit Comercial', status:'Planejada', channels:'Meta', budget:2000, leads:null },
+    { id:'captacao-parceiros', name:'Captação Parceiros', status:'Ativa', channels:'Google', budget:3200, leads:63 },
+  ],
   metrics: {
     contacts: 248,
     leads: 42,

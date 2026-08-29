@@ -1,4 +1,5 @@
 import heroDjStay from '../assets/hero-djstay.jpg'
+import { heroPersistence } from './heroPersistence'
 
 export type HeroTitleSegment = { text: string; emphasis: boolean }
 export type HeroTicker = { active: boolean; label: string; text: string; url: string }
@@ -53,26 +54,23 @@ function legacyToConfig(raw:unknown):HeroCarouselConfig{
 }
 
 export function readHeroConfig():HeroCarouselConfig{
-  if(typeof window==='undefined')return defaultHeroConfig
   try{
-    const value=window.localStorage.getItem(HERO_STORAGE_KEY)
+    const value=heroPersistence.read(HERO_STORAGE_KEY)
     if(value)return normalizeConfig(JSON.parse(value))
-    const legacy=window.localStorage.getItem(LEGACY_HERO_STORAGE_KEY)
+    const legacy=heroPersistence.read(LEGACY_HERO_STORAGE_KEY)
     if(legacy)return legacyToConfig(JSON.parse(legacy))
   }catch{return defaultHeroConfig}
   return defaultHeroConfig
 }
 export function writeHeroConfig(config:HeroCarouselConfig){
-  if(typeof window==='undefined')return
   const normalized=normalizeConfig(config)
-  window.localStorage.setItem(HERO_STORAGE_KEY,JSON.stringify(normalized))
-  window.dispatchEvent(new CustomEvent('portal-lander:hero-updated'))
+  heroPersistence.write(HERO_STORAGE_KEY,JSON.stringify(normalized))
+  heroPersistence.notify()
 }
 export function resetHeroConfig(){
-  if(typeof window==='undefined')return
-  window.localStorage.removeItem(HERO_STORAGE_KEY)
-  window.localStorage.removeItem(LEGACY_HERO_STORAGE_KEY)
-  window.dispatchEvent(new CustomEvent('portal-lander:hero-updated'))
+  heroPersistence.remove(HERO_STORAGE_KEY)
+  heroPersistence.remove(LEGACY_HERO_STORAGE_KEY)
+  heroPersistence.notify()
 }
 export function getRenderableHeroSlides(config=readHeroConfig()):HeroSlide[]{
   const now=Date.now()

@@ -8,7 +8,9 @@ import { portalLogo } from '../branding/assets/brandAsset'
 export type AdminArea = 'crm' | 'cms'
 export type AdminNavItem = readonly [label: string, icon: LucideIcon, to: string]
 
-export function AdminShell({area,items,children}:{area:AdminArea;items:readonly AdminNavItem[];children:ReactNode}){
+type AdminShellHeader={title:string;description:string}
+
+export function AdminShell({area,items,children,header}:{area:AdminArea;items:readonly AdminNavItem[];children:ReactNode;header?:AdminShellHeader}){
   const context=area==='crm'?'CRM':'Gerenciador do Site'
   const [query,setQuery]=useState('')
   const [notificationsOpen,setNotificationsOpen]=useState(false)
@@ -28,20 +30,22 @@ export function AdminShell({area,items,children}:{area:AdminArea;items:readonly 
     </aside>
 
     <div className="workspace">
-      <header className="workspace-top">
-        <div className="workspace-identity">
-          <span className="workspace-name">Portal Lander</span>
-          <span className="workspace-divider" aria-hidden="true"/>
-          <span className="workspace-context">{context}</span>
-        </div>
-        <div className="workspace-search-wrap">
-          <label className="workspace-search">
-            <span className="sr-only">Buscar seção no {context}</span>
-            <Search size={16} aria-hidden="true"/>
-            <input type="search" value={query} onChange={event=>setQuery(event.target.value)} placeholder="Buscar uma seção..." autoComplete="off"/>
-          </label>
-          {normalizedQuery&&<nav className="workspace-search-results" aria-label="Resultados da busca interna">{searchResults.length?searchResults.map(([label,Icon,to])=><Link key={to} to={to} onClick={()=>setQuery('')}><Icon size={15} aria-hidden="true"/><span>{label}</span></Link>):<span className="workspace-search-empty">Nenhuma seção encontrada.</span>}</nav>}
-        </div>
+      <header className={`workspace-top${header?' workspace-top-page':''}`}>
+        {header?<div className="workspace-page-heading"><h1>{header.title}</h1><p>{header.description}</p></div>:<>
+          <div className="workspace-identity">
+            <span className="workspace-name">Portal Lander</span>
+            <span className="workspace-divider" aria-hidden="true"/>
+            <span className="workspace-context">{context}</span>
+          </div>
+          <div className="workspace-search-wrap">
+            <label className="workspace-search">
+              <span className="sr-only">Buscar seção no {context}</span>
+              <Search size={16} aria-hidden="true"/>
+              <input type="search" value={query} onChange={event=>setQuery(event.target.value)} placeholder="Buscar uma seção..." autoComplete="off"/>
+            </label>
+            {normalizedQuery&&<nav className="workspace-search-results" aria-label="Resultados da busca interna">{searchResults.length?searchResults.map(([label,Icon,to])=><Link key={to} to={to} onClick={()=>setQuery('')}><Icon size={15} aria-hidden="true"/><span>{label}</span></Link>):<span className="workspace-search-empty">Nenhuma seção encontrada.</span>}</nav>}
+          </div>
+        </>}
         <div className="workspace-actions">
           <div className="workspace-popover-wrap">
             <button className="icon-button" type="button" aria-label="Abrir notificações" aria-expanded={notificationsOpen} onClick={()=>{setNotificationsOpen(value=>!value);setAccountOpen(false)}}><Bell size={17} aria-hidden="true"/></button>

@@ -17,11 +17,17 @@ for(const selector of ['.app-shell{','.sidebar{','.workspace-top{','.admin-kpi-g
 const portalApp=await read('src/app/PortalApp.tsx')
 if(portalApp.includes('LegacyApp'))failures.push('PortalApp não pode depender de LegacyApp.')
 if(!portalApp.includes("import InternalApp from './InternalApp'"))failures.push('PortalApp deve rotear a área interna por InternalApp.')
+if(!portalApp.includes("import { PublicHome } from '../pages/home/PublicHome'"))failures.push('PortalApp deve delegar a Home para pages/home/PublicHome.')
+for(const forbidden of ['const stories','const ranked','const releases','const agenda','function HomeContent','function Card(']){
+  if(portalApp.includes(forbidden))failures.push(`PortalApp voltou a concentrar implementação da Home: ${forbidden}`)
+}
 
-try{
-  await access(new URL('../src/app/LegacyApp.tsx',import.meta.url),constants.F_OK)
-  failures.push('src/app/LegacyApp.tsx deve permanecer removido.')
-}catch{}
+for(const removedPath of ['src/app/LegacyApp.tsx','src/app/HeroSection.tsx','src/app/brandAsset.ts']){
+  try{
+    await access(new URL(`../${removedPath}`,import.meta.url),constants.F_OK)
+    failures.push(`${removedPath} deve permanecer removido.`)
+  }catch{}
+}
 
 const adminEntry=await read('src/styles/admin-entry.css')
 for(const required of ['admin-system.css','admin-workspaces.css','admin-brand.css','admin-responsive.css','admin-accessibility.css']){
@@ -29,9 +35,9 @@ for(const required of ['admin-system.css','admin-workspaces.css','admin-brand.cs
 }
 
 if(failures.length){
-  console.error('Falha nos boundaries da área interna:')
+  console.error('Falha nos boundaries da aplicação:')
   failures.forEach(item=>console.error(`- ${item}`))
   process.exit(1)
 }
 
-console.log('Internal boundaries OK')
+console.log('Application boundaries OK')

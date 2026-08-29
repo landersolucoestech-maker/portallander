@@ -5,7 +5,7 @@ import { Link, NavLink } from 'react-router-dom'
 import { ADMIN_CAPABILITIES } from './adminCapabilities'
 import { portalLogo } from '../branding/assets/brandAsset'
 
-export type AdminArea = 'cms'
+export type AdminArea = 'crm' | 'cms'
 export type AdminNavLink = readonly [label: string, icon: LucideIcon, to: string]
 export type AdminNavGroup = {label:string;icon:LucideIcon;to?:string;children:readonly AdminNavLink[]}
 export type AdminNavItem = AdminNavLink | AdminNavGroup
@@ -15,8 +15,8 @@ export type AdminShellAction={label:string;onClick?:()=>void;disabled?:boolean;d
 
 const isNavGroup=(item:AdminNavItem):item is AdminNavGroup=>!Array.isArray(item)
 
-export function AdminShell({items,children,header,headerAction,headerActions}:{area:AdminArea;items:readonly AdminNavItem[];children:ReactNode;header?:AdminShellHeader;headerAction?:AdminShellAction;headerActions?:readonly AdminShellAction[]}){
-  const context='Gerenciador do Site'
+export function AdminShell({area,items,children,header,headerAction,headerActions}:{area:AdminArea;items:readonly AdminNavItem[];children:ReactNode;header?:AdminShellHeader;headerAction?:AdminShellAction;headerActions?:readonly AdminShellAction[]}){
+  const context=area==='crm'?'CRM':'Gerenciador do Site'
   const [notificationsOpen,setNotificationsOpen]=useState(false)
   const [accountOpen,setAccountOpen]=useState(false)
   const notificationsRef=useRef<HTMLDivElement>(null)
@@ -37,7 +37,7 @@ export function AdminShell({items,children,header,headerAction,headerActions}:{a
       <div className="sidebar-head"><Link to="/" className="brand" aria-label="Ir para o Portal Lander"><img src={portalLogo} alt="Portal Lander"/></Link><span>{context}</span></div>
       <nav aria-label={`Seções do ${context}`}>{items.map(item=>{
         if(isNavGroup(item)){const GroupIcon=item.icon;const groupContent=<><GroupIcon size={17}/><span>{item.label}</span><ChevronDown size={13}/></>;return <div className="sidebar-nav-group" key={item.label}>{item.to?<NavLink className="sidebar-nav-group-label" to={item.to}>{groupContent}</NavLink>:<div className="sidebar-nav-group-label">{groupContent}</div>}<div className="sidebar-subnav">{item.children.map(([label,Icon,to])=><NavLink className="sidebar-subnav-link" key={to} to={to}><Icon size={14}/><span>{label}</span></NavLink>)}</div></div>}
-        const [label,Icon,to]=item;return <NavLink key={to} end={to==='/app/site'} to={to}><Icon size={17}/><span>{label}</span></NavLink>
+        const [label,Icon,to]=item;return <NavLink key={to} end={to==='/app/crm'||to==='/app/site'} to={to}><Icon size={17}/><span>{label}</span></NavLink>
       })}</nav>
       <div className="sidebar-bottom"><NavLink to="/app/workspaces"><Building2 size={17}/><span>Trocar workspace</span></NavLink></div>
     </aside>

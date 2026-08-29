@@ -1,7 +1,9 @@
 import { ArrowRight, BriefcaseBusiness, Globe2 } from 'lucide-react'
 import { Link, Navigate, Route, Routes } from 'react-router-dom'
-import { ActivitiesPage, ContactsPage, CrmDashboard, CrmPlaceholder, DealsPage, PipelinePage } from '../features/crm/CrmWorkspace'
-import { SiteCategories, SiteContents, SiteManagerDashboard, SiteManagerPlaceholder, SiteMedia, SitePages } from '../features/site-manager/SiteManagerWorkspace'
+import { ActivitiesPage, ContactsPage, CrmDashboard, DealsPage, PipelinePage } from '../features/crm/CrmWorkspace'
+import { CampaignsPage, FinancePage, ReportsPage } from '../features/crm/CrmOperations'
+import { SiteCategories, SiteContents, SiteManagerDashboard, SiteMedia, SitePages } from '../features/site-manager/SiteManagerWorkspace'
+import { MediaKitPage, SiteSettingsPage } from '../features/site-manager/SiteManagerOperations'
 
 function WorkspaceHome(){
   return <div className="workspace-picker">
@@ -18,17 +20,6 @@ function WorkspaceHome(){
   </div>
 }
 
-const crmPlaceholders = [
-  ['campanhas','Campanhas'],
-  ['relatorios','Relatórios'],
-  ['financeiro','Financeiro'],
-] as const
-
-const sitePlaceholders = [
-  ['midia-kit','Mídia Kit'],
-  ['configuracoes','Configurações'],
-] as const
-
 export default function LegacyApp(){
   return <Routes>
     <Route path="/app" element={<WorkspaceHome/>}/>
@@ -37,13 +28,16 @@ export default function LegacyApp(){
     <Route path="/app/crm/negocios" element={<DealsPage/>}/>
     <Route path="/app/crm/atividades" element={<ActivitiesPage/>}/>
     <Route path="/app/crm/pipeline" element={<PipelinePage/>}/>
-    {crmPlaceholders.map(([path,title])=><Route key={path} path={`/app/crm/${path}`} element={<CrmPlaceholder title={title}/>}/>)}
+    <Route path="/app/crm/campanhas" element={<CampaignsPage/>}/>
+    <Route path="/app/crm/relatorios" element={<ReportsPage/>}/>
+    <Route path="/app/crm/financeiro" element={<FinancePage/>}/>
     <Route path="/app/site" element={<SiteManagerDashboard/>}/>
     <Route path="/app/site/conteudos" element={<SiteContents/>}/>
     <Route path="/app/site/paginas" element={<SitePages/>}/>
     <Route path="/app/site/categorias" element={<SiteCategories/>}/>
     <Route path="/app/site/midia" element={<SiteMedia/>}/>
-    {sitePlaceholders.map(([path,title])=><Route key={path} path={`/app/site/${path}`} element={<SiteManagerPlaceholder title={title}/>}/>)}
+    <Route path="/app/site/midia-kit" element={<MediaKitPage/>}/>
+    <Route path="/app/site/configuracoes" element={<SiteSettingsPage/>}/>
     <Route path="*" element={<Navigate to="/app" replace/>}/>
   </Routes>
 }

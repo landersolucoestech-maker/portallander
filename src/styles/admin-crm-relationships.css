@@ -1,0 +1,29 @@
+.crm-detail-tabs{display:flex;gap:4px;margin:-4px 0 16px;border-bottom:1px solid var(--admin-line)}
+.crm-detail-tabs button{min-height:38px;padding:0 14px;border:0;border-bottom:2px solid transparent;background:transparent;color:#777;font:inherit;font-size:10px;font-weight:800;cursor:pointer}
+.crm-detail-tabs button.active{color:var(--admin-accent);border-bottom-color:var(--admin-accent)}
+.crm-detail-wide{grid-column:1/-1!important}
+.crm-tag-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:2px}
+.crm-tag-list b{display:inline-flex;align-items:center;min-height:24px;padding:0 8px;border-radius:999px;background:#f1f1f1;color:#444;font-size:9px;font-weight:800}
+.crm-history-panel{display:grid;gap:10px}
+.crm-history-panel>div{display:flex;justify-content:space-between;gap:20px;padding:12px 0;border-bottom:1px solid var(--admin-line)}
+.crm-history-panel>div span{font-size:9px;font-weight:800;color:#888;text-transform:uppercase;letter-spacing:.06em}
+.crm-history-panel>div strong{font-size:11px;text-align:right;color:#222}
+.crm-history-panel p{margin:4px 0 0;padding:12px;border-left:3px solid var(--admin-accent);background:#fff7f7;color:#777;font-size:10px;line-height:1.6}
+.crm-temperature{display:inline-flex;align-items:center;min-height:24px;padding:0 8px;border-radius:999px;font-size:9px;font-weight:850;background:#f2f2f2;color:#555}
+.crm-temperature.quente{background:#fff0f1;color:#b8000b}
+.crm-temperature.morno{background:#fff7e8;color:#8a5a00}
+.crm-temperature.frio{background:#eef4f8;color:#486473}
+.crm-dashboard-list{display:grid}
+.crm-dashboard-row{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:52px;border-top:1px solid var(--admin-line)}
+.crm-dashboard-row:first-child{border-top:0}
+.crm-dashboard-row>div{min-width:0;display:flex;flex-direction:column;gap:3px}
+.crm-dashboard-row b{font-size:11px;color:#222}
+.crm-dashboard-row small{font-size:9px;color:#777;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.crm-dashboard-row>strong{font-size:9px;color:#666;white-space:nowrap}
+.crm-origin-list{display:grid;gap:11px}
+.crm-origin-row{display:grid;grid-template-columns:140px minmax(0,1fr) 28px;align-items:center;gap:12px}
+.crm-origin-row>span,.crm-origin-row>strong{font-size:10px;font-weight:800;color:#555}
+.crm-origin-row>strong{text-align:right}
+.crm-origin-row>div{height:7px;border-radius:999px;background:#efefef;overflow:hidden}
+.crm-origin-row>div b{display:block;height:100%;border-radius:inherit;background:var(--admin-accent)}
+@media(max-width:640px){.crm-detail-tabs button{flex:1;padding-inline:6px}.crm-origin-row{grid-template-columns:90px minmax(0,1fr) 24px}.crm-history-panel>div{flex-direction:column;gap:5px}.crm-history-panel>div strong{text-align:left}.crm-dashboard-row{align-items:flex-start;flex-direction:column;gap:6px;padding:10px 0}}

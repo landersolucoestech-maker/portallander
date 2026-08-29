@@ -11,22 +11,28 @@ const main=await read('src/main.tsx')
 if(!main.includes('<React.StrictMode><HashRouter><App/></HashRouter></React.StrictMode>'))failures.push('main.tsx deve montar App dentro do HashRouter.')
 
 const internalApp=await read('src/app/InternalApp.tsx')
-for(const required of ["from '../features/access/LoginPage'","from '../features/access/WorkspacePage'","from '../features/site-manager/SiteManagerRoutes'",'path="/app/login"','path="/app/workspaces"','path="/app/site/*"'])if(!internalApp.includes(required))failures.push(`InternalApp deve manter ${required}.`)
-for(const forbidden of ['/app/crm','CrmRoutes','integrations'])if(internalApp.includes(forbidden))failures.push(`InternalApp não pode manter módulo removido: ${forbidden}`)
+for(const required of ["from '../features/access/LoginPage'","from '../features/access/WorkspacePage'","from '../features/access/CrmWorkspace'","from '../features/site-manager/SiteManagerRoutes'",'path="/app/login"','path="/app/workspaces"','path="/app/crm/*"','path="/app/site/*"'])if(!internalApp.includes(required))failures.push(`InternalApp deve manter ${required}.`)
+for(const forbidden of ['CrmRoutes','integrations'])if(internalApp.includes(forbidden))failures.push(`InternalApp não pode reintroduzir módulo removido: ${forbidden}`)
 
 const workspacePage=await read('src/features/access/WorkspacePage.tsx')
-if(!workspacePage.includes("to:'/app/site'"))failures.push('WorkspacePage deve manter o Gerenciador do Site.')
-for(const forbidden of ["to:'/app/crm'",'CRM completo','Integrações'])if(workspacePage.includes(forbidden))failures.push(`WorkspacePage não pode manter módulo removido: ${forbidden}`)
+for(const required of ["to:'/app/crm'","to:'/app/site'",'title:\'CRM\''])if(!workspacePage.includes(required))failures.push(`WorkspacePage deve manter workspace: ${required}`)
+for(const forbidden of ['CRM completo','contatos, leads','Integrações removidas?'])if(workspacePage.includes(forbidden))failures.push(`WorkspacePage não pode reintroduzir implementação antiga: ${forbidden}`)
+
+const crmWorkspace=await read('src/features/access/CrmWorkspace.tsx')
+if(!crmWorkspace.includes('CRM_WORKSPACE_NAV'))failures.push('CrmWorkspace deve usar navegação própria do workspace.')
+if(!crmWorkspace.includes('<Route index'))failures.push('CrmWorkspace deve declarar rota index.')
+for(const forbidden of ['Contacts','Leads','Integration','repository','demoSnapshot'])if(crmWorkspace.includes(forbidden))failures.push(`CrmWorkspace não pode conter módulo CRM/Integrações: ${forbidden}`)
 
 const siteRoutes=await read('src/features/site-manager/SiteManagerRoutes.tsx')
 if(!siteRoutes.includes('<Route index'))failures.push('SiteManagerRoutes deve declarar dashboard index.')
 for(const required of ['path="home"','path="home/anuncio"','path="marca"','path="cabecalho"','path="noticias/anuncio"'])if(!siteRoutes.includes(required))failures.push(`SiteManagerRoutes deve manter ${required}.`)
 
 const adminNavigation=await read('src/shared/internal/adminNavigation.ts')
-for(const forbidden of ['CRM_NAV','/app/crm','Integrações','PlugZap'])if(adminNavigation.includes(forbidden))failures.push(`adminNavigation não pode manter módulo removido: ${forbidden}`)
+if(!adminNavigation.includes('CRM_WORKSPACE_NAV'))failures.push('adminNavigation deve preservar a navegação estrutural do workspace CRM.')
+for(const forbidden of ['CRM_NAV','Integrações','PlugZap','/app/crm/contatos','/app/crm/integrations'])if(adminNavigation.includes(forbidden))failures.push(`adminNavigation não pode reintroduzir módulo removido: ${forbidden}`)
 
 const adminUi=await read('src/shared/internal/AdminUi.tsx')
-for(const forbidden of ["'crm'",'/app/crm','isContactsRoute','contactsCreateLabel','app-shell-crm'])if(adminUi.includes(forbidden))failures.push(`AdminUi não pode manter comportamento CRM: ${forbidden}`)
+for(const forbidden of ['isContactsRoute','contactsCreateLabel','app-shell-crm-contacts'])if(adminUi.includes(forbidden))failures.push(`AdminUi não pode reintroduzir comportamento do módulo CRM: ${forbidden}`)
 
 const removedPaths=[
   'src/features/crm/CrmRoutes.tsx',

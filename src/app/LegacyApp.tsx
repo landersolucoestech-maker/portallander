@@ -4,6 +4,7 @@ import { ActivitiesPage, ContactsPage, CrmDashboard, DealsPage, PipelinePage } f
 import { CampaignsPage, FinancePage, ReportsPage } from '../features/crm/CrmOperations'
 import { SiteCategories, SiteContents, SiteManagerDashboard, SiteMedia, SitePages } from '../features/site-manager/SiteManagerWorkspace'
 import { MediaKitPage, SiteSettingsPage } from '../features/site-manager/SiteManagerOperations'
+import '../styles/admin-entry.css'
 
 function WorkspaceHome(){
   return <div className="workspace-picker">

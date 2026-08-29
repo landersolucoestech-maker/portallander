@@ -4,7 +4,7 @@ import { EditorialContentsAdmin, EditorialPagesAdmin } from '../editorial/compon
 import { editorialReadModel } from '../editorial/repository'
 import { AdminEmpty, AdminKpi, AdminPageHeader, AdminShell, type AdminNavItem } from '../../shared/internal/AdminUi'
 
-export const siteManagerNav: readonly AdminNavItem[] = [
+const siteManagerNav: readonly AdminNavItem[] = [
   ['Dashboard',LayoutDashboard,'/app/site'],
   ['Páginas',Globe2,'/app/site/paginas'],
   ['Conteúdos',FileText,'/app/site/conteudos'],

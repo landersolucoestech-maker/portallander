@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
-import { SiteCategories, SiteContents, SiteManagerDashboard, SiteMedia, SitePages } from './SiteManagerWorkspace'
+import { SiteContents, SiteManagerDashboard, SitePages } from './SiteManagerWorkspace'
+import { SiteCategories, SiteMedia } from './SiteManagerCatalogPages'
 import { MediaKitPage, SiteSettingsPage } from './SiteManagerOperations'
 
 export default function SiteManagerRoutes(){

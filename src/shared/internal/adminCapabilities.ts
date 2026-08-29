@@ -7,11 +7,6 @@ export type AdminCapability = {
 }
 
 export const ADMIN_CAPABILITIES = {
-  crmPersistence: {
-    state:'unavailable',
-    label:'Persistência do CRM',
-    description:'Nenhum backend, banco ou API do CRM está conectado.',
-  },
   editorialPersistence: {
     state:'unavailable',
     label:'Persistência editorial',

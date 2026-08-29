@@ -2,7 +2,6 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { HashRouter } from 'react-router-dom'
 import App from './app/PortalApp'
-import { NewsAdBridge } from './pages/noticias/components/NewsAdBridge'
 import './styles/public-styles.css'
 
 const REQUIRED_PUBLIC_FONTS = [
@@ -17,7 +16,7 @@ async function waitForPublicFonts() {
 
 function mountApp() {
   ReactDOM.createRoot(document.getElementById('root')!).render(
-    <React.StrictMode><HashRouter><App/><NewsAdBridge/></HashRouter></React.StrictMode>,
+    <React.StrictMode><HashRouter><App/></HashRouter></React.StrictMode>,
   )
 }
 

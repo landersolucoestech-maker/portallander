@@ -3,6 +3,15 @@ export type CrmLeadStatus = 'Novo' | 'Contatado' | 'Qualificado' | 'Proposta' | 
 export type CrmPersonType = 'PF' | 'PJ'
 export type CrmTemperature = 'Frio' | 'Morno' | 'Quente'
 export type CrmCampaignStatus = 'Ativa' | 'Planejada'
+export type CrmInteractionChannel = 'WhatsApp' | 'E-mail' | 'Ligação' | 'Reunião' | 'Formulário' | 'Instagram' | 'Sistema'
+
+export interface CrmInteraction {
+  id: string
+  date: string
+  channel: CrmInteractionChannel
+  title: string
+  detail: string
+}
 
 export interface CrmContact {
   id: string
@@ -22,6 +31,7 @@ export interface CrmContact {
   nextFollowUp?: string
   notes?: string
   relatedValue: number
+  interactions: readonly CrmInteraction[]
 }
 
 export interface CrmLead {
@@ -45,6 +55,7 @@ export interface CrmLead {
   utmSource?: string
   tags: readonly string[]
   notes?: string
+  interactions: readonly CrmInteraction[]
 }
 
 export interface CrmCampaign {

@@ -1,28 +1,33 @@
-import { BadgeCheck, CircleDollarSign, Flame, Target } from 'lucide-react'
+import { ChevronLeft, ChevronRight, CircleDollarSign, FileText, MoreHorizontal, Plus, Search, TrendingDown, TrendingUp, Upload } from 'lucide-react'
+import type { ReactNode } from 'react'
 import { CRM_NAV } from '../../../shared/internal/adminNavigation'
-import { AdminKpi, AdminNotice, AdminPageHeader, AdminShell } from '../../../shared/internal/AdminUi'
-import { formatCurrency, statusClass } from '../model'
-import { CRM_DEMO_DESCRIPTION } from '../presentation'
-import { crmReadModel } from '../repository'
+import { AdminPageHeader, AdminShell } from '../../../shared/internal/AdminUi'
+
+const money=(value:number)=>new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0}).format(value)
+type Tone='neutral'|'success'|'warning'|'danger'|'accent'
+function Metric({title,value,description,icon,tone='neutral'}:{title:string;value:string;description:string;icon:ReactNode;tone?:Tone}){return <article className={`zip-metric zip-metric-${tone}`}><div className="zip-metric-icon">{icon}</div><div><span>{title}</span><strong>{value}</strong><small>{description}</small></div></article>}
+function Badge({children,tone='neutral'}:{children:ReactNode;tone?:Tone}){return <span className={`zip-badge zip-badge-${tone}`}>{children}</span>}
 
 export function FinancePage(){
-  const leads=crmReadModel.leads
-  const activeLeads=leads.filter(lead=>!['Convertido','Perdido'].includes(lead.status))
-  const convertedLeads=leads.filter(lead=>lead.status==='Convertido')
-  const activeValue=activeLeads.reduce((sum,lead)=>sum+lead.potentialValue,0)
-  const convertedValue=convertedLeads.reduce((sum,lead)=>sum+lead.potentialValue,0)
-  const hotValue=leads.filter(lead=>lead.temperature==='Quente'&&!['Convertido','Perdido'].includes(lead.status)).reduce((sum,lead)=>sum+lead.potentialValue,0)
-
+  const rows=[
+    ['Receita','Publicidade Portal Lander','Publicidade','Recebido','29/08/2026',8500],
+    ['Receita','Cobertura Festival Órbita','Cobertura','Pendente','31/08/2026',12000],
+    ['Despesa','Ferramentas SaaS','Software','Pago','27/08/2026',-2480],
+    ['Despesa','Produção editorial','Produção','Pago','26/08/2026',-3200],
+  ] as const
   return <AdminShell area="crm" items={CRM_NAV}>
-    <AdminPageHeader eyebrow="CRM / Financeiro" title="Financeiro" description="Visão de potencial comercial ligado aos relacionamentos do CRM; não representa faturamento, caixa ou contabilidade real."/>
-    <AdminNotice title="Dados de demonstração" description={CRM_DEMO_DESCRIPTION}/>
-    <div className="admin-kpi-grid">
-      <AdminKpi label="Potencial ativo" value={formatCurrency(activeValue)} detail="Leads ainda em acompanhamento" icon={<Target size={16}/>}/>
-      <AdminKpi label="Prioridade quente" value={formatCurrency(hotValue)} detail="Potencial de leads quentes" icon={<Flame size={16}/>}/>
-      <AdminKpi label="Convertido" value={formatCurrency(convertedValue)} detail="Valor potencial convertido" icon={<BadgeCheck size={16}/>}/>
-      <AdminKpi label="Total relacionado" value={formatCurrency(activeValue+convertedValue)} detail="Snapshot demonstrativo" icon={<CircleDollarSign size={16}/>}/>
+    <AdminPageHeader eyebrow="CRM / FINANCEIRO" title="Financeiro" description="Controle financeiro e fluxo de caixa."/>
+    <div className="zip-stack">
+      <div className="zip-page-actions finance-actions"><button className="zip-button secondary" disabled><Upload size={14}/> Importar OFX</button><button className="zip-button secondary" disabled><FileText size={14}/> Regras</button><button className="zip-button" disabled><Plus size={14}/> Nova Transação</button></div>
+      <div className="zip-kpi-grid five">
+        <Metric title="Receita Mensal" value="R$ 20.500" description="receitas pagas" icon={<TrendingUp size={18}/>} tone="success"/>
+        <Metric title="Despesas Mensais" value="R$ 5.680" description="despesas pagas" icon={<TrendingDown size={18}/>} tone="danger"/>
+        <Metric title="Lucro Líquido" value="R$ 14.820" description="margem 72%" icon={<CircleDollarSign size={18}/>} tone="success"/>
+        <Metric title="Contas a Receber" value="R$ 12.000" description="1 pendente" icon={<ChevronRight size={18}/>} tone="warning"/>
+        <Metric title="Contas a Pagar" value="R$ 2.100" description="obrigações futuras" icon={<ChevronLeft size={18}/>} tone="warning"/>
+      </div>
+      <div className="zip-toolbar"><input type="date"/><input type="date"/><label className="zip-search"><Search size={14}/><input placeholder="Buscar transações…"/></label><select><option>Todos os tipos</option><option>Receita</option><option>Despesa</option></select><select><option>Todos os status</option><option>Pago</option><option>Pendente</option></select><select><option>Todas as categorias</option></select></div>
+      <section className="zip-panel"><header className="zip-panel-head"><div><h2>Transações</h2><p>Fluxo de receitas e despesas · 4 registros</p></div></header><div className="zip-table-wrap"><table className="zip-table"><thead><tr><th>Tipo</th><th>Descrição</th><th>Categoria</th><th>Status</th><th>Data</th><th className="right">Valor</th><th></th></tr></thead><tbody>{rows.map(r=><tr key={r[1]}><td><Badge tone={r[0]==='Receita'?'success':'danger'}>{r[0]}</Badge></td><td><strong>{r[1]}</strong></td><td>{r[2]}</td><td><Badge tone={r[3]==='Pendente'?'warning':'success'}>{r[3]}</Badge></td><td>{r[4]}</td><td className={`right ${r[5]>0?'zip-positive':'zip-negative'}`}><strong>{money(r[5])}</strong></td><td className="right"><MoreHorizontal size={16}/></td></tr>)}</tbody></table></div></section>
     </div>
-    <section className="table-card"><table><thead><tr><th>Lead</th><th>Interesse</th><th>Origem</th><th>Responsável</th><th>Status</th><th>Temperatura</th><th>Valor potencial</th></tr></thead><tbody>{leads.map(lead=><tr key={lead.id}><td><strong>{lead.name}</strong><br/><small>{lead.company}</small></td><td>{lead.interest}</td><td>{lead.source}</td><td>{lead.owner}</td><td><span className={`status ${statusClass(lead.status)}`}>{lead.status}</span></td><td><span className={`crm-temperature ${lead.temperature.toLowerCase()}`}>{lead.temperature}</span></td><td><strong>{formatCurrency(lead.potentialValue)}</strong></td></tr>)}</tbody></table></section>
-    <section className="admin-card admin-grid-spaced"><div className="admin-card-head"><div><span>Escopo</span><h2>Separação financeira</h2></div></div><p>Esta página usa apenas valores potenciais registrados nos leads. Receita confirmada, contas a receber, pagamentos, NFS-e e conciliação deverão vir de uma fonte financeira real quando essas integrações forem implementadas.</p></section>
   </AdminShell>
 }

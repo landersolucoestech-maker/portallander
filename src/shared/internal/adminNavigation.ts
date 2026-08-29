@@ -3,7 +3,7 @@ import type { AdminNavItem } from './AdminUi'
 
 export const CRM_NAV: readonly AdminNavItem[] = [
   ['Dashboard',LayoutDashboard,'/app/crm'],
-  ['Contatos',Users,'/app/crm/contatos'],
+  ['CRM',Users,'/app/crm/contatos'],
   ['Negócios',BriefcaseBusiness,'/app/crm/negocios'],
   ['Atividades',CalendarDays,'/app/crm/atividades'],
   ['Pipeline',TrendingUp,'/app/crm/pipeline'],

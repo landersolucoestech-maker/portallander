@@ -1,0 +1,13 @@
+.operations-kpi-grid{margin-bottom:18px}
+.operations-overview-grid{align-items:stretch}
+.operations-capability-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.operations-capability{display:flex;align-items:center;gap:9px;min-height:42px;padding:10px 12px;border:1px solid var(--admin-line);border-radius:8px;background:#fafafa;color:#333}
+.operations-capability svg{flex:0 0 auto;color:var(--admin-accent)}
+.operations-capability span{font-size:10px;font-weight:750;line-height:1.35}
+.operations-state{display:grid;gap:7px;padding:4px 0}
+.operations-state strong{font-size:13px;color:#222}
+.operations-state p{margin:0;color:#666;font-size:10px;line-height:1.65}
+.operations-table-card{margin-top:18px;overflow:auto}
+.operations-table-card table{min-width:760px}
+.operations-table-card td:last-child{font-weight:750;color:#444}
+@media(max-width:760px){.operations-capability-grid{grid-template-columns:1fr}.operations-table-card{margin-top:14px}}

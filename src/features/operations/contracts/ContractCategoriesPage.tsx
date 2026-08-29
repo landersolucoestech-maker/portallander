@@ -1,4 +1,4 @@
-import { Download, Pencil, Plus, Search, Tag, Trash2, Upload, X } from 'lucide-react'
+import { Download, Pencil, Plus, Search, Tag, Trash2, Upload } from 'lucide-react'
 import { useMemo, useRef, useState, type ChangeEvent } from 'react'
 import * as XLSX from 'xlsx'
 import { CRM_NAV } from '../../../shared/internal/adminNavigation'

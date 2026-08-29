@@ -160,6 +160,10 @@ export function AdminNotice({title,description}:{title:string;description:string
   return <div className="admin-notice"><div><strong>{title}</strong><p>{description}</p></div></div>
 }
 
+export function AdminEmpty({title,description}:{title:string;description:string}){
+  return <div className="admin-empty"><strong>{title}</strong><p>{description}</p></div>
+}
+
 export function AdminKpi({label,value,detail,icon}:{label:string;value:string;detail:string;icon:ReactNode}){
   return <div className="admin-kpi"><div className="admin-kpi-top"><span className="admin-kpi-label">{label}</span><span className="admin-kpi-icon" aria-hidden="true">{icon}</span></div><strong>{value}</strong><small>{detail}</small></div>
 }

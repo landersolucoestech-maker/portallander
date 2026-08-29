@@ -1,4 +1,4 @@
-import { BarChart3, CalendarDays, CircleDollarSign, FileSignature, FileText, Globe2, Home, Images, LayoutDashboard, Megaphone, MessageSquareText, Newspaper, Palette, PanelsTopLeft, PlugZap, Settings, Tags, Users, UsersRound } from 'lucide-react'
+import { BarChart3, CalendarDays, CircleDollarSign, FileSignature, FileText, Globe2, Home, Images, LayoutDashboard, Megaphone, MessageSquareText, Newspaper, Palette, PanelsTopLeft, Settings, Tags, Users, UsersRound } from 'lucide-react'
 import type { AdminNavItem } from './AdminUi'
 
 export const CRM_NAV: readonly AdminNavItem[] = [
@@ -6,7 +6,6 @@ export const CRM_NAV: readonly AdminNavItem[] = [
   ['CRM',Users,'/app/crm/contatos'],
   ['Contratos',FileSignature,'/app/crm/contracts'],
   ['Agenda',CalendarDays,'/app/crm/events'],
-  ['Integrações',PlugZap,'/app/crm/integrations'],
   {
     label:'Marketing',
     icon:Megaphone,

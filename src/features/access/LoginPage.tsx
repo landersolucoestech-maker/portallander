@@ -1,12 +1,29 @@
 import { ArrowRight, LockKeyhole, ShieldAlert } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { portalLogo } from '../../shared/branding/assets/brandAsset'
+import { readHeaderBrandConfig } from '../../shared/branding/models/headerBrandModel'
 import { ADMIN_CAPABILITIES } from '../../shared/internal/adminCapabilities'
 
+function readPrimaryBrand(){
+  const config=readHeaderBrandConfig()
+  return {
+    image:config.active&&!config.deleted&&config.image?config.image:portalLogo,
+    alt:config.imageAlt||'Portal Lander',
+  }
+}
+
 export function LoginPage(){
+  const [brand,setBrand]=useState(readPrimaryBrand)
+  useEffect(()=>{
+    const sync=()=>setBrand(readPrimaryBrand())
+    window.addEventListener('portal-lander:header-brand-updated',sync)
+    return()=>window.removeEventListener('portal-lander:header-brand-updated',sync)
+  },[])
+
   return <main className="access-page access-login-page">
     <section className="access-brand-panel" aria-label="Portal Lander · Área interna">
-      <Link className="access-logo" to="/" aria-label="Voltar ao Portal Lander"><img src={portalLogo} alt="Portal Lander"/></Link>
+      <Link className="access-logo" to="/" aria-label="Voltar ao Portal Lander"><img src={brand.image} alt={brand.alt}/></Link>
       <div className="access-brand-copy">
         <span className="access-kicker">PORTAL LANDER · OPERAÇÃO INTERNA</span>
         <h1>Conteúdo, relacionamento e operação em um único ambiente.</h1>

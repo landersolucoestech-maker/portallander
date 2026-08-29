@@ -32,6 +32,8 @@ class BundledReadOnlyEditorialRepository implements EditorialRepository {
 
 export const editorialRepository: EditorialRepository = new BundledReadOnlyEditorialRepository()
 
+const normalizeSearch=(value:string)=>value.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('pt-BR').trim()
+
 // Read model síncrono usado pelo bundle atual. Quando uma API real for conectada,
 // este módulo é o único ponto que precisa ser substituído por estado carregado do backend.
 export const editorialReadModel = {
@@ -49,6 +51,17 @@ export const editorialReadModel = {
   listPageContents(pageId: string) {
     return legacyEditorialContents.filter(content => content.pageId === pageId && isPublicContent(content))
       .sort((a,b) => (b.publishedAt || b.updatedAt).localeCompare(a.publishedAt || a.updatedAt))
+  },
+  searchPublicContents(query:string) {
+    const normalized=normalizeSearch(query)
+    if(!normalized)return []
+    return legacyEditorialContents.filter(content=>{
+      if(!isPublicContent(content))return false
+      const page=legacyEditorialPages.find(item=>item.id===content.pageId&&isPublicPage(item))
+      if(!page)return false
+      const haystack=normalizeSearch([content.title,content.subtitle,content.summary,content.author,...content.tags,page.title,page.navigationLabel].join(' '))
+      return haystack.includes(normalized)
+    }).sort((a,b)=>(b.publishedAt||b.updatedAt).localeCompare(a.publishedAt||a.updatedAt))
   },
   listMenuPages() {
     return legacyEditorialPages.filter(page => isPublicPage(page) && page.showInMainMenu)

@@ -1,37 +1,18 @@
-import { BriefcaseBusiness, TrendingUp, UserPlus, Users } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { BriefcaseBusiness, UserPlus, Users } from 'lucide-react'
 import { CRM_NAV } from '../../../shared/internal/adminNavigation'
 import { AdminKpi, AdminNotice, AdminShell } from '../../../shared/internal/AdminUi'
-import { formatCurrency } from '../model'
-import { CRM_DEMO_DESCRIPTION, CRM_PIPELINE_STAGES } from '../presentation'
+import { CRM_DEMO_DESCRIPTION } from '../presentation'
 import { crmReadModel } from '../repository'
 
 export function CrmDashboardPage(){
-  const {activities,deals,metrics}=crmReadModel
-  const stageTotals=CRM_PIPELINE_STAGES.map(stage=>({stage,total:deals.filter(deal=>deal.stage===stage).reduce((sum,deal)=>sum+deal.value,0)}))
-  const maxStageValue=Math.max(...stageTotals.map(item=>item.total),1)
+  const {metrics}=crmReadModel
 
-  return <AdminShell area="crm" items={CRM_NAV} header={{title:'Dashboard',description:'Visão operacional de relacionamentos, oportunidades e movimentação comercial.'}}>
+  return <AdminShell area="crm" items={CRM_NAV} header={{title:'Dashboard',description:'Visão operacional de relacionamentos e movimentação comercial.'}}>
     <AdminNotice title="Dados de demonstração" description={CRM_DEMO_DESCRIPTION}/>
     <div className="admin-kpi-grid">
       <AdminKpi label="Contatos" value={String(metrics.contacts)} detail="Base demonstrativa" icon={<Users size={16}/>}/>
       <AdminKpi label="Leads" value={String(metrics.leads)} detail="Base demonstrativa" icon={<UserPlus size={16}/>}/>
       <AdminKpi label="Clientes" value={String(metrics.clients)} detail="Base demonstrativa" icon={<BriefcaseBusiness size={16}/>}/>
-      <AdminKpi label="Pipeline" value={formatCurrency(metrics.pipelineValue)} detail="Valor demonstrativo" icon={<TrendingUp size={16}/>}/>
     </div>
-    <div className="admin-grid">
-      <section className="admin-card">
-        <div className="admin-card-head"><div><span>Atividades</span><h2>Atividades recentes</h2></div><Link to="/app/crm/atividades" className="button outline">Ver todas</Link></div>
-        {activities.map(item=><div className="activity-row" key={`recent-${item.id}`}><span>{item.time}</span><div><b>{item.title}</b><small>{item.channel}</small></div></div>)}
-      </section>
-      <section className="admin-card">
-        <div className="admin-card-head"><div><span>Agenda comercial</span><h2>Próximas atividades</h2></div><Link to="/app/crm/atividades" className="button outline">Abrir agenda</Link></div>
-        {activities.map(item=><div className="activity-row" key={item.id}><span>{item.time}</span><div><b>{item.title}</b><small>{item.channel}</small></div></div>)}
-      </section>
-    </div>
-    <section className="admin-card admin-grid-spaced">
-      <div className="admin-card-head"><div><span>Pipeline</span><h2>Valor por etapa</h2></div><Link className="dashboard-card-link" to="/app/crm/pipeline">ABRIR PIPELINE</Link></div>
-      <div className="dashboard-stage-list">{stageTotals.map(item=><div className="dashboard-stage" key={item.stage}><span>{item.stage}</span><div className="dashboard-stage-track"><span style={{width:`${Math.max(4,(item.total/maxStageValue)*100)}%`}}/></div><small>{formatCurrency(item.total)}</small></div>)}</div>
-    </section>
   </AdminShell>
 }

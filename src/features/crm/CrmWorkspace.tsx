@@ -2,27 +2,10 @@ import { BriefcaseBusiness, Search, TrendingUp, UserPlus, Users } from 'lucide-r
 import { Link } from 'react-router-dom'
 import { AdminEmpty, AdminKpi, AdminPageHeader, AdminShell } from '../../shared/internal/AdminUi'
 import { CRM_NAV } from '../../shared/internal/adminNavigation'
-import { formatCurrency, statusClass, type CrmActivity, type CrmContact, type CrmDeal } from './model'
+import { formatCurrency, statusClass } from './model'
+import { crmReadModel } from './repository'
 
-const contacts: readonly CrmContact[] = [
-  { id:'marina-costa', name:'Marina Costa', company:'Norte Produções', status:'Lead', owner:'Comercial', relatedValue:18000 },
-  { id:'rafael-alves', name:'Rafael Alves', company:'Estúdio Horizonte', status:'Cliente', owner:'Deyvisson', relatedValue:32500 },
-  { id:'camila-rocha', name:'Camila Rocha', company:'Aurora Music', status:'Negociação', owner:'Comercial', relatedValue:24000 },
-  { id:'bruno-lima', name:'Bruno Lima', company:'BL Eventos', status:'Contato', owner:'Equipe', relatedValue:7500 },
-]
-
-const activities: readonly CrmActivity[] = [
-  { id:'retornar-aurora', time:'10:30', title:'Retornar proposta — Aurora Music', channel:'Ligação' },
-  { id:'reuniao-norte', time:'14:00', title:'Reunião — Norte Produções', channel:'Reunião' },
-  { id:'followup-bl', time:'16:15', title:'Follow-up — BL Eventos', channel:'WhatsApp' },
-]
-
-const deals: readonly CrmDeal[] = [
-  { id:'aurora-campanha', title:'Campanha institucional', company:'Aurora Music', stage:'Negociação', owner:'Comercial', value:24000, nextAction:'Revisar proposta comercial' },
-  { id:'norte-patrocinio', title:'Pacote de mídia', company:'Norte Produções', stage:'Proposta', owner:'Comercial', value:18000, nextAction:'Apresentação às 14:00' },
-  { id:'horizonte-retencao', title:'Renovação anual', company:'Estúdio Horizonte', stage:'Fechado', owner:'Deyvisson', value:32500, nextAction:'Onboarding comercial' },
-  { id:'bl-divulgacao', title:'Divulgação de evento', company:'BL Eventos', stage:'Contato', owner:'Equipe', value:7500, nextAction:'Confirmar briefing' },
-]
+const {contacts,activities,deals,metrics}=crmReadModel
 
 function DemoNotice(){
   return <div className="admin-notice"><div><strong>Dados de demonstração</strong><p>O CRM ainda não possui backend ou banco conectado. Estes registros servem somente para validar a estrutura visual e operacional das telas; nenhuma alteração é persistida.</p></div></div>
@@ -33,10 +16,10 @@ export function CrmDashboard(){
     <AdminPageHeader eyebrow="CRM / Dashboard" title="Dashboard" description="Visão operacional de relacionamentos, oportunidades e movimentação comercial." action="Novo contato"/>
     <DemoNotice/>
     <div className="admin-kpi-grid">
-      <AdminKpi label="Contatos" value="248" detail="+18 neste mês" icon={<Users size={16}/>}/>
-      <AdminKpi label="Leads" value="42" detail="12 qualificados" icon={<UserPlus size={16}/>}/>
-      <AdminKpi label="Clientes" value="31" detail="5 em atividade" icon={<BriefcaseBusiness size={16}/>}/>
-      <AdminKpi label="Pipeline" value="R$ 82 mil" detail="Valor em negociação" icon={<TrendingUp size={16}/>}/>
+      <AdminKpi label="Contatos" value={String(metrics.contacts)} detail="Base demonstrativa" icon={<Users size={16}/>}/>
+      <AdminKpi label="Leads" value={String(metrics.leads)} detail="Base demonstrativa" icon={<UserPlus size={16}/>}/>
+      <AdminKpi label="Clientes" value={String(metrics.clients)} detail="Base demonstrativa" icon={<BriefcaseBusiness size={16}/>}/>
+      <AdminKpi label="Pipeline" value={formatCurrency(metrics.pipelineValue)} detail="Valor demonstrativo" icon={<TrendingUp size={16}/>}/>
     </div>
     <div className="admin-grid">
       <section className="admin-card">

@@ -18,7 +18,7 @@ for(const required of [
  "from '../features/access/CrmWorkspace'",
  "from '../features/dashboard/DashboardPage'",
  "from '../features/contracts/ContractsPage'",
- "from '../features/finance/FinanceMainPage'",
+ "from '../features/finance/FinancePage'",
  "from '../features/finance/FinanceInvoicesPage'",
  "from '../features/finance/FinanceAccountingPage'",
  "from '../features/site-manager/SiteManagerRoutes'",
@@ -47,7 +47,7 @@ const requiredFiles=[
  'src/features/contracts/ContractsPage.tsx',
  'src/features/contracts/domain.ts',
  'src/features/contracts/repository.ts',
- 'src/features/finance/FinanceMainPage.tsx',
+ 'src/features/finance/FinancePage.tsx',
  'src/features/finance/FinanceInvoicesPage.tsx',
  'src/features/finance/FinanceAccountingPage.tsx',
  'src/styles/admin-contracts.css',
@@ -67,7 +67,7 @@ const adminUi=await read('src/shared/internal/AdminUi.tsx')
 if(adminUi.indexOf('{renderActions()}')>adminUi.indexOf('notification-button'))failures.push('A ação contextual deve ser renderizada antes do sino de notificações.')
 if(!adminUi.includes("end={to==='/app/site'}"))failures.push('AdminUi deve manter comportamento de deep links do shell.')
 
-const financeMain=await read('src/features/finance/FinanceMainPage.tsx')
+const financeMain=await read('src/features/finance/FinancePage.tsx')
 for(const required of ['Financeiro','Nova Transação','Importar OFX'])if(!financeMain.includes(required))failures.push(`Financeiro principal deve preservar: ${required}`)
 
 const financeInvoices=await read('src/features/finance/FinanceInvoicesPage.tsx')

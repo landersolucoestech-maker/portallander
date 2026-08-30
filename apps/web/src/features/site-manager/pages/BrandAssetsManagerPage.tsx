@@ -26,10 +26,9 @@ export function BrandAssetsManagerPage(){
   const save=()=>{writeFooterBrandConfig(footer);writeHomeAdConfig(ad);setSaved(true)}
   const reset=()=>{resetFooterBrandConfig();resetHomeAdConfig();setFooter(defaultFooterBrandConfig);setAd(defaultHomeAdConfig);setSaved(false)}
 
-  return <AdminShell area="cms" items={SITE_MANAGER_NAV}>
+  return <AdminShell area="cms" items={SITE_MANAGER_NAV} header={{title:'Marca & Logos',description:'Central de ativos visuais do cabeçalho, rodapé e anúncio principal.'}} headerActions={[{label:'Restaurar locais',variant:'secondary',icon:RotateCcw,onClick:reset},{label:'Salvar localmente',icon:Save,onClick:save}]}>
     <AdminNotice title="Identidade visual local" description="Cabeçalho, rodapé e logo publicitária ainda usam configuração local do navegador. Nenhuma alteração é compartilhada com outros dispositivos."/>
     <div className="brand-assets-main">
-      <div className="brand-assets-top"><div><span>IDENTIDADE VISUAL</span><h1>Marca & Logos</h1><p>Central de ativos visuais. A logo do cabeçalho possui editor próprio; rodapé e logo do anúncio são gerenciados aqui.</p></div><div className="brand-assets-actions"><button onClick={reset}><RotateCcw size={16}/> Restaurar locais</button><button className="primary" onClick={save}><Save size={16}/> Salvar localmente</button></div></div>
       {saved&&<div className="brand-assets-success">Alterações salvas somente neste navegador.</div>}
       <div className="brand-assets-grid">
         <section className="brand-asset-card"><div className="brand-asset-title"><FileImage size={19}/><div><h2>Logo do cabeçalho</h2><p>Gerenciada separadamente para evitar duas telas editando a mesma configuração.</p></div></div><div className="brand-asset-preview header-preview">{header.active&&!header.deleted&&header.image?<img src={header.image} alt={header.imageAlt}/>:<span>Logo desativada</span>}</div><div className="brand-asset-controls"><Link className="button outline" to="/app/site/cabecalho">Abrir editor do cabeçalho</Link></div></section>

@@ -18,6 +18,7 @@
 @import './admin-contracts-registry.css';
 @import './admin-contracts-reference.css';
 @import './admin-contracts-original-modal-fidelity.css';
+@import './admin-contracts-original-modal.css';
 @import '../shared/branding/styles/header-brand-manager.css';
 @import '../shared/branding/styles/brand-assets-manager.css';
 @import './admin-responsive.css';

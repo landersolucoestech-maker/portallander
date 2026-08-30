@@ -10,7 +10,7 @@ export type AdminNavGroup = {label:string;icon:LucideIcon;to?:string;children:re
 export type AdminNavItem = AdminNavLink | AdminNavGroup
 
 type AdminShellHeader={title:string;description:string}
-export type AdminShellAction={label:string;onClick?:()=>void;disabled?:boolean;disabledReason?:string;variant?:'primary'|'secondary'}
+export type AdminShellAction={label:string;onClick?:()=>void;disabled?:boolean;disabledReason?:string;variant?:'primary'|'secondary';className?:string;icon?:LucideIcon}
 
 const isNavGroup=(item:AdminNavItem):item is AdminNavGroup=>!Array.isArray(item)
 
@@ -42,7 +42,7 @@ export function AdminShell({area,items,children,header,headerAction,headerAction
     }
   },[notificationsOpen,accountOpen])
 
-  const renderActions=()=>actions.map(action=><button key={action.label} className={`button ${action.variant==='secondary'?'outline workspace-header-secondary':'dark'} workspace-primary-action`} type="button" onClick={action.onClick} disabled={action.disabled} title={action.disabled?action.disabledReason:undefined}>{action.label}</button>)
+  const renderActions=()=>actions.map(action=>{const ActionIcon=action.icon;return <button key={action.label} className={`button ${action.variant==='secondary'?'outline workspace-header-secondary':'dark'} workspace-primary-action${action.className?` ${action.className}`:''}`} type="button" onClick={action.onClick} disabled={action.disabled} title={action.disabled?action.disabledReason:undefined}>{ActionIcon&&<ActionIcon size={14} aria-hidden="true"/>}{action.label}</button>})
 
   return <div className="app-shell">
     <a className="admin-skip-link" href="#admin-main">Pular para o conteúdo</a>

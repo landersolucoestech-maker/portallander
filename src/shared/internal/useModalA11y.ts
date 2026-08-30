@@ -2,11 +2,12 @@ import {useEffect,useRef} from 'react'
 
 const FOCUSABLE='a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])'
 
-export function useModalA11y(onClose:()=>void){
+export function useModalA11y(onClose:()=>void,active=true){
  const dialogRef=useRef<HTMLElement>(null)
  const closeRef=useRef(onClose)
  closeRef.current=onClose
  useEffect(()=>{
+  if(!active)return
   const dialog=dialogRef.current
   if(!dialog)return
   const previous=document.activeElement instanceof HTMLElement?document.activeElement:null
@@ -30,6 +31,6 @@ export function useModalA11y(onClose:()=>void){
    document.removeEventListener('keydown',onKeyDown)
    previous?.focus()
   }
- },[])
+ },[active])
  return dialogRef
 }

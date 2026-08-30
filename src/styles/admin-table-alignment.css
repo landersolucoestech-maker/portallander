@@ -2,7 +2,7 @@
 .crm-table th,
 .contracts-table th,
 .finance-table th {
-  text-align: center !important;
+  text-align: left !important;
   vertical-align: middle !important;
 }
 
@@ -14,24 +14,10 @@
   vertical-align: middle !important;
 }
 
-.workspace-main table th:first-child,
-.crm-table th:first-child,
-.contracts-table th:first-child,
-.finance-table th:first-child {
-  text-align: center !important;
-}
-
 .workspace-main table td:first-child,
 .crm-table td:first-child,
 .contracts-table td:first-child,
 .finance-table td:first-child {
-  text-align: center !important;
-}
-
-.workspace-main table th:last-child,
-.crm-table th:last-child,
-.contracts-table th:last-child,
-.finance-table th:last-child {
   text-align: center !important;
 }
 

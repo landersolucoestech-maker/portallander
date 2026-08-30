@@ -8,16 +8,16 @@ export const AGENDA_VIEW_OPTIONS:{value:AgendaViewMode;label:string}[]=[
 ]
 
 export const AGENDA_EVENT_TYPES=[
- {value:'reuniao',label:'Reunião'},
- {value:'follow_up_comercial',label:'Follow-up comercial'},
- {value:'compromisso',label:'Compromisso'},
- {value:'prazo_vencimento',label:'Prazo / vencimento'},
- {value:'contrato',label:'Contrato'},
- {value:'financeiro',label:'Financeiro'},
- {value:'nota_fiscal',label:'Nota fiscal'},
+ {value:'sessoes_estudio',label:'Sessões de estúdio'},
+ {value:'ensaios',label:'Ensaios'},
+ {value:'sessoes_fotos',label:'Sessões de fotos'},
+ {value:'shows',label:'Shows'},
+ {value:'entrevistas',label:'Entrevistas'},
+ {value:'podcasts',label:'Podcasts'},
+ {value:'programas_tv',label:'Programas de TV'},
+ {value:'radio',label:'Rádio'},
  {value:'producao_conteudo',label:'Produção de conteúdo'},
- {value:'evento_institucional',label:'Evento institucional'},
- {value:'outro',label:'Outro'},
+ {value:'reunioes',label:'Reuniões'},
 ] as const
 
 export const AGENDA_STATUS_OPTIONS:{value:AgendaEventStatus;label:string}[]=[
@@ -28,7 +28,16 @@ export const AGENDA_STATUS_OPTIONS:{value:AgendaEventStatus;label:string}[]=[
  {value:'cancelado',label:'Cancelado'},
 ]
 
-export const AGENDA_LOCATION_TYPES=new Set(['reuniao','compromisso','producao_conteudo','evento_institucional','outro'])
-export const AGENDA_CRM_LOCATION_TYPES=new Set(['reuniao','compromisso','evento_institucional'])
+export const AGENDA_FILTER_STATUS_OPTIONS=[
+ {value:'confirmado',label:'Confirmado'},
+ {value:'pendente',label:'Pendente'},
+ {value:'agendado',label:'Agendado'},
+ {value:'realizado',label:'Realizado'},
+ {value:'cancelado',label:'Cancelado'},
+ {value:'negociacao',label:'Negociação'},
+] as const
+
+export const AGENDA_ARTIST_RELATED_TYPES=new Set(['sessoes_estudio','ensaios','sessoes_fotos','shows','entrevistas','podcasts','programas_tv','radio','producao_conteudo'])
+export const AGENDA_CRM_LOCATION_TYPES=new Set(['shows','programas_tv','radio','podcasts'])
 export const agendaTypeLabel=(value:string)=>AGENDA_EVENT_TYPES.find(item=>item.value===value)?.label??value.replace(/_/g,' ').replace(/\b\w/g,char=>char.toUpperCase())
-export const agendaStatusLabel=(value:string)=>AGENDA_STATUS_OPTIONS.find(item=>item.value===value)?.label??value
+export const agendaStatusLabel=(value:string)=>AGENDA_STATUS_OPTIONS.find(item=>item.value===value)?.label??AGENDA_FILTER_STATUS_OPTIONS.find(item=>item.value===value)?.label??value

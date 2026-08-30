@@ -1,13 +1,13 @@
 import type {Attachment,Contact,CrmState,Interaction,InteractionType,Lead,TimelineEntry} from './domain'
-import {crmMockState} from './mocks'
+import {getRuntimeDataProvider} from '../../shared/data/runtimeDataProvider'
 
 const STORAGE_KEY='portal-lander:crm:v1'
-const emptyState:CrmState=crmMockState
+const initialState=():CrmState=>getRuntimeDataProvider().crm.state()
 const now=()=>new Date().toISOString()
 const id=(prefix:string)=>`${prefix}_${crypto.randomUUID()}`
 
 function read():CrmState{
- try{const raw=localStorage.getItem(STORAGE_KEY);if(!raw)return structuredClone(emptyState);const parsed=JSON.parse(raw) as CrmState;return parsed?.version===1?parsed:structuredClone(emptyState)}catch{return structuredClone(emptyState)}
+ try{const raw=localStorage.getItem(STORAGE_KEY);if(!raw)return initialState();const parsed=JSON.parse(raw) as CrmState;return parsed?.version===1?parsed:initialState()}catch{return initialState()}
 }
 function write(state:CrmState){localStorage.setItem(STORAGE_KEY,JSON.stringify(state));window.dispatchEvent(new CustomEvent('portal-lander:crm:changed'))}
 function conflict(actual:string,expected?:string){if(expected&&expected!==actual)throw new Error('CONFLICT: Este registro foi alterado em outra sessão. Reabra o registro antes de salvar.')}

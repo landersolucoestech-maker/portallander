@@ -5,6 +5,7 @@ import { ProfilePage } from '../features/access/AccountPages'
 import CrmWorkspace from '../features/access/CrmWorkspace'
 import DashboardPage from '../features/dashboard/DashboardPage'
 import ContractsPage from '../features/contracts/ContractsPage'
+import AgendaPage from '../features/agenda/AgendaPage'
 import FinanceMainPage from '../features/finance/FinanceMainPage'
 import FinanceInvoicesPage from '../features/finance/FinanceInvoicesPage'
 import FinanceAccountingPage from '../features/finance/FinanceAccountingPage'
@@ -21,6 +22,7 @@ export default function InternalApp(){
     <Route path="/app/dashboard" element={<DashboardPage/>}/>
     <Route path="/app/crm/*" element={<CrmWorkspace/>}/>
     <Route path="/app/contracts" element={<ContractsPage/>}/>
+    <Route path="/app/agenda" element={<AgendaPage/>}/>
     <Route path="/app/finance" element={<FinanceMainPage/>}/>
     <Route path="/app/finance/invoices" element={<FinanceInvoicesPage/>}/>
     <Route path="/app/finance/accounting" element={<FinanceAccountingPage/>}/>

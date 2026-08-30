@@ -1,4 +1,4 @@
-import {CheckCircle2,Clock3,DollarSign,Eye,FileCheck2,FilePenLine,FileStack,MoreHorizontal,Plus,Search,Trash2,XCircle} from 'lucide-react'
+import {CheckCircle2,Clock3,DollarSign,FileCheck2,FilePenLine,FileStack,MoreHorizontal,Plus,Search,Trash2,XCircle} from 'lucide-react'
 import {useMemo,useState,type ReactNode} from 'react'
 import {useSearchParams} from 'react-router-dom'
 import {AdminShell} from '../../shared/internal/AdminUi'
@@ -40,4 +40,4 @@ export default function ContractsPage(){
  </AdminShell>
 }
 function Kpi({title,value,icon}:{title:string;value:number|string;icon:ReactNode}){return <article className="contracts-kpi"><div><span>{title}</span><strong>{value}</strong></div><i>{icon}</i></article>}
-function RowActions({onView,onEdit,onDelete}:{onView:()=>void;onEdit:()=>void;onDelete:()=>void}){const [open,setOpen]=useState(false);return <div className="crm-row-actions"><button className="crm-icon-btn" onClick={()=>setOpen(v=>!v)} aria-label="Ações"><MoreHorizontal size={16}/></button>{open&&<div className="crm-row-menu"><button onClick={()=>{setOpen(false);onView()}}><Eye size={14}/>Ver</button><button onClick={()=>{setOpen(false);onEdit()}}>Editar</button><button className="danger" onClick={()=>{setOpen(false);onDelete()}}><Trash2 size={14}/>Excluir</button></div>}</div>}
+function RowActions({onView,onEdit,onDelete}:{onView:()=>void;onEdit:()=>void;onDelete:()=>void}){const [open,setOpen]=useState(false);return <div className="crm-row-actions"><button className="crm-icon-btn" onClick={()=>setOpen(v=>!v)} aria-label="Ações"><MoreHorizontal size={16}/></button>{open&&<div className="crm-row-menu"><button onClick={()=>{setOpen(false);onView()}}>Ver</button><button onClick={()=>{setOpen(false);onEdit()}}>Editar</button><button className="danger" onClick={()=>{setOpen(false);onDelete()}}>Excluir</button></div>}</div>}

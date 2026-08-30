@@ -1,5 +1,5 @@
-import { legacyEditorialContents, legacyEditorialPages } from './data/legacySnapshot'
 import { isPublicContent, isPublicPage, type EditorialContent, type EditorialPage } from './model'
+import {getRuntimeDataProvider} from '../../shared/data/runtimeDataProvider'
 
 export class EditorialPersistenceUnavailableError extends Error {
   constructor() {
@@ -19,9 +19,9 @@ export interface EditorialRepository {
   deleteContent(id: string): Promise<void>
 }
 
-class BundledReadOnlyEditorialRepository implements EditorialRepository {
-  async listPages() { return legacyEditorialPages.map(page => ({ ...page, seo: { ...page.seo } })) }
-  async listContents() { return legacyEditorialContents.map(content => ({ ...content, seo: { ...content.seo }, tags: [...content.tags], media: [...content.media], body: [...content.body] })) }
+class ProviderReadOnlyEditorialRepository implements EditorialRepository {
+  async listPages() { return getRuntimeDataProvider().editorial.pages() }
+  async listContents() { return getRuntimeDataProvider().editorial.contents() }
   async createPage(): Promise<EditorialPage> { throw new EditorialPersistenceUnavailableError() }
   async updatePage(): Promise<EditorialPage> { throw new EditorialPersistenceUnavailableError() }
   async deletePage(): Promise<void> { throw new EditorialPersistenceUnavailableError() }
@@ -30,44 +30,45 @@ class BundledReadOnlyEditorialRepository implements EditorialRepository {
   async deleteContent(): Promise<void> { throw new EditorialPersistenceUnavailableError() }
 }
 
-export const editorialRepository: EditorialRepository = new BundledReadOnlyEditorialRepository()
+export const editorialRepository: EditorialRepository = new ProviderReadOnlyEditorialRepository()
 
+const pages=()=>getRuntimeDataProvider().editorial.pages()
+const contents=()=>getRuntimeDataProvider().editorial.contents()
 const normalizeSearch=(value:string)=>value.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('pt-BR').trim()
 
-// Read model síncrono usado pelo bundle atual. Quando uma API real for conectada,
-// este módulo é o único ponto que precisa ser substituído por estado carregado do backend.
 export const editorialReadModel = {
-  pages: legacyEditorialPages,
-  contents: legacyEditorialContents,
+  get pages(){return pages()},
+  get contents(){return contents()},
   getPageBySlug(slug: string) {
-    return legacyEditorialPages.find(page => page.slug === slug && isPublicPage(page)) || null
+    return pages().find(page => page.slug === slug && isPublicPage(page)) || null
   },
   getPageById(id: string) {
-    return legacyEditorialPages.find(page => page.id === id) || null
+    return pages().find(page => page.id === id) || null
   },
   getContent(pageId: string, slug: string) {
-    return legacyEditorialContents.find(content => content.pageId === pageId && content.slug === slug && isPublicContent(content)) || null
+    return contents().find(content => content.pageId === pageId && content.slug === slug && isPublicContent(content)) || null
   },
   listPageContents(pageId: string) {
-    return legacyEditorialContents.filter(content => content.pageId === pageId && isPublicContent(content))
+    return contents().filter(content => content.pageId === pageId && isPublicContent(content))
       .sort((a,b) => (b.publishedAt || b.updatedAt).localeCompare(a.publishedAt || a.updatedAt))
   },
   searchPublicContents(query:string) {
     const normalized=normalizeSearch(query)
     if(!normalized)return []
-    return legacyEditorialContents.filter(content=>{
+    const allPages=pages()
+    return contents().filter(content=>{
       if(!isPublicContent(content))return false
-      const page=legacyEditorialPages.find(item=>item.id===content.pageId&&isPublicPage(item))
+      const page=allPages.find(item=>item.id===content.pageId&&isPublicPage(item))
       if(!page)return false
       const haystack=normalizeSearch([content.title,content.subtitle,content.summary,content.author,...content.tags,page.title,page.navigationLabel].join(' '))
       return haystack.includes(normalized)
     }).sort((a,b)=>(b.publishedAt||b.updatedAt).localeCompare(a.publishedAt||a.updatedAt))
   },
   listMenuPages() {
-    return legacyEditorialPages.filter(page => isPublicPage(page) && page.showInMainMenu)
+    return pages().filter(page => isPublicPage(page) && page.showInMainMenu)
       .sort((a,b) => a.menuOrder - b.menuOrder)
   },
   countContents(pageId: string) {
-    return legacyEditorialContents.filter(content => content.pageId === pageId).length
+    return contents().filter(content => content.pageId === pageId).length
   },
 }

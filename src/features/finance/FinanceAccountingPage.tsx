@@ -1,4 +1,4 @@
-import {BookOpen,DollarSign,Landmark,Search,TrendingDown,TrendingUp} from 'lucide-react'
+import {BookOpen,DollarSign,Search,TrendingDown,TrendingUp} from 'lucide-react'
 import {useMemo,useState,type ReactNode} from 'react'
 import {AdminShell} from '../../shared/internal/AdminUi'
 import {CRM_WORKSPACE_NAV} from '../../shared/internal/adminNavigation'

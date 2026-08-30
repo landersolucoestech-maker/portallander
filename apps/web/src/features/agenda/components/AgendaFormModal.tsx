@@ -12,7 +12,6 @@ const numeric=(value:string)=>{if(!value.trim())return undefined;const number=Nu
 
 export default function AgendaFormModal({open,mode,event,participants,locations,onClose,onSave}:Props){
  const [form,setForm]=useState<FormState>(()=>stateFromEvent(event)),[errors,setErrors]=useState<Record<string,string>>({}),[participantOpen,setParticipantOpen]=useState(false),[participantSearch,setParticipantSearch]=useState('')
- useEffect(()=>{if(open){setForm(stateFromEvent(event));setErrors({});setParticipantOpen(false);setParticipantSearch('')}},[open,event,mode])
  useEffect(()=>{if(!open)return;const onKey=(e:KeyboardEvent)=>{if(e.key==='Escape')onClose()};document.addEventListener('keydown',onKey);return()=>document.removeEventListener('keydown',onKey)},[open,onClose])
  const filteredParticipants=useMemo(()=>participants.filter(item=>!participantSearch||`${item.label} ${item.category}`.toLowerCase().includes(participantSearch.toLowerCase())),[participants,participantSearch])
  const selectedSummary=form.participantIds.map(id=>participants.find(item=>item.id===id)?.label).filter(Boolean).join(', ')

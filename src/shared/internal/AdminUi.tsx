@@ -18,7 +18,7 @@ export function AdminShell({area,items,children,header,headerAction,headerAction
   const context=area==='crm'?'CRM':area==='contracts'?'Contratos':area==='finance'?'Financeiro':'Gerenciador do Site'
   const [notificationsOpen,setNotificationsOpen]=useState(false)
   const [accountOpen,setAccountOpen]=useState(false)
-  const [openNavGroups,setOpenNavGroups]=useState<Record<string,boolean>>({Financeiro:true})
+  const [openNavGroups,setOpenNavGroups]=useState<Record<string,boolean>>({Financeiro:false})
   const notificationsRef=useRef<HTMLDivElement>(null)
   const accountRef=useRef<HTMLDivElement>(null)
   const rawActions=headerActions??(headerAction?[headerAction]:[])
@@ -59,9 +59,9 @@ export function AdminShell({area,items,children,header,headerAction,headerAction
       <nav aria-label={`Seções do ${context}`}>{items.map(item=>{
         if(isNavGroup(item)){
           const GroupIcon=item.icon
-          const isOpen=openNavGroups[item.label]??true
+          const isOpen=openNavGroups[item.label]??false
           return <div className="sidebar-nav-group" key={item.label}>
-            {item.to?<NavLink className="sidebar-nav-group-label" to={item.to}><GroupIcon size={17}/><span>{item.label}</span><ChevronDown size={13}/></NavLink>:<div className="sidebar-nav-group-label"><GroupIcon size={17}/><span>{item.label}</span><button type="button" className="sidebar-nav-group-toggle" aria-label={`${isOpen?'Recolher':'Expandir'} ${item.label}`} aria-expanded={isOpen} onClick={()=>setOpenNavGroups(current=>({...current,[item.label]:!(current[item.label]??true)}))}><ChevronDown size={13} style={{transform:isOpen?'rotate(0deg)':'rotate(-90deg)'}}/></button></div>}
+            {item.to?<NavLink className="sidebar-nav-group-label" to={item.to}><GroupIcon size={17}/><span>{item.label}</span><ChevronDown size={13}/></NavLink>:<div className="sidebar-nav-group-label"><GroupIcon size={17}/><span>{item.label}</span><button type="button" className="sidebar-nav-group-toggle" aria-label={`${isOpen?'Recolher':'Expandir'} ${item.label}`} aria-expanded={isOpen} onClick={()=>setOpenNavGroups(current=>({...current,[item.label]:!(current[item.label]??false)}))}><ChevronDown size={13} style={{transform:isOpen?'rotate(0deg)':'rotate(-90deg)'}}/></button></div>}
             {isOpen&&<div className="sidebar-subnav">{item.children.map(([label,Icon,to])=><NavLink className="sidebar-subnav-link" key={to} to={to}><Icon size={14}/><span>{label}</span></NavLink>)}</div>}
           </div>
         }

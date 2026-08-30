@@ -21,11 +21,11 @@ for(const required of [
  "from '../features/finance/FinanceMainPage'",
  "from '../features/finance/FinanceInvoicesPage'",
  "from '../features/finance/FinanceAccountingPage'",
- "from '../features/finance/FinancePage'",
+ "from '../features/finance/FinanceRegistryPage'",
  "from '../features/site-manager/SiteManagerRoutes'",
  'path="/app/login"','path="/app/workspaces"','path="/app/dashboard"','path="/app/crm/*"','path="/app/contracts"','path="/app/finance"','path="/app/finance/invoices"','path="/app/finance/accounting"','path="/app/finance/rules"','path="/app/finance/categories"','path="/app/site/*"'
 ])if(!internalApp.includes(required))failures.push(`InternalApp deve manter ${required}.`)
-for(const forbidden of ['CrmRoutes','/app/crm/integrations','path="/app/settings"'])if(internalApp.includes(forbidden))failures.push(`InternalApp não pode reintroduzir infraestrutura removida: ${forbidden}`)
+for(const forbidden of ['CrmRoutes','/app/crm/integrations','path="/app/settings"',"from '../features/finance/FinancePage'"])if(internalApp.includes(forbidden))failures.push(`InternalApp não pode reintroduzir infraestrutura removida: ${forbidden}`)
 
 const crmWorkspace=await read('src/features/access/CrmWorkspace.tsx')
 for(const required of ["from '../crm/CrmPage'",'<Route index element={<CrmPage/>}/>','path="leads" element={<CrmPage/>}','path="contatos" element={<CrmPage/>}'])if(!crmWorkspace.includes(required))failures.push(`CrmWorkspace deve preservar página CRM unificada: ${required}`)
@@ -49,14 +49,15 @@ const requiredFiles=[
  'src/features/contracts/domain.ts',
  'src/features/contracts/repository.ts',
  'src/features/finance/FinanceMainPage.tsx',
- 'src/features/finance/FinancePage.tsx',
  'src/features/finance/FinanceInvoicesPage.tsx',
  'src/features/finance/FinanceAccountingPage.tsx',
+ 'src/features/finance/FinanceRegistryPage.tsx',
  'src/styles/admin-contracts.css',
  'src/styles/admin-finance.css',
  'src/styles/admin-nav-groups.css'
 ]
 for(const path of requiredFiles)if(!(await exists(path)))failures.push(`${path} é obrigatório e não pode ser removido.`)
+if(await exists('src/features/finance/FinancePage.tsx'))failures.push('FinancePage monolítico obsoleto não pode ser reintroduzido.')
 
 const crmPage=await read('src/features/crm/CrmPage.tsx')
 for(const required of ["title:'CRM'",'Gerencie contatos, leads e relacionamentos comerciais do Portal Lander.','crm-tabs','role="tablist"','Novo Contato','Novo Lead','LeadFormModal','ContactFormModal','Total de Leads','Total de Contatos'])if(!crmPage.includes(required))failures.push(`CRM deve preservar página unificada e ação contextual: ${required}`)
@@ -99,6 +100,7 @@ if(brandAssets.includes('brand-assets-top'))failures.push('Marca & Logos não po
 
 const financeMain=await read('src/features/finance/FinanceMainPage.tsx')
 for(const required of ['Financeiro','Nova Transação','Importar OFX'])if(!financeMain.includes(required))failures.push(`Financeiro principal deve preservar: ${required}`)
+if(financeMain.includes("label:'Automações'"))failures.push('Financeiro principal não pode reintroduzir ação Automações.')
 
 const financeInvoices=await read('src/features/finance/FinanceInvoicesPage.tsx')
 for(const required of ['Notas Fiscais','Registrar Nota','setInvoiceModal(null)','function InvoiceModal','writeInvoices'])if(!financeInvoices.includes(required))failures.push(`Notas Fiscais deve preservar fluxo funcional: ${required}`)
@@ -108,6 +110,10 @@ const financeAccounting=await read('src/features/finance/FinanceAccountingPage.t
 for(const required of ['Contabilidade','Receita Total','Despesa Total','Lucro Líquido','Margem Líquida','Demonstrativo de Resultado','Resultado por Contrato','Resultado por Cliente'])if(!financeAccounting.includes(required))failures.push(`Contabilidade deve preservar: ${required}`)
 for(const forbidden of ['finance-accounting-tabs','P&amp;L Empresa','P&amp;L Contratos','P&amp;L Clientes',"type Tab=",'setTab('])if(financeAccounting.includes(forbidden))failures.push(`Contabilidade não pode reintroduzir estrutura descartada: ${forbidden}`)
 if(financeAccounting.indexOf('finance-kpis accounting-original-kpis')>financeAccounting.indexOf('finance-filters'))failures.push('Contabilidade deve manter KPI Cards acima dos filtros.')
+
+const financeRegistry=await read('src/features/finance/FinanceRegistryPage.tsx')
+for(const required of ['Categorias Financeiras','Regras Financeiras','financeRepository.listCategories','financeRepository.listRules','financeRepository.saveCategories','financeRepository.saveRules'])if(!financeRegistry.includes(required))failures.push(`Registros financeiros devem preservar: ${required}`)
+if(financeRegistry.includes('Automações Financeiras'))failures.push('Registro financeiro não pode reintroduzir página de Automações.')
 
 const contracts=await read('src/features/contracts/ContractsPage.tsx')
 for(const required of ['Novo Contrato','Templates','Novo Template'])if(!contracts.includes(required))failures.push(`Contratos deve preservar: ${required}`)

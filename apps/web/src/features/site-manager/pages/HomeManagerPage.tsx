@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { homeReadModel } from '../../../pages/home/models/homeReadModel'
 import { ADMIN_CAPABILITIES } from '../../../shared/internal/adminCapabilities'
 import { SITE_MANAGER_NAV } from '../../../shared/internal/adminNavigation'
-import { AdminNotice, AdminPageHeader, AdminShell } from '../../../shared/internal/AdminUi'
+import { AdminNotice, AdminShell } from '../../../shared/internal/AdminUi'
 
 const sections=[
   {name:'Hero / Destaques principais',state:'Local no navegador',editable:true,description:'Carrossel principal da Home. O editor atual persiste somente neste navegador.',to:'/app/site/home/hero',countLabel:'Editor local'},
@@ -16,8 +16,7 @@ const sections=[
 ]
 
 export function HomeManagerPage(){
-  return <AdminShell area="cms" items={SITE_MANAGER_NAV}>
-    <AdminPageHeader eyebrow="Gerenciador do Site / Home" title="Home" description="Mapa administrativo das seções exibidas na página inicial e da origem atual de cada bloco."/>
+  return <AdminShell area="cms" items={SITE_MANAGER_NAV} header={{title:'Home',description:'Mapa administrativo das seções exibidas na página inicial e da origem atual de cada bloco.'}}>
     <AdminNotice title="Estado da Home" description={`${ADMIN_CAPABILITIES.editorialPersistence.description} A Home pública e este painel já compartilham o mesmo read model para os blocos estáticos; Hero e anúncio principal possuem edição local neste momento.`}/>
     <div className="home-section-grid">{sections.map(section=><article className="home-section-card" key={section.name}><div className="home-section-card-head"><span className="home-section-icon" aria-hidden="true">{section.editable?<PanelsTopLeft size={16}/>:<LayoutGrid size={16}/>}</span><span className={`status ${section.editable?'negociacao':''}`}>{section.state}</span></div><h2>{section.name}</h2><p>{section.description}</p><small className="home-section-count">{section.countLabel}</small>{section.to?<Link className="home-section-link" to={section.to}>Abrir editor <ArrowRight size={14} aria-hidden="true"/></Link>:<span className="home-section-unavailable">Edição indisponível sem persistência</span>}</article>)}</div>
   </AdminShell>

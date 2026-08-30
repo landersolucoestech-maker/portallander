@@ -21,8 +21,9 @@ for(const required of [
  "from '../features/finance/FinanceMainPage'",
  "from '../features/finance/FinanceInvoicesPage'",
  "from '../features/finance/FinanceAccountingPage'",
+ "from '../features/finance/FinancePage'",
  "from '../features/site-manager/SiteManagerRoutes'",
- 'path="/app/login"','path="/app/workspaces"','path="/app/dashboard"','path="/app/crm/*"','path="/app/contracts"','path="/app/finance"','path="/app/finance/invoices"','path="/app/finance/accounting"','path="/app/site/*"'
+ 'path="/app/login"','path="/app/workspaces"','path="/app/dashboard"','path="/app/crm/*"','path="/app/contracts"','path="/app/finance"','path="/app/finance/invoices"','path="/app/finance/accounting"','path="/app/finance/rules"','path="/app/finance/categories"','path="/app/site/*"'
 ])if(!internalApp.includes(required))failures.push(`InternalApp deve manter ${required}.`)
 for(const forbidden of ['CrmRoutes','/app/crm/integrations'])if(internalApp.includes(forbidden))failures.push(`InternalApp não pode reintroduzir infraestrutura removida: ${forbidden}`)
 
@@ -67,7 +68,7 @@ for(const required of ["pathname.endsWith('/leads')?'leads':'contacts'","'/app/c
 const adminUi=await read('src/shared/internal/AdminUi.tsx')
 if(adminUi.indexOf('{renderActions()}')>adminUi.indexOf('notification-button'))failures.push('A ação contextual deve ser renderizada antes do sino de notificações.')
 if(!adminUi.includes("end={to==='/app/site'}"))failures.push('AdminUi deve manter comportamento de deep links do shell.')
-for(const required of ["'contracts'","'finance'",'AdminNavGroup','isNavGroup'])if(!adminUi.includes(required))failures.push(`AdminUi deve suportar navegação dos módulos restaurados: ${required}`)
+for(const required of ["'contracts'","'finance'",'AdminNavGroup','isNavGroup','expandedGroups','aria-expanded={expanded}','<NavLink end className="sidebar-subnav-link"'])if(!adminUi.includes(required))failures.push(`AdminUi deve suportar navegação dos módulos restaurados: ${required}`)
 
 const financeMain=await read('src/features/finance/FinanceMainPage.tsx')
 for(const required of ['Financeiro','Nova Transação','Importar OFX'])if(!financeMain.includes(required))failures.push(`Financeiro principal deve preservar: ${required}`)
@@ -76,10 +77,12 @@ const financeInvoices=await read('src/features/finance/FinanceInvoicesPage.tsx')
 for(const required of ['Notas Fiscais','Registrar Nota'])if(!financeInvoices.includes(required))failures.push(`Notas Fiscais deve preservar: ${required}`)
 
 const financeAccounting=await read('src/features/finance/FinanceAccountingPage.tsx')
-for(const required of ['Contabilidade','P&amp;L Empresa','P&amp;L Contratos','P&amp;L Clientes'])if(!financeAccounting.includes(required))failures.push(`Contabilidade deve preservar: ${required}`)
+for(const required of ['Contabilidade','Receita Total','Despesa Total','Lucro Líquido','Margem Líquida','Demonstrativo de Resultado','Resultado por Contrato','Resultado por Cliente'])if(!financeAccounting.includes(required))failures.push(`Contabilidade deve preservar: ${required}`)
+for(const forbidden of ['finance-accounting-tabs','P&amp;L Empresa','P&amp;L Contratos','P&amp;L Clientes',"type Tab=",'setTab('])if(financeAccounting.includes(forbidden))failures.push(`Contabilidade não pode reintroduzir estrutura descartada: ${forbidden}`)
+if(financeAccounting.indexOf('finance-kpis accounting-original-kpis')>financeAccounting.indexOf('finance-filters'))failures.push('Contabilidade deve manter KPI Cards acima dos filtros.')
 
 const contracts=await read('src/features/contracts/ContractsPage.tsx')
-for(const required of ['Novo Contrato','Templates'])if(!contracts.includes(required))failures.push(`Contratos deve preservar: ${required}`)
+for(const required of ['Novo Contrato','Templates','Novo Template'])if(!contracts.includes(required))failures.push(`Contratos deve preservar: ${required}`)
 
 if(failures.length){console.error('Falha nos boundaries da aplicação:');failures.forEach(item=>console.error(`- ${item}`));process.exit(1)}
 console.log('Application boundaries OK')

@@ -1,4 +1,5 @@
 import { homeAdPersistence } from './adPersistence'
+import {getRuntimeDataProvider} from '../../../shared/data/runtimeDataProvider'
 
 export type HomeAdAlign = 'left' | 'center' | 'right'
 
@@ -19,25 +20,10 @@ export type HomeAdConfig = {
 }
 
 export const HOME_AD_STORAGE_KEY = 'portal-lander:home:ad:v1'
-
-export const defaultHomeAdConfig: HomeAdConfig = {
-  active: true,
-  title: 'PORTAL LANDER',
-  subtitle: 'ANUNCIE AQUI · SUA MARCA NO RITMO CERTO!',
-  buttonLabel: 'SAIBA MAIS →',
-  buttonUrl: '/anuncie',
-  image: '',
-  imageAlt: 'Anúncio em destaque no Portal Lander',
-  logo: '',
-  logoAlt: 'Logo do anunciante',
-  logoWidth: 140,
-  height: 440,
-  contentWidth: 1180,
-  align: 'center',
-}
+export const defaultHomeAdConfig:HomeAdConfig=getRuntimeDataProvider().advertising.defaultHomeAdConfig()
 
 function normalize(raw: Partial<HomeAdConfig> | null | undefined): HomeAdConfig {
-  if (!raw) return defaultHomeAdConfig
+  if (!raw) return structuredClone(defaultHomeAdConfig)
   return {
     ...defaultHomeAdConfig,
     ...raw,
@@ -51,9 +37,9 @@ function normalize(raw: Partial<HomeAdConfig> | null | undefined): HomeAdConfig 
 export function readHomeAdConfig(): HomeAdConfig {
   try {
     const value = homeAdPersistence.read(HOME_AD_STORAGE_KEY)
-    return value ? normalize(JSON.parse(value)) : defaultHomeAdConfig
+    return value ? normalize(JSON.parse(value)) : structuredClone(defaultHomeAdConfig)
   } catch {
-    return defaultHomeAdConfig
+    return structuredClone(defaultHomeAdConfig)
   }
 }
 

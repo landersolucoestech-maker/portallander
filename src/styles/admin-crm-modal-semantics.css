@@ -9,6 +9,8 @@
 .crm-modal-form .crm-form-grid.crm-grid-2{grid-template-columns:repeat(2,minmax(0,1fr))}
 .crm-modal-form .crm-form-grid.crm-grid-3{grid-template-columns:repeat(3,minmax(0,1fr))}
 .crm-modal-form .crm-form-grid.crm-grid-4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.crm-contact-form .crm-contact-identification-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+.crm-contact-form .crm-contact-relationship-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,2fr)}
 .crm-modal-form .crm-field{gap:6px;color:#4d4d4d}
 .crm-modal-form .crm-field>span{font-size:9px;font-weight:800;letter-spacing:.01em}
 .crm-modal-form .crm-field input,.crm-modal-form .crm-field select,.crm-modal-form .crm-field textarea{background:#fff;min-height:38px}
@@ -31,4 +33,4 @@
 .crm-conversion-panel strong{font-size:10px;color:#333}
 .crm-conversion-panel span{font-size:9px;color:#777}
 @media(max-width:980px){.crm-modal-form .crm-form-grid.crm-grid-4{grid-template-columns:repeat(2,minmax(0,1fr))}.crm-modal-semantic.crm-modal-lg{width:min(940px,96vw)}}
-@media(max-width:800px){.crm-modal-semantic .crm-modal-body{padding:14px}.crm-modal-form .crm-form-section{padding:12px}.crm-modal-form .crm-form-section h3{margin:-12px -12px 12px;padding:9px 12px 8px}.crm-modal-form .crm-form-grid.crm-grid-2,.crm-modal-form .crm-form-grid.crm-grid-3,.crm-modal-form .crm-form-grid.crm-grid-4{grid-template-columns:1fr}.crm-modal-view .crm-view-grid{grid-template-columns:1fr}.crm-modal-view .crm-view-section.wide{grid-column:auto}.crm-conversion-panel{align-items:flex-start;flex-direction:column}.crm-conversion-panel .crm-btn{width:100%}}
+@media(max-width:800px){.crm-modal-semantic .crm-modal-body{padding:14px}.crm-modal-form .crm-form-section{padding:12px}.crm-modal-form .crm-form-section h3{margin:-12px -12px 12px;padding:9px 12px 8px}.crm-modal-form .crm-form-grid.crm-grid-2,.crm-modal-form .crm-form-grid.crm-grid-3,.crm-modal-form .crm-form-grid.crm-grid-4,.crm-contact-form .crm-contact-identification-grid,.crm-contact-form .crm-contact-relationship-grid{grid-template-columns:1fr}.crm-modal-view .crm-view-grid{grid-template-columns:1fr}.crm-modal-view .crm-view-section.wide{grid-column:auto}.crm-conversion-panel{align-items:flex-start;flex-direction:column}.crm-conversion-panel .crm-btn{width:100%}}

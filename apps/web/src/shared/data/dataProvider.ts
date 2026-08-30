@@ -1,6 +1,7 @@
 import type {CrmState} from '../../features/crm/domain'
 import type {ContractsState} from '../../features/contracts/domain'
 import type {FinanceCategory,FinanceInvoice,FinanceRule,FinanceTransaction} from '../../features/finance/domain'
+import type {AgendaEvent,AgendaLocation,AgendaParticipant} from '../../features/agenda/domain'
 import type {EditorialContent,EditorialPage} from '../../features/editorial/model'
 import type {HomeAgendaItem,HomeRelease,HomeStory} from '../../pages/home/models/homeReadModel'
 import type {HeroArticleSource,HeroCarouselConfig,HeroSlide} from '../../pages/home/models/heroModel'
@@ -22,7 +23,7 @@ export interface ApplicationDataProvider{
  finance:{transactions():FinanceTransaction[];invoices():FinanceInvoice[];categories():FinanceCategory[];rules():FinanceRule[]}
  editorial:{pages():EditorialPage[];contents():EditorialContent[];media():EditorialMediaItem[]}
  home:{stories():HomeStory[];mostRead():string[];releases():HomeRelease[];agenda():HomeAgendaItem[];heroArticles():HeroArticleSource[];defaultHeroSlide():HeroSlide;defaultHeroConfig():HeroCarouselConfig}
- agenda:{items():AgendaItem[]}
+ agenda:{items():AgendaItem[];events():AgendaEvent[];participants():AgendaParticipant[];locations():AgendaLocation[]}
  advertising:{campaigns():AdvertisingCampaign[];formats():AdvertisingFormat[];defaultHomeAdConfig():HomeAdConfig;defaultNewsAdConfig():NewsAdConfig}
  branding:{config():BrandingConfig;socialChannels():SocialChannel[]}
  collaboration:{types():CollaborationTypeOption[];guidelines():ReadonlyArray<{id:string;order:number;title:string}>}

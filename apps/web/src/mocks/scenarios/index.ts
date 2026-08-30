@@ -9,6 +9,6 @@ export const mockDataScenarios:Record<DataScenarioName,DataScenario>={
  partial:scenario('partial',{partialDomains:['crm','finance','editorial']}),
  large:scenario('large',{largeDataset:true}),
  'permission-denied':scenario('permission-denied',{permissionDeniedDomains:['finance','contracts']}),
- offline:scenario('offline',{offline:true,failDomains:['integrations']}),
+ offline:scenario('offline',{offline:true,failDomains:['notifications','crm','contracts','finance','editorial','home','agenda','advertising','collaboration','dashboard']}),
 }
 export const DEFAULT_MOCK_SCENARIO:DataScenarioName='success'

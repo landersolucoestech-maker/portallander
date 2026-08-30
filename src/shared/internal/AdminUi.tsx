@@ -18,6 +18,7 @@ export function AdminShell({area,items,children,header,headerAction,headerAction
   const context=area==='crm'?'CRM':area==='contracts'?'Contratos':area==='finance'?'Financeiro':'Gerenciador do Site'
   const [notificationsOpen,setNotificationsOpen]=useState(false)
   const [accountOpen,setAccountOpen]=useState(false)
+  const [openNavGroups,setOpenNavGroups]=useState<Record<string,boolean>>({Financeiro:true})
   const notificationsRef=useRef<HTMLDivElement>(null)
   const accountRef=useRef<HTMLDivElement>(null)
   const rawActions=headerActions??(headerAction?[headerAction]:[])
@@ -56,7 +57,14 @@ export function AdminShell({area,items,children,header,headerAction,headerAction
     <aside className="sidebar" aria-label={`Navegação do ${context}`}>
       <div className="sidebar-head"><Link to="/" className="brand" aria-label="Ir para o Portal Lander"><img src={portalLogo} alt="Portal Lander"/></Link><span>{context}</span></div>
       <nav aria-label={`Seções do ${context}`}>{items.map(item=>{
-        if(isNavGroup(item)){const GroupIcon=item.icon;const groupContent=<><GroupIcon size={17}/><span>{item.label}</span><ChevronDown size={13}/></>;return <div className="sidebar-nav-group" key={item.label}>{item.to?<NavLink className="sidebar-nav-group-label" to={item.to}>{groupContent}</NavLink>:<div className="sidebar-nav-group-label">{groupContent}</div>}<div className="sidebar-subnav">{item.children.map(([label,Icon,to])=><NavLink className="sidebar-subnav-link" key={to} to={to}><Icon size={14}/><span>{label}</span></NavLink>)}</div></div>}
+        if(isNavGroup(item)){
+          const GroupIcon=item.icon
+          const isOpen=openNavGroups[item.label]??true
+          return <div className="sidebar-nav-group" key={item.label}>
+            {item.to?<NavLink className="sidebar-nav-group-label" to={item.to}><GroupIcon size={17}/><span>{item.label}</span><ChevronDown size={13}/></NavLink>:<div className="sidebar-nav-group-label"><GroupIcon size={17}/><span>{item.label}</span><button type="button" className="sidebar-nav-group-toggle" aria-label={`${isOpen?'Recolher':'Expandir'} ${item.label}`} aria-expanded={isOpen} onClick={()=>setOpenNavGroups(current=>({...current,[item.label]:!isOpen}))}><ChevronDown size={13} style={{transform:isOpen?'rotate(0deg)':'rotate(-90deg)'}}/></button></div>}
+            {isOpen&&<div className="sidebar-subnav">{item.children.map(([label,Icon,to])=><NavLink className="sidebar-subnav-link" key={to} to={to}><Icon size={14}/><span>{label}</span></NavLink>)}</div>}
+          </div>
+        }
         const [label,Icon,to]=item;return <NavLink key={to} end={to==='/app/site'} to={to}><Icon size={17}/><span>{label}</span></NavLink>
       })}</nav>
       <div className="sidebar-bottom"><NavLink to="/app/workspaces"><Building2 size={17}/><span>Trocar workspace</span></NavLink></div>
@@ -73,5 +81,5 @@ export function AdminShell({area,items,children,header,headerAction,headerAction
 
 export function AdminPageHeader({eyebrow,title,description,action,disabled=false,disabledReason}:{eyebrow:string;title:string;description?:string;action?:string;disabled?:boolean;disabledReason?:string}){const reason=disabledReason||'Ação indisponível no momento.';return <div className="admin-page-header"><div className="admin-page-header-copy"><span className="admin-breadcrumb">{eyebrow}</span><h1>{title}</h1>{description&&<p>{description}</p>}</div>{action&&<div className="admin-header-actions"><button className="button dark" type="button" disabled={disabled} title={disabled?reason:undefined}>{action}</button></div>}</div>}
 export function AdminNotice({title,description}:{title:string;description:string}){return <div className="admin-notice"><div><strong>{title}</strong><p>{description}</p></div></div>}
-export function AdminEmpty({title,description}:{title:string;description:string}){return <div className="admin-empty"><strong>{title}</strong><p>{description}</p></div>}
+export function AdminEmpty({title,description}:{title:string;description:string}){return <div className="admin-empty"><strong>{title}</strong><p>{description}</p></div></div>}
 export function AdminKpi({label,value,detail,icon}:{label:string;value:string;detail:string;icon:ReactNode}){return <div className="admin-kpi"><div className="admin-kpi-top"><span className="admin-kpi-label">{label}</span><span className="admin-kpi-icon">{icon}</span></div><strong>{value}</strong><small>{detail}</small></div>}

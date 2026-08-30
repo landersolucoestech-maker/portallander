@@ -1,0 +1,13 @@
+{
+  "name": "@portallander/api",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "node src/index.js",
+    "build": "node -e \"console.log('API scaffold: no build step yet')\"",
+    "lint": "node -e \"console.log('API scaffold: lint pending backend implementation')\"",
+    "typecheck": "node -e \"console.log('API scaffold: typecheck pending backend implementation')\"",
+    "test": "node -e \"console.log('API scaffold: tests pending backend implementation')\""
+  }
+}

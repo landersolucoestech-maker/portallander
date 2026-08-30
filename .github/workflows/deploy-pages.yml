@@ -24,15 +24,15 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Install
+      - name: Install monorepo
         run: npm install
-      - name: Lint
+      - name: Lint web
         run: npm run lint
       - name: Architecture boundaries
         run: npm run check:architecture
-      - name: Typecheck
+      - name: Typecheck web
         run: npm run typecheck
-      - name: Unit tests
+      - name: Unit tests web
         run: npm test
 
   build:
@@ -47,14 +47,14 @@ jobs:
           node-version: 22
       - name: Configure Pages
         uses: actions/configure-pages@v5
-      - name: Install
+      - name: Install monorepo
         run: npm install
-      - name: Build
+      - name: Build web
         run: npm run build
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: dist
+          path: apps/web/dist
 
   deploy:
     environment:

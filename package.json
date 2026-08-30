@@ -1,36 +1,18 @@
 {
-  "name": "portallander",
+  "name": "portallander-monorepo",
   "private": true,
-  "version": "0.1.0",
-  "type": "module",
+  "version": "0.2.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
-    "lint": "eslint . --max-warnings=0",
-    "typecheck": "tsc -b --pretty false",
-    "check:architecture": "node scripts/check-internal-boundaries.mjs",
-    "test": "vitest run",
-    "preview": "vite preview"
-  },
-  "dependencies": {
-    "@tanstack/react-query": "latest",
-    "@vitejs/plugin-react": "latest",
-    "lucide-react": "latest",
-    "react": "latest",
-    "react-dom": "latest",
-    "react-router-dom": "latest",
-    "vite": "latest"
-  },
-  "devDependencies": {
-    "@eslint/js": "latest",
-    "@types/react": "latest",
-    "@types/react-dom": "latest",
-    "eslint": "latest",
-    "eslint-plugin-react-hooks": "latest",
-    "eslint-plugin-react-refresh": "latest",
-    "globals": "latest",
-    "typescript": "latest",
-    "typescript-eslint": "latest",
-    "vitest": "latest"
+    "dev": "npm --workspace @portallander/web run dev",
+    "build": "npm --workspace @portallander/web run build",
+    "lint": "npm --workspace @portallander/web run lint",
+    "typecheck": "npm --workspace @portallander/web run typecheck",
+    "check:architecture": "npm --workspace @portallander/web run check:architecture",
+    "test": "npm --workspace @portallander/web run test",
+    "preview": "npm --workspace @portallander/web run preview"
   }
 }

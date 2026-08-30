@@ -1,4 +1,4 @@
-import {mockAdvertisingCampaigns,mockAdvertisingFormats,mockAgendaItems,mockBrandingConfig,mockCollaborationGuidelines,mockCollaborationTypes,mockContractCategories,mockContracts,mockContractTemplates,mockContractVariables,mockCurrentUserId,mockDashboardOperationalSnapshot,mockDataScenarios,mockDefaultHeroConfig,mockDefaultHeroSlide,mockEditorialContents,mockEditorialMedia,mockEditorialPages,mockFinanceCategories,mockFinanceInvoices,mockFinanceRules,mockFinanceTransactions,mockHeroArticles,mockHomeAgenda,mockHomeMostRead,mockHomeReleases,mockHomeStories,mockNotifications,mockSocialChannels,mockUsers,mockWorkspaces,mockCrmState} from '../../mocks'
+import {mockAdvertisingCampaigns,mockAdvertisingFormats,mockAgendaItems,mockBrandingConfig,mockCollaborationGuidelines,mockCollaborationTypes,mockContractCategories,mockContracts,mockContractTemplates,mockContractVariables,mockCurrentUserId,mockDashboardOperationalSnapshot,mockDataScenarios,mockDefaultHeroConfig,mockDefaultHeroSlide,mockDefaultHomeAdConfig,mockDefaultNewsAdConfig,mockEditorialContents,mockEditorialMedia,mockEditorialPages,mockFinanceCategories,mockFinanceInvoices,mockFinanceRules,mockFinanceTransactions,mockHeroArticles,mockHomeAgenda,mockHomeMostRead,mockHomeReleases,mockHomeStories,mockNotifications,mockSocialChannels,mockUsers,mockWorkspaces,mockCrmState} from '../../mocks'
 import type {DataScenarioName} from './contracts'
 import type {ApplicationDataProvider,DataDomain} from './dataProvider'
 
@@ -27,7 +27,7 @@ export const mockDataProvider:ApplicationDataProvider={
  editorial:{pages:()=>list('editorial',mockEditorialPages),contents:()=>list('editorial',mockEditorialContents),media:()=>list('editorial',mockEditorialMedia)},
  home:{stories:()=>list('home',mockHomeStories),mostRead:()=>list('home',mockHomeMostRead),releases:()=>list('home',mockHomeReleases),agenda:()=>list('home',mockHomeAgenda),heroArticles:()=>list('home',mockHeroArticles),defaultHeroSlide:()=>{guard('home');return clone(mockDefaultHeroSlide)},defaultHeroConfig:()=>{guard('home');return clone(mockDefaultHeroConfig)}},
  agenda:{items:()=>list('agenda',mockAgendaItems)},
- advertising:{campaigns:()=>list('advertising',mockAdvertisingCampaigns),formats:()=>list('advertising',mockAdvertisingFormats)},
+ advertising:{campaigns:()=>list('advertising',mockAdvertisingCampaigns),formats:()=>list('advertising',mockAdvertisingFormats),defaultHomeAdConfig:()=>{guard('advertising');return clone(mockDefaultHomeAdConfig)},defaultNewsAdConfig:()=>{guard('advertising');return clone(mockDefaultNewsAdConfig)}},
  branding:{config:()=>{guard('branding');return clone(mockBrandingConfig)},socialChannels:()=>list('branding',mockSocialChannels)},
  collaboration:{types:()=>list('collaboration',mockCollaborationTypes),guidelines:()=>list('collaboration',mockCollaborationGuidelines)},
  dashboard:{operationalSnapshot:()=>{guard('dashboard');return clone(mockDashboardOperationalSnapshot)}},

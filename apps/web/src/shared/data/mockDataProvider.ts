@@ -3,13 +3,22 @@ import type {DataScenarioName} from './contracts'
 import type {ApplicationDataProvider,DataDomain} from './dataProvider'
 
 const SCENARIO_STORAGE_KEY='portal-lander:data-scenario:v1'
+const LARGE_DATASET_FACTOR=4
 const clone=<T>(value:T):T=>structuredClone(value)
 const readScenario=():DataScenarioName=>{try{const value=localStorage.getItem(SCENARIO_STORAGE_KEY) as DataScenarioName|null;return value&&value in mockDataScenarios?value:'success'}catch{return 'success'}}
 let scenarioName:DataScenarioName=readScenario()
 
 const scenario=()=>mockDataScenarios[scenarioName]
 const guard=(domain:DataDomain)=>{const current=scenario();if(current.permissionDeniedDomains.includes(domain))throw new Error(`Permission denied for data domain: ${domain}`);if(current.failDomains.includes(domain))throw new Error(`Mock data failure for domain: ${domain}`)}
-const list=<T>(domain:DataDomain,items:readonly T[]):T[]=>{guard(domain);const current=scenario();if(current.emptyDomains.includes(domain))return[];const source=current.partialDomains.includes(domain)?items.slice(0,Math.max(1,Math.ceil(items.length/3))):items;return clone(source as T[])}
+const withScaledId=<T>(item:T,copyIndex:number):T=>{
+ if(copyIndex===0||!item||typeof item!=='object'||!('id' in item))return clone(item)
+ const record=item as Record<string,unknown>
+ return {...clone(record),id:`${String(record.id)}__large_${copyIndex+1}`} as T
+}
+const scale=<T>(items:readonly T[]):T[]=>Array.from({length:LARGE_DATASET_FACTOR},(_,copyIndex)=>items.map(item=>withScaledId(item,copyIndex))).flat()
+const list=<T>(domain:DataDomain,items:readonly T[]):T[]=>{guard(domain);const current=scenario();if(current.emptyDomains.includes(domain))return[];if(current.partialDomains.includes(domain))return clone(items.slice(0,Math.max(1,Math.ceil(items.length/3))) as T[]);if(current.largeDataset)return scale(items);return clone(items as T[])}
+const scaleCrmState=()=>({version:1 as const,leads:scale(mockCrmState.leads),contacts:scale(mockCrmState.contacts)})
+const scaleContractsState=()=>({contracts:scale(mockContracts),templates:clone(mockContractTemplates),categories:clone(mockContractCategories),variables:clone(mockContractVariables)})
 
 export const mockDataProvider:ApplicationDataProvider={
  kind:'mock',
@@ -21,8 +30,8 @@ export const mockDataProvider:ApplicationDataProvider={
   workspaces:()=>list('identity',mockWorkspaces),
  },
  notifications:{list:()=>list('notifications',mockNotifications)},
- crm:{state:()=>{guard('crm');const current=scenario();if(current.emptyDomains.includes('crm'))return{version:1,leads:[],contacts:[]};if(current.partialDomains.includes('crm'))return{version:1,leads:clone(mockCrmState.leads.slice(0,12)),contacts:clone(mockCrmState.contacts.slice(0,12))};return clone(mockCrmState)}},
- contracts:{state:()=>{guard('contracts');const current=scenario();return{contracts:current.emptyDomains.includes('contracts')?[]:clone(current.partialDomains.includes('contracts')?mockContracts.slice(0,8):mockContracts),templates:clone(mockContractTemplates),categories:clone(mockContractCategories),variables:clone(mockContractVariables)}}},
+ crm:{state:()=>{guard('crm');const current=scenario();if(current.emptyDomains.includes('crm'))return{version:1,leads:[],contacts:[]};if(current.partialDomains.includes('crm'))return{version:1,leads:clone(mockCrmState.leads.slice(0,12)),contacts:clone(mockCrmState.contacts.slice(0,12))};if(current.largeDataset)return scaleCrmState();return clone(mockCrmState)}},
+ contracts:{state:()=>{guard('contracts');const current=scenario();if(current.largeDataset)return scaleContractsState();return{contracts:current.emptyDomains.includes('contracts')?[]:clone(current.partialDomains.includes('contracts')?mockContracts.slice(0,8):mockContracts),templates:clone(mockContractTemplates),categories:clone(mockContractCategories),variables:clone(mockContractVariables)}}},
  finance:{transactions:()=>list('finance',mockFinanceTransactions),invoices:()=>list('finance',mockFinanceInvoices),categories:()=>list('finance',mockFinanceCategories),rules:()=>list('finance',mockFinanceRules)},
  editorial:{pages:()=>list('editorial',mockEditorialPages),contents:()=>list('editorial',mockEditorialContents),media:()=>list('editorial',mockEditorialMedia)},
  home:{stories:()=>list('home',mockHomeStories),mostRead:()=>list('home',mockHomeMostRead),releases:()=>list('home',mockHomeReleases),agenda:()=>list('home',mockHomeAgenda),heroArticles:()=>list('home',mockHeroArticles),defaultHeroSlide:()=>{guard('home');return clone(mockDefaultHeroSlide)},defaultHeroConfig:()=>{guard('home');return clone(mockDefaultHeroConfig)}},

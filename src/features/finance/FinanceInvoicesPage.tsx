@@ -1,5 +1,6 @@
 import {ArrowDownLeft,ArrowLeftRight,ArrowUpRight,Download,FileText,Plus,Scale,Search} from 'lucide-react'
-import {useMemo,useState} from 'react'
+import {useMemo,useState,type ReactNode} from 'react'
+import {useNavigate} from 'react-router-dom'
 import {AdminShell} from '../../shared/internal/AdminUi'
 import {CRM_WORKSPACE_NAV} from '../../shared/internal/adminNavigation'
 import {money,type FinanceInvoice} from './domain'
@@ -9,11 +10,12 @@ const readInvoices=():FinanceInvoice[]=>{try{const raw=localStorage.getItem('por
 const dateLabel=(value:string)=>value?new Date(`${value}T12:00:00`).toLocaleDateString('pt-BR'):'—'
 
 export default function FinanceInvoicesPage(){
+ const navigate=useNavigate()
  const [invoices]=useState(readInvoices),[search,setSearch]=useState(''),[type,setType]=useState('all'),[status,setStatus]=useState('all'),[start,setStart]=useState(''),[end,setEnd]=useState(''),[page,setPage]=useState(1)
  const filtered=useMemo(()=>invoices.filter(x=>(!search||[x.number,x.party,x.document].some(v=>v.toLowerCase().includes(search.toLowerCase())))&&(type==='all'||x.type===type)&&(status==='all'||x.status===status)&&(!start||x.issueDate>=start)&&(!end||x.issueDate<=end)),[invoices,search,type,status,start,end])
  const pages=Math.max(1,Math.ceil(filtered.length/10)),items=filtered.slice((Math.min(page,pages)-1)*10,Math.min(page,pages)*10)
  const outputs=invoices.filter(x=>x.type==='saida'),inputs=invoices.filter(x=>x.type==='entrada'),outValue=outputs.reduce((s,x)=>s+x.amount,0),inValue=inputs.reduce((s,x)=>s+x.amount,0),balance=outValue-inValue
- return <AdminShell area="finance" items={CRM_WORKSPACE_NAV} header={{title:'Notas Fiscais',description:'Registro e controle de notas fiscais de entrada e saída'}} headerActions={[{label:'Financeiro',variant:'secondary',icon:ArrowLeftRight,onClick:()=>location.assign('/portallander/app/finance')},{label:'Registrar Nota',icon:Plus,onClick:()=>location.assign('/portallander/app/finance')}]}>
+ return <AdminShell area="finance" items={CRM_WORKSPACE_NAV} header={{title:'Notas Fiscais',description:'Registro e controle de notas fiscais de entrada e saída'}} headerActions={[{label:'Financeiro',variant:'secondary',icon:ArrowLeftRight,onClick:()=>navigate('/app/finance')},{label:'Registrar Nota',icon:Plus,onClick:()=>navigate('/app/finance?newInvoice=1')}]}>
   <section className="finance-page">
    <div className="finance-kpis finance-invoice-six">
     <Kpi title="Total" value={String(invoices.length)} icon={<FileText/>}/><Kpi title="Saídas" value={String(outputs.length)} icon={<ArrowUpRight/>}/><Kpi title="Entradas" value={String(inputs.length)} icon={<ArrowDownLeft/>}/><Kpi title="Valor Saídas" value={money(outValue)} icon={<ArrowUpRight/>}/><Kpi title="Valor Entradas" value={money(-inValue)} icon={<ArrowDownLeft/>}/><Kpi title="Saldo" value={`${balance>=0?'+':''}${money(balance)}`} icon={<Scale/>}/>
@@ -23,4 +25,4 @@ export default function FinanceInvoicesPage(){
   </section>
  </AdminShell>
 }
-function Kpi({title,value,icon}:{title:string;value:string;icon:React.ReactNode}){return <article className="finance-kpi"><div><span>{title}</span><strong>{value}</strong></div><i>{icon}</i></article>}
+function Kpi({title,value,icon}:{title:string;value:string;icon:ReactNode}){return <article className="finance-kpi"><div><span>{title}</span><strong>{value}</strong></div><i>{icon}</i></article>}

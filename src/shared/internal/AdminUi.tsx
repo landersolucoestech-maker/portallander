@@ -4,7 +4,7 @@ import { Bell, Building2, ChevronDown, FilePlus2, FileStack, LayoutTemplate, Log
 import { Link, NavLink } from 'react-router-dom'
 import { portalLogo } from '../branding/assets/brandAsset'
 
-export type AdminArea = 'crm' | 'contracts' | 'cms'
+export type AdminArea = 'crm' | 'contracts' | 'finance' | 'cms'
 export type AdminNavLink = readonly [label: string, icon: LucideIcon, to: string]
 export type AdminNavGroup = {label:string;icon:LucideIcon;to?:string;children:readonly AdminNavLink[]}
 export type AdminNavItem = AdminNavLink | AdminNavGroup
@@ -15,7 +15,7 @@ export type AdminShellAction={label:string;onClick?:()=>void;disabled?:boolean;d
 const isNavGroup=(item:AdminNavItem):item is AdminNavGroup=>!Array.isArray(item)
 
 export function AdminShell({area,items,children,header,headerAction,headerActions}:{area:AdminArea;items:readonly AdminNavItem[];children:ReactNode;header?:AdminShellHeader;headerAction?:AdminShellAction;headerActions?:readonly AdminShellAction[]}){
-  const context=area==='crm'?'CRM':area==='contracts'?'Contratos':'Gerenciador do Site'
+  const context=area==='crm'?'CRM':area==='contracts'?'Contratos':area==='finance'?'Financeiro':'Gerenciador do Site'
   const [notificationsOpen,setNotificationsOpen]=useState(false)
   const [accountOpen,setAccountOpen]=useState(false)
   const notificationsRef=useRef<HTMLDivElement>(null)

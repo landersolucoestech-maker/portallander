@@ -13,19 +13,26 @@ for(const required of ["from '../features/access/LoginPage'","from '../features/
 for(const forbidden of ['CrmRoutes','integrations'])if(internalApp.includes(forbidden))failures.push(`InternalApp não pode reintroduzir infraestrutura removida: ${forbidden}`)
 
 const crmWorkspace=await read('src/features/access/CrmWorkspace.tsx')
-for(const required of ["from '../dashboard/DashboardPage'","from '../crm/CrmPage'",'<Route index element={<DashboardPage/>}/>','path="leads"','path="contatos"'])if(!crmWorkspace.includes(required))failures.push(`CrmWorkspace deve preservar rota CRM: ${required}`)
+for(const required of ["from '../crm/CrmPage'",'<Route index element={<CrmPage/>}/>','path="leads" element={<CrmPage/>}','path="contatos" element={<CrmPage/>}'])if(!crmWorkspace.includes(required))failures.push(`CrmWorkspace deve preservar página CRM unificada: ${required}`)
+if(crmWorkspace.includes('DashboardPage'))failures.push('CrmWorkspace não deve manter Dashboard separado do CRM.')
 
 const dashboard=await read('src/features/dashboard/DashboardPage.tsx')
 for(const required of ['Visão geral.','Faturamento do Mês','A Receber','Contratos Ativos','Publicações Contratadas Pendentes','Próximos Compromissos','Pipeline Comercial','Operação Editorial','Receita por Origem','Atividades Recentes'])if(!dashboard.includes(required))failures.push(`Dashboard executivo deve preservar: ${required}`)
 for(const forbidden of ['Conteúdos Publicados','Categorias Editoriais','Últimas Atualizações','Publicações Recentes','Artistas Cadastrados','Artistas em Destaque','streams','Math.random','fake data','mockDashboard'])if(dashboard.includes(forbidden))failures.push(`Dashboard não pode reintroduzir dashboard editorial/musical ou dado fabricado: ${forbidden}`)
 
 const adminNavigation=await read('src/shared/internal/adminNavigation.ts')
-for(const required of ['CRM_WORKSPACE_NAV','/app/crm/leads','/app/crm/contatos'])if(!adminNavigation.includes(required))failures.push(`adminNavigation deve preservar CRM adaptado: ${required}`)
-for(const forbidden of ['Integrações','PlugZap','/app/crm/integrations'])if(adminNavigation.includes(forbidden))failures.push(`adminNavigation não pode reintroduzir Integrações removidas: ${forbidden}`)
+for(const required of ['CRM_WORKSPACE_NAV',"['CRM',ContactRound,'/app/crm']"])if(!adminNavigation.includes(required))failures.push(`adminNavigation deve apresentar CRM como módulo único: ${required}`)
+for(const forbidden of ["['Dashboard',LayoutDashboard,'/app/crm']","['Leads'","['Contatos'",'/app/crm/integrations','Integrações','PlugZap'])if(adminNavigation.includes(forbidden))failures.push(`adminNavigation não pode dividir o CRM na sidebar: ${forbidden}`)
 
 const crmPage=await read('src/features/crm/CrmPage.tsx')
-for(const required of ['Pipeline Comercial','Rede de Relacionamentos','Novo lead','Novo contato','Total de Leads','Total de Contatos'])if(!crmPage.includes(required))failures.push(`CRM deve preservar UX adaptada: ${required}`)
-for(const forbidden of ['Gravadora/Selo','Distribuição Digital','Gestão Artística','Contratação de Artistas'])if(crmPage.includes(forbidden))failures.push(`CRM não pode importar domínio musical: ${forbidden}`)
+for(const required of ["title:'CRM'",'Gerencie contatos, leads e relacionamentos comerciais do Portal Lander.','crm-tabs','role="tablist"','Novo Contato','Novo Lead',"navigate(crmPathForTab('contacts'))","navigate(crmPathForTab('leads'))",'LeadFormModal','ContactFormModal','Total de Leads','Total de Contatos'])if(!crmPage.includes(required))failures.push(`CRM deve preservar página unificada e ação contextual: ${required}`)
+for(const forbidden of ['crm-page-toolbar','Gravadora/Selo','Distribuição Digital','Gestão Artística','Contratação de Artistas'])if(crmPage.includes(forbidden))failures.push(`CRM não pode manter cabeçalho duplicado ou domínio musical: ${forbidden}`)
+
+const routing=await read('src/features/crm/routing.ts')
+for(const required of ["pathname.endsWith('/leads')?'leads':'contacts'","'/app/crm/leads'","'/app/crm/contatos'"])if(!routing.includes(required))failures.push(`CRM routing deve sincronizar URL e tab: ${required}`)
+
+const adminUi=await read('src/shared/internal/AdminUi.tsx')
+if(adminUi.indexOf('{renderActions()}')>adminUi.indexOf('notification-button'))failures.push('A ação contextual deve ser renderizada antes do sino de notificações.')
 
 const domain=await read('src/features/crm/domain.ts')
 for(const required of ['agencia_publicidade','assessoria_imprensa','anunciante','patrocinador','fonte_editorial','publieditorial','campanha_publicitaria'])if(!domain.includes(required))failures.push(`CRM domain deve preservar adaptação Portal Lander: ${required}`)

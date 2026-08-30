@@ -2,7 +2,7 @@ import {useMutation,useQuery,useQueryClient} from '@tanstack/react-query'
 import {crmRepository} from './repository'
 import type {Contact,InteractionType,Lead,LeadStatus} from './domain'
 
-export const CRM_KEYS={leads:['crm','leads'] as const,contacts:['crm','contacts'] as const}
+const CRM_KEYS={leads:['crm','leads'] as const,contacts:['crm','contacts'] as const}
 const useInvalidate=()=>{const qc=useQueryClient();return()=>Promise.all([qc.invalidateQueries({queryKey:CRM_KEYS.leads}),qc.invalidateQueries({queryKey:CRM_KEYS.contacts})])}
 export function useLeads(){return useQuery({queryKey:CRM_KEYS.leads,queryFn:async()=>crmRepository.listLeads(),staleTime:10_000})}
 export function useContacts(){return useQuery({queryKey:CRM_KEYS.contacts,queryFn:async()=>crmRepository.listContacts(),staleTime:10_000})}

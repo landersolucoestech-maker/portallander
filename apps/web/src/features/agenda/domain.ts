@@ -1,5 +1,5 @@
 export type AgendaViewMode='dia'|'semana'|'mes'|'ano'
-export type AgendaEventStatus='agendado'|'confirmado'|'pendente'|'concluido'|'cancelado'
+export type AgendaEventStatus='agendado'|'confirmado'|'pendente'|'concluido'|'cancelado'|'realizado'|'negociacao'
 export type AgendaParticipantSource='artist'|'employee'
 
 export interface AgendaParticipant{

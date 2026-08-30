@@ -1,5 +1,3 @@
-import {financeCategoriesMock,financeInvoicesMock,financeRulesMock,financeTransactionsMock} from './mocks'
-
 export type FinanceTransactionType='receita'|'despesa'
 export type FinanceStatus='pago'|'pendente'|'vencido'|'cancelado'
 export type FinancePaymentType='avista'|'parcelado'
@@ -18,12 +16,6 @@ export const financePaymentTypeOptions:readonly (readonly [FinancePaymentType,st
 export const financePaymentMethodOptions:readonly (readonly [FinancePaymentMethod,string])[]=[['pix','Pix'],['boleto','Boleto'],['transferencia','Transferência'],['cartao','Cartão'],['dinheiro','Dinheiro'],['outro','Outro']]
 export const invoiceTypeOptions:readonly (readonly [InvoiceType,string])[]=[['saida','Saída'],['entrada','Entrada']]
 export const invoiceStatusOptions:readonly (readonly [InvoiceStatus,string])[]=[['emitida','Emitida'],['pendente','Pendente'],['paga','Paga'],['cancelada','Cancelada']]
-
-// Compatibility bridge. Removed when finance pages move behind the data provider in Stage 6/7.
-export const financeCategories:FinanceCategory[]=financeCategoriesMock
-export const seedTransactions:FinanceTransaction[]=financeTransactionsMock
-export const seedInvoices:FinanceInvoice[]=financeInvoicesMock
-export const seedRules:FinanceRule[]=financeRulesMock
 
 export const money=(value:number)=>value.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})
 export const uid=(prefix:string)=>`${prefix}-${Date.now()}-${Math.random().toString(36).slice(2,8)}`

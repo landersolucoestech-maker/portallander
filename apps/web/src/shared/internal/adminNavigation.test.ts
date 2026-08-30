@@ -1,9 +1,12 @@
 import {describe,expect,it} from 'vitest'
+import type {AdminNavGroup,AdminNavItem} from './AdminUi'
 import {CRM_WORKSPACE_NAV} from './adminNavigation'
+
+const isGroup=(item:AdminNavItem):item is AdminNavGroup=>!Array.isArray(item)
 
 describe('admin navigation',()=>{
  it('mantém Dashboard, CRM, Contratos e Financeiro no workspace administrativo',()=>{
-  const labels=CRM_WORKSPACE_NAV.map(item=>Array.isArray(item)?item[0]:item.label)
+  const labels=CRM_WORKSPACE_NAV.map(item=>isGroup(item)?item.label:item[0])
   expect(labels).toEqual(['Dashboard','CRM','Contratos','Financeiro'])
  })
 
@@ -18,8 +21,8 @@ describe('admin navigation',()=>{
  })
 
  it('mantém somente as três páginas permitidas no submenu Financeiro',()=>{
-  const finance=CRM_WORKSPACE_NAV.find(item=>!Array.isArray(item)&&item.label==='Financeiro')
-  expect(finance&& !Array.isArray(finance) ? finance.children.map(child=>child[0]) : []).toEqual(['Transações','Notas Fiscais','Contabilidade'])
+  const finance=CRM_WORKSPACE_NAV.find(item=>isGroup(item)&&item.label==='Financeiro')
+  expect(finance&&isGroup(finance)?finance.children.map(child=>child[0]):[]).toEqual(['Transações','Notas Fiscais','Contabilidade'])
   const serialized=JSON.stringify(finance)
   expect(serialized).not.toContain('/app/finance/categories')
   expect(serialized).not.toContain('/app/finance/rules')

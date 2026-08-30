@@ -3,17 +3,14 @@ import {useMemo,useState,type FormEvent} from 'react'
 import {uid,type FinanceInvoice,type FinanceInvoiceItem,type FinanceInvoiceRetention,type FinanceInvoiceTax,type InvoiceType} from './domain'
 
 type Props={onClose:()=>void;onSave:(value:FinanceInvoice)=>void}
-type Step='direction'|'form'
 
 const emptyItem=():FinanceInvoiceItem=>({id:uid('item'),description:'',quantity:1,unit:'UN',unitPrice:0,discountAmount:0,totalAmount:0})
 const emptyTax=():FinanceInvoiceTax=>({id:uid('tax'),taxType:'',taxCode:'',baseAmount:0,rate:0,amount:0,withheld:false,treatment:'informativo'})
 const emptyRetention=():FinanceInvoiceRetention=>({id:uid('ret'),type:'',baseAmount:0,rate:0,amount:0})
 
 export default function InvoiceRegisterModal({onClose,onSave}:Props){
- const [step,setStep]=useState<Step>('direction')
- const [direction,setDirection]=useState<InvoiceType|null>(null)
  const now=new Date().toISOString()
- const [form,setForm]=useState<FinanceInvoice>({id:'',number:'',series:'',type:'saida',party:'',document:'',issueDate:new Date().toISOString().slice(0,10),dueDate:'',amount:0,status:'pendente',description:'',pdfUrl:'',createdAt:now,updatedAt:now,documentType:'',model:'',competenceDate:'',productRef:'',serviceRef:'',businessUnitRef:'',contractRef:'',xmlReference:'',notes:'',items:[emptyItem()],taxes:[],retentions:[]})
+ const [form,setForm]=useState<FinanceInvoice>({id:'',number:'',series:'001',type:'saida',party:'',document:'',issueDate:new Date().toISOString().slice(0,10),dueDate:'',amount:0,status:'pendente',description:'',pdfUrl:'',createdAt:now,updatedAt:now,documentType:'',model:'',competenceDate:'',productRef:'',serviceRef:'',businessUnitRef:'',contractRef:'',xmlReference:'',notes:'',items:[emptyItem()],taxes:[],retentions:[]})
  const items=form.items??[],taxes=form.taxes??[],retentions=form.retentions??[]
  const totals=useMemo(()=>{
   const itemTotal=items.reduce((sum,item)=>sum+Math.max(0,item.quantity*item.unitPrice-item.discountAmount),0)
@@ -21,24 +18,18 @@ export default function InvoiceRegisterModal({onClose,onSave}:Props){
   const retained=retentions.reduce((sum,retention)=>sum+Math.max(0,retention.amount),0)
   return {gross:itemTotal,total:itemTotal+addedTaxes,net:itemTotal+addedTaxes-retained}
  },[items,taxes,retentions])
- const choose=(type:InvoiceType)=>{setDirection(type);setForm(current=>({...current,type,series:current.series||'001'}));setStep('form')}
- const submit=(event:FormEvent)=>{event.preventDefault();if(!direction||!form.party.trim())return;onSave({...form,type:direction,amount:totals.total||form.amount,updatedAt:new Date().toISOString()})}
+ const submit=(event:FormEvent)=>{event.preventDefault();if(!form.party.trim())return;onSave({...form,amount:totals.total||form.amount,updatedAt:new Date().toISOString()})}
  const updateItem=(id:string,patch:Partial<FinanceInvoiceItem>)=>setForm(current=>({...current,items:(current.items??[]).map(item=>item.id===id?{...item,...patch,totalAmount:Math.max(0,(patch.quantity??item.quantity)*(patch.unitPrice??item.unitPrice)-(patch.discountAmount??item.discountAmount))}:item)}))
  const updateTax=(id:string,patch:Partial<FinanceInvoiceTax>)=>setForm(current=>({...current,taxes:(current.taxes??[]).map(item=>item.id===id?{...item,...patch}:item)}))
  const updateRetention=(id:string,patch:Partial<FinanceInvoiceRetention>)=>setForm(current=>({...current,retentions:(current.retentions??[]).map(item=>item.id===id?{...item,...patch}:item)}))
  return <div className="crm-modal-backdrop" onMouseDown={event=>{if(event.target===event.currentTarget)onClose()}}>
   <section className="finance-modal wide finance-invoice-register-modal" role="dialog" aria-modal="true" aria-label="Registrar nota fiscal">
    <header><div><span>Notas Fiscais</span><h2>Registrar Nota Fiscal</h2></div><button type="button" className="crm-icon-btn" onClick={onClose} aria-label="Fechar"><X size={18}/></button></header>
-   {step==='direction'?<div className="finance-modal-body finance-invoice-direction-step">
-    <div className="finance-register-intro"><h3>Qual tipo de nota deseja registrar?</h3><p>Escolha a direção do documento para carregar o formulário correspondente.</p></div>
-    <div className="finance-invoice-direction-options">
-     <button type="button" className="finance-invoice-direction-card" onClick={()=>choose('entrada')}><strong>Entrada</strong><span>Documento recebido de fornecedor / emitente.</span></button>
-     <button type="button" className="finance-invoice-direction-card" onClick={()=>choose('saida')}><strong>Saída</strong><span>Documento emitido ou cadastrado para cliente / tomador.</span></button>
-    </div>
-   </div>:<form onSubmit={submit}>
+   <form onSubmit={submit}>
     <div className="finance-modal-body finance-invoice-register-body">
-     <section className="finance-form-section"><div className="finance-register-section-title"><h3>Dados gerais</h3><button type="button" className="crm-btn secondary small" onClick={()=>setStep('direction')}>Trocar tipo</button></div><div className="finance-form-grid">
-      <Field label={direction==='entrada'?'Fornecedor / Emitente':'Cliente / Tomador'} value={form.party} required onChange={value=>setForm(current=>({...current,party:value}))}/>
+     <section className="finance-form-section"><h3>Dados gerais</h3><div className="finance-form-grid">
+      <SelectField label="Tipo da nota" value={form.type} options={[["saida","Saída"],["entrada","Entrada"]]} onChange={value=>setForm(current=>({...current,type:value as InvoiceType}))}/>
+      <Field label={form.type==='entrada'?'Fornecedor / Emitente':'Cliente / Tomador'} value={form.party} required onChange={value=>setForm(current=>({...current,party:value}))}/>
       <Field label="CPF / CNPJ" value={form.document} onChange={value=>setForm(current=>({...current,document:value}))}/>
       <Field label="Número" value={form.number} onChange={value=>setForm(current=>({...current,number:value}))}/>
       <Field label="Série" value={form.series} onChange={value=>setForm(current=>({...current,series:value}))}/>
@@ -47,7 +38,7 @@ export default function InvoiceRegisterModal({onClose,onSave}:Props){
       <Field label="Data de emissão" type="date" value={form.issueDate} onChange={value=>setForm(current=>({...current,issueDate:value}))}/>
       <Field label="Competência fiscal" type="date" value={form.competenceDate??''} onChange={value=>setForm(current=>({...current,competenceDate:value}))}/>
       <Field label="Vencimento" type="date" value={form.dueDate} onChange={value=>setForm(current=>({...current,dueDate:value}))}/>
-      <SelectField label="Status" value={form.status} options={direction==='saida'?[['pendente','Pendente'],['emitida','Emitida · registro interno'],['paga','Paga'],['cancelada','Cancelada']]:[['pendente','Pendente'],['emitida','Registrada'],['paga','Paga'],['cancelada','Cancelada']]} onChange={value=>setForm(current=>({...current,status:value as FinanceInvoice['status']}))}/>
+      <SelectField label="Status" value={form.status} options={form.type==='saida'?[['pendente','Pendente'],['emitida','Emitida · registro interno'],['paga','Paga'],['cancelada','Cancelada']]:[['pendente','Pendente'],['emitida','Registrada'],['paga','Paga'],['cancelada','Cancelada']]} onChange={value=>setForm(current=>({...current,status:value as FinanceInvoice['status']}))}/>
      </div><TextArea label="Descrição" value={form.description} onChange={value=>setForm(current=>({...current,description:value}))}/></section>
 
      <section className="finance-form-section"><div className="finance-register-section-title"><h3>Itens</h3><button type="button" className="crm-btn secondary small" onClick={()=>setForm(current=>({...current,items:[...(current.items??[]),emptyItem()]}))}><Plus size={14}/>Adicionar item</button></div>{items.map((item,index)=><div className="finance-invoice-line" key={item.id}><div className="finance-form-grid">
@@ -59,10 +50,10 @@ export default function InvoiceRegisterModal({onClose,onSave}:Props){
 
      <section className="finance-form-section"><h3>Relacionamentos e documentos</h3><div className="finance-form-grid"><Field label="Produto" value={form.productRef??''} onChange={value=>setForm(current=>({...current,productRef:value}))}/><Field label="Serviço" value={form.serviceRef??''} onChange={value=>setForm(current=>({...current,serviceRef:value}))}/><Field label="Unidade" value={form.businessUnitRef??''} onChange={value=>setForm(current=>({...current,businessUnitRef:value}))}/><Field label="Contrato" value={form.contractRef??''} onChange={value=>setForm(current=>({...current,contractRef:value}))}/><Field label="XML / Referência" value={form.xmlReference??''} onChange={value=>setForm(current=>({...current,xmlReference:value}))}/><Field label="PDF / URL" value={form.pdfUrl} onChange={value=>setForm(current=>({...current,pdfUrl:value}))}/></div><TextArea label="Observações" value={form.notes??''} onChange={value=>setForm(current=>({...current,notes:value}))}/></section>
 
-     <div className="finance-invoice-register-totals"><span>Itens <strong>{totals.gross.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}</strong></span><span>Total fiscal <strong>{totals.total.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}</strong></span><span>Valor líquido <strong>{totals.net.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}</strong></span></div>
+     <div className="finance-invoice-register-totals"><span>Itens <strong>{totals.gross.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}</strong></span><span>Total fiscal <strong>{totals.total.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}</strong></span><span>Valor líquido <strong>{totals.net.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}</strong></div>
     </div>
     <footer className="finance-modal-foot"><button type="button" className="crm-btn secondary" onClick={onClose}>Cancelar</button><button type="submit" className="crm-btn primary">Registrar Nota</button></footer>
-   </form>}
+   </form>
   </section>
  </div>
 }

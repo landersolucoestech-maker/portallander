@@ -39,8 +39,13 @@ const domain=await read('src/features/crm/domain.ts')
 for(const required of ['agencia_publicidade','assessoria_imprensa','anunciante','patrocinador','fonte_editorial','publieditorial','campanha_publicitaria'])if(!domain.includes(required))failures.push(`CRM domain deve preservar adaptação Portal Lander: ${required}`)
 
 const contractsPage=await read('src/features/contracts/ContractsPage.tsx')
-for(const required of ['Contratos','Templates','Categorias','Variáveis','Novo Contrato','Total de Contratos','Valor Contratado','ContractWizard','ContractViewModal'])if(!contractsPage.includes(required))failures.push(`Contratos deve preservar implementação completa: ${required}`)
+for(const required of ['Contratos','Templates','Novo Contrato','Total de Contratos','Valor Contratado','ContractWizard','ContractViewModal'])if(!contractsPage.includes(required))failures.push(`Contratos deve preservar implementação completa: ${required}`)
 for(const forbidden of ['ContactFormModal','ContactViewModal','LeadFormModal','LeadViewModal'])if(contractsPage.includes(forbidden))failures.push(`Contratos não pode importar UI do CRM: ${forbidden}`)
+const categoriesPanel=await read('src/features/contracts/components/CategoriesPanel.tsx')
+for(const required of ['CategoriesPanel','Categorias','ContractCategory'])if(!categoriesPanel.includes(required))failures.push(`Contratos deve preservar registry interno de categorias: ${required}`)
+const variablesPanel=await read('src/features/contracts/components/VariablesPanel.tsx')
+for(const required of ['VariablesPanel','Variáveis','ContractVariable'])if(!variablesPanel.includes(required))failures.push(`Contratos deve preservar registry interno de variáveis: ${required}`)
+
 const contractsDir=new URL('../src/features/contracts/',import.meta.url)
 async function collectFiles(dir){const entries=await readdir(dir,{withFileTypes:true});const files=[];for(const entry of entries){const target=new URL(entry.name+(entry.isDirectory()?'/':''),dir);if(entry.isDirectory())files.push(...await collectFiles(target));else if(/\.(ts|tsx)$/.test(entry.name)&&!entry.name.endsWith('.test.ts'))files.push(target)}return files}
 const forbiddenContractsTerms=['Artista','Artist','Gravadora','Label Services','Selo','Produtor Musical','Producer','Compositor','Composer','Fonograma','Phonogram','ISRC','ISWC','UPC','MusicWork','Obra Musical','Produção Musical','Agenciamento Artístico','Empresariamento','Contrato de Gravação','Distribuição Fonográfica','Licenciamento de Fonograma','Royalties musicais','Royalties fonográficos','Master','Publishing','Spotify','Apple Music','YouTube Music','Deezer','SoundCloud','Tidal']

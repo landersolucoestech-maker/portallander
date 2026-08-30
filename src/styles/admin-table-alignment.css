@@ -1,41 +1,26 @@
 .workspace-main table th,
-.crm-table th,
-.contracts-table th,
-.finance-table th {
-  text-align: left !important;
-  vertical-align: middle !important;
+.crm-table th {
+  text-align:left !important;
+  vertical-align:middle !important;
 }
 
 .workspace-main table td,
-.crm-table td,
-.contracts-table td,
-.finance-table td {
-  text-align: left !important;
-  vertical-align: middle !important;
+.crm-table td {
+  text-align:left !important;
+  vertical-align:middle !important;
 }
 
 .workspace-main table td:first-child,
-.crm-table td:first-child,
-.contracts-table td:first-child,
-.finance-table td:first-child {
-  text-align: center !important;
-}
-
-.finance-table th.accounting-category-col,
-.finance-table td.accounting-category-col {
-  text-align: center !important;
+.crm-table td:first-child {
+  text-align:center !important;
 }
 
 .workspace-main table td:last-child,
 .crm-table td:last-child,
-.contracts-table td:last-child,
-.finance-table td:last-child,
 .workspace-main table td:last-child .crm-row-actions,
-.workspace-main table td:last-child .contracts-row-actions,
-.workspace-main table td:last-child .finance-row-actions,
 .workspace-main table td:last-child .table-row-action-menu {
-  text-align: left !important;
-  justify-content: flex-start !important;
-  margin-left: 0 !important;
-  margin-right: auto !important;
+  text-align:left !important;
+  justify-content:flex-start !important;
+  margin-left:0 !important;
+  margin-right:auto !important;
 }

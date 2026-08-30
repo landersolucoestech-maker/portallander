@@ -15,20 +15,36 @@
 }
 
 .workspace-main table th:first-child,
-.workspace-main table td:first-child,
-.workspace-main table th:last-child,
-.workspace-main table td:last-child,
 .crm-table th:first-child,
-.crm-table td:first-child,
-.crm-table th:last-child,
-.crm-table td:last-child,
 .contracts-table th:first-child,
-.contracts-table td:first-child,
-.contracts-table th:last-child,
-.contracts-table td:last-child,
-.finance-table th:first-child,
-.finance-table td:first-child,
-.finance-table th:last-child,
-.finance-table td:last-child {
+.finance-table th:first-child {
   text-align: center !important;
+}
+
+.workspace-main table td:first-child,
+.crm-table td:first-child,
+.contracts-table td:first-child,
+.finance-table td:first-child {
+  text-align: center !important;
+}
+
+.workspace-main table th:last-child,
+.crm-table th:last-child,
+.contracts-table th:last-child,
+.finance-table th:last-child {
+  text-align: center !important;
+}
+
+.workspace-main table td:last-child,
+.crm-table td:last-child,
+.contracts-table td:last-child,
+.finance-table td:last-child,
+.workspace-main table td:last-child .crm-row-actions,
+.workspace-main table td:last-child .contracts-row-actions,
+.workspace-main table td:last-child .finance-row-actions,
+.workspace-main table td:last-child .table-row-action-menu {
+  text-align: left !important;
+  justify-content: flex-start !important;
+  margin-left: 0 !important;
+  margin-right: auto !important;
 }

@@ -1,5 +1,6 @@
 import type {AdvertisingCampaign,AdvertisingFormat} from '../../shared/data/contracts'
 import {mockIds} from '../shared'
+export {mockDefaultHomeAdConfig,mockDefaultNewsAdConfig} from './config'
 
 export const mockAdvertisingFormats:AdvertisingFormat[]=[
  {id:'ad_format_home',title:'Home',description:'Espaços de destaque integrados à página inicial do Portal Lander.',iconKey:'home',active:true,order:1},

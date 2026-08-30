@@ -39,8 +39,10 @@ const domain=await read('src/features/crm/domain.ts')
 for(const required of ['agencia_publicidade','assessoria_imprensa','anunciante','patrocinador','fonte_editorial','publieditorial','campanha_publicitaria'])if(!domain.includes(required))failures.push(`CRM domain deve preservar adaptação Portal Lander: ${required}`)
 
 const contractsPage=await read('src/features/contracts/ContractsPage.tsx')
-for(const required of ['Contratos','Templates','Novo Contrato','Total de Contratos','Valor Contratado','ContractWizard','ContractViewModal'])if(!contractsPage.includes(required))failures.push(`Contratos deve preservar implementação completa: ${required}`)
+for(const required of ['Contratos','Templates','Categorias','Variáveis','contracts-tabs','Novo Contrato','Total de Contratos','Valor Contratado','ContractWizard','ContractViewModal','CategoriesPanel','VariablesPanel'])if(!contractsPage.includes(required))failures.push(`Contratos deve preservar implementação completa: ${required}`)
 for(const forbidden of ['ContactFormModal','ContactViewModal','LeadFormModal','LeadViewModal'])if(contractsPage.includes(forbidden))failures.push(`Contratos não pode importar UI do CRM: ${forbidden}`)
+const contractWizard=await read('src/features/contracts/components/ContractWizard.tsx')
+for(const required of ['ContractWizardPortal'])if(!contractWizard.includes(required))failures.push(`Contratos deve usar wizard canônico Portal Lander: ${required}`)
 const categoriesPanel=await read('src/features/contracts/components/CategoriesPanel.tsx')
 for(const required of ['CategoriesPanel','Categorias','ContractCategory'])if(!categoriesPanel.includes(required))failures.push(`Contratos deve preservar registry interno de categorias: ${required}`)
 const variablesPanel=await read('src/features/contracts/components/VariablesPanel.tsx')
@@ -51,7 +53,7 @@ async function collectFiles(dir){const entries=await readdir(dir,{withFileTypes:
 const forbiddenContractsTerms=['Artista','Artist','Gravadora','Label Services','Selo','Produtor Musical','Producer','Compositor','Composer','Fonograma','Phonogram','ISRC','ISWC','UPC','MusicWork','Obra Musical','Produção Musical','Agenciamento Artístico','Empresariamento','Contrato de Gravação','Distribuição Fonográfica','Licenciamento de Fonograma','Royalties musicais','Royalties fonográficos','Master','Publishing','Spotify','Apple Music','YouTube Music','Deezer','SoundCloud','Tidal']
 for(const file of await collectFiles(contractsDir)){const content=await readFile(file,'utf8');for(const forbidden of forbiddenContractsTerms)if(content.includes(forbidden))failures.push(`Domínio proibido em Contratos (${file.pathname.split('/').pop()}): ${forbidden}`)}
 
-const removedPaths=['src/features/crm/CrmRoutes.tsx','src/features/crm/data/demoSnapshot.ts','src/features/crm/model.ts','src/features/crm/pages/ContactsReferencePage.tsx','src/features/crm/pages/CrmDashboardPage.tsx','src/features/crm/presentation.ts','src/features/operations/OperationsPage.tsx','src/styles/admin-crm.css','src/styles/admin-crm-dashboard-header.css','src/styles/admin-crm-relationships.css','src/styles/admin-reference-v2.css','src/styles/admin-reference-real.css']
+const removedPaths=['src/features/crm/CrmRoutes.tsx','src/features/crm/data/demoSnapshot.ts','src/features/crm/model.ts','src/features/crm/pages/ContactsReferencePage.tsx','src/features/crm/pages/CrmDashboardPage.tsx','src/features/crm/presentation.ts','src/features/operations/OperationsPage.tsx','src/features/contracts/components/ContractWizardOriginal.tsx','src/styles/admin-crm.css','src/styles/admin-crm-dashboard-header.css','src/styles/admin-crm-relationships.css','src/styles/admin-reference-v2.css','src/styles/admin-reference-real.css']
 for(const removedPath of removedPaths){try{await access(new URL(`../${removedPath}`,import.meta.url),constants.F_OK);failures.push(`${removedPath} deve permanecer removido.`)}catch{}}
 
 if(failures.length){console.error('Falha nos boundaries da aplicação:');failures.forEach(item=>console.error(`- ${item}`));process.exit(1)}

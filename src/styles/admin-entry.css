@@ -8,6 +8,7 @@
 @import './admin-brand.css';
 @import './admin-home.css';
 @import './admin-hero.css';
+@import './admin-hero-editor.css';
 @import './admin-home-ad-editor.css';
 @import './admin-access.css';
 @import './admin-crm-portal.css';
@@ -29,3 +30,4 @@
 @import './admin-contracts-kpis-row.css';
 @import './admin-contracts-header-action.css';
 @import './admin-crm-contracts-pagination.css';
+@import './admin-finance.css';

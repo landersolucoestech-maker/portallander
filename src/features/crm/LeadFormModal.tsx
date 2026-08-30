@@ -1,13 +1,17 @@
-import {useEffect,useState,type ReactNode} from 'react'
+import {useState,type ReactNode} from 'react'
 import {Paperclip,Trash2,X} from 'lucide-react'
 import {emptyLead,leadStatusOptions,leadTypeOptions,originOptions,priorityOptions,serviceDetailFields,serviceOptions,temperatureOptions,type Attachment,type Lead} from './domain'
 import {filesToAttachments} from './repository'
 
 type Draft=ReturnType<typeof emptyLead>&{attachments:Attachment[]}
-export function LeadFormModal({open,lead,onClose,onSubmit,busy}:{open:boolean;lead?:Lead|null;onClose:()=>void;onSubmit:(draft:Draft,expectedUpdatedAt?:string)=>Promise<void>;busy:boolean}){
- const [draft,setDraft]=useState<Draft>({...emptyLead(),attachments:[]});const [error,setError]=useState('')
- useEffect(()=>{if(!open)return;setError('');setDraft(lead?{name:lead.name,company:lead.company,email:lead.email,phone:lead.phone,city:lead.city,state:lead.state,role:lead.role,website:lead.website,instagram:lead.instagram,type:lead.type,service:lead.service,description:lead.description,origin:lead.origin,status:lead.status,priority:lead.priority,responsible:lead.responsible,campaign:lead.campaign,nextFollowUp:lead.nextFollowUp,estimatedValue:lead.estimatedValue,temperature:lead.temperature,serviceDetails:{...lead.serviceDetails},notes:lead.notes,tags:[...lead.tags],attachments:[...lead.attachments]}:{...emptyLead(),attachments:[]})},[open,lead])
- if(!open)return null
+const draftFromLead=(lead?:Lead|null):Draft=>lead?{name:lead.name,company:lead.company,email:lead.email,phone:lead.phone,city:lead.city,state:lead.state,role:lead.role,website:lead.website,instagram:lead.instagram,type:lead.type,service:lead.service,description:lead.description,origin:lead.origin,status:lead.status,priority:lead.priority,responsible:lead.responsible,campaign:lead.campaign,nextFollowUp:lead.nextFollowUp,estimatedValue:lead.estimatedValue,temperature:lead.temperature,serviceDetails:{...lead.serviceDetails},notes:lead.notes,tags:[...lead.tags],attachments:[...lead.attachments]}:{...emptyLead(),attachments:[]}
+
+export function LeadFormModal(props:{open:boolean;lead?:Lead|null;onClose:()=>void;onSubmit:(draft:Draft,expectedUpdatedAt?:string)=>Promise<void>;busy:boolean}){
+ if(!props.open)return null
+ return <LeadFormContent key={props.lead?.id??'new-lead'} {...props}/>
+}
+function LeadFormContent({lead,onClose,onSubmit,busy}:{open:boolean;lead?:Lead|null;onClose:()=>void;onSubmit:(draft:Draft,expectedUpdatedAt?:string)=>Promise<void>;busy:boolean}){
+ const [draft,setDraft]=useState<Draft>(()=>draftFromLead(lead));const [error,setError]=useState('')
  const set=<K extends keyof Draft>(key:K,value:Draft[K])=>setDraft(prev=>({...prev,[key]:value}))
  const submit=async()=>{if(!draft.name.trim()||!draft.phone.trim()){setError('Nome e telefone/WhatsApp são obrigatórios.');return}try{setError('');await onSubmit(draft,lead?.updatedAt)}catch(e){setError(e instanceof Error?e.message:'Não foi possível salvar o lead.')}}
  const detailFields=serviceDetailFields[draft.service]??[]

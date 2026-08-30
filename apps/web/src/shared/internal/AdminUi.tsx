@@ -5,7 +5,7 @@ import { Link, NavLink } from 'react-router-dom'
 import { portalLogo } from '../branding/assets/brandAsset'
 import {appReadModel} from '../data/appReadModel'
 
-export type AdminArea = 'crm' | 'contracts' | 'finance' | 'cms'
+export type AdminArea = 'crm' | 'contracts' | 'finance' | 'agenda' | 'cms'
 export type AdminNavLink = readonly [label: string, icon: LucideIcon, to: string]
 export type AdminNavGroup = {label:string;icon:LucideIcon;to?:string;children:readonly AdminNavLink[]}
 export type AdminNavItem = AdminNavLink | AdminNavGroup
@@ -61,7 +61,7 @@ function PageHeader({context,header,actions}:{context:string;header?:PageHeaderC
 }
 
 export function AdminShell({area,items,children,header,headerAction,headerActions}:{area:AdminArea;items:readonly AdminNavItem[];children:ReactNode;header?:PageHeaderConfig;headerAction?:AdminShellAction;headerActions?:readonly AdminShellAction[]}){
-  const context=area==='crm'?'CRM':area==='contracts'?'Contratos':area==='finance'?'Financeiro':'Gerenciador do Site'
+  const context=area==='crm'?'CRM':area==='contracts'?'Contratos':area==='finance'?'Financeiro':area==='agenda'?'Agenda':'Gerenciador do Site'
   const [expandedGroups,setExpandedGroups]=useState<Record<string,boolean>>({})
   const rawActions=headerActions??(headerAction?[headerAction]:[])
   const actions=area==='finance'?rawActions.filter(action=>action.label!=='Automações'):rawActions

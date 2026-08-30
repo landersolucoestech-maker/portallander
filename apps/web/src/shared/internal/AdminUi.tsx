@@ -9,20 +9,22 @@ export type AdminNavLink = readonly [label: string, icon: LucideIcon, to: string
 export type AdminNavGroup = {label:string;icon:LucideIcon;to?:string;children:readonly AdminNavLink[]}
 export type AdminNavItem = AdminNavLink | AdminNavGroup
 
-type AdminShellHeader={title:string;description:string}
+export type PageHeaderConfig={title:string;description:string}
 export type AdminShellAction={label:string;onClick?:()=>void;disabled?:boolean;disabledReason?:string;variant?:'primary'|'secondary';className?:string;icon?:LucideIcon}
 
 const isNavGroup=(item:AdminNavItem):item is AdminNavGroup=>!Array.isArray(item)
 
-export function AdminShell({area,items,children,header,headerAction,headerActions}:{area:AdminArea;items:readonly AdminNavItem[];children:ReactNode;header?:AdminShellHeader;headerAction?:AdminShellAction;headerActions?:readonly AdminShellAction[]}){
-  const context=area==='crm'?'CRM':area==='contracts'?'Contratos':area==='finance'?'Financeiro':'Gerenciador do Site'
+function HeaderActionButton({action}:{action:AdminShellAction}){
+  const fallbackIcon:LucideIcon|undefined=action.label==='Templates'?LayoutTemplate:action.label==='Novo Template'||action.label==='Novo Contrato'?FilePlus2:action.label==='Novo Contato'||action.label==='Novo Lead'?UserPlus:action.label==='Contratos'?FileStack:undefined
+  const ActionIcon=action.icon??fallbackIcon
+  return <button className={`button ${action.variant==='secondary'?'outline workspace-header-secondary':'dark'} workspace-primary-action workspace-header-polished-action${action.className?` ${action.className}`:''}`} type="button" onClick={action.onClick} disabled={action.disabled} title={action.disabled?action.disabledReason:undefined}>{ActionIcon&&<ActionIcon size={14} aria-hidden="true"/>}{action.label}</button>
+}
+
+function PageHeader({context,header,actions}:{context:string;header?:PageHeaderConfig;actions:readonly AdminShellAction[]}){
   const [notificationsOpen,setNotificationsOpen]=useState(false)
   const [accountOpen,setAccountOpen]=useState(false)
-  const [expandedGroups,setExpandedGroups]=useState<Record<string,boolean>>({})
   const notificationsRef=useRef<HTMLDivElement>(null)
   const accountRef=useRef<HTMLDivElement>(null)
-  const rawActions=headerActions??(headerAction?[headerAction]:[])
-  const actions=area==='finance'?rawActions.filter(action=>action.label!=='Automações'):rawActions
 
   useEffect(()=>{
     if(!notificationsOpen&&!accountOpen)return
@@ -44,11 +46,21 @@ export function AdminShell({area,items,children,header,headerAction,headerAction
     }
   },[notificationsOpen,accountOpen])
 
-  const renderActions=()=>actions.map(action=>{
-    const fallbackIcon:LucideIcon|undefined=action.label==='Templates'?LayoutTemplate:action.label==='Novo Template'||action.label==='Novo Contrato'?FilePlus2:action.label==='Novo Contato'||action.label==='Novo Lead'?UserPlus:action.label==='Contratos'?FileStack:undefined
-    const ActionIcon=action.icon??fallbackIcon
-    return <button key={action.label} className={`button ${action.variant==='secondary'?'outline workspace-header-secondary':'dark'} workspace-primary-action workspace-header-polished-action${action.className?` ${action.className}`:''}`} type="button" onClick={action.onClick} disabled={action.disabled} title={action.disabled?action.disabledReason:undefined}>{ActionIcon&&<ActionIcon size={14} aria-hidden="true"/>}{action.label}</button>
-  })
+  return <header className={`workspace-top${header?' workspace-top-page':''}`}>
+    {header?<div className="workspace-page-heading"><h1>{header.title}</h1><p>{header.description}</p></div>:<div className="workspace-identity"><span className="workspace-name">Portal Lander</span><span className="workspace-divider"/><span className="workspace-context">{context}</span></div>}
+    <div className="workspace-actions">
+      {actions.map(action=><HeaderActionButton key={action.label} action={action}/>)}
+      <div className="workspace-popover-wrap" ref={notificationsRef}><button className="icon-button notification-button" type="button" aria-label="Abrir notificações" aria-expanded={notificationsOpen} onClick={()=>{setNotificationsOpen(value=>!value);setAccountOpen(false)}}><Bell size={17}/></button>{notificationsOpen&&<div className="workspace-popover notifications-popover" role="status"><strong>Notificações</strong><p>Nenhuma notificação no momento.</p></div>}</div>
+      <div className="workspace-popover-wrap" ref={accountRef}><button className="account-button" type="button" aria-label="Abrir menu da conta" aria-haspopup="menu" aria-expanded={accountOpen} onClick={()=>{setAccountOpen(value=>!value);setNotificationsOpen(false)}}><span>PL</span><div><b>Administrador</b><small>Deyvisson Lander</small></div><ChevronDown size={14}/></button>{accountOpen&&<div className="workspace-popover account-popover" role="menu" aria-label="Menu da conta"><Link to="/app/profile" role="menuitem" onClick={()=>setAccountOpen(false)}><UserRound size={15}/><span>Meu perfil</span></Link><Link to="/app/settings" role="menuitem" onClick={()=>setAccountOpen(false)}><Settings size={15}/><span>Configurações</span></Link><Link className="account-popover-logout" to="/app/login" role="menuitem" onClick={()=>setAccountOpen(false)}><LogOut size={15}/><span>Sair</span></Link></div>}</div>
+    </div>
+  </header>
+}
+
+export function AdminShell({area,items,children,header,headerAction,headerActions}:{area:AdminArea;items:readonly AdminNavItem[];children:ReactNode;header?:PageHeaderConfig;headerAction?:AdminShellAction;headerActions?:readonly AdminShellAction[]}){
+  const context=area==='crm'?'CRM':area==='contracts'?'Contratos':area==='finance'?'Financeiro':'Gerenciador do Site'
+  const [expandedGroups,setExpandedGroups]=useState<Record<string,boolean>>({})
+  const rawActions=headerActions??(headerAction?[headerAction]:[])
+  const actions=area==='finance'?rawActions.filter(action=>action.label!=='Automações'):rawActions
 
   return <div className="app-shell">
     <a className="admin-skip-link" href="#admin-main">Pular para o conteúdo</a>
@@ -67,16 +79,12 @@ export function AdminShell({area,items,children,header,headerAction,headerAction
       <div className="sidebar-bottom"><NavLink to="/app/workspaces"><Building2 size={17}/><span>Trocar workspace</span></NavLink></div>
     </aside>
     <div className="workspace">
-      <header className={`workspace-top${header?' workspace-top-page':''}`}>
-        {header?<div className="workspace-page-heading"><h1>{header.title}</h1><p>{header.description}</p></div>:<div className="workspace-identity"><span className="workspace-name">Portal Lander</span><span className="workspace-divider"/><span className="workspace-context">{context}</span></div>}
-        <div className="workspace-actions">{renderActions()}<div className="workspace-popover-wrap" ref={notificationsRef}><button className="icon-button notification-button" type="button" aria-label="Abrir notificações" aria-expanded={notificationsOpen} onClick={()=>{setNotificationsOpen(value=>!value);setAccountOpen(false)}}><Bell size={17}/></button>{notificationsOpen&&<div className="workspace-popover notifications-popover" role="status"><strong>Notificações</strong><p>Nenhuma notificação no momento.</p></div>}</div><div className="workspace-popover-wrap" ref={accountRef}><button className="account-button" type="button" aria-label="Abrir menu da conta" aria-haspopup="menu" aria-expanded={accountOpen} onClick={()=>{setAccountOpen(value=>!value);setNotificationsOpen(false)}}><span>PL</span><div><b>Administrador</b><small>Deyvisson Lander</small></div><ChevronDown size={14}/></button>{accountOpen&&<div className="workspace-popover account-popover" role="menu" aria-label="Menu da conta"><Link to="/app/profile" role="menuitem" onClick={()=>setAccountOpen(false)}><UserRound size={15}/><span>Meu perfil</span></Link><Link to="/app/settings" role="menuitem" onClick={()=>setAccountOpen(false)}><Settings size={15}/><span>Configurações</span></Link><Link className="account-popover-logout" to="/app/login" role="menuitem" onClick={()=>setAccountOpen(false)}><LogOut size={15}/><span>Sair</span></Link></div>}</div></div>
-      </header>
+      <PageHeader context={context} header={header} actions={actions}/>
       <main className="workspace-main" id="admin-main" tabIndex={-1}>{children}</main>
     </div>
   </div>
 }
 
-export function AdminPageHeader({eyebrow,title,description,action,disabled=false,disabledReason}:{eyebrow:string;title:string;description?:string;action?:string;disabled?:boolean;disabledReason?:string}){const reason=disabledReason||'Ação indisponível no momento.';return <div className="admin-page-header"><div className="admin-page-header-copy"><span className="admin-breadcrumb">{eyebrow}</span><h1>{title}</h1>{description&&<p>{description}</p>}</div>{action&&<div className="admin-header-actions"><button className="button dark" type="button" disabled={disabled} title={disabled?reason:undefined}>{action}</button></div>}</div>}
 export function AdminNotice({title,description}:{title:string;description:string}){return <div className="admin-notice"><div><strong>{title}</strong><p>{description}</p></div></div>}
 export function AdminEmpty({title,description}:{title:string;description:string}){return <div className="admin-empty"><strong>{title}</strong><p>{description}</p></div>}
 export function AdminKpi({label,value,detail,icon}:{label:string;value:string;detail:string;icon:ReactNode}){return <div className="admin-kpi"><div className="admin-kpi-top"><span className="admin-kpi-label">{label}</span><span className="admin-kpi-icon">{icon}</span></div><strong>{value}</strong><small>{detail}</small></div>}

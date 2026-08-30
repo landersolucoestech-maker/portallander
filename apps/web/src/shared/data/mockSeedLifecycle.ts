@@ -7,6 +7,8 @@ const MUTABLE_MOCK_STORAGE_KEYS=[
  'portal-lander:contracts:v1',
  'portal-lander:finance:transactions',
  'portal-lander:finance:invoices',
+ 'portal-lander:finance:categories',
+ 'portal-lander:finance:rules',
 ] as const
 
 /**

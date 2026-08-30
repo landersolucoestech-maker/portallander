@@ -1,20 +1,25 @@
 export type ContractStatus='draft'|'in_review'|'awaiting_signature'|'partially_signed'|'signed'|'active'|'suspended'|'closed'|'cancelled'|'expired'
 export type SigningProvider='autentique'|'clicksign'|'docusign'
 export type SignatureStatus='not_sent'|'preparing'|'sent'|'viewed'|'awaiting_signature'|'partially_signed'|'signed'|'rejected'|'cancelled'|'expired'|'error'
+export type DocumentStatus=SignatureStatus
 export type PartySource='crm'|'manual'|'portal_lander'
 export type PartyEntityType='person'|'company'
 export type CurrencyCode='BRL'|'USD'|'EUR'
 export type VariableGroup='CONTRATANTE'|'CONTRATADA'|'CONTRACT'|'PAYMENT'|'SERVICE'|'CAMPAIGN'|'EVENT'|'CONTENT'|'SIGNATURE'|'GENERAL'
 
+export interface ContractRepresentative{name:string;document:string;role:string;email:string}
 export interface ContractParty{
  id:string;source:PartySource;entityType:PartyEntityType;crmContactId?:string;role:'contractor'|'contracted'|'other';
  name:string;tradeName:string;document:string;rg:string;email:string;phone:string;nationality:string;occupation:string;maritalStatus:string;
  address:string;city:string;state:string;representativeName:string;representativeDocument:string;representativeRole:string;representativeEmail:string;
 }
+export type ContractPartyPerson=ContractParty&{entityType:'person'}
+export type ContractPartyCompany=ContractParty&{entityType:'company'}
 export interface ContractPaymentTerms{amount:number|'';currency:CurrencyCode;periodicity:string;method:string;installments:number|'';dueDay:number|'';finePercent:number|'';interestPercent:number|'';notes:string}
 export interface ContractSigner{id:string;name:string;email:string;document:string;role:'contractor'|'contracted'|'legal_representative'|'witness'|'other';partyId?:string;order:number;required:boolean;status:SignatureStatus}
+export interface ContractSignature{provider?:SigningProvider;status:SignatureStatus;externalId?:string;sentAt?:string;signedAt?:string;cancelledAt?:string;errorMessage?:string}
 export interface ContractDocumentVersion{id:string;version:number;contentHtml:string;createdAt:string;createdBy:string;notes:string;provider?:SigningProvider;externalId?:string;fileUrl?:string}
-export interface ContractDocument{id:string;title:string;contentHtml:string;headerHtml:string;footerHtml:string;status:SignatureStatus;versions:ContractDocumentVersion[];signedFileUrl?:string;provider?:SigningProvider;externalId?:string}
+export interface ContractDocument{id:string;title:string;contentHtml:string;headerHtml:string;footerHtml:string;status:DocumentStatus;versions:ContractDocumentVersion[];signedFileUrl?:string;provider?:SigningProvider;externalId?:string}
 export interface ContractAttachment{id:string;name:string;type:string;size:number;dataUrl:string;createdAt:string}
 export interface ContractTimelineEntry{id:string;event:string;description:string;createdAt:string;actor:string}
 export interface Contract{

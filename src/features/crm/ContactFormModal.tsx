@@ -1,11 +1,9 @@
 import {useState,type ReactNode} from 'react'
 import {Paperclip,Trash2,X} from 'lucide-react'
-import {contactCategoryOptions,contactProfiles,emptyContact,priorityOptions,type Attachment,type Contact} from './domain'
+import {contactCategoryOptions,contactProfiles,priorityOptions,type Contact} from './domain'
 import {filesToAttachments} from './repository'
 import {getContactSemanticLabels} from './semantics'
-
-type Draft=ReturnType<typeof emptyContact>&{attachments:Attachment[]}
-export const draftFromContact=(contact?:Contact|null):Draft=>contact?{entityType:contact.entityType,category:contact.category,profile:contact.profile,name:contact.name,company:contact.company,role:contact.role,email:contact.email,phone:contact.phone,whatsapp:contact.whatsapp,city:contact.city,state:contact.state,document:contact.document,website:contact.website,instagram:contact.instagram,priority:contact.priority,status:contact.status,tags:[...contact.tags],notes:contact.notes,attachments:[...contact.attachments]}:{...emptyContact(),attachments:[]}
+import {draftFromContact,type ContactDraft as Draft} from './contactDraft'
 
 export function ContactFormModal(props:{open:boolean;contact?:Contact|null;onClose:()=>void;onSubmit:(draft:Draft,expectedUpdatedAt?:string)=>Promise<void>;busy:boolean}){
  if(!props.open)return null

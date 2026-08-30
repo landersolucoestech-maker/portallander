@@ -10,6 +10,7 @@ import {addDays,addMonths,addYears,periodLabel,startOfDay,startOfWeek} from './d
 import type {AgendaEvent,AgendaEventDraft,AgendaLocation,AgendaParticipant,AgendaViewMode} from './domain'
 import {agendaRepository} from './repository'
 import './agenda.css'
+import './agenda-view-switch.css'
 
 const isInVisiblePeriod=(event:AgendaEvent,mode:AgendaViewMode,reference:Date)=>{const start=new Date(event.startsAt);if(mode==='dia'){const d=startOfDay(reference);return start>=d&&start<addDays(d,1)}if(mode==='semana'){const d=startOfWeek(reference);return start>=d&&start<addDays(d,7)}if(mode==='mes')return start.getFullYear()===reference.getFullYear()&&start.getMonth()===reference.getMonth();return start.getFullYear()===reference.getFullYear()}
 const safeLoad=()=>{try{return{events:agendaRepository.list(),participants:agendaRepository.participants(),locations:agendaRepository.locations(),error:false}}catch{return{events:[] as AgendaEvent[],participants:[] as AgendaParticipant[],locations:[] as AgendaLocation[],error:true}}}

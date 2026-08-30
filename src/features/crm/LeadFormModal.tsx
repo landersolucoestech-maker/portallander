@@ -33,6 +33,6 @@ function LeadFormContent({lead,onClose,onSubmit,busy}:{open:boolean;lead?:Lead|n
   <footer className="crm-modal-foot"><button className="crm-btn secondary" onClick={onClose}>Cancelar</button><button className="crm-btn primary" disabled={busy} onClick={submit}>{busy?'Salvando...':lead?'Salvar alterações':'Criar lead'}</button></footer>
  </section></div>
 }
-function FormSection({title,children}:{title:string;children:ReactNode}){return <section className="crm-form-section crm-semantic-section"><h3>{title}</h3>{children}</section>}
+function FormSection({title,children}:{title:string;children:ReactNode}){return <section className="crm-form-section"><h3>{title}</h3>{children}</section>}
 function Field({label,children,wide=false}:{label:string;children:ReactNode;wide?:boolean}){return <label className={`crm-field${wide?' wide':''}`}><span>{label}</span>{children}</label>}
 function SelectField({label,value,options,onChange}:{label:string;value:string;options:readonly (readonly [string,string])[];onChange:(v:string)=>void}){return <Field label={label}><select value={value} onChange={e=>onChange(e.target.value)}>{options.map(([v,l])=><option key={v} value={v}>{l}</option>)}</select></Field>}

@@ -5,7 +5,7 @@ export const CRM_WORKSPACE_NAV:readonly AdminNavItem[]=[
  ['Dashboard',LayoutDashboard,'/app/dashboard'],
  ['CRM',ContactRound,'/app/crm'],
  ['Contratos',FileText,'/app/contracts'],
- {label:'Financeiro',icon:Landmark,to:'/app/finance',children:[
+ {label:'Financeiro',icon:Landmark,children:[
   ['Transações',Landmark,'/app/finance'],
   ['Notas Fiscais',ReceiptText,'/app/finance/invoices'],
   ['Contabilidade',BookOpen,'/app/finance/accounting'],

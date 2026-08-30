@@ -5,7 +5,7 @@ const FOCUSABLE='a[href],button:not([disabled]),input:not([disabled]),select:not
 export function useModalA11y(onClose:()=>void,active=true){
  const dialogRef=useRef<HTMLElement>(null)
  const closeRef=useRef(onClose)
- closeRef.current=onClose
+ useEffect(()=>{closeRef.current=onClose},[onClose])
  useEffect(()=>{
   if(!active)return
   const dialog=dialogRef.current

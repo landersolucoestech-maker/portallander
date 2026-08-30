@@ -5,11 +5,12 @@ import {CRM_WORKSPACE_NAV} from './adminNavigation'
 const isNavLink=(item:AdminNavItem):item is AdminNavLink=>Array.isArray(item)
 
 describe('admin navigation',()=>{
- it('mantém Dashboard principal e CRM como módulos independentes',()=>{
+ it('mantém Dashboard, CRM e Contratos como módulos independentes',()=>{
   const links=CRM_WORKSPACE_NAV.filter(isNavLink).map(item=>[item[0],item[2]])
   expect(links).toEqual([
    ['Dashboard','/app/dashboard'],
    ['CRM','/app/crm'],
+   ['Contratos','/app/contracts'],
   ])
  })
 

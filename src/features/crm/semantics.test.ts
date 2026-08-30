@@ -1,6 +1,6 @@
 import {describe,expect,it} from 'vitest'
 import {contactProfiles,type Contact} from './domain'
-import {draftFromContact} from './ContactFormModal'
+import {draftFromContact} from './contactDraft'
 import {getContactSemanticLabels,getServiceDetailLabel} from './semantics'
 
 describe('CRM semantic labels',()=>{

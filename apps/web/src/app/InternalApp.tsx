@@ -6,6 +6,8 @@ import CrmWorkspace from '../features/access/CrmWorkspace'
 import DashboardPage from '../features/dashboard/DashboardPage'
 import ContractsPage from '../features/contracts/ContractsPage'
 import AgendaPage from '../features/agenda/AgendaPage'
+import ChatPage from '../features/chat/ChatPage'
+import ChatAutomationSettingsPage from '../features/chat/ChatAutomationSettingsPage'
 import FinanceMainPage from '../features/finance/FinanceMainPage'
 import FinanceInvoicesPage from '../features/finance/FinanceInvoicesPage'
 import FinanceAccountingPage from '../features/finance/FinanceAccountingPage'
@@ -13,23 +15,4 @@ import FinanceRegistryPage from '../features/finance/FinanceRegistryPage'
 import SiteManagerRoutes from '../features/site-manager/SiteManagerRoutes'
 import '../styles/admin-entry.css'
 
-export default function InternalApp(){
-  return <Routes>
-    <Route path="/app" element={<Navigate to="/app/login" replace/>}/>
-    <Route path="/app/login" element={<LoginPage/>}/>
-    <Route path="/app/workspaces" element={<WorkspacePage/>}/>
-    <Route path="/app/profile" element={<ProfilePage/>}/>
-    <Route path="/app/dashboard" element={<DashboardPage/>}/>
-    <Route path="/app/crm/*" element={<CrmWorkspace/>}/>
-    <Route path="/app/contracts" element={<ContractsPage/>}/>
-    <Route path="/app/agenda" element={<AgendaPage/>}/>
-    <Route path="/app/finance" element={<FinanceMainPage/>}/>
-    <Route path="/app/finance/invoices" element={<FinanceInvoicesPage/>}/>
-    <Route path="/app/finance/accounting" element={<FinanceAccountingPage/>}/>
-    <Route path="/app/finance/rules" element={<FinanceRegistryPage/>}/>
-    <Route path="/app/finance/categories" element={<FinanceRegistryPage/>}/>
-    <Route path="/app/finance/automations" element={<Navigate to="/app/finance" replace/>}/>
-    <Route path="/app/site/*" element={<SiteManagerRoutes/>}/>
-    <Route path="*" element={<Navigate to="/app/login" replace/>}/>
-  </Routes>
-}
+export default function InternalApp(){return <Routes><Route path="/app" element={<Navigate to="/app/login" replace/>}/><Route path="/app/login" element={<LoginPage/>}/><Route path="/app/workspaces" element={<WorkspacePage/>}/><Route path="/app/profile" element={<ProfilePage/>}/><Route path="/app/dashboard" element={<DashboardPage/>}/><Route path="/app/crm/*" element={<CrmWorkspace/>}/><Route path="/app/contracts" element={<ContractsPage/>}/><Route path="/app/agenda" element={<AgendaPage/>}/><Route path="/app/chat" element={<ChatPage/>}/><Route path="/app/chat/settings" element={<ChatAutomationSettingsPage/>}/><Route path="/app/finance" element={<FinanceMainPage/>}/><Route path="/app/finance/invoices" element={<FinanceInvoicesPage/>}/><Route path="/app/finance/accounting" element={<FinanceAccountingPage/>}/><Route path="/app/finance/rules" element={<FinanceRegistryPage/>}/><Route path="/app/finance/categories" element={<FinanceRegistryPage/>}/><Route path="/app/finance/automations" element={<Navigate to="/app/finance" replace/>}/><Route path="/app/site/*" element={<SiteManagerRoutes/>}/><Route path="*" element={<Navigate to="/app/login" replace/>}/></Routes>}

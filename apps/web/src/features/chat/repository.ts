@@ -1,0 +1,36 @@
+import {getRuntimeDataProvider} from '../../shared/data/runtimeDataProvider'
+import type {ChatAttachment,ChatSeed,InternalConversation,InternalMessage,MusicChatAutomationSettings,SupportConversation,SupportMessage,SupportStatus} from './domain'
+
+const STORAGE_KEY='portal-lander:chat:v1'
+const CHANGED='portal-lander:chat:changed'
+const clone=<T>(value:T):T=>structuredClone(value)
+const now=()=>new Date().toISOString()
+const uid=(prefix:string)=>`${prefix}_${Date.now()}_${Math.random().toString(36).slice(2,8)}`
+const seed=():ChatSeed=>getRuntimeDataProvider().chat.seed()
+const read=():ChatSeed=>{try{const raw=localStorage.getItem(STORAGE_KEY);return raw?JSON.parse(raw) as ChatSeed:seed()}catch{return seed()}}
+const write=(state:ChatSeed)=>{try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state))}catch{/* runtime seed remains fallback */}window.dispatchEvent(new CustomEvent(CHANGED))}
+const updateConversation=(state:ChatSeed,id:string,patch:Partial<SupportConversation>)=>{const index=state.supportConversations.findIndex(item=>item.id===id);if(index<0)return null;const updated={...state.supportConversations[index],...patch,updatedAt:now()};state.supportConversations[index]=updated;return updated}
+
+export const chatRepository={
+ eventName:CHANGED,
+ scenario:()=>getRuntimeDataProvider().getScenario(),
+ snapshot:()=>clone(read()),
+ supportConversations:()=>clone(read().supportConversations),
+ supportMessages:(conversationId:string)=>clone(read().supportMessages.filter(item=>item.conversationId===conversationId)),
+ internalMembers:()=>clone(read().internalMembers),
+ internalConversations:()=>clone(read().internalConversations),
+ internalMessages:(conversationId:string)=>clone(read().internalMessages.filter(item=>item.conversationId===conversationId)),
+ quickReplies:()=>clone(read().quickReplies),
+ automation:()=>clone(read().automation),
+ createSupport(input:{customer:string;phone:string;initialMessage?:string}){const state=read(),stamp=now(),id=uid('chat_sup');const conversation:SupportConversation={id,customer:input.customer.trim()||input.phone.trim(),handle:input.phone.trim(),phone:input.phone.trim(),instagram:'',email:'',originLabel:'WhatsApp',channel:'whatsapp',queue:'Atendimento',sector:'Triagem',status:'nova',assignee:'Sem responsável',protocol:id.replace(/\W/g,'').slice(-8).toUpperCase(),sla:100,remainingTimeLabel:'4h',deadlineState:'on_track',tags:[],lastMessage:input.initialMessage?.trim()||'Conversa iniciada via WhatsApp.',lastMessageAt:new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}),createdAt:new Date().toLocaleString('pt-BR'),lastReplyAt:new Date().toLocaleString('pt-BR'),unread:0,value:'',crmSummary:{existingCustomer:false,lead:'',openDeal:'',stage:''},auditTrail:['Conversa criada via WhatsApp'],updatedAt:stamp};state.supportConversations.unshift(conversation);if(input.initialMessage?.trim())state.supportMessages.push({id:uid('chat_msg'),conversationId:id,sender:'agent',author:'Administrador',body:input.initialMessage.trim(),time:new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}),createdAt:stamp,deliveryStatus:'sent'});write(state);return clone(conversation)},
+ sendSupport(conversationId:string,body:string,attachments:ChatAttachment[]=[],internalNote=false){const state=read(),conversation=state.supportConversations.find(item=>item.id===conversationId);if(!conversation)return null;const stamp=now(),message:SupportMessage={id:uid('chat_msg'),conversationId,sender:'agent',author:'Administrador',body:body.trim(),time:new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}),createdAt:stamp,attachments:attachments.length?attachments:undefined,deliveryStatus:internalNote||conversation.channel!=='whatsapp'?'internal_only':'sent',internalNote};state.supportMessages.push(message);updateConversation(state,conversationId,{lastMessage:body.trim()||attachments.map(item=>item.name).join(', '),lastMessageAt:message.time,lastReplyAt:new Date().toLocaleString('pt-BR'),unread:0});write(state);return clone(message)},
+ transfer(conversationId:string,assignee:string){const state=read();const current=state.supportConversations.find(item=>item.id===conversationId);const updated=updateConversation(state,conversationId,{assignee,status:'em_atendimento',auditTrail:[...(current?.auditTrail??[]),`Transferido para ${assignee}`]});write(state);return clone(updated)},
+ setStatus(conversationId:string,status:SupportStatus){const state=read();const current=state.supportConversations.find(item=>item.id===conversationId),updated=updateConversation(state,conversationId,{status,auditTrail:[...(current?.auditTrail??[]),`Status alterado para ${status}`]});write(state);return clone(updated)},
+ addTag(conversationId:string,tag:string){const state=read();const current=state.supportConversations.find(item=>item.id===conversationId);if(!current||!tag.trim())return null;const tags=Array.from(new Set([...current.tags,tag.trim()]));const updated=updateConversation(state,conversationId,{tags});write(state);return clone(updated)},
+ markCrm(conversationId:string,patch:Partial<SupportConversation['crmSummary']>){const state=read();const current=state.supportConversations.find(item=>item.id===conversationId);if(!current)return null;const updated=updateConversation(state,conversationId,{crmSummary:{...current.crmSummary,...patch}});write(state);return clone(updated)},
+ escalate(conversationId:string){const state=read();const current=state.supportConversations.find(item=>item.id===conversationId);if(!current)return null;const updated=updateConversation(state,conversationId,{deadlineState:'at_risk',tags:Array.from(new Set([...current.tags,'Escalonado'])),auditTrail:[...current.auditTrail,'Escalonamento manual acionado']});write(state);return clone(updated)},
+ createInternal(participantAuthUserIds:string[]){const state=read(),stamp=now(),self=state.internalMembers[0],participants=[self,...state.internalMembers.filter(item=>participantAuthUserIds.includes(item.authUserId)&&item.authUserId!==self.authUserId)].map(item=>({...item,lastReadAt:stamp}));const conversation:InternalConversation={id:uid('internal'),type:participants.length>2?'group':'direct',name:participants.length>2?participants.filter(item=>item.authUserId!==self.authUserId).map(item=>item.fullName||item.email).join(', '):null,createdBy:self.authUserId,createdAt:stamp,updatedAt:stamp,participants};state.internalConversations.unshift(conversation);write(state);return clone(conversation)},
+ sendInternal(conversationId:string,body:string){const state=read(),stamp=now(),conversation=state.internalConversations.find(item=>item.id===conversationId);if(!conversation)return null;const message:InternalMessage={id:uid('im'),conversationId,senderAuthUserId:state.internalMembers[0].authUserId,body:body.trim(),createdAt:stamp,editedAt:null};state.internalMessages.push(message);conversation.updatedAt=stamp;write(state);return clone(message)},
+ saveAutomation(settings:MusicChatAutomationSettings){const state=read();state.automation={...settings,updatedAt:now()};write(state);return clone(state.automation)},
+ reset(){try{localStorage.removeItem(STORAGE_KEY)}catch{/* noop */}window.dispatchEvent(new CustomEvent(CHANGED))},
+}

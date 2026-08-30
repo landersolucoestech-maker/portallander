@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import type { LucideIcon } from 'lucide-react'
-import { Bell, Building2, ChevronDown, LayoutTemplate, LogOut, Settings, UserRound } from 'lucide-react'
+import { Bell, Building2, ChevronDown, FilePlus2, FileStack, LayoutTemplate, LogOut, Settings, UserPlus, UserRound } from 'lucide-react'
 import { Link, NavLink } from 'react-router-dom'
 import { portalLogo } from '../branding/assets/brandAsset'
 
@@ -43,9 +43,10 @@ export function AdminShell({area,items,children,header,headerAction,headerAction
   },[notificationsOpen,accountOpen])
 
   const renderActions=()=>actions.map(action=>{
-    const isContractsTemplates=area==='contracts'&&action.label==='Templates'
-    const ActionIcon=action.icon??(isContractsTemplates?LayoutTemplate:undefined)
-    const specialClass=isContractsTemplates?' contracts-header-templates':''
+    const approvedHeaderAction=['Templates','Novo Contato','Novo Lead','Novo Contrato','Contratos'].includes(action.label)
+    const fallbackIcon:LucideIcon|undefined=action.label==='Templates'?LayoutTemplate:action.label==='Novo Contato'||action.label==='Novo Lead'?UserPlus:action.label==='Novo Contrato'?FilePlus2:action.label==='Contratos'?FileStack:undefined
+    const ActionIcon=action.icon??fallbackIcon
+    const specialClass=approvedHeaderAction?' workspace-header-polished-action':''
     return <button key={action.label} className={`button ${action.variant==='secondary'?'outline workspace-header-secondary':'dark'} workspace-primary-action${specialClass}${action.className?` ${action.className}`:''}`} type="button" onClick={action.onClick} disabled={action.disabled} title={action.disabled?action.disabledReason:undefined}>{ActionIcon&&<ActionIcon size={14} aria-hidden="true"/>}{action.label}</button>
   })
 

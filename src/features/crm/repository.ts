@@ -1,7 +1,8 @@
 import type {Attachment,Contact,CrmState,Interaction,InteractionType,Lead,TimelineEntry} from './domain'
+import {crmMockState} from './mocks'
 
 const STORAGE_KEY='portal-lander:crm:v1'
-const emptyState:CrmState={version:1,leads:[],contacts:[]}
+const emptyState:CrmState=crmMockState
 const now=()=>new Date().toISOString()
 const id=(prefix:string)=>`${prefix}_${crypto.randomUUID()}`
 

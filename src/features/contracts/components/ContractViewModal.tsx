@@ -26,6 +26,8 @@ export function ContractViewModal({contract,categories,onClose}:{contract:Contra
        <h2>{contract.title}</h2>
        <div className="contracts-original-badges">
         <span className={`contracts-status status-${contract.status}`}>{optionLabel(contractStatusOptions,contract.status)}</span>
+        <span className="contracts-original-outline-badge">{contract.type}</span>
+        <span className="contracts-original-outline-badge">{category}</span>
         {contract.signingProvider&&<span className="contracts-original-outline-badge">{contract.signingProvider}</span>}
         {expiry!==null&&<span className="contracts-original-warning-badge"><AlertCircle size={12}/>Expira em {expiry}d</span>}
        </div>
@@ -39,21 +41,28 @@ export function ContractViewModal({contract,categories,onClose}:{contract:Contra
      <div className="contracts-original-scroll">
       {tab==='info'&&<section className="contracts-original-tab-content contracts-original-info-tab">
        <div className="contracts-original-info-grid">
+        <InfoItem label="Número / Código" value={contract.number||'—'}/>
         <InfoItem label="Cliente / Contratante" value={contractor?.name||'—'}/>
         <InfoItem label="Tipo" value={contract.type||'—'}/>
+        <InfoItem label="Categoria" value={category}/>
         <InfoItem label="Início" value={formatDate(contract.startDate)}/>
         <InfoItem label="Término" value={contract.endDate?formatDate(contract.endDate):'Indeterminado'}/>
+        <InfoItem label="Vigência" value={contract.duration||'—'}/>
         <InfoItem label="Valor" value={formatCurrency(contract.payment.amount,contract.payment.currency)}/>
+        <InfoItem label="Forma de pagamento" value={contract.payment.method||'—'}/>
+        <InfoItem label="Periodicidade" value={contract.payment.periodicity||'—'}/>
         <InfoItem label="Assinado em" value={signedAt?formatDate(signedAt):'—'}/>
        </div>
-       {contract.description&&<div className="contracts-original-observations"><p className="contracts-original-field-label">Observações</p><div>{contract.description}</div></div>}
+       {contract.description&&<div className="contracts-original-observations"><p className="contracts-original-field-label">Objeto</p><div>{contract.description}</div></div>}
+       {contract.internalNotes&&<div className="contracts-original-observations"><p className="contracts-original-field-label">Observações internas</p><div>{contract.internalNotes}</div></div>}
+       {contract.parties.length>0&&<div className="contracts-original-observations"><p className="contracts-original-field-label">Partes e representantes</p><div className="contracts-original-list">{contract.parties.map(party=><article className="contracts-original-row-card" key={party.id}><div className="contracts-original-avatar"><User size={14}/></div><div className="contracts-original-row-copy"><strong>{party.name||'Parte sem nome'}</strong><span>{party.role==='contractor'?'Contratante':party.role==='contracted'?'Contratada':'Outra parte'} · {party.entityType==='company'?'Pessoa Jurídica':'Pessoa Física'}</span>{party.representativeName&&<span>Representante: {party.representativeName}{party.representativeRole?` · ${party.representativeRole}`:''}</span>}</div></article>)}</div></div>}
        {contract.signingProvider&&<div className="contracts-original-signing-note"><Info size={16}/><span>Assinado digitalmente via <strong>{contract.signingProvider}</strong>{contract.document.externalId&&<> — ID: <code>{contract.document.externalId}</code></>}</span></div>}
       </section>}
 
       {tab==='signature'&&<section className="contracts-original-tab-content contracts-original-signature-tab">
        {contract.signers.length>0?<div>
         <p className="contracts-original-section-title">Signatários ({contract.signers.length})</p>
-        <div className="contracts-original-list">{[...contract.signers].sort((a,b)=>a.order-b.order).map((signer,index)=><article className="contracts-original-row-card" key={signer.id}>
+        <div className="contracts-original-list">{[...contract.signers].sort((a,b)=>a.order-b.order).map(signer=><article className="contracts-original-row-card" key={signer.id}>
          <div className="contracts-original-avatar">{signer.status==='signed'?<CheckCircle2 size={14}/>:<User size={14}/>}</div>
          <div className="contracts-original-row-copy"><strong>{signer.name}</strong><span><MailCheck size={12}/>{signer.email}</span></div>
          <span className="contracts-original-outline-badge">{signerRoleLabel[signer.role]??signer.role}</span>
@@ -70,12 +79,12 @@ export function ContractViewModal({contract,categories,onClose}:{contract:Contra
       </section>}
 
       {tab==='document'&&<section className="contracts-original-tab-content">
-       {contract.document.signedFileUrl?<article className="contracts-original-file-card"><div className="contracts-original-file-icon"><FileText size={32}/></div><div><strong>{contract.title}</strong><code>{contract.document.signedFileUrl}</code></div><a className="crm-btn primary" href={contract.document.signedFileUrl} target="_blank" rel="noopener noreferrer"><ExternalLink size={16}/>Abrir PDF</a></article>:<div className="contracts-original-empty plain"><FileText size={48}/><strong>Nenhum arquivo vinculado</strong><span>Edite o contrato para adicionar a URL do PDF</span></div>}
+       {contract.document.signedFileUrl?<article className="contracts-original-file-card"><div className="contracts-original-file-icon"><FileText size={32}/></div><div><strong>{contract.title}</strong><code>{contract.document.signedFileUrl}</code></div><a className="crm-btn primary" href={contract.document.signedFileUrl} target="_blank" rel="noopener noreferrer"><ExternalLink size={16}/>Abrir PDF</a></article>:<div className="contracts-original-empty plain"><FileText size={48}/><strong>Nenhum arquivo vinculado</strong><span>O documento principal permanece disponível no editor e preview A4.</span></div>}
       </section>}
 
-      {tab==='versions'&&<section className="contracts-original-tab-content">{contract.document.versions.length>0?<div className="contracts-original-list versions">{contract.document.versions.map((version,index)=><article className="contracts-original-version-card" key={version.id}><div className="contracts-original-history-icon"><History size={16}/></div><div><div className="contracts-original-version-title"><strong>Versão {version.version}</strong>{index===contract.document.versions.length-1&&<span className="contracts-original-current-badge">Atual</span>}</div><span><Clock size={12}/>{formatDate(version.createdAt)}</span><span><User size={12}/>{version.createdBy}</span>{version.notes&&<p>{version.notes}</p>}</div>{version.fileUrl&&<a className="crm-btn secondary small" href={version.fileUrl} target="_blank" rel="noopener noreferrer"><ExternalLink size={12}/>Abrir</a>}</article>)}</div>:<div className="contracts-original-empty plain"><History size={48}/><strong>Sem histórico de versões</strong><span>As versões do documento aparecerão aqui ao editar o arquivo</span></div>}</section>}
+      {tab==='versions'&&<section className="contracts-original-tab-content">{contract.document.versions.length>0?<div className="contracts-original-list versions">{contract.document.versions.map((version,index)=><article className="contracts-original-version-card" key={version.id}><div className="contracts-original-history-icon"><History size={16}/></div><div><div className="contracts-original-version-title"><strong>Versão {version.version}</strong>{index===contract.document.versions.length-1&&<span className="contracts-original-current-badge">Atual</span>}</div><span><Clock size={12}/>{formatDate(version.createdAt)}</span><span><User size={12}/>{version.createdBy}</span>{version.notes&&<p>{version.notes}</p>}</div>{version.fileUrl&&<a className="crm-btn secondary small" href={version.fileUrl} target="_blank" rel="noopener noreferrer"><ExternalLink size={12}/>Abrir</a>}</article>)}</div>:<div className="contracts-original-empty plain"><History size={48}/><strong>Sem histórico de versões</strong><span>As versões do documento aparecerão aqui ao editar um contrato protegido.</span></div>}</section>}
 
-      {tab==='attachments'&&<section className="contracts-original-tab-content">{contract.attachments.length>0?<div className="contracts-original-list versions">{contract.attachments.map(attachment=><article className="contracts-original-version-card" key={attachment.id}><div className="contracts-original-history-icon"><FileText size={16}/></div><div><strong>{attachment.name}</strong><span>{attachment.size>0?`${Math.round(attachment.size/1024)} KB`:'—'}</span></div><a className="crm-btn secondary small" href={attachment.dataUrl} target="_blank" rel="noopener noreferrer"><ExternalLink size={12}/>Abrir</a></article>)}</div>:<div className="contracts-original-empty plain"><FileText size={48}/><strong>Nenhum documento anexado</strong><span>Edite o contrato para anexar documentos</span></div>}</section>}
+      {tab==='attachments'&&<section className="contracts-original-tab-content">{contract.attachments.length>0?<div className="contracts-original-list versions">{contract.attachments.map(attachment=><article className="contracts-original-version-card" key={attachment.id}><div className="contracts-original-history-icon"><FileText size={16}/></div><div><strong>{attachment.name}</strong><span>{attachment.size>0?`${Math.round(attachment.size/1024)} KB`:'—'}</span></div><a className="crm-btn secondary small" href={attachment.dataUrl} target="_blank" rel="noopener noreferrer"><ExternalLink size={12}/>Abrir</a></article>)}</div>:<div className="contracts-original-empty plain"><FileText size={48}/><strong>Nenhum documento anexado</strong><span>Edite o contrato para anexar documentos.</span></div>}</section>}
 
       {tab==='timeline'&&<section className="contracts-original-tab-content">{contract.timeline.length>0?<div className="contracts-original-list versions">{[...contract.timeline].reverse().map(item=><article className="contracts-original-version-card" key={item.id}><div className="contracts-original-history-icon"><History size={16}/></div><div><strong>{item.event}</strong><span><Clock size={12}/>{formatDateTime(item.createdAt)}</span><span><User size={12}/>{item.actor}</span>{item.description&&<p>{item.description}</p>}</div></article>)}</div>:<div className="contracts-original-empty plain"><History size={48}/><strong>Sem histórico registrado</strong><span>Os eventos do contrato aparecerão aqui.</span></div>}</section>}
      </div>

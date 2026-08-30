@@ -66,9 +66,35 @@ const routing=await read('src/features/crm/routing.ts')
 for(const required of ["pathname.endsWith('/leads')?'leads':'contacts'","'/app/crm/leads'","'/app/crm/contatos'"])if(!routing.includes(required))failures.push(`CRM routing deve sincronizar URL e tab: ${required}`)
 
 const adminUi=await read('src/shared/internal/AdminUi.tsx')
-if(adminUi.indexOf('{renderActions()}')>adminUi.indexOf('notification-button'))failures.push('A ação contextual deve ser renderizada antes do sino de notificações.')
+for(const required of ['export type PageHeaderConfig','function HeaderActionButton','function PageHeader','<PageHeader context={context} header={header} actions={actions}/>','workspace-header-polished-action','notification-button','account-button','expandedGroups','aria-expanded={expanded}','<NavLink end className="sidebar-subnav-link"'])if(!adminUi.includes(required))failures.push(`AdminUi deve preservar arquitetura compartilhada: ${required}`)
+if(adminUi.includes('AdminPageHeader'))failures.push('AdminUi não pode reintroduzir o cabeçalho duplicado AdminPageHeader.')
+if(adminUi.indexOf('{actions.map(')>adminUi.indexOf('notification-button'))failures.push('Ações de página devem permanecer antes das notificações no PageHeader compartilhado.')
 if(!adminUi.includes("end={to==='/app/site'}"))failures.push('AdminUi deve manter comportamento de deep links do shell.')
-for(const required of ["'contracts'","'finance'",'AdminNavGroup','isNavGroup','expandedGroups','aria-expanded={expanded}','<NavLink end className="sidebar-subnav-link"'])if(!adminUi.includes(required))failures.push(`AdminUi deve suportar navegação dos módulos restaurados: ${required}`)
+for(const required of ["'contracts'","'finance'",'AdminNavGroup','isNavGroup'])if(!adminUi.includes(required))failures.push(`AdminUi deve suportar navegação dos módulos restaurados: ${required}`)
+
+const siteHeaderFiles=[
+ 'src/features/site-manager/HeroManagerPage.tsx',
+ 'src/features/site-manager/pages/SiteManagerDashboardPage.tsx',
+ 'src/features/site-manager/pages/HomeManagerPage.tsx',
+ 'src/features/site-manager/pages/BrandAssetsManagerPage.tsx',
+ 'src/features/site-manager/pages/HeaderBrandManagerPage.tsx',
+ 'src/features/site-manager/pages/HomeAdManagerPage.tsx',
+ 'src/features/site-manager/pages/NewsAdManagerPage.tsx',
+ 'src/features/site-manager/pages/SiteCategoriesPage.tsx',
+ 'src/features/site-manager/pages/SiteMediaPage.tsx',
+ 'src/features/site-manager/pages/MediaKitPage.tsx',
+ 'src/features/site-manager/pages/SitePagesPage.tsx',
+ 'src/features/site-manager/pages/SiteContentsPage.tsx'
+]
+for(const path of siteHeaderFiles){
+ const source=await read(path)
+ if(!source.includes('<AdminShell')||!source.includes('header={{'))failures.push(`${path} deve usar o PageHeader compartilhado via AdminShell.header.`)
+ if(source.includes('AdminPageHeader'))failures.push(`${path} não pode usar AdminPageHeader embutido no conteúdo.`)
+}
+const editorialAdmin=await read('src/features/editorial/components/EditorialAdmin.tsx')
+if(editorialAdmin.includes('AdminPageHeader'))failures.push('EditorialAdmin não pode reconstruir cabeçalho dentro do conteúdo.')
+const brandAssets=await read('src/features/site-manager/pages/BrandAssetsManagerPage.tsx')
+if(brandAssets.includes('brand-assets-top'))failures.push('Marca & Logos não pode manter cabeçalho manual duplicado dentro do conteúdo.')
 
 const financeMain=await read('src/features/finance/FinanceMainPage.tsx')
 for(const required of ['Financeiro','Nova Transação','Importar OFX'])if(!financeMain.includes(required))failures.push(`Financeiro principal deve preservar: ${required}`)

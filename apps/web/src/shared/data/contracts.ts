@@ -67,6 +67,14 @@ export interface AdvertisingCampaign{
  endsAt:IsoDateTime
  active:boolean
 }
+export interface AdvertisingFormat{
+ id:EntityId
+ title:string
+ description:string
+ iconKey:'home'|'news'|'campaigns'|'metrics'
+ active:boolean
+ order:number
+}
 
 export interface SocialChannel{
  id:EntityId

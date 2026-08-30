@@ -3,7 +3,7 @@ import type {ContractsState} from '../../features/contracts/domain'
 import type {FinanceCategory,FinanceInvoice,FinanceRule,FinanceTransaction} from '../../features/finance/domain'
 import type {EditorialContent,EditorialPage} from '../../features/editorial/model'
 import type {HomeAgendaItem,HomeRelease,HomeStory} from '../../pages/home/models/homeReadModel'
-import type {AgendaItem,AdvertisingCampaign,AppNotification,AppUser,BrandingConfig,CollaborationTypeOption,DashboardOperationalSnapshot,DataScenario,DataScenarioName,SocialChannel,WorkspaceDescriptor} from './contracts'
+import type {AgendaItem,AdvertisingCampaign,AdvertisingFormat,AppNotification,AppUser,BrandingConfig,CollaborationTypeOption,DashboardOperationalSnapshot,DataScenario,DataScenarioName,SocialChannel,WorkspaceDescriptor} from './contracts'
 
 export type DataDomain='identity'|'notifications'|'crm'|'contracts'|'finance'|'editorial'|'home'|'agenda'|'advertising'|'branding'|'collaboration'|'dashboard'
 export type EditorialMediaItem={id:string;type:string;name:string;url:string;size:number;createdAt:string}
@@ -20,7 +20,7 @@ export interface ApplicationDataProvider{
  editorial:{pages():EditorialPage[];contents():EditorialContent[];media():EditorialMediaItem[]}
  home:{stories():HomeStory[];mostRead():string[];releases():HomeRelease[];agenda():HomeAgendaItem[]}
  agenda:{items():AgendaItem[]}
- advertising:{campaigns():AdvertisingCampaign[]}
+ advertising:{campaigns():AdvertisingCampaign[];formats():AdvertisingFormat[]}
  branding:{config():BrandingConfig;socialChannels():SocialChannel[]}
  collaboration:{types():CollaborationTypeOption[];guidelines():ReadonlyArray<{id:string;order:number;title:string}>}
  dashboard:{operationalSnapshot():DashboardOperationalSnapshot}

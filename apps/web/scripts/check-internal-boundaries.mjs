@@ -25,7 +25,7 @@ for(const required of [
  "from '../features/site-manager/SiteManagerRoutes'",
  'path="/app/login"','path="/app/workspaces"','path="/app/dashboard"','path="/app/crm/*"','path="/app/contracts"','path="/app/finance"','path="/app/finance/invoices"','path="/app/finance/accounting"','path="/app/finance/rules"','path="/app/finance/categories"','path="/app/site/*"'
 ])if(!internalApp.includes(required))failures.push(`InternalApp deve manter ${required}.`)
-for(const forbidden of ['CrmRoutes','/app/crm/integrations'])if(internalApp.includes(forbidden))failures.push(`InternalApp não pode reintroduzir infraestrutura removida: ${forbidden}`)
+for(const forbidden of ['CrmRoutes','/app/crm/integrations','path="/app/settings"'])if(internalApp.includes(forbidden))failures.push(`InternalApp não pode reintroduzir infraestrutura removida: ${forbidden}`)
 
 const crmWorkspace=await read('src/features/access/CrmWorkspace.tsx')
 for(const required of ["from '../crm/CrmPage'",'<Route index element={<CrmPage/>}/>','path="leads" element={<CrmPage/>}','path="contatos" element={<CrmPage/>}'])if(!crmWorkspace.includes(required))failures.push(`CrmWorkspace deve preservar página CRM unificada: ${required}`)
@@ -68,6 +68,7 @@ for(const required of ["pathname.endsWith('/leads')?'leads':'contacts'","'/app/c
 const adminUi=await read('src/shared/internal/AdminUi.tsx')
 for(const required of ['export type PageHeaderConfig','function HeaderActionButton','function PageHeader','<PageHeader context={context} header={header} actions={actions}/>','workspace-header-polished-action','notification-button','account-button','expandedGroups','aria-expanded={expanded}','<NavLink end className="sidebar-subnav-link"'])if(!adminUi.includes(required))failures.push(`AdminUi deve preservar arquitetura compartilhada: ${required}`)
 if(adminUi.includes('AdminPageHeader'))failures.push('AdminUi não pode reintroduzir o cabeçalho duplicado AdminPageHeader.')
+if(adminUi.includes('/app/settings')||adminUi.includes('>Configurações</span>'))failures.push('Account Menu não pode apontar para Configurações inexistente.')
 if(adminUi.indexOf('{actions.map(')>adminUi.indexOf('notification-button'))failures.push('Ações de página devem permanecer antes das notificações no PageHeader compartilhado.')
 if(!adminUi.includes("end={to==='/app/site'}"))failures.push('AdminUi deve manter comportamento de deep links do shell.')
 for(const required of ["'contracts'","'finance'",'AdminNavGroup','isNavGroup'])if(!adminUi.includes(required))failures.push(`AdminUi deve suportar navegação dos módulos restaurados: ${required}`)
@@ -100,7 +101,8 @@ const financeMain=await read('src/features/finance/FinanceMainPage.tsx')
 for(const required of ['Financeiro','Nova Transação','Importar OFX'])if(!financeMain.includes(required))failures.push(`Financeiro principal deve preservar: ${required}`)
 
 const financeInvoices=await read('src/features/finance/FinanceInvoicesPage.tsx')
-for(const required of ['Notas Fiscais','Registrar Nota'])if(!financeInvoices.includes(required))failures.push(`Notas Fiscais deve preservar: ${required}`)
+for(const required of ['Notas Fiscais','Registrar Nota','setInvoiceModal(null)','function InvoiceModal','writeInvoices'])if(!financeInvoices.includes(required))failures.push(`Notas Fiscais deve preservar fluxo funcional: ${required}`)
+if(financeInvoices.includes('newInvoice=1'))failures.push('Registrar Nota não pode depender de query param sem consumidor.')
 
 const financeAccounting=await read('src/features/finance/FinanceAccountingPage.tsx')
 for(const required of ['Contabilidade','Receita Total','Despesa Total','Lucro Líquido','Margem Líquida','Demonstrativo de Resultado','Resultado por Contrato','Resultado por Cliente'])if(!financeAccounting.includes(required))failures.push(`Contabilidade deve preservar: ${required}`)

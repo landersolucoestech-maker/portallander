@@ -6,13 +6,13 @@ import {getContactSemanticLabels,getServiceDetailLabel} from './semantics'
 describe('CRM semantic labels',()=>{
  it('uses person labels for pessoa física',()=>{
   expect(getContactSemanticLabels('pessoa_fisica')).toEqual({
-   name:'Nome completo *',company:'Empresa / Organização',document:'CPF',role:'Cargo / Função',
+   name:'Nome completo *',company:'Empresa / Organização',document:'CPF',
   })
  })
 
  it('uses company labels for pessoa jurídica',()=>{
   expect(getContactSemanticLabels('pessoa_juridica')).toEqual({
-   name:'Razão Social *',company:'Nome Fantasia',document:'CNPJ',role:'Cargo / Função',
+   name:'Razão Social *',company:'Nome Fantasia',document:'CNPJ',
   })
  })
 

@@ -4,6 +4,7 @@
 @import './admin-dashboard.css';
 @import './admin-dashboard-reference.css';
 @import './admin-sidebar-scroll.css';
+@import './admin-nav-groups.css';
 @import './admin-table-pagination.css';
 @import './admin-brand.css';
 @import './admin-home.css';
@@ -14,6 +15,11 @@
 @import './admin-crm-portal.css';
 @import './admin-crm-tabs.css';
 @import './admin-crm-modal-semantics.css';
+@import './admin-contracts.css';
+@import './admin-contracts-registry.css';
+@import './admin-contracts-reference.css';
+@import './admin-contracts-original-modal-fidelity.css';
+@import './admin-contracts-original-modal.css';
 @import '../shared/branding/styles/header-brand-manager.css';
 @import '../shared/branding/styles/brand-assets-manager.css';
 @import './admin-responsive.css';
@@ -21,5 +27,10 @@
 @import './admin-full-width.css';
 @import './admin-kpi-standard.css';
 @import './admin-fixed-sidebar.css';
+@import './admin-contracts-wizard-width.css';
+@import './admin-contracts-kpis-row.css';
+@import './admin-contracts-header-action.css';
 @import './admin-crm-pagination.css';
+@import './admin-finance.css';
+@import './admin-finance-reference.css';
 @import './admin-table-alignment.css';

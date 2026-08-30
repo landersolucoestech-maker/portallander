@@ -1,0 +1,26 @@
+@media (min-width: 901px){
+  .contracts-page .contracts-kpis{
+    grid-template-columns:repeat(7,minmax(0,1fr))!important;
+    gap:8px;
+  }
+  .contracts-page .contracts-kpi{
+    min-width:0;
+    min-height:92px;
+    padding:12px;
+  }
+  .contracts-page .contracts-kpi>div{
+    min-width:0;
+  }
+  .contracts-page .contracts-kpi span{
+    display:block;
+    line-height:1.25;
+  }
+  .contracts-page .contracts-kpi strong{
+    font-size:21px;
+  }
+  .contracts-page .contracts-kpi i{
+    width:30px;
+    height:30px;
+    flex:0 0 30px;
+  }
+}

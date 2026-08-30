@@ -112,5 +112,14 @@ if(financeAccounting.indexOf('finance-kpis accounting-original-kpis')>financeAcc
 const contracts=await read('src/features/contracts/ContractsPage.tsx')
 for(const required of ['Novo Contrato','Templates','Novo Template'])if(!contracts.includes(required))failures.push(`Contratos deve preservar: ${required}`)
 
+const mockArchitectureFiles=[
+ 'src/mocks/README.md','src/mocks/index.ts','src/mocks/manifest.ts',
+ 'src/mocks/identity/index.ts','src/mocks/notifications/index.ts','src/mocks/crm/index.ts','src/mocks/contracts/index.ts','src/mocks/finance/index.ts','src/mocks/editorial/index.ts','src/mocks/home/index.ts','src/mocks/advertising/index.ts','src/mocks/agenda/index.ts','src/mocks/dashboard/index.ts','src/mocks/collaboration/index.ts','src/mocks/branding/index.ts','src/mocks/shared/index.ts','src/mocks/scenarios/index.ts'
+]
+for(const path of mockArchitectureFiles)if(!(await exists(path)))failures.push(`Arquitetura global de mock data exige ${path}.`)
+const mockManifest=await read('src/mocks/manifest.ts')
+for(const domain of ['identity','notifications','crm','contracts','finance','editorial','home','advertising','agenda','dashboard','collaboration','branding','shared','scenarios'])if(!mockManifest.includes(`'${domain}'`))failures.push(`Manifesto global de mocks deve registrar domínio: ${domain}`)
+for(const required of ['uiMayImportRawMocks:false','crossDomainIds:true','metricsMustBeDerived:true','scenariosCentralized:true','providerBoundaryRequired:true'])if(!mockManifest.includes(required))failures.push(`Manifesto global de mocks deve preservar regra: ${required}`)
+
 if(failures.length){console.error('Falha nos boundaries da aplicação:');failures.forEach(item=>console.error(`- ${item}`));process.exit(1)}
 console.log('Application boundaries OK')

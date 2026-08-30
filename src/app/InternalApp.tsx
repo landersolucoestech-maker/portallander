@@ -19,6 +19,7 @@ export default function InternalApp(){
     <Route path="/app/dashboard" element={<DashboardPage/>}/>
     <Route path="/app/crm/*" element={<CrmWorkspace/>}/>
     <Route path="/app/contracts" element={<ContractsPage/>}/>
+    <Route path="/app/finance/automations" element={<Navigate to="/app/finance" replace/>}/>
     <Route path="/app/finance/*" element={<FinancePage/>}/>
     <Route path="/app/site/*" element={<SiteManagerRoutes/>}/>
     <Route path="*" element={<Navigate to="/app/login" replace/>}/>

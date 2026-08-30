@@ -44,11 +44,24 @@ for(const rel of featureMockFacades){
 }
 
 const allowedRawMockConsumers=new Set(['shared/data/mockDataProvider.ts',...featureMockFacades])
+const demoRecordPatterns=[
+ /Cliente Exemplo/i,
+ /Fornecedor Exemplo/i,
+ /Cliente Corporativo/i,
+ /Agência Parceira/i,
+ /lead_mock_/i,
+ /contact_mock_/i,
+ /interaction_mock_/i,
+ /timeline_mock_/i,
+ /['"](?:tx|nf|rule)-\d+['"]/i,
+ /@example\.com/i,
+]
 for(const path of sourceFiles){
  const rel=relPath(path)
  if(rel.startsWith('mocks/')||rel.endsWith('.test.ts')||rel.endsWith('.test.tsx')||allowedRawMockConsumers.has(rel))continue
  const source=await readFile(path,'utf8')
  if(/from\s+['"][^'"]*\/mocks(?:\/|['"])/.test(source)||/from\s+['"]\.\/mocks['"]/.test(source))failures.push(`${rel} não pode consumir mocks diretamente; use provider/repository/read model.`)
+ if(demoRecordPatterns.some(pattern=>pattern.test(source)))failures.push(`${rel} contém registro demonstrativo fora da fonte canônica src/mocks.`)
 }
 
 for(const rel of ['features/crm/repository.ts','features/contracts/repository.ts','features/finance/repository.ts','features/editorial/repository.ts']){

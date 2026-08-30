@@ -19,8 +19,7 @@
     "react": "latest",
     "react-dom": "latest",
     "react-router-dom": "latest",
-    "vite": "latest",
-    "zod": "latest"
+    "vite": "latest"
   },
   "devDependencies": {
     "@eslint/js": "latest",

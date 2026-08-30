@@ -3,7 +3,10 @@ import ReactDOM from 'react-dom/client'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { HashRouter } from 'react-router-dom'
 import App from './app/PortalApp'
+import {purgeRemovedModuleStorage} from './shared/internal/legacyStorageCleanup'
 import './styles/public-styles.css'
+
+purgeRemovedModuleStorage()
 
 const queryClient=new QueryClient()
 

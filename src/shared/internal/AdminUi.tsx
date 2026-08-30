@@ -6,19 +6,15 @@ import { portalLogo } from '../branding/assets/brandAsset'
 
 export type AdminArea = 'crm' | 'cms'
 export type AdminNavLink = readonly [label: string, icon: LucideIcon, to: string]
-export type AdminNavGroup = {label:string;icon:LucideIcon;to?:string;children:readonly AdminNavLink[]}
-export type AdminNavItem = AdminNavLink | AdminNavGroup
+export type AdminNavItem = AdminNavLink
 
 type AdminShellHeader={title:string;description:string}
 export type AdminShellAction={label:string;onClick?:()=>void;disabled?:boolean;disabledReason?:string;variant?:'primary'|'secondary';className?:string;icon?:LucideIcon}
-
-const isNavGroup=(item:AdminNavItem):item is AdminNavGroup=>!Array.isArray(item)
 
 export function AdminShell({area,items,children,header,headerAction,headerActions}:{area:AdminArea;items:readonly AdminNavItem[];children:ReactNode;header?:AdminShellHeader;headerAction?:AdminShellAction;headerActions?:readonly AdminShellAction[]}){
   const context=area==='crm'?'CRM':'Gerenciador do Site'
   const [notificationsOpen,setNotificationsOpen]=useState(false)
   const [accountOpen,setAccountOpen]=useState(false)
-  const [openNavGroups,setOpenNavGroups]=useState<Record<string,boolean>>({})
   const notificationsRef=useRef<HTMLDivElement>(null)
   const accountRef=useRef<HTMLDivElement>(null)
   const actions=headerActions??(headerAction?[headerAction]:[])
@@ -45,7 +41,7 @@ export function AdminShell({area,items,children,header,headerAction,headerAction
 
   const renderActions=()=>actions.map(action=>{
     const approvedHeaderAction=['Novo Contato','Novo Lead'].includes(action.label)
-    const fallbackIcon:LucideIcon|undefined=action.label==='Novo Contato'||action.label==='Novo Lead'?UserPlus:undefined
+    const fallbackIcon:LucideIcon|undefined=approvedHeaderAction?UserPlus:undefined
     const ActionIcon=action.icon??fallbackIcon
     const specialClass=approvedHeaderAction?' workspace-header-polished-action':''
     return <button key={action.label} className={`button ${action.variant==='secondary'?'outline workspace-header-secondary':'dark'} workspace-primary-action${specialClass}${action.className?` ${action.className}`:''}`} type="button" onClick={action.onClick} disabled={action.disabled} title={action.disabled?action.disabledReason:undefined}>{ActionIcon&&<ActionIcon size={14} aria-hidden="true"/>}{action.label}</button>
@@ -55,18 +51,8 @@ export function AdminShell({area,items,children,header,headerAction,headerAction
     <a className="admin-skip-link" href="#admin-main">Pular para o conteúdo</a>
     <aside className="sidebar" aria-label={`Navegação do ${context}`}>
       <div className="sidebar-head"><Link to="/" className="brand" aria-label="Ir para o Portal Lander"><img src={portalLogo} alt="Portal Lander"/></Link><span>{context}</span></div>
-      <nav aria-label={`Seções do ${context}`}>{items.map(item=>{
-        if(isNavGroup(item)){
-          const GroupIcon=item.icon
-          const isOpen=openNavGroups[item.label]??false
-          return <div className="sidebar-nav-group" key={item.label}>
-            {item.to?<NavLink className="sidebar-nav-group-label" to={item.to}><GroupIcon size={17}/><span>{item.label}</span><ChevronDown size={13}/></NavLink>:<div className="sidebar-nav-group-label"><GroupIcon size={17}/><span>{item.label}</span><button type="button" className="sidebar-nav-group-toggle" aria-label={`${isOpen?'Recolher':'Expandir'} ${item.label}`} aria-expanded={isOpen} onClick={()=>setOpenNavGroups(current=>({...current,[item.label]:!(current[item.label]??false)}))}><ChevronDown size={13} style={{transform:isOpen?'rotate(0deg)':'rotate(-90deg)'}}/></button></div>}
-            {isOpen&&<div className="sidebar-subnav">{item.children.map(([label,Icon,to])=><NavLink className="sidebar-subnav-link" key={to} to={to}><Icon size={14}/><span>{label}</span></NavLink>)}</div>}
-          </div>
-        }
-        const [label,Icon,to]=item;return <NavLink key={to} end={to==='/app/site'} to={to}><Icon size={17}/><span>{label}</span></NavLink>
-      })}</nav>
-      <div className="sidebar-bottom"><NavLink to="/app/workspaces"><Building2 size={17}/><span>Trocar workspace</span></NavLink></div>
+      <nav aria-label={`Seções do ${context}`}>{items.map(([label,Icon,to])=><NavLink key={to} end={to==='/app/site'} to={to}><Icon size={17} aria-hidden="true"/><span>{label}</span></NavLink>)}</nav>
+      <div className="sidebar-bottom"><NavLink to="/app/workspaces"><Building2 size={17} aria-hidden="true"/><span>Trocar workspace</span></NavLink></div>
     </aside>
     <div className="workspace">
       <header className={`workspace-top${header?' workspace-top-page':''}`}>

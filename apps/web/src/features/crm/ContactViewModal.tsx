@@ -1,3 +1,4 @@
+import type {ReactNode} from 'react'
 import {Download,FileText,History,X} from 'lucide-react'
 import {contactCategoryOptions,label,priorityOptions,type Contact} from './domain'
 import {getContactSemanticLabels} from './semantics'
@@ -18,5 +19,5 @@ export function ContactViewModal({open,contact,onClose}:{open:boolean;contact:Co
   <Info title="Metadados"><Row k="Criado em" v={new Date(contact.createdAt).toLocaleString('pt-BR')}/><Row k="Atualizado em" v={new Date(contact.updatedAt).toLocaleString('pt-BR')}/></Info>
  </div><footer className="crm-modal-foot crm-readonly-foot"><button className="crm-btn secondary" onClick={onClose}>Fechar</button></footer></section></div>
 }
-function Info({title,children}:{title:string;children:React.ReactNode}){return <section className="crm-view-section"><h3>{title}</h3>{children}</section>}
+function Info({title,children}:{title:string;children:ReactNode}){return <section className="crm-view-section"><h3>{title}</h3>{children}</section>}
 function Row({k,v}:{k:string;v?:string}){return <div className="crm-info-row"><span>{k}</span><strong>{v||'—'}</strong></div>}

@@ -1,0 +1,21 @@
+import {Download,Edit3,FileText,PenLine,X} from 'lucide-react'
+import {useState} from 'react'
+import {contractStatusOptions,optionLabel,signatureStatusOptions,type Contract,type ContractCategory} from '../domain'
+import {formatCurrency,formatDate,formatDateTime} from '../format'
+import {ContractA4Preview} from './ContractA4Preview'
+import {SendForSigningDialog} from './SendForSigningDialog'
+export function ContractViewModal({contract,categories,onClose,onEdit}:{contract:Contract;categories:ContractCategory[];onClose:()=>void;onEdit:()=>void}){
+ const [signing,setSigning]=useState(false);const category=categories.find(c=>c.id===contract.categoryId)?.name??'—';const contractor=contract.parties.find(p=>p.role==='contractor'),contracted=contract.parties.find(p=>p.role==='contracted')
+ return <><div className="crm-modal-backdrop" onMouseDown={e=>{if(e.currentTarget===e.target)onClose()}}><section className="crm-modal crm-modal-lg contracts-view-modal" role="dialog" aria-modal="true" aria-label="Visualizar contrato"><header className="crm-modal-head"><div><div className="crm-badge-row"><span className={`contracts-status status-${contract.status}`}>{optionLabel(contractStatusOptions,contract.status)}</span><span className="crm-badge muted">{contract.type}</span><span className="crm-badge muted">{category}</span></div><h2>{contract.title}</h2><p>{contract.number||'Sem número definido'}</p></div><button className="crm-icon-btn" onClick={onClose} aria-label="Fechar"><X size={18}/></button></header><div className="crm-modal-body contracts-view-grid">
+  <Info title="Partes"><Row k="Contratante" v={contractor?.name}/><Row k="Contratada" v={contracted?.name}/><Row k="Representante" v={contractor?.representativeName||contracted?.representativeName}/></Info>
+  <Info title="Vigência"><Row k="Início" v={formatDate(contract.startDate)}/><Row k="Fim" v={formatDate(contract.endDate)}/><Row k="Duração" v={contract.duration}/></Info>
+  <Info title="Financeiro"><Row k="Valor" v={formatCurrency(contract.payment.amount,contract.payment.currency)}/><Row k="Forma" v={contract.payment.method}/><Row k="Periodicidade" v={contract.payment.periodicity}/><Row k="Parcelas" v={String(contract.payment.installments||'—')}/></Info>
+  <Info title="Assinaturas"><Row k="Provider" v={contract.signingProvider??'Não configurado'}/><Row k="Status" v={optionLabel(signatureStatusOptions,contract.signatureStatus)}/><Row k="Signatários" v={String(contract.signers.length)}/><button className="crm-btn secondary small" onClick={()=>setSigning(true)}><PenLine size={14}/>Enviar para assinatura</button></Info>
+  <section className="crm-view-section wide contracts-preview-section"><div className="crm-section-title"><h3>Documento</h3><FileText size={16}/></div><ContractA4Preview document={contract.document}/><div className="contracts-version-meta">Versões preservadas: {contract.document.versions.length}</div></section>
+  <section className="crm-view-section wide"><h3>Anexos</h3>{contract.attachments.length===0?<div className="crm-empty-mini">Nenhum anexo.</div>:<div className="crm-file-grid">{contract.attachments.map(a=><a key={a.id} href={a.dataUrl} download={a.name}><FileText size={16}/><span>{a.name}</span><Download size={14}/></a>)}</div>}</section>
+  <section className="crm-view-section wide"><h3>Timeline</h3><div className="crm-timeline">{contract.timeline.map(item=><article key={item.id}><span className="crm-timeline-dot"/><div><strong>{item.event}</strong><p>{item.description}</p><small>{item.actor} · {formatDateTime(item.createdAt)}</small></div></article>)}</div></section>
+  <Info title="Metadados"><Row k="Criado em" v={formatDateTime(contract.createdAt)}/><Row k="Atualizado em" v={formatDateTime(contract.updatedAt)}/></Info>
+ </div><footer className="crm-modal-foot"><button className="crm-btn secondary" onClick={onClose}>Fechar</button><button className="crm-btn primary" onClick={onEdit}><Edit3 size={15}/>Editar</button></footer></section></div>{signing&&<SendForSigningDialog contract={contract} onClose={()=>setSigning(false)}/>}</>
+}
+function Info({title,children}:{title:string;children:React.ReactNode}){return <section className="crm-view-section"><h3>{title}</h3>{children}</section>}
+function Row({k,v}:{k:string;v?:string}){return <div className="crm-info-row"><span>{k}</span><strong>{v||'—'}</strong></div>}

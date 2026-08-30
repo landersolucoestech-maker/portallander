@@ -5,9 +5,9 @@ import {CRM_WORKSPACE_NAV} from './adminNavigation'
 const isGroup=(item:AdminNavItem):item is AdminNavGroup=>!Array.isArray(item)
 
 describe('admin navigation',()=>{
- it('mantém Dashboard, CRM, Contratos e Financeiro no workspace administrativo',()=>{
+ it('mantém Dashboard, CRM, Contratos, Agenda e Financeiro no workspace administrativo',()=>{
   const labels=CRM_WORKSPACE_NAV.map(item=>isGroup(item)?item.label:item[0])
-  expect(labels).toEqual(['Dashboard','CRM','Contratos','Financeiro'])
+  expect(labels).toEqual(['Dashboard','CRM','Contratos','Agenda','Financeiro'])
  })
 
  it('preserva as rotas principais obrigatórias',()=>{

@@ -1,0 +1,31 @@
+.crm-table th,
+.contracts-table th,
+.finance-table th {
+  text-align: center;
+  vertical-align: middle;
+}
+
+.crm-table td,
+.contracts-table td,
+.finance-table td {
+  text-align: left;
+  vertical-align: middle;
+}
+
+.crm-table th:first-child,
+.crm-table td:first-child,
+.contracts-table th:first-child,
+.contracts-table td:first-child,
+.finance-table th:first-child,
+.finance-table td:first-child {
+  text-align: center;
+}
+
+.crm-table th:last-child,
+.crm-table td:last-child,
+.contracts-table th:last-child,
+.contracts-table td:last-child,
+.finance-table th:last-child,
+.finance-table td:last-child {
+  text-align: center;
+}

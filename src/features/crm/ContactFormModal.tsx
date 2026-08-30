@@ -1,13 +1,17 @@
-import {useEffect,useState,type ReactNode} from 'react'
+import {useState,type ReactNode} from 'react'
 import {Paperclip,Trash2,X} from 'lucide-react'
 import {contactCategoryOptions,contactProfiles,emptyContact,priorityOptions,type Attachment,type Contact} from './domain'
 import {filesToAttachments} from './repository'
 
 type Draft=ReturnType<typeof emptyContact>&{attachments:Attachment[]}
-export function ContactFormModal({open,contact,onClose,onSubmit,busy}:{open:boolean;contact?:Contact|null;onClose:()=>void;onSubmit:(draft:Draft,expectedUpdatedAt?:string)=>Promise<void>;busy:boolean}){
- const [draft,setDraft]=useState<Draft>({...emptyContact(),attachments:[]});const [error,setError]=useState('')
- useEffect(()=>{if(!open)return;setError('');setDraft(contact?{entityType:contact.entityType,category:contact.category,profile:contact.profile,name:contact.name,company:contact.company,role:contact.role,email:contact.email,phone:contact.phone,whatsapp:contact.whatsapp,city:contact.city,state:contact.state,document:contact.document,website:contact.website,instagram:contact.instagram,priority:contact.priority,status:contact.status,tags:[...contact.tags],notes:contact.notes,attachments:[...contact.attachments]}:{...emptyContact(),attachments:[]})},[open,contact])
- if(!open)return null
+const draftFromContact=(contact?:Contact|null):Draft=>contact?{entityType:contact.entityType,category:contact.category,profile:contact.profile,name:contact.name,company:contact.company,role:contact.role,email:contact.email,phone:contact.phone,whatsapp:contact.whatsapp,city:contact.city,state:contact.state,document:contact.document,website:contact.website,instagram:contact.instagram,priority:contact.priority,status:contact.status,tags:[...contact.tags],notes:contact.notes,attachments:[...contact.attachments]}:{...emptyContact(),attachments:[]}
+
+export function ContactFormModal(props:{open:boolean;contact?:Contact|null;onClose:()=>void;onSubmit:(draft:Draft,expectedUpdatedAt?:string)=>Promise<void>;busy:boolean}){
+ if(!props.open)return null
+ return <ContactFormContent key={props.contact?.id??'new-contact'} {...props}/>
+}
+function ContactFormContent({contact,onClose,onSubmit,busy}:{open:boolean;contact?:Contact|null;onClose:()=>void;onSubmit:(draft:Draft,expectedUpdatedAt?:string)=>Promise<void>;busy:boolean}){
+ const [draft,setDraft]=useState<Draft>(()=>draftFromContact(contact));const [error,setError]=useState('')
  const set=<K extends keyof Draft>(k:K,v:Draft[K])=>setDraft(p=>({...p,[k]:v}));const profiles=contactProfiles[draft.entityType][draft.category]??['Outro']
  const submit=async()=>{if(!draft.name.trim()){setError('Nome é obrigatório.');return}try{setError('');await onSubmit(draft,contact?.updatedAt)}catch(e){setError(e instanceof Error?e.message:'Não foi possível salvar o contato.')}}
  return <div className="crm-modal-backdrop" onMouseDown={e=>{if(e.currentTarget===e.target)onClose()}}><section className="crm-modal crm-modal-lg" role="dialog" aria-modal="true" aria-label={contact?'Editar contato':'Novo contato'}><header className="crm-modal-head"><div><h2>{contact?'Editar Contato':'Novo Contato'}</h2><p>Relacionamento comercial ou institucional do Portal Lander.</p></div><button className="crm-icon-btn" onClick={onClose} aria-label="Fechar"><X size={18}/></button></header><div className="crm-modal-body">

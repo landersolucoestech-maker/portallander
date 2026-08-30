@@ -1,5 +1,6 @@
 import {beforeEach,describe,expect,it} from 'vitest'
-import {contractTypeOptions,defaultCategories,defaultVariables,type Contract} from './domain'
+import {contractTypeOptions,type Contract} from './domain'
+import {contractCategoriesMock,contractVariablesMock} from './mocks'
 import {parseContractText} from './semanticParser'
 import {extractPlaceholders,resolveDocument} from './variables'
 import {formatCurrency} from './format'
@@ -15,7 +16,7 @@ const contractInput=(crmContactId?:string):Omit<Contract,'id'|'createdAt'|'updat
 describe('contracts Portal Lander domain',()=>{
  beforeEach(()=>Object.defineProperty(globalThis,'localStorage',{value:new MemoryStorage(),configurable:true}))
  it('contains commercial contract types without forbidden domain',()=>{const serialized=JSON.stringify(contractTypeOptions);for(const term of forbidden)expect(serialized).not.toContain(term);expect(contractTypeOptions).toContain('Publieditorial');expect(contractTypeOptions).toContain('Campanha Publicitária');expect(contractTypeOptions).toContain('Divulgação de Lançamento')})
- it('ships administrable categories and Portal Lander variables',()=>{expect(defaultCategories.some(item=>item.name==='Publicidade')).toBe(true);expect(defaultVariables.some(v=>v.key==='{{CONTRATANTE.NAME}}')).toBe(true);expect(defaultVariables.some(v=>v.key==='{{CAMPAIGN.NAME}}')).toBe(true);expect(defaultVariables.some(v=>v.key==='{{CONTENT.TITLE}}')).toBe(true);expect(defaultVariables.some(v=>v.key==='{{SIGNATURE.CONTRATADA}}')).toBe(true)})
+ it('ships administrable categories and Portal Lander variables',()=>{expect(contractCategoriesMock.some(item=>item.name==='Publicidade')).toBe(true);expect(contractVariablesMock.some(v=>v.key==='{{CONTRATANTE.NAME}}')).toBe(true);expect(contractVariablesMock.some(v=>v.key==='{{CAMPAIGN.NAME}}')).toBe(true);expect(contractVariablesMock.some(v=>v.key==='{{CONTENT.TITLE}}')).toBe(true);expect(contractVariablesMock.some(v=>v.key==='{{SIGNATURE.CONTRATADA}}')).toBe(true)})
  it('resolves placeholders and reports missing values',()=>{const result=resolveDocument({headerHtml:'',contentHtml:'Olá {{CONTRATANTE.NAME}} — {{PAYMENT.AMOUNT}}',footerHtml:''},{'{{CONTRATANTE.NAME}}':'Empresa Exemplo'});expect(result.contentHtml).toContain('Empresa Exemplo');expect(result.missing).toEqual(['{{PAYMENT.AMOUNT}}'])})
  it('extracts semantic business data',()=>{const parsed=parseContractText('Contrato de publicidade no valor de R$ 12.000,00 em 3 parcelas. E-mail contato@exemplo.com. Rua Exemplo 100. Cláusula de confidencialidade, vigência e rescisão.');expect(parsed.variables.some(v=>v.placeholder==='{{PAYMENT.AMOUNT}}')).toBe(true);expect(parsed.variables.some(v=>v.placeholder==='{{PAYMENT.INSTALLMENTS}}')).toBe(true);expect(parsed.variables.some(v=>v.placeholder==='{{CONTRATANTE.ADDRESS}}')).toBe(true);expect(parsed.clauseTypes).toContain('confidencialidade');expect(parsed.clauseTypes).toContain('vigencia');expect(parsed.clauseTypes).toContain('rescisao')})
  it('validates contract and signer structures',()=>{expect(contractSchema.safeParse(contractInput()).success).toBe(true);expect(signerSchema.safeParse({name:'Responsável',email:'responsavel@example.com',required:true}).success).toBe(true)})

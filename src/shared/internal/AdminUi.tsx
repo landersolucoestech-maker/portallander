@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import type { LucideIcon } from 'lucide-react'
-import { Bell, Building2, ChevronDown, LogOut, Settings, UserRound } from 'lucide-react'
+import { Bell, Building2, ChevronDown, LayoutTemplate, LogOut, Settings, UserRound } from 'lucide-react'
 import { Link, NavLink } from 'react-router-dom'
 import { portalLogo } from '../branding/assets/brandAsset'
 
@@ -42,7 +42,12 @@ export function AdminShell({area,items,children,header,headerAction,headerAction
     }
   },[notificationsOpen,accountOpen])
 
-  const renderActions=()=>actions.map(action=>{const ActionIcon=action.icon;return <button key={action.label} className={`button ${action.variant==='secondary'?'outline workspace-header-secondary':'dark'} workspace-primary-action${action.className?` ${action.className}`:''}`} type="button" onClick={action.onClick} disabled={action.disabled} title={action.disabled?action.disabledReason:undefined}>{ActionIcon&&<ActionIcon size={14} aria-hidden="true"/>}{action.label}</button>})
+  const renderActions=()=>actions.map(action=>{
+    const isContractsTemplates=area==='contracts'&&action.label==='Templates'
+    const ActionIcon=action.icon??(isContractsTemplates?LayoutTemplate:undefined)
+    const specialClass=isContractsTemplates?' contracts-header-templates':''
+    return <button key={action.label} className={`button ${action.variant==='secondary'?'outline workspace-header-secondary':'dark'} workspace-primary-action${specialClass}${action.className?` ${action.className}`:''}`} type="button" onClick={action.onClick} disabled={action.disabled} title={action.disabled?action.disabledReason:undefined}>{ActionIcon&&<ActionIcon size={14} aria-hidden="true"/>}{action.label}</button>
+  })
 
   return <div className="app-shell">
     <a className="admin-skip-link" href="#admin-main">Pular para o conteúdo</a>

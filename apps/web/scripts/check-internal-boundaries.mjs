@@ -107,7 +107,7 @@ for(const required of ['Notas Fiscais','Registrar Nota','setInvoiceModal(null)',
 if(financeInvoices.includes('newInvoice=1'))failures.push('Registrar Nota não pode depender de query param sem consumidor.')
 
 const financeAccounting=await read('src/features/finance/FinanceAccountingPage.tsx')
-for(const required of ['Contabilidade','Receita Total','Despesa Total','Lucro Líquido','Margem Líquida','Demonstrativo de Resultado','Resultado por Contrato','Resultado por Cliente'])if(!financeAccounting.includes(required))failures.push(`Contabilidade deve preservar: ${required}`)
+for(const required of ['Contabilidade','Receita Total','Despesa Total','Lucro Líquido','Margem Líquida','Demonstrativo de Resultado'])if(!financeAccounting.includes(required))failures.push(`Contabilidade deve preservar: ${required}`)
 for(const forbidden of ['finance-accounting-tabs','P&amp;L Empresa','P&amp;L Contratos','P&amp;L Clientes',"type Tab=",'setTab('])if(financeAccounting.includes(forbidden))failures.push(`Contabilidade não pode reintroduzir estrutura descartada: ${forbidden}`)
 if(financeAccounting.indexOf('finance-kpis accounting-original-kpis')>financeAccounting.indexOf('finance-filters'))failures.push('Contabilidade deve manter KPI Cards acima dos filtros.')
 

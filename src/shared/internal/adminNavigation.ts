@@ -2,6 +2,7 @@ import {ContactRound,FileText,Globe2,Home,Images,LayoutDashboard,Megaphone,Newsp
 import type {AdminNavItem} from './AdminUi'
 
 export const CRM_WORKSPACE_NAV:readonly AdminNavItem[]=[
+ ['Dashboard',LayoutDashboard,'/app/dashboard'],
  ['CRM',ContactRound,'/app/crm'],
 ]
 

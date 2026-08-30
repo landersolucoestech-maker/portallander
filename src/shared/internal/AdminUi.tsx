@@ -44,19 +44,27 @@ export function AdminShell({area,items,children,header,headerAction,headerAction
 
   const renderActions=()=>actions.map(action=><button key={action.label} className={`button ${action.variant==='secondary'?'outline workspace-header-secondary':'dark'} workspace-primary-action`} type="button" onClick={action.onClick} disabled={action.disabled} title={action.disabled?action.disabledReason:undefined}>{action.label}</button>)
 
-  return <div className="workspace-shell">
-    <aside className="workspace-sidebar">
-      <div className="workspace-brand"><img src={portalLogo} alt="Portal Lander"/></div>
-      <nav className="workspace-nav">{items.map((item,index)=>isNavGroup(item)?<div className="workspace-nav-group" key={`${item.label}-${index}`}><div className="workspace-nav-group-label">{item.label}</div>{item.children.map(([label,Icon,to])=><NavLink to={to} key={to} end={to==='/app/site'} className={({isActive})=>`workspace-nav-item${isActive?' active':''}`}><Icon size={17}/><span>{label}</span></NavLink>)}</div>:<NavLink to={item[2]} key={item[2]} end={item[2]==='/app/site'} className={({isActive})=>`workspace-nav-item${isActive?' active':''}`}><item.1 size={17}/><span>{item[0]}</span></NavLink>)}</nav>
+  return <div className="app-shell">
+    <a className="admin-skip-link" href="#admin-main">Pular para o conteúdo</a>
+    <aside className="sidebar" aria-label={`Navegação do ${context}`}>
+      <div className="sidebar-head"><Link to="/" className="brand" aria-label="Ir para o Portal Lander"><img src={portalLogo} alt="Portal Lander"/></Link><span>{context}</span></div>
+      <nav aria-label={`Seções do ${context}`}>{items.map(item=>{
+        if(isNavGroup(item)){const GroupIcon=item.icon;const groupContent=<><GroupIcon size={17}/><span>{item.label}</span><ChevronDown size={13}/></>;return <div className="sidebar-nav-group" key={item.label}>{item.to?<NavLink className="sidebar-nav-group-label" to={item.to}>{groupContent}</NavLink>:<div className="sidebar-nav-group-label">{groupContent}</div>}<div className="sidebar-subnav">{item.children.map(([label,Icon,to])=><NavLink className="sidebar-subnav-link" key={to} to={to}><Icon size={14}/><span>{label}</span></NavLink>)}</div></div>}
+        const [label,Icon,to]=item;return <NavLink key={to} end={to==='/app/site'} to={to}><Icon size={17}/><span>{label}</span></NavLink>
+      })}</nav>
+      <div className="sidebar-bottom"><NavLink to="/app/workspaces"><Building2 size={17}/><span>Trocar workspace</span></NavLink></div>
     </aside>
-    <div className="workspace-stage">
-      <header className="workspace-header">
-        <div className="workspace-header-copy"><span>{context}</span><h1>{header?.title??context}</h1>{header?.description&&<p>{header.description}</p>}</div>
-        <div className="workspace-header-actions">{renderActions()}<div className="workspace-notifications" ref={notificationsRef}><button className="icon-button notification-button" type="button" aria-label="Notificações" onClick={()=>{setNotificationsOpen(v=>!v);setAccountOpen(false)}}><Bell size={18}/></button>{notificationsOpen&&<div className="workspace-dropdown notification-dropdown"><strong>Notificações</strong><p>Nenhuma notificação nova.</p></div>}</div><div className="workspace-account" ref={accountRef}><button className="workspace-account-button" type="button" onClick={()=>{setAccountOpen(v=>!v);setNotificationsOpen(false)}}><span className="workspace-account-avatar"><UserRound size={18}/></span><span><small>Administrador</small><strong>Deyvisson Lander</strong></span><ChevronDown size={15}/></button>{accountOpen&&<div className="workspace-dropdown account-dropdown"><Link to="/app/profile"><UserRound size={15}/>Meu perfil</Link><Link to="/app/settings"><Settings size={15}/>Configurações</Link><Link to="/app/login"><LogOut size={15}/>Sair</Link></div>}</div></div>
+    <div className="workspace">
+      <header className={`workspace-top${header?' workspace-top-page':''}`}>
+        {header?<div className="workspace-page-heading"><h1>{header.title}</h1><p>{header.description}</p></div>:<div className="workspace-identity"><span className="workspace-name">Portal Lander</span><span className="workspace-divider"/><span className="workspace-context">{context}</span></div>}
+        <div className="workspace-actions">{renderActions()}<div className="workspace-popover-wrap" ref={notificationsRef}><button className="icon-button notification-button" type="button" aria-label="Abrir notificações" aria-expanded={notificationsOpen} onClick={()=>{setNotificationsOpen(value=>!value);setAccountOpen(false)}}><Bell size={17}/></button>{notificationsOpen&&<div className="workspace-popover notifications-popover" role="status"><strong>Notificações</strong><p>Nenhuma notificação no momento.</p></div>}</div><div className="workspace-popover-wrap" ref={accountRef}><button className="account-button" type="button" aria-label="Abrir menu da conta" aria-haspopup="menu" aria-expanded={accountOpen} onClick={()=>{setAccountOpen(value=>!value);setNotificationsOpen(false)}}><span>PL</span><div><b>Administrador</b><small>Deyvisson Lander</small></div><ChevronDown size={14}/></button>{accountOpen&&<div className="workspace-popover account-popover" role="menu" aria-label="Menu da conta"><Link to="/app/profile" role="menuitem" onClick={()=>setAccountOpen(false)}><UserRound size={15}/><span>Meu perfil</span></Link><Link to="/app/settings" role="menuitem" onClick={()=>setAccountOpen(false)}><Settings size={15}/><span>Configurações</span></Link><Link className="account-popover-logout" to="/app/login" role="menuitem" onClick={()=>setAccountOpen(false)}><LogOut size={15}/><span>Sair</span></Link></div>}</div></div>
       </header>
-      <main className="workspace-main">{children}</main>
+      <main className="workspace-main" id="admin-main" tabIndex={-1}>{children}</main>
     </div>
   </div>
 }
 
-export function WorkspaceCard({icon:Icon,title,description,to}:{icon:LucideIcon;title:string;description:string;to:string}){return <Link className="workspace-card" to={to}><span className="workspace-card-icon"><Icon size={22}/></span><div><strong>{title}</strong><p>{description}</p></div><Building2 size={16}/></Link>}
+export function AdminPageHeader({eyebrow,title,description,action,disabled=false,disabledReason}:{eyebrow:string;title:string;description?:string;action?:string;disabled?:boolean;disabledReason?:string}){const reason=disabledReason||'Ação indisponível no momento.';return <div className="admin-page-header"><div className="admin-page-header-copy"><span className="admin-breadcrumb">{eyebrow}</span><h1>{title}</h1>{description&&<p>{description}</p>}</div>{action&&<div className="admin-header-actions"><button className="button dark" type="button" disabled={disabled} title={disabled?reason:undefined}>{action}</button></div>}</div>}
+export function AdminNotice({title,description}:{title:string;description:string}){return <div className="admin-notice"><div><strong>{title}</strong><p>{description}</p></div></div>}
+export function AdminEmpty({title,description}:{title:string;description:string}){return <div className="admin-empty"><strong>{title}</strong><p>{description}</p></div>}
+export function AdminKpi({label,value,detail,icon}:{label:string;value:string;detail:string;icon:ReactNode}){return <div className="admin-kpi"><div className="admin-kpi-top"><span className="admin-kpi-label">{label}</span><span className="admin-kpi-icon">{icon}</span></div><strong>{value}</strong><small>{detail}</small></div>}

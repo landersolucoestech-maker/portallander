@@ -23,7 +23,7 @@ export default function DashboardPage(){
   const activity=useActivityHistory(8)
   const operationalAlerts:readonly string[]=[]
 
-  return <AdminShell area="crm" items={CRM_WORKSPACE_NAV} header={{title:'Dashboard',description:'Visão executiva e operacional do Portal Lander'}}>
+  return <AdminShell area="crm" items={CRM_WORKSPACE_NAV} header={{title:'Dashboard',description:'Visão geral.'}}>
     <section className="dashboard-reference-page" aria-busy={isLoading}>
       {isLoading?<DashboardSkeleton/>:<div className="dashboard-reference-kpis">
         <article className="dashboard-stat-card"><div><span>Faturamento do Mês</span><strong>—</strong><small>Fonte financeira ainda não disponível</small></div><DollarSign size={17} aria-hidden="true"/></article>

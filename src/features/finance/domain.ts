@@ -2,7 +2,8 @@ import {financeCategoriesMock,financeInvoicesMock,financeRulesMock,financeTransa
 
 export type FinanceTransactionType='receita'|'despesa'
 export type FinanceStatus='pago'|'pendente'|'vencido'|'cancelado'
-export type FinanceTransaction={id:string;type:FinanceTransactionType;description:string;category:string;subcategory:string;status:FinanceStatus;date:string;dueDate:string;amount:number;counterparty:string;document:string;paymentMethod:string;contractRef:string;costCenter:string;competence:string;notes:string;createdAt:string;updatedAt:string}
+export type FinancePaymentType='avista'|'parcelado'
+export type FinanceTransaction={id:string;type:FinanceTransactionType;description:string;category:string;subcategory:string;status:FinanceStatus;date:string;dueDate:string;amount:number;counterparty:string;document:string;paymentMethod:string;paymentType?:FinancePaymentType;installmentCount?:number;installmentInterval?:number;firstInstallmentDate?:string;contractRef:string;contactRef?:string;supplierRef?:string;costCenter:string;competence:string;notes:string;attachmentName?:string;attachmentDataUrl?:string;createdAt:string;updatedAt:string}
 export type InvoiceType='entrada'|'saida'
 export type InvoiceStatus='emitida'|'pendente'|'paga'|'cancelada'
 export type FinanceInvoice={id:string;number:string;series:string;type:InvoiceType;party:string;document:string;issueDate:string;dueDate:string;amount:number;status:InvoiceStatus;description:string;pdfUrl:string;createdAt:string;updatedAt:string}

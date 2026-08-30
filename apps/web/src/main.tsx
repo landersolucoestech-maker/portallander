@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { HashRouter } from 'react-router-dom'
 import App from './app/PortalApp'
 import {mockDataProvider} from './shared/data/mockDataProvider'
+import {prepareMockSeedStorage} from './shared/data/mockSeedLifecycle'
 import {setRuntimeDataProvider} from './shared/data/runtimeDataProvider'
 import {scenarioController} from './shared/data/scenarioController'
 import {purgeRemovedModuleStorage} from './shared/internal/legacyStorageCleanup'
@@ -11,6 +12,7 @@ import './styles/public-styles.css'
 
 setRuntimeDataProvider(mockDataProvider)
 scenarioController.bootstrapFromLocation()
+prepareMockSeedStorage()
 purgeRemovedModuleStorage()
 
 const queryClient=new QueryClient()

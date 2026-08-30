@@ -18,6 +18,9 @@ export interface WorkspaceDescriptor{
  name:string
  slug:string
  description:string
+ eyebrow:string
+ route:string
+ capabilities:readonly string[]
  active:boolean
 }
 

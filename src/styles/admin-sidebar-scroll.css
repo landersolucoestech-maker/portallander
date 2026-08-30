@@ -1,0 +1,10 @@
+.app-shell .sidebar nav{
+  min-height:0;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  padding-right:2px;
+  scrollbar-width:thin;
+  scrollbar-color:#383838 transparent;
+}
+.app-shell .sidebar nav::-webkit-scrollbar{width:5px}
+.app-shell .sidebar nav::-webkit-scrollbar-thumb{background:#383838;border-radius:999px}

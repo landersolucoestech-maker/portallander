@@ -21,6 +21,11 @@
   text-align: center !important;
 }
 
+.finance-table th.accounting-category-col,
+.finance-table td.accounting-category-col {
+  text-align: center !important;
+}
+
 .workspace-main table td:last-child,
 .crm-table td:last-child,
 .contracts-table td:last-child,

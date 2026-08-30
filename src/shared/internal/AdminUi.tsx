@@ -20,7 +20,8 @@ export function AdminShell({area,items,children,header,headerAction,headerAction
   const [accountOpen,setAccountOpen]=useState(false)
   const notificationsRef=useRef<HTMLDivElement>(null)
   const accountRef=useRef<HTMLDivElement>(null)
-  const actions=headerActions??(headerAction?[headerAction]:[])
+  const rawActions=headerActions??(headerAction?[headerAction]:[])
+  const actions=area==='finance'?rawActions.filter(action=>action.label!=='Automações'):rawActions
 
   useEffect(()=>{
     if(!notificationsOpen&&!accountOpen)return

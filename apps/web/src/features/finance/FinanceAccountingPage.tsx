@@ -3,12 +3,10 @@ import {useMemo,useState,type ReactNode} from 'react'
 import {AdminShell} from '../../shared/internal/AdminUi'
 import {CRM_WORKSPACE_NAV} from '../../shared/internal/adminNavigation'
 import {money,type FinanceTransaction} from './domain'
-import {financeTransactionsMock} from './mocks'
-
-const readTransactions=():FinanceTransaction[]=>{try{const raw=localStorage.getItem('portal-lander:finance:transactions');return raw?JSON.parse(raw) as FinanceTransaction[]:financeTransactionsMock}catch{return financeTransactionsMock}}
+import {financeRepository} from './repository'
 
 export default function FinanceAccountingPage(){
- const [transactions]=useState(readTransactions),[search,setSearch]=useState(''),[filter,setFilter]=useState('all'),[start,setStart]=useState(''),[end,setEnd]=useState('')
+ const [transactions]=useState(financeRepository.listTransactions),[search,setSearch]=useState(''),[filter,setFilter]=useState('all'),[start,setStart]=useState(''),[end,setEnd]=useState('')
  const paid=useMemo(()=>transactions.filter(x=>x.status==='pago'&&(!start||x.date>=start)&&(!end||x.date<=end)&&(!search||[x.description,x.category,x.counterparty,x.contractRef].some(v=>v.toLowerCase().includes(search.toLowerCase())))&&(filter==='all'||filter==='revenue'&&x.type==='receita'||filter==='expenses'&&x.type==='despesa'||filter==='profit')),[transactions,start,end,search,filter])
  const revenues=paid.filter(x=>x.type==='receita'),expenses=paid.filter(x=>x.type==='despesa'),rev=revenues.reduce((s,x)=>s+x.amount,0),exp=expenses.reduce((s,x)=>s+x.amount,0),profit=rev-exp,margin=rev?profit/rev*100:0
  const categoryRows=group(paid,x=>x.category),contractRows=group(paid,x=>x.contractRef||'Sem contrato'),clientRows=group(paid,x=>x.counterparty||'Sem contraparte')

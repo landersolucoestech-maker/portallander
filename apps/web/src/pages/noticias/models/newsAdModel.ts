@@ -1,4 +1,5 @@
 import { newsAdPersistence } from './newsAdPersistence'
+import {getRuntimeDataProvider} from '../../../shared/data/runtimeDataProvider'
 
 export type NewsAdAlign = 'left' | 'center' | 'right'
 
@@ -23,18 +24,15 @@ export type NewsAdConfig = {
 }
 
 export const NEWS_AD_STORAGE_KEY = 'portal-lander:news:ad:v1'
-
-export const defaultNewsAdConfig: NewsAdConfig = {
-  active: true,label: 'PUBLICIDADE',title: 'ANUNCIE AQUI',subtitle: 'SUA MARCA NO\nRITMO CERTO!',buttonLabel: 'SAIBA MAIS →',buttonUrl: '/anuncie',openInNewTab: false,image: '',imageAlt: 'Anúncio da página Notícias do Portal Lander',background: '',advertiser: '',campaign: '',startDate: '',endDate: '',height: 100,contentWidth: 1170,align: 'left',
-}
+export const defaultNewsAdConfig:NewsAdConfig=getRuntimeDataProvider().advertising.defaultNewsAdConfig()
 
 function normalize(raw: Partial<NewsAdConfig> | null | undefined): NewsAdConfig {
-  if (!raw) return defaultNewsAdConfig
+  if (!raw) return structuredClone(defaultNewsAdConfig)
   return {...defaultNewsAdConfig,...raw,height: Math.min(900, Math.max(70, Number(raw.height) || defaultNewsAdConfig.height)),contentWidth: Math.min(1600, Math.max(240, Number(raw.contentWidth) || defaultNewsAdConfig.contentWidth)),align: raw.align === 'center' || raw.align === 'right' ? raw.align : 'left',openInNewTab: Boolean(raw.openInNewTab)}
 }
 
 export function readNewsAdConfig(): NewsAdConfig {
-  try {const value = newsAdPersistence.read(NEWS_AD_STORAGE_KEY);return value ? normalize(JSON.parse(value)) : defaultNewsAdConfig} catch {return defaultNewsAdConfig}
+  try {const value = newsAdPersistence.read(NEWS_AD_STORAGE_KEY);return value ? normalize(JSON.parse(value)) : structuredClone(defaultNewsAdConfig)} catch {return structuredClone(defaultNewsAdConfig)}
 }
 
 export function isNewsAdValid(config: NewsAdConfig, now = new Date()) {

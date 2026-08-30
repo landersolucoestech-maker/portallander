@@ -6,12 +6,13 @@ import {CRM_WORKSPACE_NAV} from '../../shared/internal/adminNavigation'
 import {invoiceStatusOptions,invoiceTypeOptions,money,uid,type FinanceInvoice,type InvoiceStatus,type InvoiceType} from './domain'
 import {financeRepository} from './repository'
 
+const writeInvoices=(items:FinanceInvoice[])=>financeRepository.saveInvoices(items)
 const dateLabel=(value:string)=>value?new Date(`${value}T12:00:00`).toLocaleDateString('pt-BR'):'—'
 
 export default function FinanceInvoicesPage(){
  const navigate=useNavigate()
  const [invoices,setInvoices]=useState(financeRepository.listInvoices),[invoiceModal,setInvoiceModal]=useState<FinanceInvoice|null|undefined>(undefined),[search,setSearch]=useState(''),[type,setType]=useState('all'),[status,setStatus]=useState('all'),[start,setStart]=useState(''),[end,setEnd]=useState(''),[page,setPage]=useState(1)
- const updateInvoices=(next:FinanceInvoice[])=>{setInvoices(next);financeRepository.saveInvoices(next)}
+ const updateInvoices=(next:FinanceInvoice[])=>{setInvoices(next);writeInvoices(next)}
  const filtered=useMemo(()=>invoices.filter(x=>(!search||[x.number,x.party,x.document].some(v=>v.toLowerCase().includes(search.toLowerCase())))&&(type==='all'||x.type===type)&&(status==='all'||x.status===status)&&(!start||x.issueDate>=start)&&(!end||x.issueDate<=end)),[invoices,search,type,status,start,end])
  const pages=Math.max(1,Math.ceil(filtered.length/10)),items=filtered.slice((Math.min(page,pages)-1)*10,Math.min(page,pages)*10)
  const outputs=invoices.filter(x=>x.type==='saida'),inputs=invoices.filter(x=>x.type==='entrada'),outValue=outputs.reduce((s,x)=>s+x.amount,0),inValue=inputs.reduce((s,x)=>s+x.amount,0),balance=outValue-inValue

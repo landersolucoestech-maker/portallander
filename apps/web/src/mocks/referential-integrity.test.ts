@@ -9,7 +9,7 @@ import {mockAgendaItems} from './agenda'
 import {mockNotifications} from './notifications'
 
 const ids=<T extends {id:string}>(items:T[])=>new Set(items.map(item=>item.id))
-const users=ids(mockUsers),contacts=ids(mockContacts),leads=ids(mockLeads),contracts=ids(mockContracts),categories=ids(mockContractCategories),templates=ids(mockContractTemplates),transactions=ids(mockFinanceTransactions),invoices=ids(mockFinanceInvoices),pages=ids(mockEditorialPages),contents=ids(mockEditorialContents),campaigns=ids(mockAdvertisingCampaigns)
+const users=ids(mockUsers),contacts=ids(mockContacts),leads=ids(mockLeads),contracts=ids(mockContracts),categories=ids(mockContractCategories),transactions=ids(mockFinanceTransactions),invoices=ids(mockFinanceInvoices),pages=ids(mockEditorialPages),contents=ids(mockEditorialContents),campaigns=ids(mockAdvertisingCampaigns)
 
 const entitySets:Record<string,Set<string>>={user:users,contact:contacts,lead:leads,contract:contracts,finance_transaction:transactions,invoice:invoices,editorial_content:contents,advertising_campaign:campaigns}
 

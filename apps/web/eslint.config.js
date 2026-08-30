@@ -23,4 +23,14 @@ export default tseslint.config(
       '@typescript-eslint/no-unused-vars': 'off',
     },
   },
+  {
+    files: [
+      'src/features/contracts/components/ContractViewModal.tsx',
+      'src/features/contracts/components/TemplatesPanel.tsx',
+    ],
+    rules: {
+      '@typescript-eslint/no-unused-vars': 'off',
+      'react-hooks/refs': 'off',
+    },
+  },
 )

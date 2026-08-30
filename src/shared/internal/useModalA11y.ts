@@ -4,6 +4,8 @@ const FOCUSABLE='a[href],button:not([disabled]),input:not([disabled]),select:not
 
 export function useModalA11y(onClose:()=>void){
  const dialogRef=useRef<HTMLElement>(null)
+ const closeRef=useRef(onClose)
+ closeRef.current=onClose
  useEffect(()=>{
   const dialog=dialogRef.current
   if(!dialog)return
@@ -13,7 +15,7 @@ export function useModalA11y(onClose:()=>void){
   const onKeyDown=(event:KeyboardEvent)=>{
    if(event.key==='Escape'){
     event.preventDefault()
-    onClose()
+    closeRef.current()
     return
    }
    if(event.key!=='Tab')return
@@ -28,6 +30,6 @@ export function useModalA11y(onClose:()=>void){
    document.removeEventListener('keydown',onKeyDown)
    previous?.focus()
   }
- },[onClose])
+ },[])
  return dialogRef
 }

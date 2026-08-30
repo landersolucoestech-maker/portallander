@@ -3,12 +3,12 @@ import ReactDOM from 'react-dom/client'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { HashRouter } from 'react-router-dom'
 import App from './app/PortalApp'
-import {registerDataProvider} from './shared/data/dataProvider'
 import {mockDataProvider} from './shared/data/mockDataProvider'
+import {setRuntimeDataProvider} from './shared/data/runtimeDataProvider'
 import {purgeRemovedModuleStorage} from './shared/internal/legacyStorageCleanup'
 import './styles/public-styles.css'
 
-registerDataProvider(mockDataProvider)
+setRuntimeDataProvider(mockDataProvider)
 purgeRemovedModuleStorage()
 
 const queryClient=new QueryClient()

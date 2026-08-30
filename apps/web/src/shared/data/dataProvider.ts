@@ -3,6 +3,7 @@ import type {ContractsState} from '../../features/contracts/domain'
 import type {FinanceCategory,FinanceInvoice,FinanceRule,FinanceTransaction} from '../../features/finance/domain'
 import type {EditorialContent,EditorialPage} from '../../features/editorial/model'
 import type {HomeAgendaItem,HomeRelease,HomeStory} from '../../pages/home/models/homeReadModel'
+import type {HeroArticleSource,HeroCarouselConfig,HeroSlide} from '../../pages/home/models/heroModel'
 import type {AgendaItem,AdvertisingCampaign,AdvertisingFormat,AppNotification,AppUser,BrandingConfig,CollaborationTypeOption,DashboardOperationalSnapshot,DataScenario,DataScenarioName,SocialChannel,WorkspaceDescriptor} from './contracts'
 
 export type DataDomain='identity'|'notifications'|'crm'|'contracts'|'finance'|'editorial'|'home'|'agenda'|'advertising'|'branding'|'collaboration'|'dashboard'
@@ -18,7 +19,7 @@ export interface ApplicationDataProvider{
  contracts:{state():ContractsState}
  finance:{transactions():FinanceTransaction[];invoices():FinanceInvoice[];categories():FinanceCategory[];rules():FinanceRule[]}
  editorial:{pages():EditorialPage[];contents():EditorialContent[];media():EditorialMediaItem[]}
- home:{stories():HomeStory[];mostRead():string[];releases():HomeRelease[];agenda():HomeAgendaItem[]}
+ home:{stories():HomeStory[];mostRead():string[];releases():HomeRelease[];agenda():HomeAgendaItem[];heroArticles():HeroArticleSource[];defaultHeroSlide():HeroSlide;defaultHeroConfig():HeroCarouselConfig}
  agenda:{items():AgendaItem[]}
  advertising:{campaigns():AdvertisingCampaign[];formats():AdvertisingFormat[]}
  branding:{config():BrandingConfig;socialChannels():SocialChannel[]}

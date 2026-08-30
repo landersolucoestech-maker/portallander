@@ -3,6 +3,7 @@ import type { LucideIcon } from 'lucide-react'
 import { Bell, Building2, ChevronDown, FilePlus2, FileStack, LayoutTemplate, LogOut, UserPlus, UserRound } from 'lucide-react'
 import { Link, NavLink } from 'react-router-dom'
 import { portalLogo } from '../branding/assets/brandAsset'
+import {appReadModel} from '../data/appReadModel'
 
 export type AdminArea = 'crm' | 'contracts' | 'finance' | 'cms'
 export type AdminNavLink = readonly [label: string, icon: LucideIcon, to: string]
@@ -25,6 +26,9 @@ function PageHeader({context,header,actions}:{context:string;header?:PageHeaderC
   const [accountOpen,setAccountOpen]=useState(false)
   const notificationsRef=useRef<HTMLDivElement>(null)
   const accountRef=useRef<HTMLDivElement>(null)
+  const user=appReadModel.currentUser()
+  const notifications=appReadModel.notificationsForCurrentUser()
+  const unread=notifications.filter(item=>item.status==='unread')
 
   useEffect(()=>{
     if(!notificationsOpen&&!accountOpen)return
@@ -50,8 +54,8 @@ function PageHeader({context,header,actions}:{context:string;header?:PageHeaderC
     {header?<div className="workspace-page-heading"><h1>{header.title}</h1><p>{header.description}</p></div>:<div className="workspace-identity"><span className="workspace-name">Portal Lander</span><span className="workspace-divider"/><span className="workspace-context">{context}</span></div>}
     <div className="workspace-actions">
       {actions.map(action=><HeaderActionButton key={action.label} action={action}/>)}
-      <div className="workspace-popover-wrap" ref={notificationsRef}><button className="icon-button notification-button" type="button" aria-label="Abrir notificações" aria-expanded={notificationsOpen} onClick={()=>{setNotificationsOpen(value=>!value);setAccountOpen(false)}}><Bell size={17}/></button>{notificationsOpen&&<div className="workspace-popover notifications-popover" role="status"><strong>Notificações</strong><p>Nenhuma notificação no momento.</p></div>}</div>
-      <div className="workspace-popover-wrap" ref={accountRef}><button className="account-button" type="button" aria-label="Abrir menu da conta" aria-haspopup="menu" aria-expanded={accountOpen} onClick={()=>{setAccountOpen(value=>!value);setNotificationsOpen(false)}}><span>PL</span><div><b>Administrador</b><small>Deyvisson Lander</small></div><ChevronDown size={14}/></button>{accountOpen&&<div className="workspace-popover account-popover" role="menu" aria-label="Menu da conta"><Link to="/app/profile" role="menuitem" onClick={()=>setAccountOpen(false)}><UserRound size={15}/><span>Meu perfil</span></Link><Link className="account-popover-logout" to="/app/login" role="menuitem" onClick={()=>setAccountOpen(false)}><LogOut size={15}/><span>Sair</span></Link></div>}</div>
+      <div className="workspace-popover-wrap" ref={notificationsRef}><button className="icon-button notification-button" type="button" aria-label={unread.length?`Abrir notificações, ${unread.length} não lidas`:'Abrir notificações'} aria-expanded={notificationsOpen} onClick={()=>{setNotificationsOpen(value=>!value);setAccountOpen(false)}}><Bell size={17}/></button>{notificationsOpen&&<div className="workspace-popover notifications-popover" role="status"><strong>Notificações</strong>{notifications.length===0?<p>Nenhuma notificação no momento.</p>:notifications.slice(0,4).map(item=><p key={item.id}>{item.title}</p>)}</div>}</div>
+      <div className="workspace-popover-wrap" ref={accountRef}><button className="account-button" type="button" aria-label="Abrir menu da conta" aria-haspopup="menu" aria-expanded={accountOpen} onClick={()=>{setAccountOpen(value=>!value);setNotificationsOpen(false)}}><span>{user.initials}</span><div><b>{user.roleLabel}</b><small>{user.name}</small></div><ChevronDown size={14}/></button>{accountOpen&&<div className="workspace-popover account-popover" role="menu" aria-label="Menu da conta"><Link to="/app/profile" role="menuitem" onClick={()=>setAccountOpen(false)}><UserRound size={15}/><span>Meu perfil</span></Link><Link className="account-popover-logout" to="/app/login" role="menuitem" onClick={()=>setAccountOpen(false)}><LogOut size={15}/><span>Sair</span></Link></div>}</div>
     </div>
   </header>
 }

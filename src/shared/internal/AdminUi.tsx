@@ -45,7 +45,7 @@ export function AdminShell({area,items,children,header,headerAction,headerAction
   },[notificationsOpen,accountOpen])
 
   const renderActions=()=>actions.map(action=>{
-    const approvedHeaderAction=['Templates','Novo Contato','Novo Lead','Novo Contrato','Contratos'].includes(action.label)
+    const approvedHeaderAction=['Templates','Novo Contato','Novo Lead','Novo Contrato','Contratos','Financeiro','Registrar Nota'].includes(action.label)
     const fallbackIcon:LucideIcon|undefined=action.label==='Templates'?LayoutTemplate:action.label==='Novo Contato'||action.label==='Novo Lead'?UserPlus:action.label==='Novo Contrato'?FilePlus2:action.label==='Contratos'?FileStack:undefined
     const ActionIcon=action.icon??fallbackIcon
     const specialClass=approvedHeaderAction?' workspace-header-polished-action':''
@@ -62,7 +62,7 @@ export function AdminShell({area,items,children,header,headerAction,headerAction
           const isOpen=openNavGroups[item.label]??false
           return <div className="sidebar-nav-group" key={item.label}>
             {item.to?<NavLink className="sidebar-nav-group-label" to={item.to}><GroupIcon size={17}/><span>{item.label}</span><ChevronDown size={13}/></NavLink>:<div className="sidebar-nav-group-label"><GroupIcon size={17}/><span>{item.label}</span><button type="button" className="sidebar-nav-group-toggle" aria-label={`${isOpen?'Recolher':'Expandir'} ${item.label}`} aria-expanded={isOpen} onClick={()=>setOpenNavGroups(current=>({...current,[item.label]:!(current[item.label]??false)}))}><ChevronDown size={13} style={{transform:isOpen?'rotate(0deg)':'rotate(-90deg)'}}/></button></div>}
-            {isOpen&&<div className="sidebar-subnav">{item.children.map(([label,Icon,to])=><NavLink className="sidebar-subnav-link" key={to} to={to}><Icon size={14}/><span>{label}</span></NavLink>)}</div>}
+            {isOpen&&<div className="sidebar-subnav">{item.children.map(([label,Icon,to])=><NavLink className="sidebar-subnav-link" end={to==='/app/finance'} key={to} to={to}><Icon size={14}/><span>{label}</span></NavLink>)}</div>}
           </div>
         }
         const [label,Icon,to]=item;return <NavLink key={to} end={to==='/app/site'} to={to}><Icon size={17}/><span>{label}</span></NavLink>

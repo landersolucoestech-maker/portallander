@@ -1,4 +1,5 @@
 import type {HomeAgendaItem,HomeRelease,HomeStory} from '../../pages/home/models/homeReadModel'
+export {mockDefaultHeroConfig,mockDefaultHeroSlide,mockHeroArticles} from './hero'
 
 const images=['https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=1200&q=85','https://images.unsplash.com/photo-1524650359799-842906ca1c06?auto=format&fit=crop&w=1200&q=85','https://images.unsplash.com/photo-1501386761578-eac5c94b800a?auto=format&fit=crop&w=1200&q=85','https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?auto=format&fit=crop&w=1200&q=85'] as const
 const titles=['Cidade em Movimento','Radar de lançamentos da semana','Por dentro da produção','Mercado criativo em expansão','Novos formatos de colaboração','Estética urbana em transformação','Do briefing à publicação','Agenda independente cresce fora dos grandes eixos'] as const

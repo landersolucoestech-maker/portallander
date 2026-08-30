@@ -13,6 +13,7 @@
 @import './admin-access.css';
 @import './admin-crm-portal.css';
 @import './admin-crm-tabs.css';
+@import './admin-crm-modal-semantics.css';
 @import '../shared/branding/styles/header-brand-manager.css';
 @import '../shared/branding/styles/brand-assets-manager.css';
 @import './admin-responsive.css';

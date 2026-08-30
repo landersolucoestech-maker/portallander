@@ -18,7 +18,7 @@ for(const required of [
  "from '../features/access/CrmWorkspace'",
  "from '../features/dashboard/DashboardPage'",
  "from '../features/contracts/ContractsPage'",
- "from '../features/finance/FinancePage'",
+ "from '../features/finance/FinanceMainPage'",
  "from '../features/finance/FinanceInvoicesPage'",
  "from '../features/finance/FinanceAccountingPage'",
  "from '../features/site-manager/SiteManagerRoutes'",
@@ -47,6 +47,7 @@ const requiredFiles=[
  'src/features/contracts/ContractsPage.tsx',
  'src/features/contracts/domain.ts',
  'src/features/contracts/repository.ts',
+ 'src/features/finance/FinanceMainPage.tsx',
  'src/features/finance/FinancePage.tsx',
  'src/features/finance/FinanceInvoicesPage.tsx',
  'src/features/finance/FinanceAccountingPage.tsx',
@@ -66,15 +67,16 @@ for(const required of ["pathname.endsWith('/leads')?'leads':'contacts'","'/app/c
 const adminUi=await read('src/shared/internal/AdminUi.tsx')
 if(adminUi.indexOf('{renderActions()}')>adminUi.indexOf('notification-button'))failures.push('A ação contextual deve ser renderizada antes do sino de notificações.')
 if(!adminUi.includes("end={to==='/app/site'}"))failures.push('AdminUi deve manter comportamento de deep links do shell.')
+for(const required of ["'contracts'","'finance'",'AdminNavGroup','isNavGroup'])if(!adminUi.includes(required))failures.push(`AdminUi deve suportar navegação dos módulos restaurados: ${required}`)
 
-const financeMain=await read('src/features/finance/FinancePage.tsx')
+const financeMain=await read('src/features/finance/FinanceMainPage.tsx')
 for(const required of ['Financeiro','Nova Transação','Importar OFX'])if(!financeMain.includes(required))failures.push(`Financeiro principal deve preservar: ${required}`)
 
 const financeInvoices=await read('src/features/finance/FinanceInvoicesPage.tsx')
 for(const required of ['Notas Fiscais','Registrar Nota'])if(!financeInvoices.includes(required))failures.push(`Notas Fiscais deve preservar: ${required}`)
 
 const financeAccounting=await read('src/features/finance/FinanceAccountingPage.tsx')
-for(const required of ['Contabilidade','P&L Empresa','P&L Contratos','P&L Clientes'])if(!financeAccounting.includes(required))failures.push(`Contabilidade deve preservar: ${required}`)
+for(const required of ['Contabilidade','P&amp;L Empresa','P&amp;L Contratos','P&amp;L Clientes'])if(!financeAccounting.includes(required))failures.push(`Contabilidade deve preservar: ${required}`)
 
 const contracts=await read('src/features/contracts/ContractsPage.tsx')
 for(const required of ['Novo Contrato','Templates'])if(!contracts.includes(required))failures.push(`Contratos deve preservar: ${required}`)

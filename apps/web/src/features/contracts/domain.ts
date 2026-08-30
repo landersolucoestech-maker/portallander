@@ -1,5 +1,3 @@
-import {contractCategoriesMock,contractVariablesMock} from './mocks'
-
 export type ContractStatus='draft'|'in_review'|'awaiting_signature'|'partially_signed'|'signed'|'active'|'suspended'|'closed'|'cancelled'|'expired'
 export type SigningProvider='autentique'|'clicksign'|'docusign'
 export type SignatureStatus='not_sent'|'preparing'|'sent'|'viewed'|'awaiting_signature'|'partially_signed'|'signed'|'rejected'|'cancelled'|'expired'|'error'
@@ -43,8 +41,8 @@ export const signatureStatusOptions:readonly (readonly [SignatureStatus,string])
 export const contractTypeOptions=([
  'Publicidade','Campanha Publicitária','Banner Publicitário','Publieditorial','Matéria Patrocinada','Publicação Comercial','Patrocínio','Produção de Conteúdo','Cobertura de Evento','Divulgação de Evento','Divulgação de Lançamento','Entrevista','Design','Marketing','Desenvolvimento Web','Consultoria','Prestação de Serviços','Parceria Comercial','Permuta','Coprodução','Fornecedor','Prestador de Serviço','Serviço Recorrente','Cessão de Conteúdo','Licença de Conteúdo','Autorização de Uso de Imagem','Autorização de Uso de Conteúdo','NDA / Confidencialidade','Aditivo','Distrato','Termo','Outro',
 ] as const)
-
-export const defaultCategories=contractCategoriesMock
-export const defaultVariables=contractVariablesMock
+export const currencyOptions:readonly (readonly [CurrencyCode,string])[]=[['BRL','BRL'],['USD','USD'],['EUR','EUR']]
+export const partySourceOptions:readonly (readonly [PartySource,string])[]=[['crm','CRM — Contato'],['manual','Manual'],['portal_lander','Portal Lander']]
+export const partyEntityTypeOptions:readonly (readonly [PartyEntityType,string])[]=[['person','Pessoa Física'],['company','Pessoa Jurídica']]
 export const optionLabel=<T extends string>(options:readonly (readonly [T,string])[],value:T)=>options.find(([key])=>key===value)?.[1]??value
 export const newId=(prefix:string)=>`${prefix}_${Date.now()}_${Math.random().toString(36).slice(2,8)}`

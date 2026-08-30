@@ -2,7 +2,7 @@ import { FileText, Globe2, LayoutDashboard, Newspaper } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { ADMIN_CAPABILITIES } from '../../../shared/internal/adminCapabilities'
 import { SITE_MANAGER_NAV } from '../../../shared/internal/adminNavigation'
-import { AdminKpi, AdminPageHeader, AdminShell } from '../../../shared/internal/AdminUi'
+import { AdminKpi, AdminShell } from '../../../shared/internal/AdminUi'
 import { siteManagerReadModel } from '../readModel'
 
 const formatDate=(value:string)=>new Date(value).toLocaleDateString('pt-BR')
@@ -15,8 +15,7 @@ export function SiteManagerDashboardPage(){
   const recentContents=[...contents].sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt)).slice(0,5)
   const orderedPages=[...pages].sort((a,b)=>a.menuOrder-b.menuOrder).slice(0,6)
 
-  return <AdminShell area="cms" items={SITE_MANAGER_NAV}>
-    <AdminPageHeader eyebrow="Gerenciador do Site / Dashboard" title="Dashboard" description="Arquitetura editorial, publicação e estrutura das páginas que alimentam o portal público."/>
+  return <AdminShell area="cms" items={SITE_MANAGER_NAV} header={{title:'Dashboard',description:'Arquitetura editorial, publicação e estrutura das páginas que alimentam o portal público.'}}>
     <div className="admin-kpi-grid">
       <AdminKpi label="Páginas" value={String(pages.length)} detail="Estruturas cadastradas" icon={<Globe2 size={16}/>}/>
       <AdminKpi label="Conteúdos" value={String(contents.length)} detail="Itens no catálogo atual" icon={<FileText size={16}/>}/>

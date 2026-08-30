@@ -1,30 +1,34 @@
-.workspace-main table th {
-  text-align: center;
-  vertical-align: middle;
+.workspace-main table th,
+.crm-table th,
+.contracts-table th,
+.finance-table th {
+  text-align: center !important;
+  vertical-align: middle !important;
 }
 
-.workspace-main table td {
-  text-align: left;
-  vertical-align: middle;
+.workspace-main table td,
+.crm-table td,
+.contracts-table td,
+.finance-table td {
+  text-align: left !important;
+  vertical-align: middle !important;
 }
 
 .workspace-main table th:first-child,
 .workspace-main table td:first-child,
 .workspace-main table th:last-child,
-.workspace-main table td:last-child {
-  text-align: center;
-}
-
-.workspace-main table td button:not(.crm-icon-btn):not(.sidebar-nav-group-toggle),
-.workspace-main table td a,
-.workspace-main table td strong,
-.workspace-main table td small,
-.workspace-main table td span {
-  text-align: left;
-}
-
-.workspace-main table td:last-child .crm-row-actions,
-.workspace-main table td:last-child .table-row-action-menu {
-  display: flex;
-  justify-content: center;
+.workspace-main table td:last-child,
+.crm-table th:first-child,
+.crm-table td:first-child,
+.crm-table th:last-child,
+.crm-table td:last-child,
+.contracts-table th:first-child,
+.contracts-table td:first-child,
+.contracts-table th:last-child,
+.contracts-table td:last-child,
+.finance-table th:first-child,
+.finance-table td:first-child,
+.finance-table th:last-child,
+.finance-table td:last-child {
+  text-align: center !important;
 }

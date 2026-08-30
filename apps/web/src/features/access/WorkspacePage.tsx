@@ -1,28 +1,13 @@
 import { ArrowRight, BriefcaseBusiness, Globe2, LockKeyhole, Settings2 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { portalLogo } from '../../shared/branding/assets/brandAsset'
+import {appReadModel} from '../../shared/data/appReadModel'
 import { ADMIN_CAPABILITIES } from '../../shared/internal/adminCapabilities'
 
-const workspaces=[
-  {
-    title:'CRM',
-    eyebrow:'WORKSPACE ADMINISTRATIVO',
-    description:'Workspace administrativo preservado para receber os módulos reconstruídos do zero.',
-    to:'/app/crm',
-    icon:BriefcaseBusiness,
-    meta:['Estrutura do workspace preservada','Módulo CRM removido','Integrações removidas'],
-  },
-  {
-    title:'Gerenciador do Site',
-    eyebrow:'CONTEÚDO E PUBLICAÇÃO',
-    description:'Páginas, conteúdos, categorias, mídia, identidade visual, Home e publicidade do Portal Lander.',
-    to:'/app/site',
-    icon:Globe2,
-    meta:['Conteúdo editorial','Home e publicidade','Marca e estrutura do portal'],
-  },
-] as const
+const workspaceIcons={crm:BriefcaseBusiness,'site-manager':Globe2} as const
 
 export function WorkspacePage(){
+  const workspaces=appReadModel.workspaces()
   return <main className="access-page workspace-selection-page">
     <header className="workspace-selection-topbar">
       <Link to="/" className="workspace-selection-logo" aria-label="Voltar ao Portal Lander"><img src={portalLogo} alt="Portal Lander"/></Link>
@@ -37,14 +22,14 @@ export function WorkspacePage(){
       </div>
 
       <div className="workspace-selection-grid">
-        {workspaces.map(({title,eyebrow,description,to,icon:Icon,meta})=><Link to={to} className="workspace-selection-card" key={to}>
+        {workspaces.map(workspace=>{const Icon=workspaceIcons[workspace.slug as keyof typeof workspaceIcons]??BriefcaseBusiness;return <Link to={workspace.route} className="workspace-selection-card" key={workspace.id}>
           <div className="workspace-selection-card-head"><div className="workspace-selection-icon"><Icon size={21} aria-hidden="true"/></div><ArrowRight size={20} aria-hidden="true"/></div>
-          <span>{eyebrow}</span>
-          <h2>{title}</h2>
-          <p>{description}</p>
-          <ul>{meta.map(item=><li key={item}>{item}</li>)}</ul>
+          <span>{workspace.eyebrow}</span>
+          <h2>{workspace.name}</h2>
+          <p>{workspace.description}</p>
+          <ul>{workspace.capabilities.map(item=><li key={item}>{item}</li>)}</ul>
           <strong>Acessar workspace <ArrowRight size={15} aria-hidden="true"/></strong>
-        </Link>)}
+        </Link>})}
       </div>
 
       <aside className="workspace-selection-footnote"><Settings2 size={18} aria-hidden="true"/><div><strong>Estado atual do acesso</strong><p>{ADMIN_CAPABILITIES.adminAuth.description} Esta tela não representa uma sessão autenticada.</p></div><Link to="/app/login">Voltar ao login</Link></aside>

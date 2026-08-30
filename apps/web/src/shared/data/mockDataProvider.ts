@@ -1,4 +1,4 @@
-import {mockAdvertisingCampaigns,mockAgendaItems,mockBrandingConfig,mockCollaborationGuidelines,mockCollaborationTypes,mockContractCategories,mockContracts,mockContractTemplates,mockContractVariables,mockCurrentUserId,mockDashboardOperationalSnapshot,mockDataScenarios,mockEditorialContents,mockEditorialMedia,mockEditorialPages,mockFinanceCategories,mockFinanceInvoices,mockFinanceRules,mockFinanceTransactions,mockHomeAgenda,mockHomeMostRead,mockHomeReleases,mockHomeStories,mockNotifications,mockSocialChannels,mockUsers,mockWorkspaces,mockCrmState} from '../../mocks'
+import {mockAdvertisingCampaigns,mockAdvertisingFormats,mockAgendaItems,mockBrandingConfig,mockCollaborationGuidelines,mockCollaborationTypes,mockContractCategories,mockContracts,mockContractTemplates,mockContractVariables,mockCurrentUserId,mockDashboardOperationalSnapshot,mockDataScenarios,mockEditorialContents,mockEditorialMedia,mockEditorialPages,mockFinanceCategories,mockFinanceInvoices,mockFinanceRules,mockFinanceTransactions,mockHomeAgenda,mockHomeMostRead,mockHomeReleases,mockHomeStories,mockNotifications,mockSocialChannels,mockUsers,mockWorkspaces,mockCrmState} from '../../mocks'
 import type {DataScenarioName} from './contracts'
 import type {ApplicationDataProvider,DataDomain} from './dataProvider'
 
@@ -27,7 +27,7 @@ export const mockDataProvider:ApplicationDataProvider={
  editorial:{pages:()=>list('editorial',mockEditorialPages),contents:()=>list('editorial',mockEditorialContents),media:()=>list('editorial',mockEditorialMedia)},
  home:{stories:()=>list('home',mockHomeStories),mostRead:()=>list('home',mockHomeMostRead),releases:()=>list('home',mockHomeReleases),agenda:()=>list('home',mockHomeAgenda)},
  agenda:{items:()=>list('agenda',mockAgendaItems)},
- advertising:{campaigns:()=>list('advertising',mockAdvertisingCampaigns)},
+ advertising:{campaigns:()=>list('advertising',mockAdvertisingCampaigns),formats:()=>list('advertising',mockAdvertisingFormats)},
  branding:{config:()=>{guard('branding');return clone(mockBrandingConfig)},socialChannels:()=>list('branding',mockSocialChannels)},
  collaboration:{types:()=>list('collaboration',mockCollaborationTypes),guidelines:()=>list('collaboration',mockCollaborationGuidelines)},
  dashboard:{operationalSnapshot:()=>{guard('dashboard');return clone(mockDashboardOperationalSnapshot)}},

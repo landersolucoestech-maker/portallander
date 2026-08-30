@@ -1,10 +1,8 @@
-import {FileText,Globe2,Home,Images,LayoutDashboard,Megaphone,Newspaper,Palette,PanelsTopLeft,Tags,UserRound,UsersRound} from 'lucide-react'
+import {ContactRound,FileText,Globe2,Home,Images,LayoutDashboard,Megaphone,Newspaper,Palette,PanelsTopLeft,Tags} from 'lucide-react'
 import type {AdminNavItem} from './AdminUi'
 
 export const CRM_WORKSPACE_NAV:readonly AdminNavItem[]=[
- ['Dashboard',LayoutDashboard,'/app/crm'],
- ['Leads',UsersRound,'/app/crm/leads'],
- ['Contatos',UserRound,'/app/crm/contatos'],
+ ['CRM',ContactRound,'/app/crm'],
 ]
 
 export const SITE_MANAGER_NAV:readonly AdminNavItem[]=[

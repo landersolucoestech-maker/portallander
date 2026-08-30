@@ -2,6 +2,7 @@ import {useState,type ReactNode} from 'react'
 import {Paperclip,Trash2,X} from 'lucide-react'
 import {emptyLead,leadStatusOptions,leadTypeOptions,originOptions,priorityOptions,serviceDetailFields,serviceOptions,temperatureOptions,type Attachment,type Lead} from './domain'
 import {filesToAttachments} from './repository'
+import {useModalA11y} from '../../shared/internal/useModalA11y'
 
 type Draft=ReturnType<typeof emptyLead>&{attachments:Attachment[]}
 const draftFromLead=(lead?:Lead|null):Draft=>lead?{name:lead.name,company:lead.company,email:lead.email,phone:lead.phone,city:lead.city,state:lead.state,role:lead.role,website:lead.website,instagram:lead.instagram,type:lead.type,service:lead.service,description:lead.description,origin:lead.origin,status:lead.status,priority:lead.priority,responsible:lead.responsible,campaign:lead.campaign,nextFollowUp:lead.nextFollowUp,estimatedValue:lead.estimatedValue,temperature:lead.temperature,serviceDetails:{...lead.serviceDetails},notes:lead.notes,tags:[...lead.tags],attachments:[...lead.attachments]}:{...emptyLead(),attachments:[]}
@@ -11,11 +12,11 @@ export function LeadFormModal(props:{open:boolean;lead?:Lead|null;onClose:()=>vo
  return <LeadFormContent key={props.lead?.id??'new-lead'} {...props}/>
 }
 function LeadFormContent({lead,onClose,onSubmit,busy}:{open:boolean;lead?:Lead|null;onClose:()=>void;onSubmit:(draft:Draft,expectedUpdatedAt?:string)=>Promise<void>;busy:boolean}){
- const [draft,setDraft]=useState<Draft>(()=>draftFromLead(lead));const [error,setError]=useState('')
+ const [draft,setDraft]=useState<Draft>(()=>draftFromLead(lead));const [error,setError]=useState('');const dialogRef=useModalA11y(onClose)
  const set=<K extends keyof Draft>(key:K,value:Draft[K])=>setDraft(prev=>({...prev,[key]:value}))
  const submit=async()=>{if(!draft.name.trim()||!draft.phone.trim()){setError('Nome e telefone/WhatsApp são obrigatórios.');return}try{setError('');await onSubmit(draft,lead?.updatedAt)}catch(e){setError(e instanceof Error?e.message:'Não foi possível salvar o lead.')}}
  const detailFields=serviceDetailFields[draft.service]??[]
- return <div className="crm-modal-backdrop" role="presentation" onMouseDown={e=>{if(e.currentTarget===e.target)onClose()}}><section className="crm-modal crm-modal-lg crm-modal-semantic crm-modal-form" role="dialog" aria-modal="true" aria-label={lead?'Editar lead':'Novo lead'}>
+ return <div className="crm-modal-backdrop" role="presentation" onMouseDown={e=>{if(e.currentTarget===e.target)onClose()}}><section ref={dialogRef} tabIndex={-1} className="crm-modal crm-modal-lg crm-modal-semantic crm-modal-form" role="dialog" aria-modal="true" aria-label={lead?'Editar lead':'Novo lead'}>
   <header className="crm-modal-head"><div><h2>{lead?'Editar Lead':'Novo Lead'}</h2><p>Qualificação comercial, serviço, follow-up e contexto operacional.</p></div><button className="crm-icon-btn" onClick={onClose} aria-label="Fechar"><X size={18}/></button></header>
   <div className="crm-modal-body">
    {error&&<div className="crm-error" role="alert">{error}</div>}

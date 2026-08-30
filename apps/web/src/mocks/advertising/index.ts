@@ -1,5 +1,12 @@
-import type {AdvertisingCampaign} from '../../shared/data/contracts'
+import type {AdvertisingCampaign,AdvertisingFormat} from '../../shared/data/contracts'
 import {mockIds} from '../shared'
+
+export const mockAdvertisingFormats:AdvertisingFormat[]=[
+ {id:'ad_format_home',title:'Home',description:'Espaços de destaque integrados à página inicial do Portal Lander.',iconKey:'home',active:true,order:1},
+ {id:'ad_format_news',title:'Notícias',description:'Publicidade contextual junto ao fluxo editorial da página de notícias.',iconKey:'news',active:true,order:2},
+ {id:'ad_format_campaigns',title:'Campanhas',description:'Formatos de presença de marca alinhados ao conteúdo e à audiência do portal.',iconKey:'campaigns',active:true,order:3},
+ {id:'ad_format_metrics',title:'Métricas',description:'Mensuração comercial preparada para a futura camada real de analytics.',iconKey:'metrics',active:true,order:4},
+]
 
 const advertisers=[mockIds.contacts.aurora,mockIds.contacts.nexo,mockIds.contacts.vertice,mockIds.contacts.lumina,mockIds.contacts.prisma,mockIds.contacts.axis] as const
 const names=['Aurora Sabores Urbanos','Nexo Mobilidade em Movimento','Vértice Experience','Lumina Conecta','Prisma Next','Axis Performance'] as const

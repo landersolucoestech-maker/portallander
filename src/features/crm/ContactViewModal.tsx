@@ -1,12 +1,16 @@
 import {useState,type ReactNode} from 'react'
 import {Download,Edit3,FileText,History,X} from 'lucide-react'
+import {useNavigate} from 'react-router-dom'
 import {contactCategoryOptions,label,priorityOptions,type Contact} from './domain'
 import {useAddContactTimeline} from './hooks'
 import {getContactSemanticLabels} from './semantics'
+import {useContractsByCrmContact} from '../contracts/hooks'
+import {contractStatusOptions,optionLabel} from '../contracts/domain'
+import {formatCurrency,formatDate} from '../contracts/format'
 
 export function ContactViewModal({open,contact,onClose,onEdit}:{open:boolean;contact:Contact|null;onClose:()=>void;onEdit:()=>void}){
- const [note,setNote]=useState('');const timeline=useAddContactTimeline();if(!open||!contact)return null
- const semantic=getContactSemanticLabels(contact.entityType)
+ const [note,setNote]=useState('');const timeline=useAddContactTimeline();const navigate=useNavigate();const contractsQ=useContractsByCrmContact(contact?.id);if(!open||!contact)return null
+ const semantic=getContactSemanticLabels(contact.entityType),linkedContracts=contractsQ.data??[]
  return <div className="crm-modal-backdrop" onMouseDown={e=>{if(e.currentTarget===e.target)onClose()}}><section className="crm-modal crm-modal-lg crm-modal-semantic crm-modal-view" role="dialog" aria-modal="true" aria-label="Visualizar contato"><header className="crm-modal-head"><div><div className="crm-badge-row"><span className="crm-badge">{label(contactCategoryOptions,contact.category)}</span><span className="crm-badge muted">{contact.profile}</span><span className="crm-badge muted">{contact.status==='ativo'?'Ativo':'Inativo'}</span><span className="crm-badge muted">{label(priorityOptions,contact.priority)}</span></div><h2>{contact.name}</h2><p>{contact.company||(contact.entityType==='pessoa_fisica'?'Pessoa Física':'Pessoa Jurídica')}</p></div><button className="crm-icon-btn" onClick={onClose} aria-label="Fechar"><X size={18}/></button></header><div className="crm-modal-body crm-view-grid">
   <Info title="Identificação"><Row k="Tipo" v={contact.entityType==='pessoa_fisica'?'Pessoa Física':'Pessoa Jurídica'}/><Row k={semantic.document} v={contact.document}/><Row k={semantic.company} v={contact.company}/></Info>
   <Info title="Contato"><Row k="Email" v={contact.email}/><Row k="Telefone" v={contact.phone}/><Row k="WhatsApp" v={contact.whatsapp}/></Info>
@@ -16,7 +20,7 @@ export function ContactViewModal({open,contact,onClose,onEdit}:{open:boolean;con
   <Info title="Observações"><div className="crm-info-block"><span>Observações</span><p className="crm-long-text">{contact.notes||'Nenhuma observação registrada.'}</p></div></Info>
   <section className="crm-view-section wide"><div className="crm-section-title"><h3>Timeline</h3><History size={16}/></div><div className="crm-interaction-form"><input className="grow" value={note} onChange={e=>setNote(e.target.value)} placeholder="Registrar nota na timeline"/><button className="crm-btn primary" disabled={!note.trim()||timeline.isPending} onClick={async()=>{await timeline.mutateAsync({contactId:contact.id,type:'note',description:note});setNote('')}}>Adicionar</button></div><div className="crm-timeline">{contact.timeline.length===0?<div className="crm-empty-mini">Nenhuma entrada registrada.</div>:contact.timeline.map(t=><article key={t.id}><span className="crm-timeline-dot"/><div><strong>{t.type==='conversion'?'Conversão de lead':t.type==='updated'?'Contato atualizado':t.type==='created'?'Contato criado':'Nota'}</strong><p>{t.description}</p><small>{new Date(t.createdAt).toLocaleString('pt-BR')}</small></div></article>)}</div></section>
   <section className="crm-view-section wide"><div className="crm-section-title"><h3>Anexos</h3><FileText size={16}/></div>{contact.attachments.length===0?<div className="crm-empty-mini">Nenhum anexo.</div>:<div className="crm-file-grid">{contact.attachments.map(a=><a key={a.id} href={a.dataUrl} download={a.name}><FileText size={16}/><span>{a.name}</span><Download size={14}/></a>)}</div>}</section>
-  <section className="crm-view-section wide"><h3>Contratos vinculados</h3><div className="crm-empty-mini">Integração indisponível enquanto o módulo Contratos não estiver reconstruído.</div></section>
+  <section className="crm-view-section wide"><h3>Contratos vinculados</h3>{linkedContracts.length===0?<div className="crm-empty-mini">Nenhum contrato vinculado.</div>:<div className="crm-linked-contracts">{linkedContracts.map(contract=><article key={contract.id}><div><strong>{contract.title}</strong><span>{contract.type} · {optionLabel(contractStatusOptions,contract.status)}</span><small>{formatDate(contract.startDate)} — {formatDate(contract.endDate)} · {formatCurrency(contract.payment.amount,contract.payment.currency)}</small></div><button className="crm-btn secondary small" onClick={()=>{onClose();navigate(`/app/contracts?view=${contract.id}`)}}>Ver</button></article>)}</div>}</section>
   <Info title="Metadados"><Row k="Criado em" v={new Date(contact.createdAt).toLocaleString('pt-BR')}/><Row k="Atualizado em" v={new Date(contact.updatedAt).toLocaleString('pt-BR')}/></Info>
  </div><footer className="crm-modal-foot"><button className="crm-btn secondary" onClick={onClose}>Fechar</button><button className="crm-btn primary" onClick={onEdit}><Edit3 size={15}/> Editar</button></footer></section></div>
 }

@@ -1,9 +1,9 @@
-import {contractCategoriesMock,contractTemplatesMock,contractVariablesMock,contractsMockRecords} from './mocks'
 import {newId,type Contract,type ContractCategory,type ContractsState,type ContractTemplate,type ContractTimelineEntry,type ContractVariable} from './domain'
+import {getRuntimeDataProvider} from '../../shared/data/runtimeDataProvider'
 const STORAGE_KEY='portal-lander:contracts:v1'
 const now=()=>new Date().toISOString()
-const initial=():ContractsState=>({contracts:[...contractsMockRecords] as Contract[],templates:structuredClone(contractTemplatesMock),categories:structuredClone(contractCategoriesMock),variables:structuredClone(contractVariablesMock)})
-const read=():ContractsState=>{try{const raw=localStorage.getItem(STORAGE_KEY);if(!raw)return initial();const parsed=JSON.parse(raw) as Partial<ContractsState>;return {contracts:parsed.contracts??initial().contracts,templates:parsed.templates??initial().templates,categories:parsed.categories?.length?parsed.categories:initial().categories,variables:parsed.variables?.length?parsed.variables:initial().variables}}catch{return initial()}}
+const initial=():ContractsState=>getRuntimeDataProvider().contracts.state()
+const read=():ContractsState=>{try{const raw=localStorage.getItem(STORAGE_KEY);if(!raw)return initial();const parsed=JSON.parse(raw) as Partial<ContractsState>;const seed=initial();return {contracts:parsed.contracts??seed.contracts,templates:parsed.templates??seed.templates,categories:parsed.categories?.length?parsed.categories:seed.categories,variables:parsed.variables?.length?parsed.variables:seed.variables}}catch{return initial()}}
 const write=(state:ContractsState)=>localStorage.setItem(STORAGE_KEY,JSON.stringify(state))
 const timeline=(event:string,description:string):ContractTimelineEntry=>({id:newId('timeline'),event,description,createdAt:now(),actor:'Administrador'})
 const changed=(a:unknown,b:unknown)=>JSON.stringify(a)!==JSON.stringify(b)

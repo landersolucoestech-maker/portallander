@@ -15,14 +15,14 @@ const isInVisiblePeriod=(event:AgendaEvent,mode:AgendaViewMode,reference:Date)=>
 const safeLoad=()=>{try{return{events:agendaRepository.list(),participants:agendaRepository.participants(),locations:agendaRepository.locations(),error:false}}catch{return{events:[] as AgendaEvent[],participants:[] as AgendaParticipant[],locations:[] as AgendaLocation[],error:true}}}
 
 export default function AgendaPage(){
- const initial=useMemo(safeLoad,[])
+ const [initial]=useState(safeLoad),[todayTimestamp]=useState(()=>Date.now())
  const [events,setEvents]=useState<AgendaEvent[]>(initial.events),[loadError,setLoadError]=useState(initial.error)
  const participants=initial.participants,locations=initial.locations,scenario=agendaRepository.scenario()
  const [view,setView]=useState<AgendaViewMode>('semana'),[reference,setReference]=useState(()=>new Date()),[search,setSearch]=useState(''),[typeFilter,setTypeFilter]=useState('all-type'),[statusFilter,setStatusFilter]=useState('all-status')
  const [form,setForm]=useState<{open:boolean;mode:'create'|'edit';event?:AgendaEvent}>({open:false,mode:'create'}),[viewEvent,setViewEvent]=useState<AgendaEvent|undefined>()
  useEffect(()=>{const sync=()=>{try{setEvents(agendaRepository.list());setLoadError(false)}catch{setLoadError(true)}};window.addEventListener('portal-lander:agenda:changed',sync);return()=>window.removeEventListener('portal-lander:agenda:changed',sync)},[])
  const visibleEvents=useMemo(()=>events.filter(event=>isInVisiblePeriod(event,view,reference)).filter(event=>typeFilter==='all-type'||event.type===typeFilter).filter(event=>statusFilter==='all-status'||event.status===statusFilter).filter(event=>{if(!search.trim())return true;const term=search.toLowerCase();const participantText=event.participantIds.map(id=>participants.find(item=>item.id===id)?.label??'').join(' ');return `${event.title} ${event.location} ${participantText}`.toLowerCase().includes(term)}),[events,view,reference,typeFilter,statusFilter,search,participants])
- const metrics=useMemo(()=>{const now=Date.now(),week=now+7*86400000;return{total:events.length,confirmed:events.filter(event=>event.status==='confirmado').length,pending:events.filter(event=>event.status==='pendente'||event.status==='agendado').length,next7:events.filter(event=>{const start=new Date(event.startsAt).getTime();return start>=now&&start<=week}).length}},[events])
+ const metrics=useMemo(()=>{const week=todayTimestamp+7*86400000;return{total:events.length,confirmed:events.filter(event=>event.status==='confirmado').length,pending:events.filter(event=>event.status==='pendente'||event.status==='agendado').length,next7:events.filter(event=>{const start=new Date(event.startsAt).getTime();return start>=todayTimestamp&&start<=week}).length}},[events,todayTimestamp])
  const hasFilters=Boolean(search)||typeFilter!=='all-type'||statusFilter!=='all-status'
  const move=(direction:-1|1)=>{if(view==='dia')setReference(date=>addDays(date,direction));else if(view==='semana')setReference(date=>addDays(date,7*direction));else if(view==='mes')setReference(date=>addMonths(date,direction));else setReference(date=>addYears(date,direction))}
  const save=(draft:AgendaEventDraft)=>{if(form.mode==='edit'&&form.event)agendaRepository.update(form.event.id,draft);else agendaRepository.create(draft);setForm(current=>({...current,open:false}))}
@@ -35,7 +35,7 @@ export default function AgendaPage(){
     {visibleEvents.length===0?<div className="agenda-empty"><CalendarDays size={42}/><strong>Nenhum evento encontrado</strong><p>Não existem eventos para este período e filtros.</p><button className="button outline" type="button" onClick={()=>setForm({open:true,mode:'create'})}><Plus size={14}/>Criar primeiro evento</button></div>:<AgendaCalendar view={view} referenceDate={reference} events={visibleEvents} participants={participants} onSelect={setViewEvent}/>} 
    </>}
   </section>
-  <AgendaFormModal open={form.open} mode={form.mode} event={form.event} participants={participants} locations={locations} onClose={()=>setForm(current=>({...current,open:false}))} onSave={save}/>
+  <AgendaFormModal key={`${form.mode}-${form.event?.id??'new'}-${form.open?'open':'closed'}`} open={form.open} mode={form.mode} event={form.event} participants={participants} locations={locations} onClose={()=>setForm(current=>({...current,open:false}))} onSave={save}/>
   <AgendaViewModal open={Boolean(viewEvent)} event={viewEvent} participants={participants} onClose={()=>setViewEvent(undefined)} onEdit={()=>{if(!viewEvent)return;setForm({open:true,mode:'edit',event:viewEvent});setViewEvent(undefined)}}/>
  </AdminShell>
 }

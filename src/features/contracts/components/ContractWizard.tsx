@@ -1,1 +1,1 @@
-export {ContractWizardPortal as ContractWizard} from './ContractWizardPortal'
+export {ContractWizardOriginal as ContractWizard} from './ContractWizardOriginal'

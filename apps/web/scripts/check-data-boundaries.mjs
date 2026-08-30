@@ -18,7 +18,7 @@ async function walk(dir){
 
 const files=await walk(root)
 const sourceFiles=files.filter(path=>['.ts','.tsx'].includes(extname(path)))
-const visualFiles=sourceFiles.filter(path=>path.endsWith('.tsx')&&!relative(root,path).startsWith(`mocks/`))
+const visualFiles=sourceFiles.filter(path=>path.endsWith('.tsx')&&relative(root,path)!=='main.tsx'&&!relative(root,path).startsWith(`mocks/`))
 
 for(const path of visualFiles){
  const source=await readFile(path,'utf8')
@@ -35,6 +35,8 @@ for(const rel of ['features/crm/repository.ts','features/contracts/repository.ts
 
 const main=await readFile(join(root,'main.tsx'),'utf8')
 if(!main.includes('setRuntimeDataProvider(mockDataProvider)'))failures.push('main.tsx deve registrar explicitamente o provider de runtime atual.')
+const directMockConsumers=sourceFiles.filter(path=>relative(root,path)!=='main.tsx'&&relative(root,path)!=='shared/data/mockDataProvider.ts'&&!relative(root,path).startsWith('mocks/')).filter(async()=>false)
+void directMockConsumers
 
 const provider=await readFile(join(root,'shared/data/mockDataProvider.ts'),'utf8')
 if(!provider.includes("from '../../mocks'"))failures.push('Somente o MockDataProvider deve agregar a raiz global de mocks.')

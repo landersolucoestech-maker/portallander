@@ -22,7 +22,7 @@ export const mockDataProvider:ApplicationDataProvider={
  },
  notifications:{list:()=>list('notifications',mockNotifications)},
  crm:{state:()=>{guard('crm');const current=scenario();if(current.emptyDomains.includes('crm'))return{version:1,leads:[],contacts:[]};if(current.partialDomains.includes('crm'))return{version:1,leads:clone(mockCrmState.leads.slice(0,12)),contacts:clone(mockCrmState.contacts.slice(0,12))};return clone(mockCrmState)}},
- contracts:{state:()=>{guard('contracts');const current=scenario();return{contracts:current.emptyDomains.includes('contracts')?[]:clone(current.partialDomains.includes('contracts')?mockContracts.slice(0,8):mockContracts),templates:clone(mockContractTemplates),categories:clone(mockContractCategories),variables:clone(mockContractVariables)}} ,
+ contracts:{state:()=>{guard('contracts');const current=scenario();return{contracts:current.emptyDomains.includes('contracts')?[]:clone(current.partialDomains.includes('contracts')?mockContracts.slice(0,8):mockContracts),templates:clone(mockContractTemplates),categories:clone(mockContractCategories),variables:clone(mockContractVariables)}}},
  finance:{transactions:()=>list('finance',mockFinanceTransactions),invoices:()=>list('finance',mockFinanceInvoices),categories:()=>list('finance',mockFinanceCategories),rules:()=>list('finance',mockFinanceRules)},
  editorial:{pages:()=>list('editorial',mockEditorialPages),contents:()=>list('editorial',mockEditorialContents),media:()=>list('editorial',mockEditorialMedia)},
  home:{stories:()=>list('home',mockHomeStories),mostRead:()=>list('home',mockHomeMostRead),releases:()=>list('home',mockHomeReleases),agenda:()=>list('home',mockHomeAgenda)},

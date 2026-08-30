@@ -1,5 +1,5 @@
 import {Archive,ArrowRightLeft,CalendarDays,CheckCircle2,Clock,Globe2,Headphones,Link,MessageCircle,Mic,Paperclip,Search,Send,Tag,UserPlus} from 'lucide-react'
-import {useMemo,useRef,useState} from 'react'
+import {useEffect,useMemo,useRef,useState} from 'react'
 import {LeadFormModal} from '../../crm/LeadFormModal'
 import {ContactFormModal} from '../../crm/ContactFormModal'
 import {crmRepository} from '../../crm/repository'
@@ -17,6 +17,7 @@ const isClosed=(status:SupportStatus)=>status==='resolvida'||status==='arquivada
 export default function SupportCenterView({conversations,messages,quickReplies,selectedId,onSelect,onChange}:Props){
  const [search,setSearch]=useState(''),[channel,setChannel]=useState('todos'),[status,setStatus]=useState('todos'),[draft,setDraft]=useState(''),[attachments,setAttachments]=useState<ChatAttachment[]>([]),[recording,setRecording]=useState(false),[recordSeconds,setRecordSeconds]=useState(0),[transferOpen,setTransferOpen]=useState(false),[transferTarget,setTransferTarget]=useState(''),[tagOpen,setTagOpen]=useState(false),[tagDraft,setTagDraft]=useState(''),[leadOpen,setLeadOpen]=useState(false),[contactOpen,setContactOpen]=useState(false),[eventOpen,setEventOpen]=useState(false)
  const timerRef=useRef<number|undefined>(undefined)
+ useEffect(()=>()=>window.clearInterval(timerRef.current),[])
  const selected=conversations.find(c=>c.id===selectedId)??conversations[0]??null
  const filtered=useMemo(()=>conversations.filter(c=>{const q=search.trim().toLowerCase();return(!q||`${c.customer} ${c.protocol} ${c.tags.join(' ')}`.toLowerCase().includes(q))&&(channel==='todos'||c.channel===channel)&&(status==='todos'||c.status===status)}),[conversations,search,channel,status])
  const selectedMessages=selected?messages.filter(m=>m.conversationId===selected.id):[]

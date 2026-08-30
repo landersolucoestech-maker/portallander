@@ -4,6 +4,7 @@ import { WorkspacePage } from '../features/access/WorkspacePage'
 import { ProfilePage, SettingsPage } from '../features/access/AccountPages'
 import CrmWorkspace from '../features/access/CrmWorkspace'
 import DashboardPage from '../features/dashboard/DashboardPage'
+import ContractsPage from '../features/contracts/ContractsPage'
 import SiteManagerRoutes from '../features/site-manager/SiteManagerRoutes'
 import '../styles/admin-entry.css'
 
@@ -16,6 +17,7 @@ export default function InternalApp(){
     <Route path="/app/settings" element={<SettingsPage/>}/>
     <Route path="/app/dashboard" element={<DashboardPage/>}/>
     <Route path="/app/crm/*" element={<CrmWorkspace/>}/>
+    <Route path="/app/contracts" element={<ContractsPage/>}/>
     <Route path="/app/site/*" element={<SiteManagerRoutes/>}/>
     <Route path="*" element={<Navigate to="/app/login" replace/>}/>
   </Routes>

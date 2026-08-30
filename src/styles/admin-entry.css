@@ -16,6 +16,7 @@
 @import './admin-crm-modal-semantics.css';
 @import './admin-contracts.css';
 @import './admin-contracts-registry.css';
+@import './admin-contracts-reference.css';
 @import '../shared/branding/styles/header-brand-manager.css';
 @import '../shared/branding/styles/brand-assets-manager.css';
 @import './admin-responsive.css';

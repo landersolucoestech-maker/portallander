@@ -1,4 +1,4 @@
-import {access,readFile} from 'node:fs/promises'
+import {access,readFile,readdir} from 'node:fs/promises'
 import {constants} from 'node:fs'
 const read=path=>readFile(new URL(`../${path}`,import.meta.url),'utf8');const failures=[]
 
@@ -9,7 +9,7 @@ const main=await read('src/main.tsx')
 for(const required of ['QueryClientProvider','<HashRouter><App/></HashRouter>'])if(!main.includes(required))failures.push(`main.tsx deve manter runtime: ${required}`)
 
 const internalApp=await read('src/app/InternalApp.tsx')
-for(const required of ["from '../features/access/LoginPage'","from '../features/access/WorkspacePage'","from '../features/access/CrmWorkspace'","from '../features/dashboard/DashboardPage'","from '../features/site-manager/SiteManagerRoutes'",'path="/app/login"','path="/app/workspaces"','path="/app/dashboard"','path="/app/crm/*"','path="/app/site/*"'])if(!internalApp.includes(required))failures.push(`InternalApp deve manter ${required}.`)
+for(const required of ["from '../features/access/LoginPage'","from '../features/access/WorkspacePage'","from '../features/access/CrmWorkspace'","from '../features/dashboard/DashboardPage'","from '../features/contracts/ContractsPage'","from '../features/site-manager/SiteManagerRoutes'",'path="/app/login"','path="/app/workspaces"','path="/app/dashboard"','path="/app/crm/*"','path="/app/contracts"','path="/app/site/*"'])if(!internalApp.includes(required))failures.push(`InternalApp deve manter ${required}.`)
 for(const forbidden of ['CrmRoutes','integrations'])if(internalApp.includes(forbidden))failures.push(`InternalApp não pode reintroduzir infraestrutura removida: ${forbidden}`)
 
 const crmWorkspace=await read('src/features/access/CrmWorkspace.tsx')
@@ -21,7 +21,7 @@ for(const required of ['Visão geral.','Faturamento do Mês','A Receber','Contra
 for(const forbidden of ['Conteúdos Publicados','Categorias Editoriais','Últimas Atualizações','Publicações Recentes','Artistas Cadastrados','Artistas em Destaque','streams','Math.random','fake data','mockDashboard'])if(dashboard.includes(forbidden))failures.push(`Dashboard não pode reintroduzir dashboard editorial/musical ou dado fabricado: ${forbidden}`)
 
 const adminNavigation=await read('src/shared/internal/adminNavigation.ts')
-for(const required of ['CRM_WORKSPACE_NAV',"['Dashboard',LayoutDashboard,'/app/dashboard']","['CRM',ContactRound,'/app/crm']"])if(!adminNavigation.includes(required))failures.push(`adminNavigation deve preservar Dashboard global e CRM independentes: ${required}`)
+for(const required of ['CRM_WORKSPACE_NAV',"['Dashboard',LayoutDashboard,'/app/dashboard']","['CRM',ContactRound,'/app/crm']","['Contratos',FileText,'/app/contracts']"])if(!adminNavigation.includes(required))failures.push(`adminNavigation deve preservar Dashboard, CRM e Contratos independentes: ${required}`)
 for(const forbidden of ["['Dashboard',LayoutDashboard,'/app/crm']","['Leads'","['Contatos'",'/app/crm/dashboard','/app/crm/integrations','Integrações','PlugZap'])if(adminNavigation.includes(forbidden))failures.push(`adminNavigation não pode dividir o CRM nem recriar Dashboard interno: ${forbidden}`)
 
 const crmPage=await read('src/features/crm/CrmPage.tsx')
@@ -37,6 +37,14 @@ if(!adminUi.includes("end={to==='/app/site'}"))failures.push('AdminUi deve permi
 
 const domain=await read('src/features/crm/domain.ts')
 for(const required of ['agencia_publicidade','assessoria_imprensa','anunciante','patrocinador','fonte_editorial','publieditorial','campanha_publicitaria'])if(!domain.includes(required))failures.push(`CRM domain deve preservar adaptação Portal Lander: ${required}`)
+
+const contractsPage=await read('src/features/contracts/ContractsPage.tsx')
+for(const required of ['Contratos','Templates','Categorias','Variáveis','Novo Contrato','Total de Contratos','Valor Contratado','ContractWizard','ContractViewModal'])if(!contractsPage.includes(required))failures.push(`Contratos deve preservar implementação completa: ${required}`)
+for(const forbidden of ['ContactFormModal','ContactViewModal','LeadFormModal','LeadViewModal'])if(contractsPage.includes(forbidden))failures.push(`Contratos não pode importar UI do CRM: ${forbidden}`)
+const contractsDir=new URL('../src/features/contracts/',import.meta.url)
+async function collectFiles(dir){const entries=await readdir(dir,{withFileTypes:true});const files=[];for(const entry of entries){const target=new URL(entry.name+(entry.isDirectory()?'/':''),dir);if(entry.isDirectory())files.push(...await collectFiles(target));else if(/\.(ts|tsx)$/.test(entry.name)&&!entry.name.endsWith('.test.ts'))files.push(target)}return files}
+const forbiddenContractsTerms=['Artista','Artist','Gravadora','Fonograma','Phonogram','ISRC','ISWC','MusicWork','Contrato de Gravação','Distribuição Fonográfica','Licenciamento de Fonograma','Spotify','Apple Music','Deezer','SoundCloud','Tidal']
+for(const file of await collectFiles(contractsDir)){const content=await readFile(file,'utf8');for(const forbidden of forbiddenContractsTerms)if(content.includes(forbidden))failures.push(`Domínio proibido em Contratos (${file.pathname.split('/').pop()}): ${forbidden}`)}
 
 const removedPaths=['src/features/crm/CrmRoutes.tsx','src/features/crm/data/demoSnapshot.ts','src/features/crm/model.ts','src/features/crm/pages/ContactsReferencePage.tsx','src/features/crm/pages/CrmDashboardPage.tsx','src/features/crm/presentation.ts','src/features/operations/OperationsPage.tsx','src/styles/admin-crm.css','src/styles/admin-crm-dashboard-header.css','src/styles/admin-crm-relationships.css','src/styles/admin-reference-v2.css','src/styles/admin-reference-real.css']
 for(const removedPath of removedPaths){try{await access(new URL(`../${removedPath}`,import.meta.url),constants.F_OK);failures.push(`${removedPath} deve permanecer removido.`)}catch{}}

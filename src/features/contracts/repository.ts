@@ -1,0 +1,25 @@
+import {defaultCategories,defaultVariables,newId,type Contract,type ContractCategory,type ContractsState,type ContractTemplate,type ContractVariable} from './domain'
+const STORAGE_KEY='portal-lander:contracts:v1'
+const now=()=>new Date().toISOString()
+const initial=():ContractsState=>({contracts:[],templates:[],categories:defaultCategories,variables:defaultVariables})
+const read=():ContractsState=>{try{const raw=localStorage.getItem(STORAGE_KEY);if(!raw)return initial();const parsed=JSON.parse(raw) as Partial<ContractsState>;return {contracts:parsed.contracts??[],templates:parsed.templates??[],categories:parsed.categories?.length?parsed.categories:defaultCategories,variables:parsed.variables?.length?parsed.variables:defaultVariables}}catch{return initial()}}
+const write=(state:ContractsState)=>localStorage.setItem(STORAGE_KEY,JSON.stringify(state))
+const timeline=(event:string,description:string)=>({id:newId('timeline'),event,description,createdAt:now(),actor:'Administrador'})
+export const contractsRepository={
+ listContracts:async()=>read().contracts,
+ getContract:async(id:string)=>read().contracts.find(item=>item.id===id),
+ listContractsByCrmContact:async(contactId:string)=>read().contracts.filter(contract=>contract.parties.some(p=>p.crmContactId===contactId)),
+ createContract:async(input:Omit<Contract,'id'|'createdAt'|'updatedAt'|'timeline'>)=>{const state=read(),stamp=now();const contract:Contract={...input,id:newId('contract'),createdAt:stamp,updatedAt:stamp,timeline:[timeline('created','Contrato criado')]};state.contracts.unshift(contract);write(state);return contract},
+ updateContract:async(id:string,patch:Partial<Contract>)=>{const state=read(),index=state.contracts.findIndex(item=>item.id===id);if(index<0)throw new Error('Contrato não encontrado.');const current=state.contracts[index];let document=patch.document??current.document;if((current.status==='signed'||current.status==='active')&&patch.document&&patch.document.contentHtml!==current.document.contentHtml){const previous={id:newId('version'),version:current.document.versions.length+1,contentHtml:current.document.contentHtml,createdAt:now(),createdBy:'Administrador',notes:'Versão preservada antes de alteração pós-assinatura'};document={...patch.document,versions:[...current.document.versions,previous]}}const updated={...current,...patch,document,updatedAt:now(),timeline:[...current.timeline,timeline('updated','Contrato atualizado')]};state.contracts[index]=updated;write(state);return updated},
+ deleteContract:async(id:string)=>{const state=read();state.contracts=state.contracts.filter(item=>item.id!==id);write(state)},
+ bulkDeleteContracts:async(ids:string[])=>{const set=new Set(ids),state=read();state.contracts=state.contracts.filter(item=>!set.has(item.id));write(state)},
+ listTemplates:async()=>read().templates,
+ saveTemplate:async(input:Omit<ContractTemplate,'id'|'createdAt'|'updatedAt'> & {id?:string})=>{const state=read(),stamp=now();if(input.id){const index=state.templates.findIndex(x=>x.id===input.id);if(index<0)throw new Error('Template não encontrado.');state.templates[index]={...state.templates[index],...input,id:input.id,updatedAt:stamp};write(state);return state.templates[index]}const item:ContractTemplate={...input,id:newId('template'),createdAt:stamp,updatedAt:stamp};state.templates.unshift(item);write(state);return item},
+ deleteTemplate:async(id:string)=>{const state=read();state.templates=state.templates.filter(x=>x.id!==id);write(state)},
+ listCategories:async()=>read().categories,
+ saveCategory:async(input:Omit<ContractCategory,'id'|'createdAt'|'updatedAt'> & {id?:string})=>{const state=read(),stamp=now();if(input.id){const index=state.categories.findIndex(x=>x.id===input.id);if(index<0)throw new Error('Categoria não encontrada.');state.categories[index]={...state.categories[index],...input,id:input.id,updatedAt:stamp};write(state);return state.categories[index]}const item:ContractCategory={...input,id:newId('category'),createdAt:stamp,updatedAt:stamp};state.categories.push(item);write(state);return item},
+ deleteCategory:async(id:string)=>{const state=read();if(state.contracts.some(x=>x.categoryId===id)||state.templates.some(x=>x.categoryId===id))throw new Error('Categoria em uso e não pode ser excluída.');state.categories=state.categories.filter(x=>x.id!==id);write(state)},
+ listVariables:async()=>read().variables,
+ saveVariable:async(input:Omit<ContractVariable,'id'|'createdAt'|'updatedAt'> & {id?:string})=>{const state=read(),stamp=now();if(input.id){const index=state.variables.findIndex(x=>x.id===input.id);if(index<0)throw new Error('Variável não encontrada.');state.variables[index]={...state.variables[index],...input,id:input.id,updatedAt:stamp};write(state);return state.variables[index]}const item:ContractVariable={...input,id:newId('variable'),createdAt:stamp,updatedAt:stamp};state.variables.push(item);write(state);return item},
+ deleteVariable:async(id:string)=>{const state=read();state.variables=state.variables.filter(x=>x.id!==id);write(state)},
+}

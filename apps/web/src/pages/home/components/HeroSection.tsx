@@ -32,17 +32,16 @@ export function HeroSection({ config, appearance, previewIndex = 0, disableAutop
     return () => window.removeEventListener(HERO_APPEARANCE_EVENT, sync)
   }, [appearance])
 
-  useEffect(() => setActiveIndex(previewIndex), [previewIndex])
-
   const slides = useMemo(() => getRenderableHeroSlides(runtimeConfig), [runtimeConfig])
-  const safeIndex = Math.min(activeIndex, Math.max(0, slides.length - 1))
+  const requestedIndex = config ? previewIndex : activeIndex
+  const safeIndex = Math.min(requestedIndex, Math.max(0, slides.length - 1))
   const hero: HeroSlide = slides[safeIndex] || defaultHeroSlide
   const ctas = (hero.ctas || []).filter(item => item.active && item.label).sort((a, b) => a.order - b.order)
   const navigation = runtimeConfig.navigation || 'arrows-dots'
   const loop = runtimeConfig.loop !== false
 
   useEffect(() => {
-    if (disableAutoplay || !runtimeConfig.autoplay || paused || slides.length <= 1) return
+    if (config || disableAutoplay || !runtimeConfig.autoplay || paused || slides.length <= 1) return
     if (typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return
     const timer = window.setInterval(() => {
       setActiveIndex(index => {
@@ -51,11 +50,12 @@ export function HeroSection({ config, appearance, previewIndex = 0, disableAutop
       })
     }, Math.max(3000, runtimeConfig.intervalMs || defaultHeroConfig.intervalMs))
     return () => window.clearInterval(timer)
-  }, [disableAutoplay, runtimeConfig.autoplay, runtimeConfig.intervalMs, paused, slides.length, loop])
+  }, [config, disableAutoplay, runtimeConfig.autoplay, runtimeConfig.intervalMs, paused, slides.length, loop])
 
   if (!runtimeAppearance.active) return null
 
   const go = (delta: number) => {
+    if (config) return
     setActiveIndex(index => {
       const target = index + delta
       if (loop) return (target + slides.length) % slides.length
@@ -95,6 +95,18 @@ export function HeroSection({ config, appearance, previewIndex = 0, disableAutop
     borderRadius: `0 0 ${radius}px ${radius}px`,
     overflow: 'hidden',
   }
+  const tickerTagStyle: CSSProperties = {
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '5px 9px',
+    borderRadius: 999,
+    fontSize: 9,
+    fontWeight: 900,
+    whiteSpace: 'nowrap',
+    background: ticker.tagBackground || '#111111',
+    color: ticker.tagTextColor || '#ffffff',
+  }
 
   return <>
     <section className="portal-hero editorial-hero" style={rootStyle} aria-label="Destaque principal" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
@@ -115,13 +127,13 @@ export function HeroSection({ config, appearance, previewIndex = 0, disableAutop
       </div>
 
       {slides.length > 1 && navigation !== 'none' && <div className="hero-carousel-controls shell" aria-label="Navegação dos destaques">
-        {(navigation === 'arrows' || navigation === 'arrows-dots') && <div className="hero-carousel-arrows"><button type="button" aria-label="Destaque anterior" onClick={() => go(-1)} disabled={!loop && safeIndex === 0}><ArrowLeft size={17} /></button><button type="button" aria-label="Próximo destaque" onClick={() => go(1)} disabled={!loop && safeIndex === slides.length - 1}><ArrowRight size={17} /></button></div>}
-        {(navigation === 'dots' || navigation === 'arrows-dots') && <div className="hero-carousel-dots">{slides.map((slide, index) => <button type="button" aria-label={`Ir para destaque ${index + 1}`} className={index === safeIndex ? 'active' : ''} onClick={() => setActiveIndex(index)} key={slide.id} />)}</div>}
+        {(navigation === 'arrows' || navigation === 'arrows-dots') && <div className="hero-carousel-arrows"><button type="button" aria-label="Destaque anterior" onClick={() => go(-1)} disabled={Boolean(config) || (!loop && safeIndex === 0)}><ArrowLeft size={17} /></button><button type="button" aria-label="Próximo destaque" onClick={() => go(1)} disabled={Boolean(config) || (!loop && safeIndex === slides.length - 1)}><ArrowRight size={17} /></button></div>}
+        {(navigation === 'dots' || navigation === 'arrows-dots') && <div className="hero-carousel-dots">{slides.map((slide, index) => <button type="button" aria-label={`Ir para destaque ${index + 1}`} className={index === safeIndex ? 'active' : ''} onClick={() => { if (!config) setActiveIndex(index) }} disabled={Boolean(config)} key={slide.id} />)}</div>}
         <span>{String(safeIndex + 1).padStart(2, '0')} / {String(slides.length).padStart(2, '0')}</span>
       </div>}
       <div className="hero-noise" aria-hidden="true" />
     </section>
 
-    {hasTicker && <section className="portal-breaking editorial-ticker" style={tickerStyle} aria-label="Agora"><SmartLink to={ticker.url || '/'} external={ticker.external} className="shell" style={{ color: ticker.textColor || '#ffffff' }}><strong>{ticker.label}</strong><i aria-hidden="true" />{ticker.tagVisible !== false && ticker.tag && <span className="editorial-ticker-tag" style={{ background: ticker.tagBackground || '#111111', color: ticker.tagTextColor || '#ffffff' }}>{ticker.tag}</span>}<p>{ticker.text}</p>{ticker.showArrow !== false && <ArrowRight size={20} />}</SmartLink></section>}
+    {hasTicker && <section className="portal-breaking editorial-ticker" style={tickerStyle} aria-label="Agora"><SmartLink to={ticker.url || '/'} external={ticker.external} className="shell" style={{ color: ticker.textColor || '#ffffff' }}><strong>{ticker.label}</strong><i aria-hidden="true" />{ticker.tagVisible !== false && ticker.tag && <span className="editorial-ticker-tag" style={tickerTagStyle}>{ticker.tag}</span>}<p>{ticker.text}</p>{ticker.showArrow !== false && <ArrowRight size={20} />}</SmartLink></section>}
   </>
 }

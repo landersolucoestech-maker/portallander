@@ -42,7 +42,7 @@ for(const viewport of viewports){
      test(`internal ${route}`,async({page})=>{
        await page.goto(`${base}#${route}`,{waitUntil:'networkidle'})
        await assertViewportIntegrity(page,true)
-       if(viewport.name==='mobile'&&await page.locator('.workspace-primary-action').count()){
+       if(viewport.name==='mobile'&&(await page.locator('.workspace-primary-action').count())>0){
          await expect(page.locator('.workspace-primary-action').first()).toBeVisible()
        }
        await page.screenshot({path:`test-results/visual/${viewport.name}-${safeName(route)}.png`,fullPage:true})
@@ -55,7 +55,7 @@ for(const viewport of viewports){
        await page.screenshot({path:`test-results/visual/${viewport.name}-public-${safeName(route)}.png`,fullPage:true})
      })
    }
- }
+ })
 }
 
 test.describe('modal viewport integrity',()=>{
@@ -70,7 +70,7 @@ test.describe('modal viewport integrity',()=>{
    test(`${item.route} modal remains inside mobile viewport`,async({page})=>{
      await page.goto(`${base}#${item.route}`,{waitUntil:'networkidle'})
      const button=page.getByRole('button',{name:item.button}).first()
-     if(await button.count()===0)test.skip(true,`No action matching ${item.button}`)
+     if((await button.count())===0)test.skip(true,`No action matching ${item.button}`)
      await button.click()
      const modal=page.locator('[role="dialog"],.crm-modal,.agenda-modal,.finance-modal,.marketing-modal,.rh-modal,.reports-import-dialog,.settings-modal').first()
      await expect(modal).toBeVisible()

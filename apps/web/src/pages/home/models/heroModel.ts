@@ -120,6 +120,14 @@ export const heroArticles: HeroArticleSource[] = getRuntimeDataProvider().home.h
 export const defaultHeroSlide: HeroSlide = getRuntimeDataProvider().home.defaultHeroSlide()
 export const defaultHeroConfig: HeroCarouselConfig = getRuntimeDataProvider().home.defaultHeroConfig()
 
+export const AUTO_HERO_IMAGE_VISUAL: Required<HeroSlideResponsiveVisual> = {
+  imagePositionX: 50,
+  imagePositionY: 100,
+  imageScale: 1,
+  imageOffsetX: 0,
+  imageOffsetY: 0,
+}
+
 function defaultCtas(slide: HeroSlide): HeroCta[] {
   return [
     { id: 'primary', active: Boolean(slide.primaryCtaLabel), label: slide.primaryCtaLabel, url: slide.primaryCtaUrl, external: false, order: 1, variant: 'primary' },
@@ -282,18 +290,22 @@ export function resolveTitleSegmentVisual(segment: HeroTitleSegment, breakpoint:
   return { ...automatic, ...(segment.responsive?.[breakpoint] || {}) }
 }
 
-export function resolveSlideVisual(slide: HeroSlide, breakpoint: HeroBreakpoint): Required<HeroSlideResponsiveVisual> {
-  const base = {
-    imagePositionX: slide.imagePositionX,
-    imagePositionY: slide.imagePositionY,
-    imageScale: slide.imageScale,
-    imageOffsetX: slide.imageOffsetX,
-    imageOffsetY: slide.imageOffsetY,
+export function getAutomaticSlideVisual(slide: HeroSlide, breakpoint: HeroBreakpoint): Required<HeroSlideResponsiveVisual> {
+  if (breakpoint === 'desktop') {
+    return {
+      imagePositionX: Number.isFinite(slide.imagePositionX) ? slide.imagePositionX : AUTO_HERO_IMAGE_VISUAL.imagePositionX,
+      imagePositionY: Number.isFinite(slide.imagePositionY) ? slide.imagePositionY : AUTO_HERO_IMAGE_VISUAL.imagePositionY,
+      imageScale: Number.isFinite(slide.imageScale) && slide.imageScale > 0 ? slide.imageScale : AUTO_HERO_IMAGE_VISUAL.imageScale,
+      imageOffsetX: Number.isFinite(slide.imageOffsetX) ? slide.imageOffsetX : AUTO_HERO_IMAGE_VISUAL.imageOffsetX,
+      imageOffsetY: Number.isFinite(slide.imageOffsetY) ? slide.imageOffsetY : AUTO_HERO_IMAGE_VISUAL.imageOffsetY,
+    }
   }
-  if (breakpoint === 'desktop') return base
-  const automatic = breakpoint === 'tablet'
-    ? { ...base, imagePositionX: Math.min(100, Math.max(0, base.imagePositionX + 5)), imageScale: Math.max(.4, base.imageScale * .9), imageOffsetX: base.imageOffsetX * .55, imageOffsetY: base.imageOffsetY * .65 }
-    : { ...base, imagePositionX: Math.min(100, Math.max(0, base.imagePositionX + 8)), imagePositionY: Math.min(100, Math.max(0, base.imagePositionY + 3)), imageScale: Math.max(.4, base.imageScale * .78), imageOffsetX: base.imageOffsetX * .28, imageOffsetY: base.imageOffsetY * .42 }
+  return { ...AUTO_HERO_IMAGE_VISUAL }
+}
+
+export function resolveSlideVisual(slide: HeroSlide, breakpoint: HeroBreakpoint): Required<HeroSlideResponsiveVisual> {
+  const automatic = getAutomaticSlideVisual(slide, breakpoint)
+  if (breakpoint === 'desktop') return automatic
   return { ...automatic, ...(slide.responsive?.[breakpoint] || {}) }
 }
 

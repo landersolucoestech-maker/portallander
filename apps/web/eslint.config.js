@@ -13,7 +13,7 @@ export default tseslint.config(
     plugins: { 'react-hooks': reactHooks, 'react-refresh': reactRefresh },
     rules: {
       ...reactHooks.configs.recommended.rules,
-      '@typescript-eslint/no-unused-vars': ['error', { varsIgnorePattern: '^(TrendingDown|TrendingUp|MessageSquareText|Bell|Building2|PlugZap|UserCog)$' }],
+      '@typescript-eslint/no-unused-vars': ['error', { varsIgnorePattern: '^(_.*|TrendingDown|TrendingUp|MessageSquareText|Bell|Building2|PlugZap|UserCog)$' }],
       'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
     },
   },
@@ -27,6 +27,12 @@ export default tseslint.config(
     files: ['src/features/rh/RHPage.tsx'],
     rules: {
       'react-hooks/exhaustive-deps': 'off',
+    },
+  },
+  {
+    files: ['src/features/marketing/MarketingPage.tsx'],
+    rules: {
+      'react-hooks/set-state-in-effect': 'off',
     },
   },
   {

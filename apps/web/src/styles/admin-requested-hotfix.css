@@ -1,0 +1,88 @@
+/* Requested UI hotfix: force the exact behavior/visual requested without relying on module cascade order. */
+
+/* Configurações > Empresa > Identidade Visual */
+.settings-identity .settings-logo-input{
+  position:absolute!important;
+  width:1px!important;
+  height:1px!important;
+  padding:0!important;
+  margin:-1px!important;
+  overflow:hidden!important;
+  clip:rect(0,0,0,0)!important;
+  white-space:nowrap!important;
+  border:0!important;
+}
+.settings-identity .settings-outline{
+  display:inline-flex!important;
+  visibility:visible!important;
+  opacity:1!important;
+  pointer-events:auto!important;
+  cursor:pointer!important;
+  position:relative!important;
+  z-index:2!important;
+}
+.settings-identity .settings-outline:disabled{
+  opacity:1!important;
+  pointer-events:auto!important;
+  cursor:pointer!important;
+}
+/* The obsolete public-registration slug/tag must never render in the company identity card. */
+.settings-identity code,
+.settings-identity .settings-public-slug,
+.settings-identity [data-public-registration-slug]{
+  display:none!important;
+}
+
+/* Canonical TableView sorting — exactly the CRM two-arrow visual. */
+.app-shell .crm-sort-header{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:flex-start!important;
+  gap:4px!important;
+  white-space:nowrap!important;
+}
+.app-shell .crm-sort-header>span{
+  display:inline-block!important;
+}
+.app-shell .crm-sort-header [role="group"],
+.app-shell .contracts-sort-buttons{
+  display:inline-flex!important;
+  align-items:center!important;
+  gap:0!important;
+  margin:0!important;
+}
+.app-shell .crm-sort-header [role="group"]>button,
+.app-shell .contracts-sort-button{
+  width:14px!important;
+  min-width:14px!important;
+  height:20px!important;
+  min-height:20px!important;
+  padding:0!important;
+  margin:0!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  color:#aaa!important;
+  font:700 13px/1 Arial,sans-serif!important;
+  text-align:center!important;
+  box-shadow:none!important;
+  opacity:.55!important;
+  cursor:pointer!important;
+}
+.app-shell .crm-sort-header [role="group"]>button[aria-pressed="true"],
+.app-shell .contracts-sort-button.active,
+.app-shell .contracts-sort-button[aria-pressed="true"]{
+  color:#111!important;
+  font-weight:900!important;
+  opacity:1!important;
+}
+.app-shell .crm-sort-header [role="group"]>button:hover,
+.app-shell .contracts-sort-button:hover{
+  color:#111!important;
+  opacity:1!important;
+}
+.app-shell .crm-sort-header [role="group"]>button:focus-visible,
+.app-shell .contracts-sort-button:focus-visible{
+  outline:2px solid #e30613!important;
+  outline-offset:1px!important;
+}

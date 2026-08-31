@@ -42,10 +42,19 @@ function decorateTable(table:HTMLTableElement){
   const headers=Array.from(table.tHead?.rows[0]?.cells??[])
   headers.forEach((header,index)=>{
     const th=header as HTMLTableCellElement
-    if(th.dataset.portalSort==='ready'||th.classList.contains('select')||th.classList.contains('actions')||th.classList.contains('actions-col'))return
-    if(th.querySelector('input[type="checkbox"],.crm-sort-header'))return
+    if(th.classList.contains('select')||th.classList.contains('actions')||th.classList.contains('actions-col'))return
+    if(th.querySelector('input[type="checkbox"]'))return
+
+    const existingButtons=th.querySelector('.portal-auto-sort-buttons')
+    if(th.dataset.portalSort==='ready'&&existingButtons)return
+    if(th.dataset.portalSort==='ready'&&!existingButtons)delete th.dataset.portalSort
+
+    const nativeSort=th.querySelector('.crm-sort-header:not(.portal-auto-sort-header)')
+    if(nativeSort)return
+
     const label=(th.textContent??'').trim()
     if(!label||/^ações$/i.test(label)||/^selecionar$/i.test(label))return
+
     th.dataset.portalSort='ready'
     th.textContent=''
     const wrap=document.createElement('div')
@@ -65,6 +74,7 @@ function decorateTable(table:HTMLTableElement){
       button.setAttribute('aria-label',`${label}: ordem ${direction==='asc'?'crescente':'decrescente'}`)
       button.setAttribute('aria-pressed','false')
       button.addEventListener('click',event=>{
+        event.preventDefault()
         event.stopPropagation()
         const next={column:index,direction}
         states.set(table,next)
@@ -87,10 +97,15 @@ function scan(){
 
 export function installRhMarketingTableSorting(){
   if(typeof document==='undefined')return
+  const rescan=()=>requestAnimationFrame(scan)
   scan()
-  requestAnimationFrame(scan)
+  rescan()
   setTimeout(scan,50)
   setTimeout(scan,250)
-  const observer=new MutationObserver(()=>scan())
-  observer.observe(document.documentElement,{childList:true,subtree:true})
+  setTimeout(scan,750)
+  setTimeout(scan,1500)
+  window.addEventListener('hashchange',rescan)
+  window.addEventListener('popstate',rescan)
+  const observer=new MutationObserver(()=>rescan())
+  observer.observe(document.documentElement,{childList:true,subtree:true,characterData:true})
 }

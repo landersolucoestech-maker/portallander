@@ -30,12 +30,21 @@ const defaultConfig=(d:Definition):SectionConfig=>({active:true,title:d.defaultT
 const key=(s:SectionKey)=>`portal-lander:cms:section-config:${s}:v4`
 function load(section:SectionKey,d:Definition){try{const raw=localStorage.getItem(key(section));return raw?{...defaultConfig(d),...JSON.parse(raw)}:defaultConfig(d)}catch{return defaultConfig(d)}}
 
+function getPreviewItems(section:SectionKey):PreviewItem[]{
+  if(section==='grid')return homeReadModel.featuredStories.slice(0,3).map(item=>({title:item.title,image:item.image,category:item.category}))
+  if(section==='secondary'||section==='trending')return homeReadModel.latestStories.slice(0,4).map(item=>({title:item.title,image:item.image,category:item.category}))
+  if(section==='videos')return homeReadModel.releases.slice(0,4).map(item=>({title:item.title,image:item.image}))
+  if(section==='agenda')return homeReadModel.agenda.slice(0,6).map(item=>({title:item.title,place:item.place}))
+  if(section==='ranking')return homeReadModel.mostRead.slice(0,5).map(title=>({title}))
+  return []
+}
+
 export function HomeSectionManagerPage({section}:{section:SectionKey}){
   const d=defs[section]
   const [config,setConfig]=useState<SectionConfig>(()=>load(section,d))
   const [saved,setSaved]=useState(false)
   const patch=(p:Partial<SectionConfig>)=>{setConfig(c=>({...c,...p}));setSaved(false)}
-  const previewItems=useMemo<PreviewItem[]>(()=>section==='grid'?homeReadModel.featuredStories.slice(0,3):section==='secondary'?homeReadModel.latestStories.slice(0,4):section==='videos'?homeReadModel.releases.slice(0,4):section==='agenda'?homeReadModel.agenda.slice(0,6):section==='ranking'?homeReadModel.mostRead.slice(0,5):section==='trending'?homeReadModel.latestStories.slice(0,4):[],[section])
+  const previewItems=useMemo<PreviewItem[]>(()=>getPreviewItems(section),[section])
   const save=()=>{localStorage.setItem(key(section),JSON.stringify(config));setSaved(true)}
   const widthValue=config.width<=100?1200:config.width
 

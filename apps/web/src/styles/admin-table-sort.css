@@ -1,0 +1,5 @@
+.crm-sort-header{display:inline-flex;align-items:center;gap:4px}
+.crm-sort-header>[role="group"]{display:inline-flex!important;align-items:center!important;gap:0!important}
+.crm-sort-header>[role="group"]>button,.contracts-sort-button{width:14px!important;height:20px!important;padding:0!important;border:0!important;background:transparent!important;color:#aaa!important;font-size:13px!important;font-weight:700!important;line-height:1!important;cursor:pointer!important;opacity:.55!important;border-radius:0!important;box-shadow:none!important}
+.crm-sort-header>[role="group"]>button[aria-pressed="true"],.contracts-sort-button.active{color:#111!important;font-weight:900!important;opacity:1!important}
+.crm-sort-header>[role="group"]>button:focus-visible,.contracts-sort-button:focus-visible{outline:2px solid #111!important;outline-offset:1px!important}

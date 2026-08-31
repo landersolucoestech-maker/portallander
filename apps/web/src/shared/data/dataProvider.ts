@@ -4,6 +4,7 @@ import type {FinanceCategory,FinanceInvoice,FinanceRule,FinanceTransaction} from
 import type {AgendaEvent,AgendaLocation,AgendaParticipant} from '../../features/agenda/domain'
 import type {ChatSeed} from '../../features/chat/domain'
 import type {RhSeed} from '../../features/rh/domain'
+import type {MarketingSeed} from '../../features/marketing/domain'
 import type {EditorialContent,EditorialPage} from '../../features/editorial/model'
 import type {HomeAgendaItem,HomeRelease,HomeStory} from '../../pages/home/models/homeReadModel'
 import type {HeroArticleSource,HeroCarouselConfig,HeroSlide} from '../../pages/home/models/heroModel'
@@ -11,7 +12,7 @@ import type {HomeAdConfig} from '../../pages/home/models/adModel'
 import type {NewsAdConfig} from '../../pages/noticias/models/newsAdModel'
 import type {AgendaItem,AdvertisingCampaign,AdvertisingFormat,AppNotification,AppUser,BrandingConfig,CollaborationTypeOption,DashboardOperationalSnapshot,DataScenario,DataScenarioName,SocialChannel,WorkspaceDescriptor} from './contracts'
 
-export type DataDomain='identity'|'notifications'|'crm'|'contracts'|'finance'|'editorial'|'home'|'agenda'|'chat'|'rh'|'advertising'|'branding'|'collaboration'|'dashboard'
+export type DataDomain='identity'|'notifications'|'crm'|'contracts'|'finance'|'editorial'|'home'|'agenda'|'chat'|'rh'|'marketing'|'advertising'|'branding'|'collaboration'|'dashboard'
 export type EditorialMediaItem={id:string;type:string;name:string;url:string;size:number;createdAt:string}
 
 export interface ApplicationDataProvider{
@@ -28,6 +29,7 @@ export interface ApplicationDataProvider{
  agenda:{items():AgendaItem[];events():AgendaEvent[];participants():AgendaParticipant[];locations():AgendaLocation[]}
  chat:{seed():ChatSeed}
  rh:{seed():RhSeed}
+ marketing:{seed():MarketingSeed}
  advertising:{campaigns():AdvertisingCampaign[];formats():AdvertisingFormat[];defaultHomeAdConfig():HomeAdConfig;defaultNewsAdConfig():NewsAdConfig}
  branding:{config():BrandingConfig;socialChannels():SocialChannel[]}
  collaboration:{types():CollaborationTypeOption[];guidelines():ReadonlyArray<{id:string;order:number;title:string}>}

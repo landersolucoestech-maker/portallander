@@ -8,6 +8,7 @@ export const CRM_WORKSPACE_NAV:readonly AdminNavItem[]=[
  ['Agenda',CalendarDays,'/app/agenda'],
  ['Chat',MessageCircle,'/app/chat'],
  ['RH',UsersRound,'/app/rh'],
+ ['Marketing',Megaphone,'/app/marketing'],
  {label:'Financeiro',icon:Landmark,to:'/app/finance',children:[
   ['Transações',Landmark,'/app/finance'],
   ['Notas Fiscais',ReceiptText,'/app/finance/invoices'],

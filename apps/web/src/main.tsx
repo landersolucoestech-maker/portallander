@@ -8,12 +8,14 @@ import {prepareMockSeedStorage} from './shared/data/mockSeedLifecycle'
 import {setRuntimeDataProvider} from './shared/data/runtimeDataProvider'
 import {scenarioController} from './shared/data/scenarioController'
 import {purgeRemovedModuleStorage} from './shared/internal/legacyStorageCleanup'
+import {installRhMarketingTableSorting} from './shared/internal/tableSortEnhancer'
 import './styles/public-styles.css'
 
 setRuntimeDataProvider(mockDataProvider)
 scenarioController.bootstrapFromLocation()
 prepareMockSeedStorage()
 purgeRemovedModuleStorage()
+installRhMarketingTableSorting()
 
 const queryClient=new QueryClient()
 

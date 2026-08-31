@@ -6,16 +6,12 @@
 .editorial-hero>.hero-noise{display:none!important}
 .editorial-hero-grid{position:relative!important;z-index:2!important}
 .editorial-hero-content{position:relative!important;z-index:7!important}
-.editorial-hero-media{position:relative!important;z-index:3!important;background:transparent!important;overflow:visible!important}
+.editorial-hero-media{position:relative!important;z-index:3!important;background:transparent!important;overflow:hidden!important}
 .editorial-hero-media:before,.editorial-hero-media:after{display:none!important;content:none!important}
 .editorial-brand-symbol,.editorial-brand-graphic{display:none!important}
 
-/*
- * Do not hardcode left/top/width/scale here. Those values come from the
- * single Hero configuration and are resolved per breakpoint by HeroSection.
- * Keeping only structural rules prevents Desktop CSS from overriding Tablet/Mobile.
- */
-.editorial-featured-image{display:block!important;opacity:1!important;visibility:visible!important;position:absolute!important;z-index:5!important;left:var(--hero-image-x,50%);top:var(--hero-image-y,15%);width:min(690px,var(--hero-media-width,75%));height:auto;max-width:none;max-height:none;object-fit:contain;object-position:var(--hero-image-x,50%) var(--hero-image-y,15%);transform:translate(calc(-50% + var(--hero-image-offset-x,0px)),var(--hero-image-offset-y,0px)) scale(var(--hero-image-scale,1));transform-origin:center top;filter:drop-shadow(0 14px 34px rgba(0,0,0,.78))!important;user-select:none;pointer-events:none}
+/* Structural media rules only. Geometry comes from the single Hero configuration. */
+.editorial-featured-image{display:block!important;opacity:1!important;visibility:visible!important;position:absolute!important;z-index:5!important;left:var(--hero-image-x,50%)!important;top:auto!important;bottom:0!important;width:min(var(--hero-media-width,75%),100%)!important;height:100%!important;max-width:100%!important;max-height:100%!important;object-fit:contain!important;object-position:var(--hero-image-x,50%) var(--hero-image-y,100%)!important;transform:translate(calc(-50% + var(--hero-image-offset-x,0px)),var(--hero-image-offset-y,0px)) scale(var(--hero-image-scale,1))!important;transform-origin:center bottom!important;filter:drop-shadow(0 14px 34px rgba(0,0,0,.78))!important;user-select:none;pointer-events:none}
 .editorial-media-caption{position:absolute!important;z-index:6!important;right:4%!important;bottom:38%!important;color:#f5f5f5!important;text-shadow:0 2px 10px #000}
 
 @media(max-width:900px){.editorial-hero-background{background-position:68% center!important}}

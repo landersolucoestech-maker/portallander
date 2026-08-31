@@ -2,13 +2,17 @@ import {expect,test,type Page} from '@playwright/test'
 
 const base='http://127.0.0.1:4173/portallander/'
 const internalRoutes=[
- '/app/dashboard','/app/crm','/app/contracts','/app/agenda','/app/chat','/app/rh',
+ '/app/profile','/app/dashboard','/app/crm','/app/contracts','/app/agenda','/app/chat','/app/chat/settings','/app/rh',
  '/app/marketing','/app/marketing/campanhas','/app/marketing/calendario','/app/marketing/tarefas',
  '/app/marketing/metricas','/app/marketing/briefings','/app/marketing/ia-criativa',
- '/app/reports','/app/settings','/app/finance','/app/finance/invoices','/app/finance/accounting','/app/site'
+ '/app/reports','/app/settings','/app/finance','/app/finance/invoices','/app/finance/accounting','/app/finance/rules','/app/finance/categories',
+ '/app/site','/app/site/home','/app/site/home/hero','/app/site/home/anuncio','/app/site/marca','/app/site/cabecalho',
+ '/app/site/conteudos','/app/site/paginas','/app/site/categorias','/app/site/midia','/app/site/noticias/anuncio','/app/site/midia-kit'
 ]
+const accessRoutes=['/app/login','/app/workspaces']
 const publicRoutes=['/','/noticias','/colabore','/anuncie']
 const viewports=[
+ {name:'desktop-large',width:1680,height:1050},
  {name:'desktop',width:1440,height:900},
  {name:'notebook',width:1280,height:800},
  {name:'tablet',width:834,height:1112},
@@ -46,6 +50,14 @@ for(const viewport of viewports){
          await expect(page.locator('.workspace-primary-action').first()).toBeVisible()
        }
        await page.screenshot({path:`test-results/visual/${viewport.name}-${safeName(route)}.png`,fullPage:true})
+     })
+   }
+   for(const route of accessRoutes){
+     test(`access ${route}`,async({page})=>{
+       await page.goto(`${base}#${route}`,{waitUntil:'networkidle'})
+       await assertViewportIntegrity(page,false)
+       await expect(page.locator('.access-page,.workspace-selection-page').first()).toBeVisible()
+       await page.screenshot({path:`test-results/visual/${viewport.name}-access-${safeName(route)}.png`,fullPage:true})
      })
    }
    for(const route of publicRoutes){

@@ -1,103 +1,52 @@
-import { ArrowLeft, Save } from 'lucide-react'
-import { useMemo, useState, type CSSProperties } from 'react'
+import { ArrowLeft, RotateCcw, Save } from 'lucide-react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { HeroEditor } from '../../../pages/home/components/HeroEditor'
 import { HeroSection } from '../../../pages/home/components/HeroSection'
-import { readHeroConfig, type HeroCarouselConfig } from '../../../pages/home/models/heroModel'
+import { defaultHeroAppearance, readHeroAppearance, resetHeroAppearance, writeHeroAppearance, type HeroAppearanceConfig } from '../../../pages/home/models/heroAppearanceModel'
+import { readHeroConfig } from '../../../pages/home/models/heroModel'
 import { SITE_MANAGER_NAV } from '../../../shared/internal/adminNavigation'
 import { AdminShell } from '../../../shared/internal/AdminUi'
 import '../../../styles/home-section-manager.css'
 
-type HeroSectionConfig={
-  active:boolean
-  width:number
-  height:number
-  paddingX:number
-  paddingY:number
-  radius:number
-  background:string
-  textColor:string
-  titleColor:string
-  accentColor:string
-  borderColor:string
-}
-type ColorField='background'|'textColor'|'titleColor'|'accentColor'|'borderColor'
-
-const STORAGE_KEY='portal-lander:cms:section-config:hero:v4'
-const DEFAULTS:HeroSectionConfig={active:true,width:100,height:560,paddingX:0,paddingY:0,radius:0,background:'#090909',textColor:'#ffffff',titleColor:'#ffffff',accentColor:'#ff151f',borderColor:'#090909'}
-
-function loadConfig():HeroSectionConfig{
-  try{
-    const raw=localStorage.getItem(STORAGE_KEY)
-    return raw?{...DEFAULTS,...JSON.parse(raw)}:DEFAULTS
-  }catch{return DEFAULTS}
-}
-
-function withoutTicker(config:HeroCarouselConfig):HeroCarouselConfig{
-  return {...config,ticker:{...config.ticker,active:false}}
-}
+type ColorField='background'|'textColor'|'titleColor'|'accentColor'|'borderColor'|'eyebrowColor'
 
 export function HeroSectionAppearancePage(){
-  const [config,setConfig]=useState<HeroSectionConfig>(loadConfig)
+  const [appearance,setAppearance]=useState<HeroAppearanceConfig>(()=>readHeroAppearance())
   const [saved,setSaved]=useState(false)
-  const liveHero=useMemo(()=>withoutTicker(readHeroConfig()),[])
-  const slide=liveHero.slides[0]
-  const currentTitle=slide?.title.map(item=>item.text).join(' ')||''
-  const patch=(next:Partial<HeroSectionConfig>)=>{setConfig(current=>({...current,...next}));setSaved(false)}
-  const setColor=(field:ColorField,value:string)=>patch({[field]:value} as Partial<HeroSectionConfig>)
-  const save=()=>{localStorage.setItem(STORAGE_KEY,JSON.stringify(config));setSaved(true)}
-  const widthValue=config.width<=100?1200:config.width
-  const previewStyle={
-    maxWidth:config.width<=100?'100%':config.width,
-    height:config.height,
-    borderRadius:config.radius,
-    borderColor:config.borderColor,
-    background:config.background,
-    padding:`${config.paddingY}px ${config.paddingX}px`,
-    '--section-preview-bg':config.background,
-    '--section-preview-text':config.textColor,
-    '--section-preview-title':config.titleColor,
-    '--section-preview-accent':config.accentColor,
-  } as CSSProperties
+  const patch=(next:Partial<HeroAppearanceConfig>)=>{setAppearance(current=>({...current,...next}));setSaved(false)}
+  const setColor=(field:ColorField,value:string)=>patch({[field]:value} as Partial<HeroAppearanceConfig>)
+  const save=()=>{writeHeroAppearance(appearance);setSaved(true)}
+  const reset=()=>{resetHeroAppearance();setAppearance({...defaultHeroAppearance});setSaved(false)}
+  const widthValue=appearance.width<=100?1200:appearance.width
 
-  return <AdminShell area="cms" items={SITE_MANAGER_NAV} header={{title:'Configurar seção: Hero principal',description:'Ajuste somente a aparência e as dimensões. A prévia usa exatamente o Hero que está publicado hoje na Home.'}}>
-    <div className="section-editor-toolbar">
-      <div><Link to="/app/site/secoes"><ArrowLeft size={14}/> Seções das Páginas</Link><span className="section-editor-status"><input type="checkbox" checked={config.active} onChange={event=>patch({active:event.target.checked})}/> {config.active?'Ativo':'Inativo'}</span></div>
-      <div><Link className="button outline" to="/app/site/secoes">Cancelar</Link><button className="button dark" onClick={save}><Save size={15}/> Salvar alterações</button></div>
-    </div>
-    {saved&&<div className="home-section-manager-success">Configuração visual do Hero salva.</div>}
+  return <AdminShell area="cms" items={SITE_MANAGER_NAV} header={{title:'Configurar seção: Hero Editorial',description:'Conteúdo, slides, imagem, CTAs, comportamento e aparência são administráveis pelo CMS. A Home apenas renderiza a configuração salva.'}}>
+    <div className="section-editor-toolbar"><div><Link to="/app/site/secoes"><ArrowLeft size={14}/> Seções das Páginas</Link><span className="section-editor-status"><input type="checkbox" checked={appearance.active} onChange={event=>patch({active:event.target.checked})}/> {appearance.active?'Ativo':'Inativo'}</span></div><div><button className="button outline" onClick={reset}><RotateCcw size={15}/> Restaurar aparência</button><button className="button dark" onClick={save}><Save size={15}/> Salvar aparência</button></div></div>
+    {saved&&<div className="home-section-manager-success">Aparência do Hero salva e aplicada ao componente usado pela Home.</div>}
 
     <div className="section-editor-layout">
       <section className="section-editor-card">
-        <h2>Conteúdo atual da Home</h2>
-        <div className="section-current-content">
-          <span><b>Chamada</b>{slide?.eyebrow||'—'}</span>
-          <span><b>Título</b>{currentTitle||'—'}</span>
-          <span><b>Descrição</b>{slide?.description||'—'}</span>
-          <span><b>Imagem</b>{slide?.imageAlt||'Imagem atual do Hero'}</span>
-        </div>
-        <small>Esses dados vêm do Hero real consumido pela página pública. O conteúdo editorial não é duplicado neste módulo.</small>
+        <h2>Aparência, dimensões e alinhamento</h2>
+        <div className="section-editor-slider"><span>Largura</span><input type="range" min="220" max="1600" value={widthValue} onChange={event=>patch({width:Number(event.target.value)})}/><b>{appearance.width<=100?'Auto':`${appearance.width}px`}</b></div>
+        <div className="section-editor-slider"><span>Altura</span><input type="range" min="300" max="1000" value={appearance.height} onChange={event=>patch({height:Number(event.target.value)})}/><b>{appearance.height}px</b></div>
+        <div className="section-editor-slider"><span>Padding horizontal</span><input type="range" min="0" max="120" value={appearance.paddingX} onChange={event=>patch({paddingX:Number(event.target.value)})}/><b>{appearance.paddingX}px</b></div>
+        <div className="section-editor-slider"><span>Padding vertical</span><input type="range" min="0" max="120" value={appearance.paddingY} onChange={event=>patch({paddingY:Number(event.target.value)})}/><b>{appearance.paddingY}px</b></div>
+        <div className="section-editor-slider"><span>Arredondamento</span><input type="range" min="0" max="48" value={appearance.radius} onChange={event=>patch({radius:Number(event.target.value)})}/><b>{appearance.radius}px</b></div>
+        <div className="section-editor-two"><label>Alinhamento horizontal<select value={appearance.contentAlign} onChange={event=>patch({contentAlign:event.target.value as HeroAppearanceConfig['contentAlign']})}><option value="left">Esquerda</option><option value="center">Centro</option><option value="right">Direita</option></select></label><label>Alinhamento vertical<select value={appearance.verticalAlign} onChange={event=>patch({verticalAlign:event.target.value as HeroAppearanceConfig['verticalAlign']})}><option value="start">Topo</option><option value="center">Centro</option><option value="end">Base</option></select></label></div>
 
-        <h2>Aparência e dimensões</h2>
-        <div className="section-editor-slider"><span>Largura</span><input type="range" min="220" max="1600" value={widthValue} onChange={event=>patch({width:Number(event.target.value)})}/><b>{config.width<=100?'Auto':`${config.width}px`}</b></div>
-        <div className="section-editor-slider"><span>Altura</span><input type="range" min="300" max="900" value={config.height} onChange={event=>patch({height:Number(event.target.value)})}/><b>{config.height}px</b></div>
-        <div className="section-editor-slider"><span>Padding horizontal</span><input type="range" min="0" max="80" value={config.paddingX} onChange={event=>patch({paddingX:Number(event.target.value)})}/><b>{config.paddingX}px</b></div>
-        <div className="section-editor-slider"><span>Padding vertical</span><input type="range" min="0" max="80" value={config.paddingY} onChange={event=>patch({paddingY:Number(event.target.value)})}/><b>{config.paddingY}px</b></div>
-        <div className="section-editor-slider"><span>Arredondamento</span><input type="range" min="0" max="32" value={config.radius} onChange={event=>patch({radius:Number(event.target.value)})}/><b>{config.radius}px</b></div>
+        <h2>Cores</h2>
+        <div className="section-editor-colors">{([['background','Background'],['titleColor','Cor padrão do headline'],['textColor','Cor do texto'],['accentColor','Cor de destaque / CTA'],['borderColor','Cor da borda'],['eyebrowColor','Cor do eyebrow']] as const).map(([field,label])=><label key={field}>{label}<span><input type="color" value={appearance[field]} onChange={event=>setColor(field,event.target.value)}/><input value={appearance[field]} onChange={event=>setColor(field,event.target.value)}/></span></label>)}</div>
 
-        <div className="section-editor-colors">
-          {([['background','Cor de fundo'],['titleColor','Cor do título'],['textColor','Cor do texto'],['accentColor','Cor de destaque'],['borderColor','Cor da borda']] as const).map(([field,label])=><label key={field}>{label}<span><input type="color" value={config[field]} onChange={event=>setColor(field,event.target.value)}/><input value={config[field]} onChange={event=>setColor(field,event.target.value)}/></span></label>)}
-        </div>
+        <h2>Tipografia global</h2>
+        <div className="section-editor-slider"><span>Eyebrow</span><input type="range" min="9" max="28" value={appearance.eyebrowSize} onChange={event=>patch({eyebrowSize:Number(event.target.value)})}/><b>{appearance.eyebrowSize}px</b></div>
+        <div className="section-editor-slider"><span>Descrição</span><input type="range" min="11" max="32" value={appearance.descriptionSize} onChange={event=>patch({descriptionSize:Number(event.target.value)})}/><b>{appearance.descriptionSize}px</b></div>
+        <div className="section-editor-slider"><span>CTAs</span><input type="range" min="10" max="24" value={appearance.ctaSize} onChange={event=>patch({ctaSize:Number(event.target.value)})}/><b>{appearance.ctaSize}px</b></div>
+        <div className="section-editor-two"><label>Peso eyebrow<select value={appearance.eyebrowWeight} onChange={event=>patch({eyebrowWeight:Number(event.target.value)})}><option value="400">400</option><option value="600">600</option><option value="700">700</option><option value="800">800</option><option value="900">900</option></select></label><label>Peso descrição<select value={appearance.descriptionWeight} onChange={event=>patch({descriptionWeight:Number(event.target.value)})}><option value="300">300</option><option value="400">400</option><option value="500">500</option><option value="600">600</option><option value="700">700</option></select></label><label>Peso CTAs<select value={appearance.ctaWeight} onChange={event=>patch({ctaWeight:Number(event.target.value)})}><option value="500">500</option><option value="600">600</option><option value="700">700</option><option value="800">800</option><option value="900">900</option></select></label></div>
       </section>
 
-      <section className="section-editor-preview-column">
-        <div className="section-editor-card">
-          <h2>Prévia real da seção</h2>
-          <div className="section-real-preview-frame" style={previewStyle}>
-            <div className="section-real-preview-content"><HeroSection config={liveHero} disableAutoplay/></div>
-          </div>
-        </div>
-        <div className="section-editor-card section-details"><h2>Detalhes da seção</h2><dl><dt>Identificador</dt><dd>home_hero_principal</dd><dt>Origem da prévia</dt><dd>Mesmo Hero usado pela Home pública neste navegador</dd><dt>Posição na página</dt><dd>Primeiro bloco da página</dd><dt>Conteúdo</dt><dd>Administrado fora deste módulo</dd></dl></div>
-      </section>
+      <section className="section-editor-preview-column"><div className="section-editor-card"><h2>Prévia real da seção</h2><div className="section-real-preview-frame" style={{height:appearance.height,borderRadius:appearance.radius,borderColor:appearance.borderColor,background:appearance.background}}><div className="section-real-preview-content"><HeroSection config={readHeroConfig()} appearance={appearance} disableAutoplay/></div></div></div><div className="section-editor-card section-details"><h2>Regra desta seção</h2><dl><dt>Identificador</dt><dd>home_hero_principal</dd><dt>Fonte</dt><dd>Configuração salva pelo CMS</dd><dt>Frontend</dt><dd>Interpreta conteúdo e aparência; não fixa valores editoriais atuais</dd><dt>Posição</dt><dd>Primeiro bloco da Home; estrutura visual preservada</dd></dl></div></section>
     </div>
+
+    <div className="hero-section-full-editor"><HeroEditor/></div>
   </AdminShell>
 }

@@ -1,5 +1,11 @@
 import { heroPersistence } from './heroPersistence'
 import { getRuntimeDataProvider } from '../../../shared/data/runtimeDataProvider'
+import type { HeroBreakpoint } from './heroAppearanceModel'
+
+export type HeroTitleSegmentVisual = {
+  fontSize?: number
+  fontWeight?: number
+}
 
 export type HeroTitleSegment = {
   text: string
@@ -8,6 +14,10 @@ export type HeroTitleSegment = {
   visible?: boolean
   fontSize?: number
   fontWeight?: number
+  responsive?: {
+    tablet?: HeroTitleSegmentVisual
+    mobile?: HeroTitleSegmentVisual
+  }
 }
 
 export type HeroTicker = {
@@ -23,6 +33,14 @@ export type HeroTicker = {
   textColor?: string
   tagBackground?: string
   tagTextColor?: string
+}
+
+export type HeroSlideResponsiveVisual = {
+  imagePositionX?: number
+  imagePositionY?: number
+  imageScale?: number
+  imageOffsetX?: number
+  imageOffsetY?: number
 }
 
 export type HeroSlideStatus = 'active' | 'inactive'
@@ -59,6 +77,10 @@ export type HeroSlide = {
   imageScale: number
   imageOffsetX: number
   imageOffsetY: number
+  responsive?: {
+    tablet?: HeroSlideResponsiveVisual
+    mobile?: HeroSlideResponsiveVisual
+  }
   primaryCtaLabel: string
   primaryCtaUrl: string
   secondaryCtaLabel: string
@@ -127,7 +149,7 @@ function normalizeSlide(raw: Partial<HeroSlide> | null | undefined, index = 0): 
     id: index === 0 ? defaultHeroSlide.id : `hero-slide-${Date.now()}-${index}`,
     order: index + 1,
   }
-  if (!raw) return { ...base, ctas: normalizeCtas(base.ctas, base) }
+  if (!raw) return { ...base, ctas: normalizeCtas(base.ctas, base), responsive: {} }
 
   const merged: HeroSlide = {
     ...base,
@@ -138,6 +160,10 @@ function normalizeSlide(raw: Partial<HeroSlide> | null | undefined, index = 0): 
     descriptionVisible: raw.descriptionVisible !== false,
     mediaCaptionVisible: raw.mediaCaptionVisible !== false,
     imageVisible: raw.imageVisible !== false,
+    responsive: {
+      tablet: { ...(raw.responsive?.tablet || {}) },
+      mobile: { ...(raw.responsive?.mobile || {}) },
+    },
     title: Array.isArray(raw.title) && raw.title.length
       ? raw.title.map(segment => ({
           text: String(segment?.text ?? ''),
@@ -146,8 +172,12 @@ function normalizeSlide(raw: Partial<HeroSlide> | null | undefined, index = 0): 
           visible: segment?.visible !== false,
           fontSize: segment?.fontSize,
           fontWeight: segment?.fontWeight,
+          responsive: {
+            tablet: { ...(segment?.responsive?.tablet || {}) },
+            mobile: { ...(segment?.responsive?.mobile || {}) },
+          },
         }))
-      : base.title.map(segment => ({ ...segment, visible: segment.visible !== false })),
+      : base.title.map(segment => ({ ...segment, visible: segment.visible !== false, responsive: { tablet: {}, mobile: {} } })),
   }
 
   return { ...merged, ctas: normalizeCtas(raw.ctas, merged) }
@@ -235,6 +265,53 @@ export function getRenderableHeroSlides(config = readHeroConfig()): HeroSlide[] 
     return !when || new Date(when).getTime() <= now
   }).sort((a, b) => a.order - b.order)
   return active.length ? active : [normalizeSlide(structuredClone(defaultHeroSlide))]
+}
+
+export function getAutomaticTitleSegmentVisual(segment: HeroTitleSegment, breakpoint: HeroBreakpoint): HeroTitleSegmentVisual {
+  if (breakpoint === 'desktop') return { fontSize: segment.fontSize, fontWeight: segment.fontWeight }
+  const factor = breakpoint === 'tablet' ? .78 : .55
+  return {
+    fontSize: segment.fontSize ? Math.max(28, Math.round(segment.fontSize * factor)) : undefined,
+    fontWeight: segment.fontWeight,
+  }
+}
+
+export function resolveTitleSegmentVisual(segment: HeroTitleSegment, breakpoint: HeroBreakpoint): HeroTitleSegmentVisual {
+  const automatic = getAutomaticTitleSegmentVisual(segment, breakpoint)
+  if (breakpoint === 'desktop') return automatic
+  return { ...automatic, ...(segment.responsive?.[breakpoint] || {}) }
+}
+
+export function resolveSlideVisual(slide: HeroSlide, breakpoint: HeroBreakpoint): Required<HeroSlideResponsiveVisual> {
+  const base = {
+    imagePositionX: slide.imagePositionX,
+    imagePositionY: slide.imagePositionY,
+    imageScale: slide.imageScale,
+    imageOffsetX: slide.imageOffsetX,
+    imageOffsetY: slide.imageOffsetY,
+  }
+  if (breakpoint === 'desktop') return base
+  const automatic = breakpoint === 'tablet'
+    ? { ...base, imagePositionX: Math.min(100, Math.max(0, base.imagePositionX + 5)), imageScale: Math.max(.4, base.imageScale * .9), imageOffsetX: base.imageOffsetX * .55, imageOffsetY: base.imageOffsetY * .65 }
+    : { ...base, imagePositionX: Math.min(100, Math.max(0, base.imagePositionX + 8)), imagePositionY: Math.min(100, Math.max(0, base.imagePositionY + 3)), imageScale: Math.max(.4, base.imageScale * .78), imageOffsetX: base.imageOffsetX * .28, imageOffsetY: base.imageOffsetY * .42 }
+  return { ...automatic, ...(slide.responsive?.[breakpoint] || {}) }
+}
+
+export function hasSlideVisualOverride(slide: HeroSlide, breakpoint: HeroBreakpoint, key?: keyof HeroSlideResponsiveVisual) {
+  if (breakpoint === 'desktop') return false
+  const values = slide.responsive?.[breakpoint]
+  if (!values) return false
+  return key ? values[key] !== undefined : Object.keys(values).length > 0
+}
+
+export function setSlideVisualOverride<K extends keyof HeroSlideResponsiveVisual>(slide: HeroSlide, breakpoint: HeroBreakpoint, key: K, value: HeroSlideResponsiveVisual[K]): HeroSlide {
+  if (breakpoint === 'desktop') return { ...slide, [key]: value }
+  return { ...slide, responsive: { ...(slide.responsive || {}), [breakpoint]: { ...(slide.responsive?.[breakpoint] || {}), [key]: value } } }
+}
+
+export function clearSlideVisualOverrides(slide: HeroSlide, breakpoint: HeroBreakpoint): HeroSlide {
+  if (breakpoint === 'desktop') return slide
+  return { ...slide, responsive: { ...(slide.responsive || {}), [breakpoint]: {} } }
 }
 
 export function applyArticleToSlide(slide: HeroSlide, article: HeroArticleSource): HeroSlide {

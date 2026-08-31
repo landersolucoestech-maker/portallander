@@ -17,6 +17,7 @@ export type HeroResponsiveAppearance = {
   titleMaxWidth: number
   descriptionMaxWidth: number
   contentGap: number
+  contentMediaGap: number
   ctaGap: number
   ctaHeight: number
   ctaPaddingX: number
@@ -34,6 +35,8 @@ export type HeroResponsiveOverrides = {
 export type HeroAppearanceConfig = HeroResponsiveAppearance & {
   active: boolean
   width: number
+  imageMaxWidth: number
+  imageMaxHeight: number
   background: string
   textColor: string
   titleColor: string
@@ -53,6 +56,8 @@ export const defaultHeroAppearance: HeroAppearanceConfig = {
   paddingX: 0,
   paddingY: 0,
   radius: 0,
+  imageMaxWidth: 3000,
+  imageMaxHeight: 3000,
   background: '#090909',
   textColor: '#ffffff',
   titleColor: '#ffffff',
@@ -71,6 +76,7 @@ export const defaultHeroAppearance: HeroAppearanceConfig = {
   titleMaxWidth: 630,
   descriptionMaxWidth: 570,
   contentGap: 18,
+  contentMediaGap: 32,
   ctaGap: 14,
   ctaHeight: 52,
   ctaPaddingX: 22,
@@ -84,12 +90,17 @@ export const defaultHeroAppearance: HeroAppearanceConfig = {
 const responsiveKeys: (keyof HeroResponsiveAppearance)[] = [
   'height', 'paddingX', 'paddingY', 'radius', 'contentAlign', 'verticalAlign',
   'eyebrowSize', 'eyebrowWeight', 'descriptionSize', 'descriptionWeight', 'ctaSize', 'ctaWeight',
-  'titleLineHeight', 'titleMaxWidth', 'descriptionMaxWidth', 'contentGap', 'ctaGap', 'ctaHeight',
+  'titleLineHeight', 'titleMaxWidth', 'descriptionMaxWidth', 'contentGap', 'contentMediaGap', 'ctaGap', 'ctaHeight',
   'ctaPaddingX', 'contentPaddingTop', 'contentPaddingBottom', 'mediaWidthPercent', 'mediaMinHeight',
 ]
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value))
+}
+
+function normalizeLimit(value: number | undefined, fallback: number) {
+  if (!Number.isFinite(value)) return fallback
+  return clamp(Math.round(Number(value)), 256, 6000)
 }
 
 function automaticResponsive(base: HeroAppearanceConfig, breakpoint: Exclude<HeroBreakpoint, 'desktop'>): HeroResponsiveAppearance {
@@ -111,13 +122,14 @@ function automaticResponsive(base: HeroAppearanceConfig, breakpoint: Exclude<Her
     titleMaxWidth: tablet ? Math.min(base.titleMaxWidth, 540) : Math.min(base.titleMaxWidth, 360),
     descriptionMaxWidth: tablet ? Math.min(base.descriptionMaxWidth, 520) : Math.min(base.descriptionMaxWidth, 360),
     contentGap: Math.round(base.contentGap * (tablet ? .86 : .72)),
+    contentMediaGap: Math.max(8, Math.round(base.contentMediaGap * (tablet ? .72 : .5))),
     ctaGap: Math.round(base.ctaGap * (tablet ? .86 : .72)),
     ctaHeight: Math.round(base.ctaHeight * (tablet ? .96 : .92)),
     ctaPaddingX: Math.round(base.ctaPaddingX * (tablet ? .9 : .76)),
     contentPaddingTop: Math.round(base.contentPaddingTop * (tablet ? .92 : .8)),
     contentPaddingBottom: Math.round(base.contentPaddingBottom * (tablet ? .78 : .58)),
-    mediaWidthPercent: tablet ? Math.min(82, Math.max(base.mediaWidthPercent, 72)) : Math.min(96, Math.max(base.mediaWidthPercent, 86)),
-    mediaMinHeight: tablet ? Math.max(360, Math.round(base.mediaMinHeight * .72)) : Math.max(290, Math.round(base.mediaMinHeight * .56)),
+    mediaWidthPercent: tablet ? Math.min(88, Math.max(base.mediaWidthPercent, 76)) : Math.min(100, Math.max(base.mediaWidthPercent, 90)),
+    mediaMinHeight: tablet ? Math.max(360, Math.round(base.mediaMinHeight * .72)) : Math.max(300, Math.round(base.mediaMinHeight * .58)),
   }
 }
 
@@ -158,6 +170,8 @@ function normalizeAppearance(raw: Partial<HeroAppearanceConfig> | undefined): He
   return {
     ...defaultHeroAppearance,
     ...(raw || {}),
+    imageMaxWidth: normalizeLimit(raw?.imageMaxWidth, defaultHeroAppearance.imageMaxWidth),
+    imageMaxHeight: normalizeLimit(raw?.imageMaxHeight, defaultHeroAppearance.imageMaxHeight),
     responsive: {
       tablet: { ...(raw?.responsive?.tablet || {}) },
       mobile: { ...(raw?.responsive?.mobile || {}) },

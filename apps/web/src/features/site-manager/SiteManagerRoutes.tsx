@@ -4,6 +4,7 @@ import { BrandAssetsManagerPage } from './pages/BrandAssetsManagerPage'
 import { HeaderBrandManagerPage } from './pages/HeaderBrandManagerPage'
 import { HomeAdManagerPage } from './pages/HomeAdManagerPage'
 import { HomeManagerPage } from './pages/HomeManagerPage'
+import { HomeSectionManagerPage } from './pages/HomeSectionManagerPage'
 import { MediaKitPage } from './pages/MediaKitPage'
 import { NewsAdManagerPage } from './pages/NewsAdManagerPage'
 import { SiteCategoriesPage } from './pages/SiteCategoriesPage'
@@ -17,6 +18,17 @@ export default function SiteManagerRoutes(){
     <Route index element={<SiteManagerDashboardPage/>}/>
     <Route path="home" element={<HomeManagerPage/>}/>
     <Route path="home/hero" element={<HeroManagerPage/>}/>
+    <Route path="home/barra-agora" element={<HomeSectionManagerPage section="ticker"/>}/>
+    <Route path="home/grid-principal" element={<HomeSectionManagerPage section="grid"/>}/>
+    <Route path="home/ranking" element={<HomeSectionManagerPage section="ranking"/>}/>
+    <Route path="home/publicidade-lateral" element={<HomeSectionManagerPage section="side-ad"/>}/>
+    <Route path="home/destaques" element={<HomeSectionManagerPage section="secondary"/>}/>
+    <Route path="home/em-alta" element={<HomeSectionManagerPage section="trending"/>}/>
+    <Route path="home/banner-horizontal" element={<HomeSectionManagerPage section="banner"/>}/>
+    <Route path="home/videos" element={<HomeSectionManagerPage section="videos"/>}/>
+    <Route path="home/agenda" element={<HomeSectionManagerPage section="agenda"/>}/>
+    <Route path="home/newsletter" element={<HomeSectionManagerPage section="newsletter"/>}/>
+    <Route path="home/footer" element={<HomeSectionManagerPage section="footer"/>}/>
     <Route path="home/anuncio" element={<HomeAdManagerPage/>}/>
     <Route path="marca" element={<BrandAssetsManagerPage/>}/>
     <Route path="cabecalho" element={<HeaderBrandManagerPage/>}/>

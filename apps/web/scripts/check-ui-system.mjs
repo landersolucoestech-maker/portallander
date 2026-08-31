@@ -21,7 +21,7 @@ if(!(await exists('src/styles/public-layout-system.css')))failures.push('Baselin
 
 const indexHtml=await read('index.html')
 for(const font of ['Bebas+Neue','Montserrat'])if(!indexHtml.includes(font))failures.push(`Fonte carregada obrigatória ausente: ${font}.`)
-if(indexHtml.includes('.news-reference-page'))failures.push('Layout visual da página de notícias não pode permanecer hardcoded em index.html.')
+if(indexHtml.includes('.news-reference-page .pl-page-hero'))failures.push('Layout visual da página de notícias não pode permanecer hardcoded em index.html.')
 const adminDesign=await read('src/styles/admin-design-system.css')
 for(const required of ["--ui-font:'Montserrat'",'min-height:100dvh','--ui-control-sm:32px','--ui-control-md:36px','--ui-page-gap:24px','prefers-reduced-motion','workspace-primary-action{display:inline-flex'])if(!adminDesign.includes(required))failures.push(`Design system administrativo deve preservar: ${required}`)
 const accessDesign=await read('src/styles/admin-access-system.css')

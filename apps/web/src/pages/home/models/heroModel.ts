@@ -15,6 +15,14 @@ export type HeroTicker = {
   label: string
   text: string
   url: string
+  tag?: string
+  tagVisible?: boolean
+  external?: boolean
+  showArrow?: boolean
+  background?: string
+  textColor?: string
+  tagBackground?: string
+  tagTextColor?: string
 }
 
 export type HeroSlideStatus = 'active' | 'inactive'
@@ -67,6 +75,7 @@ export type HeroCarouselConfig = {
   ticker: HeroTicker
   slides: HeroSlide[]
   navigation?: HeroNavigation
+  loop?: boolean
 }
 
 export type HeroArticleSource = {
@@ -91,45 +100,25 @@ export const defaultHeroConfig: HeroCarouselConfig = getRuntimeDataProvider().ho
 
 function defaultCtas(slide: HeroSlide): HeroCta[] {
   return [
-    {
-      id: 'primary',
-      active: Boolean(slide.primaryCtaLabel),
-      label: slide.primaryCtaLabel,
-      url: slide.primaryCtaUrl,
-      external: false,
-      order: 1,
-      variant: 'primary',
-    },
-    {
-      id: 'secondary',
-      active: Boolean(slide.secondaryCtaLabel),
-      label: slide.secondaryCtaLabel,
-      url: slide.secondaryCtaUrl,
-      external: false,
-      order: 2,
-      variant: 'secondary',
-    },
+    { id: 'primary', active: Boolean(slide.primaryCtaLabel), label: slide.primaryCtaLabel, url: slide.primaryCtaUrl, external: false, order: 1, variant: 'primary' },
+    { id: 'secondary', active: Boolean(slide.secondaryCtaLabel), label: slide.secondaryCtaLabel, url: slide.secondaryCtaUrl, external: false, order: 2, variant: 'secondary' },
   ]
 }
 
 function normalizeCtas(raw: HeroCta[] | undefined, base: HeroSlide): HeroCta[] {
   const source: HeroCta[] = Array.isArray(raw) && raw.length ? raw : defaultCtas(base)
-
-  return source
-    .map<HeroCta>((cta, index) => {
-      const variant: HeroCtaVariant = cta.variant === 'secondary' ? 'secondary' : 'primary'
-
-      return {
-        id: String(cta.id || `cta-${index + 1}`),
-        active: cta.active !== false,
-        label: String(cta.label || ''),
-        url: String(cta.url || ''),
-        external: Boolean(cta.external),
-        order: Number(cta.order) || index + 1,
-        variant,
-      }
-    })
-    .sort((a, b) => a.order - b.order)
+  return source.map<HeroCta>((cta, index) => {
+    const variant: HeroCtaVariant = cta.variant === 'secondary' ? 'secondary' : 'primary'
+    return {
+      id: String(cta.id || `cta-${index + 1}`),
+      active: cta.active !== false,
+      label: String(cta.label || ''),
+      url: String(cta.url || ''),
+      external: Boolean(cta.external),
+      order: Number(cta.order) || index + 1,
+      variant,
+    }
+  }).sort((a, b) => a.order - b.order)
 }
 
 function normalizeSlide(raw: Partial<HeroSlide> | null | undefined, index = 0): HeroSlide {
@@ -138,7 +127,6 @@ function normalizeSlide(raw: Partial<HeroSlide> | null | undefined, index = 0): 
     id: index === 0 ? defaultHeroSlide.id : `hero-slide-${Date.now()}-${index}`,
     order: index + 1,
   }
-
   if (!raw) return { ...base, ctas: normalizeCtas(base.ctas, base) }
 
   const merged: HeroSlide = {
@@ -150,17 +138,16 @@ function normalizeSlide(raw: Partial<HeroSlide> | null | undefined, index = 0): 
     descriptionVisible: raw.descriptionVisible !== false,
     mediaCaptionVisible: raw.mediaCaptionVisible !== false,
     imageVisible: raw.imageVisible !== false,
-    title:
-      Array.isArray(raw.title) && raw.title.length
-        ? raw.title.map(segment => ({
-            text: String(segment?.text ?? ''),
-            emphasis: Boolean(segment?.emphasis),
-            color: segment?.color,
-            visible: segment?.visible !== false,
-            fontSize: segment?.fontSize,
-            fontWeight: segment?.fontWeight,
-          }))
-        : base.title.map(segment => ({ ...segment, visible: segment.visible !== false })),
+    title: Array.isArray(raw.title) && raw.title.length
+      ? raw.title.map(segment => ({
+          text: String(segment?.text ?? ''),
+          emphasis: Boolean(segment?.emphasis),
+          color: segment?.color,
+          visible: segment?.visible !== false,
+          fontSize: segment?.fontSize,
+          fontWeight: segment?.fontWeight,
+        }))
+      : base.title.map(segment => ({ ...segment, visible: segment.visible !== false })),
   }
 
   return { ...merged, ctas: normalizeCtas(raw.ctas, merged) }
@@ -171,19 +158,39 @@ function normalizeNavigation(value: HeroCarouselConfig['navigation']): HeroNavig
   return 'arrows-dots'
 }
 
+function normalizeTicker(raw: Partial<HeroTicker> | undefined): HeroTicker {
+  const base = defaultHeroConfig.ticker
+  return {
+    ...base,
+    ...(raw || {}),
+    active: raw?.active ?? base.active,
+    label: String(raw?.label ?? base.label ?? 'AGORA'),
+    text: String(raw?.text ?? base.text ?? ''),
+    url: String(raw?.url ?? base.url ?? '/'),
+    tag: String(raw?.tag ?? 'NOVO'),
+    tagVisible: raw?.tagVisible !== false,
+    external: Boolean(raw?.external),
+    showArrow: raw?.showArrow !== false,
+    background: String(raw?.background ?? '#ef0011'),
+    textColor: String(raw?.textColor ?? '#ffffff'),
+    tagBackground: String(raw?.tagBackground ?? '#111111'),
+    tagTextColor: String(raw?.tagTextColor ?? '#ffffff'),
+  }
+}
+
 function normalizeConfig(raw: Partial<HeroCarouselConfig> | null | undefined): HeroCarouselConfig {
   const source = raw ?? defaultHeroConfig
-  const slides =
-    Array.isArray(source.slides) && source.slides.length
-      ? source.slides.map((slide, index) => normalizeSlide(slide, index))
-      : defaultHeroConfig.slides.map((slide, index) => normalizeSlide(slide, index))
+  const slides = Array.isArray(source.slides) && source.slides.length
+    ? source.slides.map((slide, index) => normalizeSlide(slide, index))
+    : defaultHeroConfig.slides.map((slide, index) => normalizeSlide(slide, index))
 
   return {
     ...defaultHeroConfig,
     ...source,
     navigation: normalizeNavigation(source.navigation ?? defaultHeroConfig.navigation),
     intervalMs: Math.max(3000, Number(source.intervalMs) || defaultHeroConfig.intervalMs),
-    ticker: { ...defaultHeroConfig.ticker, ...(source.ticker || {}) },
+    loop: source.loop !== false,
+    ticker: normalizeTicker(source.ticker),
     slides,
   }
 }
@@ -191,7 +198,6 @@ function normalizeConfig(raw: Partial<HeroCarouselConfig> | null | undefined): H
 function legacyToConfig(raw: unknown): HeroCarouselConfig {
   if (!raw || typeof raw !== 'object') return normalizeConfig(defaultHeroConfig)
   const legacy = raw as LegacyHero
-
   return normalizeConfig({
     slides: [normalizeSlide({ ...legacy, order: 1, scheduledAt: '' }, 0)],
     ticker: { ...defaultHeroConfig.ticker, ...(legacy.ticker || {}) },
@@ -202,19 +208,16 @@ export function readHeroConfig(): HeroCarouselConfig {
   try {
     const value = heroPersistence.read(HERO_STORAGE_KEY)
     if (value) return normalizeConfig(JSON.parse(value))
-
     const legacy = heroPersistence.read(LEGACY_HERO_STORAGE_KEY)
     if (legacy) return legacyToConfig(JSON.parse(legacy))
   } catch {
     return normalizeConfig(structuredClone(defaultHeroConfig))
   }
-
   return normalizeConfig(structuredClone(defaultHeroConfig))
 }
 
 export function writeHeroConfig(config: HeroCarouselConfig) {
-  const normalized = normalizeConfig(config)
-  heroPersistence.write(HERO_STORAGE_KEY, JSON.stringify(normalized))
+  heroPersistence.write(HERO_STORAGE_KEY, JSON.stringify(normalizeConfig(config)))
   heroPersistence.notify()
 }
 
@@ -226,14 +229,11 @@ export function resetHeroConfig() {
 
 export function getRenderableHeroSlides(config = readHeroConfig()): HeroSlide[] {
   const now = Date.now()
-  const active = config.slides
-    .filter(slide => {
-      if (slide.status !== 'active') return false
-      const when = slide.scheduledAt || slide.publishedAt
-      return !when || new Date(when).getTime() <= now
-    })
-    .sort((a, b) => a.order - b.order)
-
+  const active = config.slides.filter(slide => {
+    if (slide.status !== 'active') return false
+    const when = slide.scheduledAt || slide.publishedAt
+    return !when || new Date(when).getTime() <= now
+  }).sort((a, b) => a.order - b.order)
   return active.length ? active : [normalizeSlide(structuredClone(defaultHeroSlide))]
 }
 
@@ -246,8 +246,6 @@ export function applyArticleToSlide(slide: HeroSlide, article: HeroArticleSource
     image: article.image || slide.image,
     imageAlt: article.imageAlt || slide.imageAlt,
     primaryCtaUrl: article.url,
-    ctas: (slide.ctas || defaultCtas(slide)).map<HeroCta>(cta =>
-      cta.variant === 'primary' ? { ...cta, url: article.url } : cta,
-    ),
+    ctas: (slide.ctas || defaultCtas(slide)).map<HeroCta>(cta => cta.variant === 'primary' ? { ...cta, url: article.url } : cta),
   }
 }

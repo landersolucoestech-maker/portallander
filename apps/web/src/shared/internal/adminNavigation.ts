@@ -22,6 +22,7 @@ export const CRM_WORKSPACE_NAV:readonly AdminNavItem[]=[
   ['Notas Fiscais',ReceiptText,'/app/finance/invoices'],
   ['Contabilidade',BookOpen,'/app/finance/accounting'],
  ]},
+ ['Relatórios',BarChart3,'/app/reports'],
 ]
 
 export const SITE_MANAGER_NAV:readonly AdminNavItem[]=[

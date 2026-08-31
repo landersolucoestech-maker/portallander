@@ -1,0 +1,1 @@
+Force deploy after correcting the dedicated Sections module, list view, per-section configuration routes, dimensions and colors.

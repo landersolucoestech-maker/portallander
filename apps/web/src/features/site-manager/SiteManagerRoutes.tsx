@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import HeroManagerPage from './HeroManagerPage'
 import { BrandAssetsManagerPage } from './pages/BrandAssetsManagerPage'
 import { HeaderBrandManagerPage } from './pages/HeaderBrandManagerPage'
+import { HeroSectionAppearancePage } from './pages/HeroSectionAppearancePage'
 import { HomeAdManagerPage } from './pages/HomeAdManagerPage'
 import { HomeManagerPage } from './pages/HomeManagerPage'
 import { HomeSectionManagerPage } from './pages/HomeSectionManagerPage'
@@ -22,7 +23,7 @@ export default function SiteManagerRoutes(){
     <Route path="home/anuncio" element={<HomeAdManagerPage/>}/>
 
     <Route path="secoes" element={<SiteSectionsPage/>}/>
-    <Route path="secoes/home/hero" element={<HomeSectionManagerPage section="hero"/>}/>
+    <Route path="secoes/home/hero" element={<HeroSectionAppearancePage/>}/>
     <Route path="secoes/home/barra-agora" element={<HomeSectionManagerPage section="ticker"/>}/>
     <Route path="secoes/home/grid-principal" element={<HomeSectionManagerPage section="grid"/>}/>
     <Route path="secoes/home/ranking" element={<HomeSectionManagerPage section="ranking"/>}/>

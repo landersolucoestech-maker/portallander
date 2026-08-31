@@ -4,9 +4,9 @@ import { SITE_MANAGER_NAV } from '../../../shared/internal/adminNavigation'
 import { AdminShell } from '../../../shared/internal/AdminUi'
 import '../../../styles/site-sections.css'
 
-export type SiteSectionKey='hero'|'ticker'|'grid'|'ranking'|'side-ad'|'secondary'|'trending'|'banner'|'videos'|'agenda'|'newsletter'|'footer'
+type SiteSectionKey='hero'|'ticker'|'grid'|'ranking'|'side-ad'|'secondary'|'trending'|'banner'|'videos'|'agenda'|'newsletter'|'footer'
 
-export const SITE_SECTIONS:{key:SiteSectionKey;name:string;summary:string;route:string}[]=[
+const SITE_SECTIONS:{key:SiteSectionKey;name:string;summary:string;route:string}[]=[
   {key:'hero',name:'Hero principal',summary:'Destaque principal da página, com título, CTA, imagem e aparência.',route:'hero'},
   {key:'ticker',name:'Barra Agora',summary:'Faixa de chamadas exibida imediatamente abaixo do Hero.',route:'barra-agora'},
   {key:'grid',name:'Grid principal',summary:'Bloco editorial principal. Estrutura fixa de 3 cards por linha no desktop.',route:'grid-principal'},

@@ -1,4 +1,4 @@
-import {BookOpen,CalendarDays,ContactRound,FileText,Globe2,Home,Images,Landmark,LayoutDashboard,MessageCircle,Megaphone,Newspaper,Palette,PanelsTopLeft,ReceiptText,Tags,UsersRound} from 'lucide-react'
+import {BarChart3,BookOpen,CalendarDays,ClipboardList,ContactRound,FileText,Globe2,Home,Images,Landmark,LayoutDashboard,ListChecks,MessageCircle,Megaphone,Newspaper,Palette,PanelsTopLeft,ReceiptText,Sparkles,Tags,UsersRound} from 'lucide-react'
 import type {AdminNavItem} from './AdminUi'
 
 export const CRM_WORKSPACE_NAV:readonly AdminNavItem[]=[
@@ -8,7 +8,15 @@ export const CRM_WORKSPACE_NAV:readonly AdminNavItem[]=[
  ['Agenda',CalendarDays,'/app/agenda'],
  ['Chat',MessageCircle,'/app/chat'],
  ['RH',UsersRound,'/app/rh'],
- ['Marketing',Megaphone,'/app/marketing'],
+ {label:'Marketing',icon:Megaphone,to:'/app/marketing',children:[
+  ['Visão Geral',LayoutDashboard,'/app/marketing'],
+  ['Campanhas',Megaphone,'/app/marketing/campanhas'],
+  ['Calendário',CalendarDays,'/app/marketing/calendario'],
+  ['Tarefas',ListChecks,'/app/marketing/tarefas'],
+  ['Métricas',BarChart3,'/app/marketing/metricas'],
+  ['Briefings',ClipboardList,'/app/marketing/briefings'],
+  ['IA Criativa',Sparkles,'/app/marketing/ia-criativa'],
+ ]},
  {label:'Financeiro',icon:Landmark,to:'/app/finance',children:[
   ['Transações',Landmark,'/app/finance'],
   ['Notas Fiscais',ReceiptText,'/app/finance/invoices'],

@@ -1,7 +1,7 @@
 type SortDirection='asc'|'desc'
 type SortState={column:number;direction:SortDirection}
 
-const TABLE_SCOPE='.rh-page table,.marketing-page table'
+const TABLE_SCOPE='.rh-page .rh-table,.marketing-page .marketing-campaign-table,.marketing-page .marketing-task-table,.marketing-page .marketing-briefing-table'
 const states=new WeakMap<HTMLTableElement,SortState>()
 let applying=false
 
@@ -30,6 +30,14 @@ function applySort(table:HTMLTableElement,state:SortState){
   applying=false
 }
 
+function syncButtons(table:HTMLTableElement,state:SortState){
+  table.querySelectorAll<HTMLButtonElement>('.portal-auto-sort-buttons button').forEach(button=>{
+    const active=Number(button.dataset.column)===state.column&&button.dataset.direction===state.direction
+    button.classList.toggle('active',active)
+    button.setAttribute('aria-pressed',active?'true':'false')
+  })
+}
+
 function decorateTable(table:HTMLTableElement){
   const headers=Array.from(table.tHead?.rows[0]?.cells??[])
   headers.forEach((header,index)=>{
@@ -52,26 +60,24 @@ function decorateTable(table:HTMLTableElement){
       const button=document.createElement('button')
       button.type='button'
       button.textContent=direction==='asc'?'↑':'↓'
+      button.dataset.column=String(index)
+      button.dataset.direction=direction
       button.setAttribute('aria-label',`${label}: ordem ${direction==='asc'?'crescente':'decrescente'}`)
+      button.setAttribute('aria-pressed','false')
       button.addEventListener('click',event=>{
         event.stopPropagation()
-        states.set(table,{column:index,direction})
-        group.querySelectorAll('button').forEach(item=>item.classList.remove('active'))
-        button.classList.add('active')
-        applySort(table,{column:index,direction})
+        const next={column:index,direction}
+        states.set(table,next)
+        syncButtons(table,next)
+        applySort(table,next)
       })
       group.appendChild(button)
     })
     wrap.append(text,group)
     th.appendChild(wrap)
-    const state=states.get(table)
-    if(state?.column===index){
-      const buttons=group.querySelectorAll('button')
-      buttons[state.direction==='asc'?0:1]?.classList.add('active')
-    }
   })
   const state=states.get(table)
-  if(state)applySort(table,state)
+  if(state){syncButtons(table,state);applySort(table,state)}
 }
 
 function scan(){
@@ -81,7 +87,10 @@ function scan(){
 
 export function installRhMarketingTableSorting(){
   if(typeof document==='undefined')return
-  queueMicrotask(scan)
+  scan()
+  requestAnimationFrame(scan)
+  setTimeout(scan,50)
+  setTimeout(scan,250)
   const observer=new MutationObserver(()=>scan())
   observer.observe(document.documentElement,{childList:true,subtree:true})
 }

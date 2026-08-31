@@ -1,0 +1,133 @@
+/* Portal Lander — final admin design-system layer.
+   This file is intentionally loaded last so module-specific reference CSS keeps layout semantics
+   while equivalent controls, typography, surfaces, focus states and responsive behavior converge. */
+.app-shell{
+  --ui-font:'Montserrat',Arial,sans-serif;
+  --ui-bg:#f5f5f4;
+  --ui-surface:#fff;
+  --ui-surface-subtle:#fafafa;
+  --ui-text:#1f2937;
+  --ui-text-strong:#101828;
+  --ui-muted:#667085;
+  --ui-muted-soft:#98a2b3;
+  --ui-border:#e5e7eb;
+  --ui-border-strong:#d0d5dd;
+  --ui-accent:#e30613;
+  --ui-danger:#b42318;
+  --ui-success:#027a48;
+  --ui-warning:#b54708;
+  --ui-radius-sm:6px;
+  --ui-radius-md:8px;
+  --ui-radius-lg:10px;
+  --ui-shadow-popover:0 12px 32px rgba(15,23,42,.14);
+  --ui-control-sm:32px;
+  --ui-control-md:36px;
+  --ui-page-gap:24px;
+  --ui-card-gap:16px;
+  font-family:var(--ui-font);
+  min-height:100dvh;
+}
+.app-shell,.app-shell *{box-sizing:border-box}
+.app-shell>.workspace{min-width:0;min-height:100dvh;background:var(--ui-bg)}
+.app-shell .workspace-main{min-width:0;min-height:calc(100dvh - 68px);overflow-x:clip}
+
+/* One visual rhythm for top-level internal pages. */
+.crm-page,.finance-page,.contracts-page,.agenda-page,.chat-page,.chat-settings-page,.rh-page,.marketing-page,.reports-page,.settings-page,.dashboard-reference-page{gap:var(--ui-page-gap)}
+
+/* Shared surface language. */
+.crm-table-card,.finance-table-card,.contracts-table-card,.agenda-calendar-card,.agenda-mini-month,.chat-card,.rh-table-card,.rh-upload-card,.rh-doc-selector,.marketing-card,.marketing-table-card,.marketing-month,.marketing-week-day,.marketing-year-grid article,.reports-entity-list,.settings-card,.dashboard-reference-panel,.dashboard-stat-card{border-color:var(--ui-border);border-radius:var(--ui-radius-lg);background:var(--ui-surface)}
+
+/* Controls: 32px compact / 36px default, never arbitrary per module. */
+.app-shell input,.app-shell select,.app-shell textarea,.app-shell button{font-family:var(--ui-font)}
+.crm-btn,.agenda-toolbar .button,.agenda-toolbar select,.agenda-toolbar .agenda-icon-button,.contracts-filters select,.contracts-registry select,.finance-filters>input,.finance-filters>select,.finance-search,.contracts-search,.crm-search,.crm-filter-selects select,.crm-inline-select,.agenda-search,.marketing-primary,.marketing-secondary,.settings-primary,.settings-outline,.settings-danger{min-height:var(--ui-control-md)}
+.rh-primary,.rh-secondary,.rh-danger-button,.rh-filters>input,.rh-filters>select,.rh-search,.rh-doc-selector select,.rh-field input,.rh-field select,.marketing-filters>select,.marketing-filters>input,.marketing-search,.marketing-calendar-toolbar>select,.marketing-period-button,.tableview-pagination-center button,.tableview-page-size select{min-height:var(--ui-control-sm)}
+
+/* Normal form typography. Dense calendar/chat microcopy remains a justified exception. */
+.crm-search input,.contracts-search input,.finance-search input,.crm-filter-selects select,.crm-inline-select,.contracts-filters select,.contracts-registry select,.finance-filters>input,.finance-filters>select{font-size:12px}
+.crm-field,.finance-field,.contracts-section label,.contracts-template-editor label,.contracts-inline-editor label,.contracts-variable-editor label,.contracts-document-step label,.contracts-party label,.contracts-signer-edit label,.agenda-field{font-size:12px}
+.crm-field input,.crm-field select,.crm-field textarea,.crm-interaction-form input,.crm-interaction-form select,.finance-field input,.finance-field select,.finance-field textarea,.contracts-section input,.contracts-section select,.contracts-section textarea,.contracts-template-editor input,.contracts-template-editor select,.contracts-template-editor textarea,.contracts-inline-editor input,.contracts-variable-editor input,.contracts-variable-editor select,.contracts-document-step input,.contracts-document-step select,.contracts-document-step textarea,.contracts-party input,.contracts-party select,.contracts-signer-edit input,.contracts-signer-edit select,.agenda-field input,.agenda-field select,.agenda-field textarea,.agenda-select-like{font-size:13px}
+
+/* KPI family: preserve module layout/count, normalize hierarchy. */
+.crm-kpi,.finance-kpi,.contracts-kpi,.rh-kpi,.marketing-kpi,.dashboard-stat-card{min-height:96px;padding:16px}
+.crm-kpi span,.finance-kpi span,.contracts-kpi span,.rh-kpi small,.marketing-kpi small,.dashboard-stat-card span{font-size:11px;line-height:1.35;color:var(--ui-muted)}
+.crm-kpi strong,.finance-kpi strong,.contracts-kpi strong,.rh-kpi strong,.marketing-kpi strong,.dashboard-stat-card strong{font-size:24px;line-height:1.05;color:var(--ui-text-strong);font-weight:700}
+
+/* Tables: same density and readable type. Explicit numeric/action semantics win over global compatibility CSS. */
+.crm-table th,.finance-table th,.contracts-table th,.rh-table th,.marketing-table th,.settings-table-wrap th{font-size:11px;font-weight:650;color:var(--ui-muted)}
+.crm-table td,.finance-table td,.contracts-table td,.rh-table td,.marketing-table td,.settings-table-wrap td{font-size:12px;color:#475467}
+.crm-table td,.finance-table td,.contracts-table td,.marketing-table td{height:52px}
+.crm-link strong,.finance-link strong,.contracts-title-link strong,.marketing-table strong,.rh-table strong{font-size:12px}
+.crm-link small,.finance-link small,.finance-cell-sub,.contracts-title-link small,.marketing-table small,.rh-table small{font-size:10px}
+.workspace-main table .numeric,.workspace-main table .tabular,.workspace-main table td.positive,.workspace-main table td.negative{text-align:right!important;font-variant-numeric:tabular-nums}
+.workspace-main table .actions,.workspace-main table .actions-col,.workspace-main table .crm-actions-column,.workspace-main table .crm-actions-cell{text-align:right!important}
+.workspace-main table .table-row-actions,.workspace-main table .crm-row-actions{justify-content:flex-end!important;margin-left:auto!important;margin-right:0!important}
+
+/* Status/badge family. */
+.crm-badge,.finance-type,.finance-status,.contracts-status,.rh-status,.marketing-status,.settings-badge{min-height:22px;padding:3px 8px;border-radius:999px;font-size:10px;font-weight:700;line-height:1.2}
+
+/* Common pagination. */
+.crm-pagination,.finance-pagination,.contracts-pagination,.rh-pagination,.marketing-pagination,.tableview-pagination{min-height:52px;font-size:11px;color:var(--ui-muted)}
+.crm-pagination button,.finance-pagination button,.contracts-pagination button,.rh-pagination button,.marketing-pagination button,.tableview-pagination-center button,.tableview-page-size select{min-height:30px;font-size:11px;border-color:var(--ui-border-strong);border-radius:var(--ui-radius-sm)}
+.tableview-pagination-summary,.tableview-page-size,.tableview-pagination-center>span{font-size:11px}
+
+/* Shared overlays and floating surfaces. */
+.crm-modal,.finance-modal,.agenda-modal,.chat-modal,.marketing-modal,.reports-import-dialog,.rh-modal,.settings-modal,.workspace-popover,.crm-row-menu,.rh-menu-pop,.marketing-menu-pop,.chat-popover,.agenda-participant-menu,.table-row-actions-menu{border-radius:var(--ui-radius-lg);box-shadow:var(--ui-shadow-popover)}
+.crm-modal,.finance-modal,.agenda-modal,.chat-modal,.marketing-modal,.reports-import-dialog,.rh-modal,.settings-modal{max-height:min(92vh,calc(100dvh - 24px))}
+
+/* Shared row action menu is the canonical action affordance. */
+.table-row-actions{position:relative;display:flex;justify-content:flex-end}
+.table-row-actions-trigger{width:32px;height:32px;border:0;border-radius:var(--ui-radius-sm);background:transparent;color:var(--ui-muted);display:grid;place-items:center;cursor:pointer}
+.table-row-actions-trigger:hover,.table-row-actions-trigger:focus-visible{background:#f2f4f7;color:var(--ui-text)}
+.table-row-actions-menu{position:absolute;right:0;top:36px;z-index:60;min-width:148px;padding:5px;border:1px solid var(--ui-border);background:#fff}
+.table-row-actions-menu button{width:100%;height:32px;border:0;border-radius:5px;background:transparent;padding:0 10px;text-align:left;font-size:12px;color:#344054;cursor:pointer}
+.table-row-actions-menu button:hover,.table-row-actions-menu button:focus-visible{background:#f5f6f7}
+.table-row-actions-menu button.danger{color:var(--ui-danger)}
+
+/* Focus is consistent even where module CSS removed native outlines. */
+.app-shell input:focus-visible,.app-shell select:focus-visible,.app-shell textarea:focus-visible,.app-shell button:focus-visible,.app-shell a:focus-visible{outline:2px solid var(--ui-accent);outline-offset:2px}
+.app-shell input:disabled,.app-shell select:disabled,.app-shell textarea:disabled,.app-shell button:disabled{cursor:not-allowed}
+
+/* Popovers/dropdowns do not escape narrow viewports. */
+.workspace-popover,.crm-row-menu,.rh-menu-pop,.marketing-menu-pop,.chat-popover,.table-row-actions-menu{max-width:min(320px,calc(100vw - 24px))}
+
+/* Chat is intentionally denser than CRUD modules, but microcopy must remain readable. */
+.chat-domain-tabs button,.chat-settings-tabs button,.chat-search-field input,.chat-filter-grid select,.chat-composer-tools select,.chat-internal-message p,.chat-support-message p,.chat-field input,.chat-field textarea,.chat-settings-card input,.chat-settings-card select,.chat-settings-card textarea{font-size:10px!important}
+.chat-internal-item strong,.chat-support-list strong,.chat-thread-head strong,.chat-conversation-head strong,.chat-modal h2{font-size:11px}
+.chat-internal-item span,.chat-list-empty p,.chat-thread-empty p,.chat-help,.chat-ops h3{font-size:9px}
+.chat-support-layout,.chat-internal-layout{min-height:0;height:clamp(560px,calc(100dvh - 190px),820px)}
+
+/* Calendar cells may stay compact; controls and modal content follow the common scale. */
+.agenda-toolbar select,.agenda-search input{font-size:12px}
+.agenda-period-label{font-size:12px}
+.agenda-modal>header h2{font-size:18px}.agenda-modal>header p{font-size:11px}
+
+/* Reports keeps reference-compact row actions while receiving shared focus/viewport behavior. */
+.reports-outline,.reports-primary,.reports-template-row button{min-height:30px}
+
+/* Settings pruning is structural intent: no commercial/product-plan status labels in integrations. */
+.settings-integration-list .settings-status{display:none!important}
+.settings-integration-list article{grid-template-columns:44px minmax(0,1fr) auto}
+
+/* Header actions remain reachable on mobile. Secondary actions are still suppressed where space is scarce. */
+@media(max-width:760px){
+  .workspace-actions .workspace-primary-action{display:inline-flex;max-width:132px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:9px;padding:0 8px}
+  .workspace-actions .workspace-header-secondary{display:none}
+  .workspace-top.workspace-top-page{padding:0 12px}
+  .workspace-top.workspace-top-page .workspace-page-heading{min-width:0}
+  .workspace-top.workspace-top-page .workspace-page-heading h1{font-size:20px;max-width:42vw;overflow:hidden;text-overflow:ellipsis}
+  .workspace-top.workspace-top-page .workspace-page-heading p{display:none}
+  .app-shell .workspace-main{padding:18px 14px 84px}
+  .crm-page,.finance-page,.contracts-page,.agenda-page,.chat-page,.chat-settings-page,.rh-page,.marketing-page,.reports-page,.settings-page,.dashboard-reference-page{gap:16px}
+  .crm-kpis,.finance-kpis,.contracts-kpis,.rh-kpis,.marketing-kpis-4,.marketing-kpis-5,.dashboard-reference-kpis,.settings-user-kpis{grid-template-columns:1fr}
+  .crm-filters,.finance-filters,.contracts-filters,.rh-filters,.marketing-filters{width:100%}
+  .crm-modal,.finance-modal,.agenda-modal,.chat-modal,.marketing-modal,.reports-import-dialog,.rh-modal,.settings-modal{width:min(100%,calc(100vw - 16px));max-height:calc(100dvh - 16px);border-radius:var(--ui-radius-md)}
+  .workspace-main table{max-width:100%}
+}
+
+@media(max-width:1080px) and (min-width:761px){
+  .app-shell .workspace-main{padding-left:20px;padding-right:20px}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .app-shell *{scroll-behavior:auto!important;transition-duration:.01ms!important;animation-duration:.01ms!important;animation-iteration-count:1!important}
+}

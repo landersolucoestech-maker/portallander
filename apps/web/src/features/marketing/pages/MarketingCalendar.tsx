@@ -1,4 +1,4 @@
-import {CalendarClock,CalendarDays,CheckCircle2,ChevronLeft,ChevronRight,Clock,Plus,Target} from 'lucide-react'
+import {CalendarClock,CalendarDays,CheckCircle2,ChevronLeft,ChevronRight,Clock,Plus} from 'lucide-react'
 import {useState,type FormEvent} from 'react'
 import {dateLabel,type ContentStatus,type MarketingContent,type MarketingSeed} from '../domain'
 import {marketingRepository} from '../repository'

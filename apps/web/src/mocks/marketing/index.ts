@@ -1,0 +1,47 @@
+import type {MarketingSeed} from '../../features/marketing/domain'
+
+export const mockMarketingSeed:MarketingSeed={
+ platforms:['Instagram','Facebook','TikTok','YouTube','Google Ads','Meta Ads','Spotify Ads'],
+ contentTypes:['Post','Feed','Stories','Reels','Shorts','Vídeo','Carrossel','Anúncio','Institucional','Comercial','Bastidores','Evento'],
+ taskTypes:['Design','Audiovisual','Copywriting','Publicação','Campanha','Planejamento','Aprovação','Revisão','Análise','Tráfego Pago','Pitching','Assessoria de Imprensa'],
+ briefingTypes:['Campanha','Conteúdo','Design','Audiovisual','Institucional','Comercial','Artístico','Evento','Produto','Serviço','SaaS','Bastidores'],
+ owners:['Deyvisson Lander','Mariana Costa','Rafael Martins','Beatriz Souza'],
+ departments:['Marketing','Design','Audiovisual','Comercial','Conteúdo'],
+ campaigns:[
+  {id:'mkt_cmp_001',name:'Lançamento — Noite Sem Fim',description:'Campanha multiplataforma de lançamento do single.',context:'Projeto musical · Noite Sem Fim',platforms:['Meta Ads','TikTok','YouTube'],status:'ativa',budget:12000,spend:7350,clicks:18420,impressions:642000,conversions:3270,startDate:'2026-08-10',endDate:'2026-09-12',owner:'Deyvisson Lander',notes:'Foco em descoberta, pre-save e streams.',createdAt:'2026-08-01T12:00:00.000Z',updatedAt:'2026-08-29T12:00:00.000Z'},
+  {id:'mkt_cmp_002',name:'Portal Lander — Awareness',description:'Fortalecimento de marca e alcance editorial.',context:'Empresa · Portal Lander',platforms:['Instagram','Facebook','Google Ads'],status:'ativa',budget:8000,spend:4120,clicks:9510,impressions:438000,conversions:1480,startDate:'2026-08-01',endDate:'2026-09-30',owner:'Mariana Costa',notes:'Campanha institucional.',createdAt:'2026-07-25T12:00:00.000Z',updatedAt:'2026-08-28T12:00:00.000Z'},
+  {id:'mkt_cmp_003',name:'Pré-save — Horizonte',description:'Captação de pre-saves e aquecimento de público.',context:'Artista · Ana Valente',platforms:['Meta Ads','Spotify Ads'],status:'agendada',budget:4500,spend:0,clicks:0,impressions:0,conversions:0,startDate:'2026-09-05',endDate:'2026-09-25',owner:'Beatriz Souza',notes:'Criativos aprovados; aguardando início.',createdAt:'2026-08-27T12:00:00.000Z',updatedAt:'2026-08-29T12:00:00.000Z'},
+  {id:'mkt_cmp_004',name:'Bastidores — Sessions',description:'Conteúdo orgânico para reforço de comunidade.',context:'Projeto audiovisual · Sessions',platforms:['Instagram','TikTok','YouTube'],status:'concluida',budget:2500,spend:2390,clicks:6820,impressions:195000,conversions:610,startDate:'2026-07-01',endDate:'2026-08-05',owner:'Rafael Martins',notes:'Campanha encerrada com boa retenção.',createdAt:'2026-06-25T12:00:00.000Z',updatedAt:'2026-08-06T12:00:00.000Z'}
+ ],
+ contents:[
+  {id:'mkt_cnt_001',title:'Teaser vertical — Noite Sem Fim',context:'Projeto musical',artist:'Ana Valente',channels:['Instagram','TikTok'],type:'Reels',publishDate:'2026-08-31',publishTime:'19:00',copy:'Um recorte do que está chegando. Salve a data e acompanhe o lançamento.',campaign:'Lançamento — Noite Sem Fim',hashtags:'#novamusica #lancamento #reels',location:'São Paulo, Brasil',status:'agendado',approval:'aprovado',owner:'Beatriz Souza',createdAt:'2026-08-26T12:00:00.000Z',updatedAt:'2026-08-29T12:00:00.000Z'},
+  {id:'mkt_cnt_002',title:'Carrossel — história da faixa',context:'Artista',artist:'Ana Valente',channels:['Instagram','Facebook'],type:'Carrossel',publishDate:'2026-09-02',publishTime:'12:30',copy:'Da composição à gravação: conheça a história por trás da faixa.',campaign:'Lançamento — Noite Sem Fim',hashtags:'#musica #bastidores',location:'',status:'revisao',approval:'pendente',owner:'Mariana Costa',createdAt:'2026-08-27T12:00:00.000Z',updatedAt:'2026-08-30T12:00:00.000Z'},
+  {id:'mkt_cnt_003',title:'Short — refrão ao vivo',context:'Projeto musical',artist:'Ana Valente',channels:['YouTube','TikTok'],type:'Shorts',publishDate:'2026-09-04',publishTime:'20:00',copy:'Versão ao vivo do refrão.',campaign:'Lançamento — Noite Sem Fim',hashtags:'#shorts #aovivo',location:'São Paulo, Brasil',status:'producao',approval:'pendente',owner:'Beatriz Souza',createdAt:'2026-08-28T12:00:00.000Z',updatedAt:'2026-08-30T12:00:00.000Z'},
+  {id:'mkt_cnt_004',title:'Post institucional — Portal Lander',context:'Empresa',artist:'',channels:['Instagram','LinkedIn'],type:'Institucional',publishDate:'2026-08-29',publishTime:'09:00',copy:'Conteúdo institucional do Portal Lander.',campaign:'Portal Lander — Awareness',hashtags:'#portallander',location:'',status:'publicado',approval:'aprovado',owner:'Mariana Costa',createdAt:'2026-08-20T12:00:00.000Z',updatedAt:'2026-08-29T12:00:00.000Z'}
+ ],
+ tasks:[
+  {id:'mkt_tsk_001',title:'Finalizar criativos Meta Ads',type:'Design',owner:'Beatriz Souza',department:'Design',deadline:'2026-09-01',status:'em_andamento',priority:'alta',context:'Lançamento — Noite Sem Fim',classification:'Criativo pago',notes:'Entregar 3 variações 9:16 e 1:1.',createdAt:'2026-08-25T12:00:00.000Z',updatedAt:'2026-08-30T12:00:00.000Z'},
+  {id:'mkt_tsk_002',title:'Revisar copy do carrossel',type:'Revisão',owner:'Mariana Costa',department:'Conteúdo',deadline:'2026-08-31',status:'revisao',priority:'urgente',context:'Noite Sem Fim',classification:'Copy',notes:'Validar CTA e coerência editorial.',createdAt:'2026-08-28T12:00:00.000Z',updatedAt:'2026-08-30T12:00:00.000Z'},
+  {id:'mkt_tsk_003',title:'Configurar campanha de pré-save',type:'Tráfego Pago',owner:'Deyvisson Lander',department:'Marketing',deadline:'2026-09-04',status:'a_fazer',priority:'alta',context:'Horizonte',classification:'Paid media',notes:'Configurar UTMs e públicos.',createdAt:'2026-08-29T12:00:00.000Z',updatedAt:'2026-08-29T12:00:00.000Z'},
+  {id:'mkt_tsk_004',title:'Consolidar relatório Sessions',type:'Análise',owner:'Rafael Martins',department:'Marketing',deadline:'2026-08-30',status:'concluida',priority:'media',context:'Bastidores — Sessions',classification:'Performance',notes:'Relatório finalizado.',createdAt:'2026-08-20T12:00:00.000Z',updatedAt:'2026-08-30T12:00:00.000Z'}
+ ],
+ briefings:[
+  {id:'mkt_brf_001',title:'Lançamento — Noite Sem Fim',type:'Artístico',objective:'Gerar descoberta, pre-save e conversão em streams nas primeiras semanas.',context:'Single com campanha digital multiplataforma e conteúdo orgânico de apoio.',audience:'18–34 anos, consumidores de pop/R&B brasileiro e descoberta via Reels/TikTok.',positioning:'Artista contemporânea, emocional e visualmente sofisticada.',tone:'Íntimo, confiante e cinematográfico.',owners:['Deyvisson Lander','Beatriz Souza'],deadline:'2026-09-12',deliverables:['Key visual','3 vídeos verticais','Carrossel','Plano de mídia','Pitching editorial'],channels:['Instagram','TikTok','YouTube','Spotify'],status:'aprovado',references:'Referências visuais noturnas, vermelho profundo e luz urbana.',createdAt:'2026-08-01T12:00:00.000Z',updatedAt:'2026-08-22T12:00:00.000Z'},
+  {id:'mkt_brf_002',title:'Portal Lander — campanha institucional',type:'Institucional',objective:'Ampliar reconhecimento da plataforma e comunicar proposta de valor.',context:'Campanha institucional com foco em autoridade, produto e mercado.',audience:'Profissionais e empresas da economia criativa.',positioning:'Tecnologia, gestão e execução profissional.',tone:'Direto, premium e informativo.',owners:['Mariana Costa'],deadline:'2026-09-30',deliverables:['Manifesto','Carrossel institucional','Vídeo 30s','Landing page'],channels:['Instagram','Facebook','LinkedIn'],status:'em_revisao',references:'Comunicação B2B limpa e editorial.',createdAt:'2026-08-12T12:00:00.000Z',updatedAt:'2026-08-29T12:00:00.000Z'}
+ ],
+ metrics:[
+  {id:'mkt_met_001',platform:'Instagram',period:'2026-08',reach:268000,impressions:415000,clicks:12600,engagement:28400,followers:48200,conversions:2150,spend:3900,revenue:11400},
+  {id:'mkt_met_002',platform:'TikTok',period:'2026-08',reach:312000,impressions:522000,clicks:15200,engagement:51700,followers:39600,conversions:1730,spend:2800,revenue:8900},
+  {id:'mkt_met_003',platform:'YouTube',period:'2026-08',reach:189000,impressions:344000,clicks:7400,engagement:16100,followers:22100,conversions:1040,spend:2100,revenue:6400},
+  {id:'mkt_met_004',platform:'Google Ads',period:'2026-08',reach:146000,impressions:238000,clicks:9100,engagement:0,followers:0,conversions:1320,spend:3500,revenue:12600}
+ ],
+ aiHistory:[
+  {id:'mkt_ai_001',kind:'Planejamento',title:'Plano de lançamento — 30 dias',context:'Noite Sem Fim · Instagram + TikTok + YouTube',result:'Estratégia em 4 fases: aquecimento, pré-lançamento, lançamento e sustentação. Priorizar vídeo vertical, prova social, CTA de pre-save e redistribuição dos criativos com melhor retenção.',createdAt:'2026-08-29T19:00:00.000Z'},
+  {id:'mkt_ai_002',kind:'Pitching',title:'Pitching editorial — Noite Sem Fim',context:'Ana Valente · single',result:'Faixa pop/R&B de atmosfera noturna, narrativa confessional e refrão de alta memorização. Recomendada para playlists de novidades, pop nacional e faixas para ouvir à noite.',createdAt:'2026-08-28T15:30:00.000Z'}
+ ],
+ activities:[
+  {id:'mkt_act_001',label:'Conteúdo agendado',detail:'Teaser vertical — Noite Sem Fim · 31/08 às 19:00',createdAt:'2026-08-30T18:10:00.000Z'},
+  {id:'mkt_act_002',label:'Campanha atualizada',detail:'Portal Lander — Awareness teve orçamento revisado.',createdAt:'2026-08-30T15:45:00.000Z'},
+  {id:'mkt_act_003',label:'Briefing aprovado',detail:'Lançamento — Noite Sem Fim',createdAt:'2026-08-29T13:20:00.000Z'}
+ ]
+}

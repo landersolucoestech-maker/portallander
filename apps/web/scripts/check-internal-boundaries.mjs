@@ -22,10 +22,11 @@ for(const required of [
  "from '../features/finance/FinanceInvoicesPage'",
  "from '../features/finance/FinanceAccountingPage'",
  "from '../features/finance/FinanceRegistryPage'",
+ "from '../features/settings/SettingsPage'",
  "from '../features/site-manager/SiteManagerRoutes'",
- 'path="/app/login"','path="/app/workspaces"','path="/app/dashboard"','path="/app/crm/*"','path="/app/contracts"','path="/app/finance"','path="/app/finance/invoices"','path="/app/finance/accounting"','path="/app/finance/rules"','path="/app/finance/categories"','path="/app/site/*"'
+ 'path="/app/login"','path="/app/workspaces"','path="/app/dashboard"','path="/app/crm/*"','path="/app/contracts"','path="/app/finance"','path="/app/finance/invoices"','path="/app/finance/accounting"','path="/app/finance/rules"','path="/app/finance/categories"','path="/app/settings"','path="/app/site/*"'
 ])if(!internalApp.includes(required))failures.push(`InternalApp deve manter ${required}.`)
-for(const forbidden of ['CrmRoutes','/app/crm/integrations','path="/app/settings"',"from '../features/finance/FinancePage'"])if(internalApp.includes(forbidden))failures.push(`InternalApp não pode reintroduzir infraestrutura removida: ${forbidden}`)
+for(const forbidden of ['CrmRoutes','/app/crm/integrations',"from '../features/finance/FinancePage'"])if(internalApp.includes(forbidden))failures.push(`InternalApp não pode reintroduzir infraestrutura removida: ${forbidden}`)
 
 const crmWorkspace=await read('src/features/access/CrmWorkspace.tsx')
 for(const required of ["from '../crm/CrmPage'",'<Route index element={<CrmPage/>}/>','path="leads" element={<CrmPage/>}','path="contatos" element={<CrmPage/>}'])if(!crmWorkspace.includes(required))failures.push(`CrmWorkspace deve preservar página CRM unificada: ${required}`)
@@ -40,7 +41,8 @@ for(const required of [
  "label:'Financeiro'",
  "['Transações',Landmark,'/app/finance']",
  "['Notas Fiscais',ReceiptText,'/app/finance/invoices']",
- "['Contabilidade',BookOpen,'/app/finance/accounting']"
+ "['Contabilidade',BookOpen,'/app/finance/accounting']",
+ "['Configurações',Settings,'/app/settings']"
 ])if(!adminNavigation.includes(required))failures.push(`adminNavigation deve preservar módulo obrigatório: ${required}`)
 for(const forbidden of ["['Dashboard',LayoutDashboard,'/app/crm']","['Leads'","['Contatos'",'/app/crm/dashboard','/app/crm/integrations','Integrações','PlugZap',"['Categorias',Tags,'/app/finance/categories']","['Regras'","/app/finance/automations"])if(adminNavigation.includes(forbidden))failures.push(`adminNavigation contém item proibido ou removido: ${forbidden}`)
 
@@ -52,6 +54,9 @@ const requiredFiles=[
  'src/features/finance/FinanceInvoicesPage.tsx',
  'src/features/finance/FinanceAccountingPage.tsx',
  'src/features/finance/FinanceRegistryPage.tsx',
+ 'src/features/settings/SettingsPage.tsx',
+ 'src/features/settings/domain.ts',
+ 'src/features/settings/repository.ts',
  'src/styles/admin-contracts.css',
  'src/styles/admin-finance.css',
  'src/styles/admin-nav-groups.css'
@@ -69,10 +74,10 @@ for(const required of ["pathname.endsWith('/leads')?'leads':'contacts'","'/app/c
 const adminUi=await read('src/shared/internal/AdminUi.tsx')
 for(const required of ['export type PageHeaderConfig','function HeaderActionButton','function PageHeader','<PageHeader context={context} header={header} actions={actions}/>','workspace-header-polished-action','notification-button','account-button','expandedGroups','aria-expanded={expanded}','<NavLink end className="sidebar-subnav-link"'])if(!adminUi.includes(required))failures.push(`AdminUi deve preservar arquitetura compartilhada: ${required}`)
 if(adminUi.includes('AdminPageHeader'))failures.push('AdminUi não pode reintroduzir o cabeçalho duplicado AdminPageHeader.')
-if(adminUi.includes('/app/settings')||adminUi.includes('>Configurações</span>'))failures.push('Account Menu não pode apontar para Configurações inexistente.')
+if(adminUi.includes('/app/settings')||adminUi.includes('>Configurações</span>'))failures.push('Account Menu não pode apontar diretamente para Configurações.')
 if(adminUi.indexOf('{actions.map(')>adminUi.indexOf('notification-button'))failures.push('Ações de página devem permanecer antes das notificações no PageHeader compartilhado.')
 if(!adminUi.includes("end={to==='/app/site'}"))failures.push('AdminUi deve manter comportamento de deep links do shell.')
-for(const required of ["'contracts'","'finance'",'AdminNavGroup','isNavGroup'])if(!adminUi.includes(required))failures.push(`AdminUi deve suportar navegação dos módulos restaurados: ${required}`)
+for(const required of ["'contracts'","'finance'","'settings'",'AdminNavGroup','isNavGroup'])if(!adminUi.includes(required))failures.push(`AdminUi deve suportar navegação dos módulos restaurados: ${required}`)
 
 const siteHeaderFiles=[
  'src/features/site-manager/HeroManagerPage.tsx',
@@ -88,11 +93,7 @@ const siteHeaderFiles=[
  'src/features/site-manager/pages/SitePagesPage.tsx',
  'src/features/site-manager/pages/SiteContentsPage.tsx'
 ]
-for(const path of siteHeaderFiles){
- const source=await read(path)
- if(!source.includes('<AdminShell')||!source.includes('header={{'))failures.push(`${path} deve usar o PageHeader compartilhado via AdminShell.header.`)
- if(source.includes('AdminPageHeader'))failures.push(`${path} não pode usar AdminPageHeader embutido no conteúdo.`)
-}
+for(const path of siteHeaderFiles){const source=await read(path);if(!source.includes('<AdminShell')||!source.includes('header={{'))failures.push(`${path} deve usar o PageHeader compartilhado via AdminShell.header.`);if(source.includes('AdminPageHeader'))failures.push(`${path} não pode usar AdminPageHeader embutido no conteúdo.`)}
 const editorialAdmin=await read('src/features/editorial/components/EditorialAdmin.tsx')
 if(editorialAdmin.includes('AdminPageHeader'))failures.push('EditorialAdmin não pode reconstruir cabeçalho dentro do conteúdo.')
 const brandAssets=await read('src/features/site-manager/pages/BrandAssetsManagerPage.tsx')
@@ -118,13 +119,10 @@ if(financeRegistry.includes('Automações Financeiras'))failures.push('Registro 
 const contracts=await read('src/features/contracts/ContractsPage.tsx')
 for(const required of ['Novo Contrato','Templates','Novo Template'])if(!contracts.includes(required))failures.push(`Contratos deve preservar: ${required}`)
 
-const mockArchitectureFiles=[
- 'src/mocks/README.md','src/mocks/index.ts','src/mocks/manifest.ts',
- 'src/mocks/identity/index.ts','src/mocks/notifications/index.ts','src/mocks/crm/index.ts','src/mocks/contracts/index.ts','src/mocks/finance/index.ts','src/mocks/editorial/index.ts','src/mocks/home/index.ts','src/mocks/advertising/index.ts','src/mocks/agenda/index.ts','src/mocks/dashboard/index.ts','src/mocks/collaboration/index.ts','src/mocks/branding/index.ts','src/mocks/shared/index.ts','src/mocks/scenarios/index.ts'
-]
+const mockArchitectureFiles=['src/mocks/README.md','src/mocks/index.ts','src/mocks/manifest.ts','src/mocks/identity/index.ts','src/mocks/notifications/index.ts','src/mocks/crm/index.ts','src/mocks/contracts/index.ts','src/mocks/finance/index.ts','src/mocks/editorial/index.ts','src/mocks/home/index.ts','src/mocks/advertising/index.ts','src/mocks/agenda/index.ts','src/mocks/dashboard/index.ts','src/mocks/collaboration/index.ts','src/mocks/branding/index.ts','src/mocks/shared/index.ts','src/mocks/scenarios/index.ts','src/mocks/settings/index.ts']
 for(const path of mockArchitectureFiles)if(!(await exists(path)))failures.push(`Arquitetura global de mock data exige ${path}.`)
 const mockManifest=await read('src/mocks/manifest.ts')
-for(const domain of ['identity','notifications','crm','contracts','finance','editorial','home','advertising','agenda','dashboard','collaboration','branding','shared','scenarios'])if(!mockManifest.includes(`'${domain}'`))failures.push(`Manifesto global de mocks deve registrar domínio: ${domain}`)
+for(const domain of ['identity','notifications','crm','contracts','finance','editorial','home','advertising','agenda','dashboard','collaboration','branding','shared','scenarios','settings'])if(!mockManifest.includes(`'${domain}'`))failures.push(`Manifesto global de mocks deve registrar domínio: ${domain}`)
 for(const required of ['uiMayImportRawMocks:false','crossDomainIds:true','metricsMustBeDerived:true','scenariosCentralized:true','providerBoundaryRequired:true'])if(!mockManifest.includes(required))failures.push(`Manifesto global de mocks deve preservar regra: ${required}`)
 
 if(failures.length){console.error('Falha nos boundaries da aplicação:');failures.forEach(item=>console.error(`- ${item}`));process.exit(1)}

@@ -1,8 +1,23 @@
 import { ArrowLeft, ArrowRight } from 'lucide-react'
-import { useEffect, useMemo, useState, type CSSProperties } from 'react'
+import { useEffect, useMemo, useState, useSyncExternalStore, type CSSProperties } from 'react'
 import { Link } from 'react-router-dom'
-import { HERO_APPEARANCE_EVENT, readHeroAppearance, type HeroAppearanceConfig } from '../models/heroAppearanceModel'
-import { defaultHeroConfig, defaultHeroSlide, getRenderableHeroSlides, readHeroConfig, type HeroCarouselConfig, type HeroSlide } from '../models/heroModel'
+import {
+  HERO_APPEARANCE_EVENT,
+  readHeroAppearance,
+  resolveHeroAppearance,
+  type HeroAppearanceConfig,
+  type HeroBreakpoint,
+} from '../models/heroAppearanceModel'
+import {
+  defaultHeroConfig,
+  defaultHeroSlide,
+  getRenderableHeroSlides,
+  readHeroConfig,
+  resolveSlideVisual,
+  resolveTitleSegmentVisual,
+  type HeroCarouselConfig,
+  type HeroSlide,
+} from '../models/heroModel'
 
 function SmartLink({ to, className, children, external: forcedExternal, style }: { to: string; className?: string; children: React.ReactNode; external?: boolean; style?: CSSProperties }) {
   const external = forcedExternal ?? /^https?:\/\//i.test(to)
@@ -10,13 +25,44 @@ function SmartLink({ to, className, children, external: forcedExternal, style }:
   return <Link className={className} style={style} to={to || '/'}>{children}</Link>
 }
 
-export function HeroSection({ config, appearance, previewIndex = 0, disableAutoplay = false }: { config?: HeroCarouselConfig; appearance?: HeroAppearanceConfig; previewIndex?: number; disableAutoplay?: boolean }) {
+function subscribeViewport(callback: () => void) {
+  window.addEventListener('resize', callback)
+  return () => window.removeEventListener('resize', callback)
+}
+
+function getViewportSnapshot(): HeroBreakpoint {
+  if (typeof window === 'undefined') return 'desktop'
+  if (window.innerWidth <= 700) return 'mobile'
+  if (window.innerWidth <= 900) return 'tablet'
+  return 'desktop'
+}
+
+function useViewportBreakpoint() {
+  return useSyncExternalStore(subscribeViewport, getViewportSnapshot, () => 'desktop')
+}
+
+export function HeroSection({
+  config,
+  appearance,
+  previewIndex = 0,
+  disableAutoplay = false,
+  previewViewport,
+}: {
+  config?: HeroCarouselConfig
+  appearance?: HeroAppearanceConfig
+  previewIndex?: number
+  disableAutoplay?: boolean
+  previewViewport?: HeroBreakpoint
+}) {
   const [storedConfig, setStoredConfig] = useState<HeroCarouselConfig>(() => readHeroConfig())
   const [storedAppearance, setStoredAppearance] = useState<HeroAppearanceConfig>(() => readHeroAppearance())
   const [activeIndex, setActiveIndex] = useState(previewIndex)
   const [paused, setPaused] = useState(false)
+  const liveBreakpoint = useViewportBreakpoint()
+  const breakpoint = previewViewport ?? liveBreakpoint
   const runtimeConfig = config ?? storedConfig
-  const runtimeAppearance = appearance ?? storedAppearance
+  const baseAppearance = appearance ?? storedAppearance
+  const runtimeAppearance = resolveHeroAppearance(baseAppearance, breakpoint)
 
   useEffect(() => {
     if (config) return
@@ -33,15 +79,16 @@ export function HeroSection({ config, appearance, previewIndex = 0, disableAutop
   }, [appearance])
 
   const slides = useMemo(() => getRenderableHeroSlides(runtimeConfig), [runtimeConfig])
-  const requestedIndex = config ? previewIndex : activeIndex
+  const requestedIndex = previewViewport ? previewIndex : activeIndex
   const safeIndex = Math.min(requestedIndex, Math.max(0, slides.length - 1))
   const hero: HeroSlide = slides[safeIndex] || defaultHeroSlide
+  const visual = resolveSlideVisual(hero, breakpoint)
   const ctas = (hero.ctas || []).filter(item => item.active && item.label).sort((a, b) => a.order - b.order)
   const navigation = runtimeConfig.navigation || 'arrows-dots'
   const loop = runtimeConfig.loop !== false
 
   useEffect(() => {
-    if (config || disableAutoplay || !runtimeConfig.autoplay || paused || slides.length <= 1) return
+    if (disableAutoplay || !runtimeConfig.autoplay || paused || slides.length <= 1) return
     if (typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return
     const timer = window.setInterval(() => {
       setActiveIndex(index => {
@@ -50,12 +97,11 @@ export function HeroSection({ config, appearance, previewIndex = 0, disableAutop
       })
     }, Math.max(3000, runtimeConfig.intervalMs || defaultHeroConfig.intervalMs))
     return () => window.clearInterval(timer)
-  }, [config, disableAutoplay, runtimeConfig.autoplay, runtimeConfig.intervalMs, paused, slides.length, loop])
+  }, [disableAutoplay, runtimeConfig.autoplay, runtimeConfig.intervalMs, paused, slides.length, loop])
 
   if (!runtimeAppearance.active) return null
 
   const go = (delta: number) => {
-    if (config) return
     setActiveIndex(index => {
       const target = index + delta
       if (loop) return (target + slides.length) % slides.length
@@ -67,18 +113,29 @@ export function HeroSection({ config, appearance, previewIndex = 0, disableAutop
   const hasTicker = ticker.active
   const radius = runtimeAppearance.radius
   const mediaStyle = {
-    '--hero-image-scale': hero.imageScale,
-    '--hero-image-offset-x': `${hero.imageOffsetX}px`,
-    '--hero-image-offset-y': `${hero.imageOffsetY}px`,
+    '--hero-image-scale': visual.imageScale,
+    '--hero-image-offset-x': `${visual.imageOffsetX}px`,
+    '--hero-image-offset-y': `${visual.imageOffsetY}px`,
+    '--hero-media-width': `${runtimeAppearance.mediaWidthPercent}%`,
+    '--hero-media-min-height': `${runtimeAppearance.mediaMinHeight}px`,
   } as CSSProperties
-  const rootStyle: CSSProperties = {
+  const rootStyle = {
     background: runtimeAppearance.background,
     minHeight: runtimeAppearance.height,
     borderRadius: hasTicker ? `${radius}px ${radius}px 0 0` : radius,
     borderColor: runtimeAppearance.borderColor,
     overflow: 'hidden',
     marginBottom: 0,
-  }
+    '--hero-title-line-height': runtimeAppearance.titleLineHeight,
+    '--hero-title-max-width': `${runtimeAppearance.titleMaxWidth}px`,
+    '--hero-description-max-width': `${runtimeAppearance.descriptionMaxWidth}px`,
+    '--hero-content-gap': `${runtimeAppearance.contentGap}px`,
+    '--hero-cta-gap': `${runtimeAppearance.ctaGap}px`,
+    '--hero-cta-height': `${runtimeAppearance.ctaHeight}px`,
+    '--hero-cta-padding-x': `${runtimeAppearance.ctaPaddingX}px`,
+    '--hero-content-padding-top': `${runtimeAppearance.contentPaddingTop}px`,
+    '--hero-content-padding-bottom': `${runtimeAppearance.contentPaddingBottom}px`,
+  } as CSSProperties
   const shellStyle: CSSProperties = {
     maxWidth: runtimeAppearance.width <= 100 ? undefined : runtimeAppearance.width,
     paddingLeft: runtimeAppearance.paddingX,
@@ -87,7 +144,7 @@ export function HeroSection({ config, appearance, previewIndex = 0, disableAutop
     paddingBottom: runtimeAppearance.paddingY,
     alignItems: runtimeAppearance.verticalAlign === 'start' ? 'start' : runtimeAppearance.verticalAlign === 'end' ? 'end' : 'center',
   }
-  const contentStyle: CSSProperties = { textAlign: runtimeAppearance.contentAlign }
+  const contentStyle: CSSProperties = { textAlign: runtimeAppearance.contentAlign, maxWidth: runtimeAppearance.titleMaxWidth }
   const tickerStyle: CSSProperties = {
     marginTop: 0,
     background: ticker.background || '#ef0011',
@@ -95,45 +152,36 @@ export function HeroSection({ config, appearance, previewIndex = 0, disableAutop
     borderRadius: `0 0 ${radius}px ${radius}px`,
     overflow: 'hidden',
   }
-  const tickerTagStyle: CSSProperties = {
-    display: 'inline-flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: '5px 9px',
-    borderRadius: 999,
-    fontSize: 9,
-    fontWeight: 900,
-    whiteSpace: 'nowrap',
-    background: ticker.tagBackground || '#111111',
-    color: ticker.tagTextColor || '#ffffff',
-  }
 
   return <>
-    <section className="portal-hero editorial-hero" style={rootStyle} aria-label="Destaque principal" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
+    <section className={`portal-hero editorial-hero hero-breakpoint-${breakpoint}`} data-hero-breakpoint={breakpoint} style={rootStyle} aria-label="Destaque principal" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
       <div className="editorial-hero-background" aria-hidden="true" />
       <div className="editorial-hero-overlay" aria-hidden="true" />
       <div className="shell editorial-hero-grid" style={shellStyle}>
         <div className="editorial-hero-content" style={contentStyle}>
           {hero.eyebrowVisible !== false && hero.eyebrow && <div className="editorial-eyebrow" style={{ color: runtimeAppearance.eyebrowColor, fontSize: runtimeAppearance.eyebrowSize, fontWeight: runtimeAppearance.eyebrowWeight }}><span aria-hidden="true" />{hero.eyebrow}</div>}
-          <h1 className="editorial-title" style={{ color: runtimeAppearance.titleColor }}>{hero.title.filter(segment => segment.visible !== false).map((segment, index) => <span className={segment.emphasis ? 'emphasis' : ''} style={{ color: segment.color || runtimeAppearance.titleColor, fontSize: segment.fontSize ? `${segment.fontSize}px` : undefined, fontWeight: segment.fontWeight || undefined }} key={`${segment.text}-${index}`}>{segment.text}</span>)}</h1>
-          {hero.descriptionVisible !== false && hero.description && <p style={{ color: runtimeAppearance.textColor, fontSize: runtimeAppearance.descriptionSize, fontWeight: runtimeAppearance.descriptionWeight }}>{hero.description}</p>}
-          {ctas.length > 0 && <div className="editorial-actions">{ctas.map(cta => <SmartLink key={cta.id} to={cta.url} external={cta.external} className={cta.variant === 'secondary' ? 'editorial-secondary' : 'portal-button'} style={{ fontSize: runtimeAppearance.ctaSize, fontWeight: runtimeAppearance.ctaWeight, ...(cta.variant === 'primary' ? { background: runtimeAppearance.accentColor } : { borderColor: runtimeAppearance.accentColor, color: runtimeAppearance.textColor }) }}>{cta.label}{cta.variant === 'primary' && <ArrowRight size={20} />}</SmartLink>)}</div>}
+          <h1 className="editorial-title" style={{ color: runtimeAppearance.titleColor, lineHeight: runtimeAppearance.titleLineHeight, maxWidth: runtimeAppearance.titleMaxWidth }}>{hero.title.filter(segment => segment.visible !== false).map((segment, index) => {
+            const segmentVisual = resolveTitleSegmentVisual(segment, breakpoint)
+            return <span className={segment.emphasis ? 'emphasis' : ''} style={{ color: segment.color || runtimeAppearance.titleColor, fontSize: segmentVisual.fontSize ? `${segmentVisual.fontSize}px` : undefined, fontWeight: segmentVisual.fontWeight || undefined }} key={`${segment.text}-${index}`}>{segment.text}</span>
+          })}</h1>
+          {hero.descriptionVisible !== false && hero.description && <p style={{ color: runtimeAppearance.textColor, fontSize: runtimeAppearance.descriptionSize, fontWeight: runtimeAppearance.descriptionWeight, maxWidth: runtimeAppearance.descriptionMaxWidth }}>{hero.description}</p>}
+          {ctas.length > 0 && <div className="editorial-actions" style={{ gap: runtimeAppearance.ctaGap }}>{ctas.map(cta => <SmartLink key={cta.id} to={cta.url} external={cta.external} className={cta.variant === 'secondary' ? 'editorial-secondary' : 'portal-button'} style={{ minHeight: runtimeAppearance.ctaHeight, paddingLeft: runtimeAppearance.ctaPaddingX, paddingRight: runtimeAppearance.ctaPaddingX, fontSize: runtimeAppearance.ctaSize, fontWeight: runtimeAppearance.ctaWeight, ...(cta.variant === 'primary' ? { background: runtimeAppearance.accentColor } : { borderColor: runtimeAppearance.accentColor, color: runtimeAppearance.textColor }) }}>{cta.label}{cta.variant === 'primary' && <ArrowRight size={20} />}</SmartLink>)}</div>}
         </div>
 
         <div className="editorial-hero-media" style={mediaStyle}>
-          {hero.imageVisible !== false && hero.image && <img className="editorial-featured-image" src={hero.image} alt={hero.imageAlt || ''} fetchPriority="high" decoding="async" style={{ objectPosition: `${hero.imagePositionX}% ${hero.imagePositionY}%` }} onError={event => { if (defaultHeroSlide.image && event.currentTarget.src !== defaultHeroSlide.image) event.currentTarget.src = defaultHeroSlide.image }} />}
+          {hero.imageVisible !== false && hero.image && <img className="editorial-featured-image" src={hero.image} alt={hero.imageAlt || ''} fetchPriority="high" decoding="async" style={{ objectPosition: `${visual.imagePositionX}% ${visual.imagePositionY}%`, width: `${runtimeAppearance.mediaWidthPercent}%` }} onError={event => { if (defaultHeroSlide.image && event.currentTarget.src !== defaultHeroSlide.image) event.currentTarget.src = defaultHeroSlide.image }} />}
           {hero.mediaCaptionVisible !== false && hero.mediaCaption && <span className="editorial-media-caption" style={{ color: runtimeAppearance.textColor }}>{hero.mediaCaption}</span>}
         </div>
       </div>
 
       {slides.length > 1 && navigation !== 'none' && <div className="hero-carousel-controls shell" aria-label="Navegação dos destaques">
-        {(navigation === 'arrows' || navigation === 'arrows-dots') && <div className="hero-carousel-arrows"><button type="button" aria-label="Destaque anterior" onClick={() => go(-1)} disabled={Boolean(config) || (!loop && safeIndex === 0)}><ArrowLeft size={17} /></button><button type="button" aria-label="Próximo destaque" onClick={() => go(1)} disabled={Boolean(config) || (!loop && safeIndex === slides.length - 1)}><ArrowRight size={17} /></button></div>}
-        {(navigation === 'dots' || navigation === 'arrows-dots') && <div className="hero-carousel-dots">{slides.map((slide, index) => <button type="button" aria-label={`Ir para destaque ${index + 1}`} className={index === safeIndex ? 'active' : ''} onClick={() => { if (!config) setActiveIndex(index) }} disabled={Boolean(config)} key={slide.id} />)}</div>}
+        {(navigation === 'arrows' || navigation === 'arrows-dots') && <div className="hero-carousel-arrows"><button type="button" aria-label="Destaque anterior" onClick={() => go(-1)} disabled={!loop && safeIndex === 0}><ArrowLeft size={17} /></button><button type="button" aria-label="Próximo destaque" onClick={() => go(1)} disabled={!loop && safeIndex === slides.length - 1}><ArrowRight size={17} /></button></div>}
+        {(navigation === 'dots' || navigation === 'arrows-dots') && <div className="hero-carousel-dots">{slides.map((item, index) => <button type="button" aria-label={`Ir para destaque ${index + 1}`} className={index === safeIndex ? 'active' : ''} onClick={() => setActiveIndex(index)} key={item.id} />)}</div>}
         <span>{String(safeIndex + 1).padStart(2, '0')} / {String(slides.length).padStart(2, '0')}</span>
       </div>}
       <div className="hero-noise" aria-hidden="true" />
     </section>
 
-    {hasTicker && <section className="portal-breaking editorial-ticker" style={tickerStyle} aria-label="Agora"><SmartLink to={ticker.url || '/'} external={ticker.external} className="shell" style={{ color: ticker.textColor || '#ffffff' }}><strong>{ticker.label}</strong><i aria-hidden="true" />{ticker.tagVisible !== false && ticker.tag && <span className="editorial-ticker-tag" style={tickerTagStyle}>{ticker.tag}</span>}<p>{ticker.text}</p>{ticker.showArrow !== false && <ArrowRight size={20} />}</SmartLink></section>}
+    {hasTicker && <section className={`portal-breaking editorial-ticker hero-breakpoint-${breakpoint}`} style={tickerStyle} aria-label="Agora"><SmartLink to={ticker.url || '/'} external={ticker.external} className="shell" style={{ color: ticker.textColor || '#ffffff' }}><strong>{ticker.label}</strong><i aria-hidden="true" />{ticker.tagVisible !== false && ticker.tag && <span className="editorial-ticker-tag" style={{ background: ticker.tagBackground || '#111111', color: ticker.tagTextColor || '#ffffff' }}>{ticker.tag}</span>}<p>{ticker.text}</p>{ticker.showArrow !== false && <ArrowRight size={20} />}</SmartLink></section>}
   </>
 }

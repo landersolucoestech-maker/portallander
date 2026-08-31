@@ -1,4 +1,4 @@
-import { ArrowDown, ArrowLeft, ArrowUp, Eye, EyeOff, Plus, Save, Trash2 } from 'lucide-react'
+import { ArrowLeft, ExternalLink, Save } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { homeReadModel } from '../../../pages/home/models/homeReadModel'
@@ -7,83 +7,67 @@ import { AdminShell } from '../../../shared/internal/AdminUi'
 import '../../../styles/home-section-manager.css'
 
 type SectionKey='ticker'|'grid'|'ranking'|'side-ad'|'secondary'|'trending'|'banner'|'videos'|'agenda'|'newsletter'|'footer'
-type ManagedItem={id:string;title:string;meta:string;url:string;active:boolean}
-type SectionDefinition={title:string;description:string;rule:string;limit?:number;addLabel:string;titleLabel:string;metaLabel:string;urlLabel:string}
+type SectionConfig={active:boolean;title:string;subtitle:string;linkLabel:string;linkUrl:string;source:string;quantity:number;width:number;height:number;paddingX:number;paddingY:number;radius:number;background:string;textColor:string;titleColor:string;accentColor:string;borderColor:string}
 
-const definitions:Record<SectionKey,SectionDefinition>={
-  ticker:{title:'Barra Agora',description:'Edite a chamada exibida logo abaixo do Hero.',rule:'Posição fixa abaixo do Hero. Sem configuração de layout.',limit:1,addLabel:'Adicionar chamada',titleLabel:'Texto',metaLabel:'Rótulo',urlLabel:'Link'},
-  grid:{title:'Grid principal',description:'Adicione, edite, exclua e ordene as matérias do principal bloco editorial.',rule:'Layout travado: 3 cards por linha no desktop. Ranking sempre na lateral direita.',addLabel:'Adicionar matéria',titleLabel:'Matéria',metaLabel:'Categoria',urlLabel:'Link da matéria'},
-  ranking:{title:'Ranking 01–10',description:'Defina os conteúdos e a ordem do ranking lateral.',rule:'Posição travada à direita do Grid principal. Máximo de 10 itens.',limit:10,addLabel:'Adicionar item',titleLabel:'Matéria',metaLabel:'Categoria / apoio',urlLabel:'Link'},
-  'side-ad':{title:'Publicidade lateral',description:'Configure a campanha exibida abaixo do Ranking.',rule:'Posição travada abaixo do Ranking.',limit:1,addLabel:'Adicionar campanha',titleLabel:'Campanha',metaLabel:'Anunciante / período',urlLabel:'URL de destino'},
-  secondary:{title:'Destaques secundários',description:'Gerencie o conteúdo do segundo bloco editorial.',rule:'Layout e proporções travados. Você altera apenas conteúdo e ordem.',addLabel:'Adicionar destaque',titleLabel:'Matéria',metaLabel:'Categoria',urlLabel:'Link'},
-  trending:{title:'Em alta',description:'Gerencie a lista lateral exibida ao lado dos Destaques.',rule:'Posição travada à direita dos Destaques secundários.',addLabel:'Adicionar conteúdo',titleLabel:'Matéria',metaLabel:'Categoria / atualização',urlLabel:'Link'},
-  banner:{title:'Banner horizontal',description:'Configure a campanha horizontal da Home.',rule:'Posição e dimensões controladas pelo layout oficial.',limit:1,addLabel:'Adicionar campanha',titleLabel:'Campanha',metaLabel:'Anunciante / período',urlLabel:'URL de destino'},
-  videos:{title:'Vídeos',description:'Gerencie os conteúdos da seção audiovisual.',rule:'Layout travado. Apenas conteúdo, status e ordem são administráveis.',addLabel:'Adicionar vídeo',titleLabel:'Título do vídeo',metaLabel:'Ano / canal',urlLabel:'URL do vídeo'},
-  agenda:{title:'Agenda / Eventos',description:'Gerencie os eventos exibidos ao lado dos vídeos.',rule:'Posição travada à direita da seção de vídeos.',addLabel:'Adicionar evento',titleLabel:'Evento',metaLabel:'Data · cidade / local',urlLabel:'Link / ingresso'},
-  newsletter:{title:'Newsletter',description:'Edite a chamada de inscrição antes do rodapé.',rule:'Posição travada antes do Footer.',limit:1,addLabel:'Adicionar chamada',titleLabel:'Chamada',metaLabel:'Texto de apoio',urlLabel:'Ação / endpoint'},
-  footer:{title:'Footer',description:'Gerencie textos e links do rodapé sem alterar sua estrutura visual.',rule:'Estrutura visual travada. Os itens abaixo controlam apenas o conteúdo.',addLabel:'Adicionar item',titleLabel:'Título / link',metaLabel:'Grupo',urlLabel:'URL'},
+type Definition={title:string;description:string;position:string;identifier:string;defaultTitle:string;defaultSubtitle:string;defaultQuantity:number;defaultWidth:number;defaultHeight:number;sourceLabel:string;sourceOptions:string[]}
+
+const defs:Record<SectionKey,Definition>={
+  ticker:{title:'Barra Agora',description:'Faixa de chamadas rápidas logo abaixo do Hero.',position:'Logo abaixo do Hero',identifier:'home_barra_agora',defaultTitle:'AGORA',defaultSubtitle:'Fique por dentro do que está acontecendo agora.',defaultQuantity:1,defaultWidth:100,defaultHeight:56,sourceLabel:'Fonte',sourceOptions:['Últimas notícias','Seleção manual','Destaques']},
+  grid:{title:'Grid principal',description:'Bloco editorial principal da Home.',position:'Abaixo da Barra Agora, com Ranking à direita',identifier:'home_grid_principal',defaultTitle:'Últimas notícias',defaultSubtitle:'Confira os destaques e novidades mais recentes.',defaultQuantity:6,defaultWidth:100,defaultHeight:320,sourceLabel:'Fonte',sourceOptions:['Destaques da Home','Últimas notícias','Seleção manual']},
+  ranking:{title:'Ranking',description:'Ranking lateral exibido ao lado do Grid principal.',position:'Lateral direita do Grid principal',identifier:'home_ranking',defaultTitle:'Ranking',defaultSubtitle:'Conteúdos mais acessados.',defaultQuantity:10,defaultWidth:300,defaultHeight:520,sourceLabel:'Tipo de ranking',sourceOptions:['Mais lidas','Mais recentes','Seleção manual']},
+  'side-ad':{title:'Publicidade lateral',description:'Slot publicitário abaixo do Ranking.',position:'Abaixo do Ranking, lateral direita',identifier:'home_pub_lateral',defaultTitle:'Publicidade',defaultSubtitle:'Campanha lateral ativa.',defaultQuantity:1,defaultWidth:300,defaultHeight:600,sourceLabel:'Slot',sourceOptions:['HOME_SIDEBAR_01','HOME_SIDEBAR_02']},
+  secondary:{title:'Destaques secundários',description:'Segundo bloco editorial da Home.',position:'Abaixo do bloco principal',identifier:'home_destaques_secundarios',defaultTitle:'Em destaque',defaultSubtitle:'Seleção editorial em evidência.',defaultQuantity:4,defaultWidth:100,defaultHeight:280,sourceLabel:'Fonte',sourceOptions:['Seleção manual','Destaques da Home','Últimas notícias']},
+  trending:{title:'Em alta',description:'Lista lateral exibida ao lado dos destaques.',position:'Lateral dos Destaques secundários',identifier:'home_em_alta',defaultTitle:'Em alta',defaultSubtitle:'Conteúdos que estão em alta.',defaultQuantity:4,defaultWidth:300,defaultHeight:360,sourceLabel:'Fonte',sourceOptions:['Em alta','Mais lidas','Seleção manual']},
+  banner:{title:'Banner horizontal',description:'Banner publicitário horizontal entre blocos.',position:'Entre Destaques e Vídeos',identifier:'home_banner_horizontal',defaultTitle:'Banner horizontal',defaultSubtitle:'Campanha horizontal ativa.',defaultQuantity:1,defaultWidth:100,defaultHeight:180,sourceLabel:'Slot',sourceOptions:['HOME_BANNER_01','HOME_BANNER_02']},
+  videos:{title:'Vídeos',description:'Seção audiovisual da Home.',position:'Abaixo do Banner horizontal',identifier:'home_videos',defaultTitle:'Vídeos',defaultSubtitle:'Conteúdos audiovisuais em destaque.',defaultQuantity:4,defaultWidth:100,defaultHeight:420,sourceLabel:'Fonte',sourceOptions:['Vídeos em destaque','Mais recentes','Seleção manual']},
+  agenda:{title:'Agenda / Eventos',description:'Agenda exibida ao lado da seção de vídeos.',position:'Lateral de Vídeos',identifier:'home_agenda',defaultTitle:'Agenda',defaultSubtitle:'Próximos eventos.',defaultQuantity:6,defaultWidth:300,defaultHeight:420,sourceLabel:'Fonte',sourceOptions:['Próximos eventos','Seleção manual']},
+  newsletter:{title:'Newsletter',description:'Faixa de inscrição antes do rodapé.',position:'Acima do Footer',identifier:'home_newsletter',defaultTitle:'Receba nossas novidades',defaultSubtitle:'Inscreva-se e receba conteúdos exclusivos no seu e-mail.',defaultQuantity:1,defaultWidth:100,defaultHeight:200,sourceLabel:'Serviço',sourceOptions:['MailerLite','Resend','Interno']},
+  footer:{title:'Footer',description:'Rodapé institucional da página.',position:'Último bloco da página',identifier:'home_footer',defaultTitle:'Portal Lander',defaultSubtitle:'Conteúdo, cultura e movimento.',defaultQuantity:1,defaultWidth:100,defaultHeight:300,sourceLabel:'Estrutura',sourceOptions:['Padrão do Portal','Personalizada']},
 }
 
-function defaults(section:SectionKey):ManagedItem[]{
-  if(section==='grid')return homeReadModel.featuredStories.map((item,index)=>({id:`grid-${index}`,title:item.title,meta:item.category,url:'#',active:true}))
-  if(section==='secondary')return homeReadModel.latestStories.map((item,index)=>({id:`secondary-${index}`,title:item.title,meta:item.category,url:'#',active:true}))
-  if(section==='videos')return homeReadModel.releases.map((item,index)=>({id:`video-${index}`,title:item.title,meta:item.year,url:'#',active:true}))
-  if(section==='agenda')return homeReadModel.agenda.map((item,index)=>({id:`agenda-${index}`,title:item.title,meta:`${item.day} ${item.month} · ${item.place}`,url:'#',active:true}))
-  if(section==='ranking')return homeReadModel.mostRead.slice(0,10).map((item,index)=>({id:`ranking-${index}`,title:item.title,meta:item.meta,url:'#',active:true}))
-  if(section==='trending')return homeReadModel.latestStories.slice(0,4).map((item,index)=>({id:`trending-${index}`,title:item.title,meta:item.category,url:'#',active:true}))
-  if(section==='ticker')return [{id:'ticker-1',title:'Novos lançamentos, bastidores e assuntos que estão dominando a conversa.',meta:'AGORA',url:'#',active:true}]
-  if(section==='side-ad')return [{id:'side-ad-1',title:'Publicidade lateral da Home',meta:'Campanha ativa',url:'#',active:true}]
-  if(section==='banner')return [{id:'banner-1',title:'Banner horizontal da Home',meta:'Campanha ativa',url:'#',active:true}]
-  if(section==='newsletter')return [{id:'newsletter-1',title:'Receba as principais notícias direto no seu e-mail!',meta:'Newsletter',url:'#',active:true}]
-  if(section==='footer')return [{id:'footer-1',title:'Navegação e institucional',meta:'Rodapé',url:'#',active:true}]
-  return []
-}
-
-function storageKey(section:SectionKey){return `portal-lander:cms:home-section:${section}:v2`}
-function load(section:SectionKey){
-  try{const raw=localStorage.getItem(storageKey(section));return raw?JSON.parse(raw) as ManagedItem[]:defaults(section)}catch{return defaults(section)}
-}
+const defaultConfig=(d:Definition):SectionConfig=>({active:true,title:d.defaultTitle,subtitle:d.defaultSubtitle,linkLabel:'Ver todos',linkUrl:'#',source:d.sourceOptions[0],quantity:d.defaultQuantity,width:d.defaultWidth,height:d.defaultHeight,paddingX:24,paddingY:24,radius:0,background:'#ffffff',textColor:'#333333',titleColor:'#111111',accentColor:'#e50914',borderColor:'#e5e5e5'})
+const key=(s:SectionKey)=>`portal-lander:cms:section-config:${s}:v3`
+function load(section:SectionKey,d:Definition){try{const raw=localStorage.getItem(key(section));return raw?{...defaultConfig(d),...JSON.parse(raw)}:defaultConfig(d)}catch{return defaultConfig(d)}}
 
 export function HomeSectionManagerPage({section}:{section:SectionKey}){
-  const definition=definitions[section]
-  const [items,setItems]=useState<ManagedItem[]>(()=>load(section))
+  const d=defs[section]
+  const [config,setConfig]=useState<SectionConfig>(()=>load(section,d))
   const [saved,setSaved]=useState(false)
-  const activeCount=useMemo(()=>items.filter(item=>item.active).length,[items])
+  const patch=(p:Partial<SectionConfig>)=>{setConfig(c=>({...c,...p}));setSaved(false)}
+  const previewItems=useMemo(()=>section==='grid'?homeReadModel.featuredStories.slice(0,3):section==='secondary'?homeReadModel.latestStories.slice(0,4):section==='videos'?homeReadModel.releases.slice(0,4):section==='agenda'?homeReadModel.agenda.slice(0,6):section==='ranking'?homeReadModel.mostRead.slice(0,5):section==='trending'?homeReadModel.latestStories.slice(0,4):[],[section])
+  const save=()=>{localStorage.setItem(key(section),JSON.stringify(config));setSaved(true)}
 
-  const change=(id:string,patch:Partial<ManagedItem>)=>{setItems(current=>current.map(item=>item.id===id?{...item,...patch}:item));setSaved(false)}
-  const move=(index:number,delta:number)=>setItems(current=>{
-    const target=index+delta
-    if(target<0||target>=current.length)return current
-    const next=[...current];[next[index],next[target]]=[next[target],next[index]];setSaved(false);return next
-  })
-  const add=()=>{
-    if(definition.limit&&items.length>=definition.limit)return
-    setItems(current=>[...current,{id:`${section}-${Date.now()}`,title:'',meta:'',url:'',active:true}])
-    setSaved(false)
-  }
-  const save=()=>{localStorage.setItem(storageKey(section),JSON.stringify(items));setSaved(true)}
+  return <AdminShell area="cms" items={SITE_MANAGER_NAV} header={{title:`Configurar seção: ${d.title}`,description:d.description}}>
+    <div className="section-editor-toolbar"><div><Link to="/app/site/home"><ArrowLeft size={14}/> Seções das Páginas</Link><span className="section-editor-status"><input type="checkbox" checked={config.active} onChange={e=>patch({active:e.target.checked})}/> {config.active?'Ativo':'Inativo'}</span></div><div><Link className="button outline" to="/app/site/home">Cancelar</Link><button className="button dark" onClick={save}><Save size={15}/> Salvar alterações</button></div></div>
+    {saved&&<div className="home-section-manager-success">Alterações salvas para esta seção.</div>}
 
-  return <AdminShell area="cms" items={SITE_MANAGER_NAV} header={{title:definition.title,description:definition.description}}>
-    <div className="home-section-manager-head">
-      <div><Link to="/app/site/home"><ArrowLeft size={15}/> Voltar para Página inicial</Link><p>{definition.rule}</p></div>
-      <div className="home-section-manager-actions"><button className="button outline" onClick={add} disabled={Boolean(definition.limit&&items.length>=definition.limit)}><Plus size={16}/> {definition.addLabel}</button><button className="button dark" onClick={save}><Save size={16}/> Salvar alterações</button></div>
-    </div>
+    <div className="section-editor-layout">
+      <section className="section-editor-card">
+        <h2>Configurações gerais</h2>
+        <label>Título da seção<input value={config.title} onChange={e=>patch({title:e.target.value})}/></label>
+        <label>Subtítulo<input value={config.subtitle} onChange={e=>patch({subtitle:e.target.value})}/></label>
+        <div className="section-editor-two"><label>Texto “Ver todos”<input value={config.linkLabel} onChange={e=>patch({linkLabel:e.target.value})}/></label><label>Link<input value={config.linkUrl} onChange={e=>patch({linkUrl:e.target.value})}/></label></div>
+        <label>{d.sourceLabel}<select value={config.source} onChange={e=>patch({source:e.target.value})}>{d.sourceOptions.map(o=><option key={o}>{o}</option>)}</select></label>
+        <label>Quantidade de itens<input type="number" min="1" max="20" value={config.quantity} onChange={e=>patch({quantity:Number(e.target.value)})}/><small>{section==='grid'?'O Grid continua sempre com 3 cards por linha no desktop.':''}</small></label>
 
-    {saved&&<div className="home-section-manager-success">Alterações salvas no estado administrativo atual.</div>}
+        <h2>Aparência e dimensões</h2>
+        <div className="section-editor-slider"><span>Largura da seção</span><input type="range" min="220" max="1600" value={config.width<=100?1200:config.width} onChange={e=>patch({width:Number(e.target.value)})}/><b>{config.width<=100?'Auto':`${config.width}px`}</b></div>
+        <div className="section-editor-slider"><span>Altura da seção</span><input type="range" min="40" max="900" value={config.height} onChange={e=>patch({height:Number(e.target.value)})}/><b>{config.height}px</b></div>
+        <div className="section-editor-slider"><span>Padding horizontal</span><input type="range" min="0" max="80" value={config.paddingX} onChange={e=>patch({paddingX:Number(e.target.value)})}/><b>{config.paddingX}px</b></div>
+        <div className="section-editor-slider"><span>Padding vertical</span><input type="range" min="0" max="80" value={config.paddingY} onChange={e=>patch({paddingY:Number(e.target.value)})}/><b>{config.paddingY}px</b></div>
+        <div className="section-editor-slider"><span>Arredondamento</span><input type="range" min="0" max="32" value={config.radius} onChange={e=>patch({radius:Number(e.target.value)})}/><b>{config.radius}px</b></div>
 
-    <div className="home-section-manager-summary"><strong>{activeCount}</strong><span>ativos</span><small>{items.length} cadastrados{definition.limit?` · limite ${definition.limit}`:''}</small></div>
-
-    <section className="home-section-manager-list">
-      {items.map((item,index)=><article className="home-section-manager-item" key={item.id}>
-        <div className="home-section-manager-item-order"><strong>{String(index+1).padStart(2,'0')}</strong><div><button title="Subir" disabled={index===0} onClick={()=>move(index,-1)}><ArrowUp size={15}/></button><button title="Descer" disabled={index===items.length-1} onClick={()=>move(index,1)}><ArrowDown size={15}/></button></div></div>
-        <div className="home-section-manager-fields">
-          <label>{definition.titleLabel}<input value={item.title} onChange={event=>change(item.id,{title:event.target.value})} placeholder={definition.titleLabel}/></label>
-          <label>{definition.metaLabel}<input value={item.meta} onChange={event=>change(item.id,{meta:event.target.value})} placeholder={definition.metaLabel}/></label>
-          <label className="wide">{definition.urlLabel}<input value={item.url} onChange={event=>change(item.id,{url:event.target.value})} placeholder="https://... ou rota interna"/></label>
+        <div className="section-editor-colors">
+          {([['background','Cor de fundo'],['titleColor','Cor do título'],['textColor','Cor do texto'],['accentColor','Cor de destaque'],['borderColor','Cor da borda']] as const).map(([field,label])=><label key={field}>{label}<span><input type="color" value={config[field]} onChange={e=>patch({[field]:e.target.value} as Partial<SectionConfig>)}/><input value={config[field]} onChange={e=>patch({[field]:e.target.value} as Partial<SectionConfig>)}/></span></label>)}
         </div>
-        <div className="home-section-manager-item-actions"><button className={`home-section-manager-status ${item.active?'active':''}`} onClick={()=>change(item.id,{active:!item.active})}>{item.active?<Eye size={14}/>:<EyeOff size={14}/>} {item.active?'Ativo':'Oculto'}</button><button className="home-section-manager-delete" title="Excluir" onClick={()=>{setItems(current=>current.filter(entry=>entry.id!==item.id));setSaved(false)}}><Trash2 size={15}/> Excluir</button></div>
-      </article>)}
-      {!items.length&&<div className="home-section-manager-empty"><strong>Nenhum item cadastrado.</strong><span>Use “{definition.addLabel}” para começar.</span></div>}
-    </section>
+      </section>
+
+      <section className="section-editor-preview-column">
+        <div className="section-editor-card"><h2>Prévia da seção</h2><div className="section-preview" style={{background:config.background,color:config.textColor,minHeight:config.height,borderColor:config.borderColor,borderRadius:config.radius,padding:`${config.paddingY}px ${config.paddingX}px`}}><div className="section-preview-head"><h3 style={{color:config.titleColor}}>{config.title}</h3>{config.linkLabel&&<span style={{color:config.accentColor}}>{config.linkLabel} →</span>}</div><p>{config.subtitle}</p>{previewItems.length>0?<div className={`section-preview-items ${section}`}>
+          {previewItems.map((item:any,index:number)=><div className="section-preview-item" key={index}>{'image' in item&&item.image?<img src={item.image} alt=""/>:<span className="section-preview-number" style={{color:config.accentColor}}>{String(index+1).padStart(2,'0')}</span>}<strong>{item.title}</strong>{'category' in item&&<small>{item.category}</small>}{'place' in item&&<small>{item.place}</small>}</div>)}
+        </div>:<div className="section-preview-placeholder" style={{borderColor:config.borderColor}}>{section.includes('ad')||section==='banner'?'SUA MARCA AQUI':section==='newsletter'?'Seu melhor e-mail     INSCREVER-SE':section==='footer'?'PORTAL LANDER · NAVEGAÇÃO · INSTITUCIONAL · REDES SOCIAIS':config.subtitle}</div>}</div></div>
+        <div className="section-editor-card section-details"><h2>Detalhes da seção</h2><dl><dt>Identificador</dt><dd>{d.identifier}</dd><dt>Posição na página</dt><dd>{d.position}</dd><dt>Comportamento</dt><dd>Posição fixa no layout; conteúdo e aparência editáveis</dd><dt>Responsividade</dt><dd>Adaptativa para desktop, tablet e mobile</dd></dl><div className="section-editor-note"><ExternalLink size={16}/><span>Altura, largura e cores podem ser ajustadas aqui sem alterar a posição estrutural da seção na página.</span></div></div>
+      </section>
+    </div>
   </AdminShell>
 }

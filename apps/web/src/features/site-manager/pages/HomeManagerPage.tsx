@@ -71,6 +71,11 @@ function SectionGlyph({id}:{id:SectionId}){
 }
 
 function titleAsText(config:HeroCarouselConfig){return config.slides[0]?.title.map(part=>part.text).join('\n')||''}
+function publicHomeUrl(previewVersion?:number){
+  const base=new URL(import.meta.env.BASE_URL,window.location.origin)
+  if(previewVersion!==undefined)base.searchParams.set('cmsPreview',String(previewVersion))
+  return base.toString()
+}
 
 export function HomeManagerPage(){
   const [sections,setSections]=useState<BuilderSection[]>(loadSections)
@@ -114,7 +119,7 @@ export function HomeManagerPage(){
     <div className="home-builder-topbar">
       <div className="home-builder-publish-state"><span className="home-builder-dot"/> Publicado</div>
       <div className="home-builder-top-actions">
-        <a className="home-builder-button secondary" href="/" target="_blank" rel="noreferrer"><Eye size={15}/> Ver site</a>
+        <a className="home-builder-button secondary" href={publicHomeUrl()} target="_blank" rel="noreferrer"><Eye size={15}/> Ver site</a>
         <button className="home-builder-button secondary" onClick={()=>setPreviewVersion(value=>value+1)}>Pré-visualizar</button>
         <button className="home-builder-button primary" onClick={save}><Save size={15}/> Salvar alterações</button>
       </div>
@@ -147,7 +152,7 @@ export function HomeManagerPage(){
             <button className={device==='mobile'?'active':''} onClick={()=>setDevice('mobile')} title="Mobile"><Smartphone size={16}/></button>
           </div>
         </div>
-        <div className={`home-builder-preview-stage ${device}`}><iframe key={previewVersion} title="Pré-visualização da página inicial" src={`/?cmsPreview=${previewVersion}`}/></div>
+        <div className={`home-builder-preview-stage ${device}`}><iframe key={previewVersion} title="Pré-visualização da página inicial" src={publicHomeUrl(previewVersion)}/></div>
       </main>
 
       <aside className="home-builder-inspector">

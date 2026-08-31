@@ -12,6 +12,7 @@ export const mockDomains=[
  'rh',
  'marketing',
  'reports',
+ 'settings',
  'dashboard',
  'collaboration',
  'branding',

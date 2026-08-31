@@ -21,29 +21,52 @@ import { Link } from 'react-router-dom'
 import { HeroSection } from './HeroSection'
 import {
   applyArticleToSlide,
+  clearSlideVisualOverrides,
   defaultHeroSlide,
+  hasSlideVisualOverride,
   heroArticles,
   readHeroConfig,
+  resolveSlideVisual,
+  resolveTitleSegmentVisual,
+  setSlideVisualOverride,
   writeHeroConfig,
   type HeroCarouselConfig,
   type HeroCta,
   type HeroSlide,
+  type HeroSlideResponsiveVisual,
+  type HeroTitleSegment,
+  type HeroTitleSegmentVisual,
 } from '../models/heroModel'
 import {
+  clearHeroAppearanceOverride,
   defaultHeroAppearance,
+  hasHeroAppearanceOverride,
   readHeroAppearance,
+  resolveHeroAppearance,
+  setHeroAppearanceOverride,
   writeHeroAppearance,
   type HeroAppearanceConfig,
+  type HeroBreakpoint,
+  type HeroResponsiveAppearance,
 } from '../models/heroAppearanceModel'
 import '../styles/hero-editor-cms.css'
 
 type EditorTab = 'content' | 'appearance' | 'behavior'
 type AccordionKey = 'content' | 'media' | 'ctas' | 'ticker' | 'linking' | 'publication'
-type Viewport = 'desktop' | 'tablet' | 'mobile'
-type _ColorField = 'background' | 'textColor' | 'titleColor' | 'accentColor' | 'borderColor' | 'eyebrowColor'
 
-function Field({ label, children, hint }: { label: string; children: ReactNode; hint?: string }) {
+type FieldProps = { label: ReactNode; children: ReactNode; hint?: string }
+
+function Field({ label, children, hint }: FieldProps) {
   return <label className="hero-cms-field"><span>{label}</span>{children}{hint && <small>{hint}</small>}</label>
+}
+
+function DeviceBadge({ breakpoint, overridden }: { breakpoint: HeroBreakpoint; overridden?: boolean }) {
+  if (breakpoint === 'desktop') return <em className="hero-cms-device-badge base">Base · Desktop</em>
+  return <em className={`hero-cms-device-badge ${overridden ? 'override' : 'inherited'}`}>{overridden ? `Sobrescrito · ${breakpoint === 'tablet' ? 'Tablet' : 'Mobile'}` : 'Automático · herdado'}</em>
+}
+
+function ResponsiveLabel({ text, breakpoint, overridden }: { text: string; breakpoint: HeroBreakpoint; overridden?: boolean }) {
+  return <span className="hero-cms-responsive-label"><b>{text}</b><DeviceBadge breakpoint={breakpoint} overridden={overridden} /></span>
 }
 
 function Accordion({ id, title, description, open, onToggle, children }: { id: AccordionKey; title: string; description: string; open: boolean; onToggle: (id: AccordionKey) => void; children: ReactNode }) {
@@ -56,9 +79,7 @@ function Accordion({ id, title, description, open, onToggle, children }: { id: A
   </section>
 }
 
-function uniqueStamp() {
-  return Date.now()
-}
+function uniqueStamp() { return Date.now() }
 
 function makeSlide(order: number): HeroSlide {
   const stamp = uniqueStamp()
@@ -66,7 +87,8 @@ function makeSlide(order: number): HeroSlide {
     ...defaultHeroSlide,
     id: `hero-slide-${stamp}`,
     order,
-    title: defaultHeroSlide.title.map(item => ({ ...item, visible: item.visible !== false })),
+    responsive: {},
+    title: defaultHeroSlide.title.map(item => ({ ...item, visible: item.visible !== false, responsive: {} })),
     ctas: (defaultHeroSlide.ctas || []).map(item => ({ ...item, id: `${item.id}-${stamp}` })),
   }
 }
@@ -95,9 +117,7 @@ async function optimizeImage(file: File): Promise<string> {
     if (dataUrl.length > 3_200_000) dataUrl = render(1600, .84)
     if (dataUrl.length > 3_200_000) dataUrl = render(1280, .78)
     return dataUrl
-  } finally {
-    URL.revokeObjectURL(objectUrl)
-  }
+  } finally { URL.revokeObjectURL(objectUrl) }
 }
 
 export function HeroEditor() {
@@ -107,7 +127,7 @@ export function HeroEditor() {
   const [selectedId, setSelectedId] = useState(initialConfig.slides[0]?.id || defaultHeroSlide.id)
   const [tab, setTab] = useState<EditorTab>('content')
   const [openAccordion, setOpenAccordion] = useState<AccordionKey>('content')
-  const [viewport, setViewport] = useState<Viewport>('desktop')
+  const [viewport, setViewport] = useState<HeroBreakpoint>('desktop')
   const [dirty, setDirty] = useState(false)
   const [saved, setSaved] = useState(false)
   const [libraryOpen, setLibraryOpen] = useState(false)
@@ -119,6 +139,8 @@ export function HeroEditor() {
   const selectedIndex = Math.max(0, ordered.findIndex(item => item.id === selectedId))
   const slide = ordered[selectedIndex] || ordered[0] || defaultHeroSlide
   const ctas = useMemo(() => [...(slide.ctas || [])].sort((a, b) => a.order - b.order), [slide.ctas])
+  const effectiveAppearance = resolveHeroAppearance(appearance, viewport)
+  const effectiveVisual = resolveSlideVisual(slide, viewport)
 
   const markDirty = () => { setDirty(true); setSaved(false) }
   const patchConfig = (patch: Partial<HeroCarouselConfig>) => { setDraft(current => ({ ...current, ...patch })); markDirty() }
@@ -128,6 +150,36 @@ export function HeroEditor() {
     markDirty()
   }
   const toggleAccordion = (id: AccordionKey) => setOpenAccordion(id)
+
+  const patchResponsiveAppearance = <K extends keyof HeroResponsiveAppearance>(key: K, value: HeroResponsiveAppearance[K]) => {
+    setAppearance(current => setHeroAppearanceOverride(current, viewport, key, value))
+    markDirty()
+  }
+
+  const patchSlideVisual = <K extends keyof HeroSlideResponsiveVisual>(key: K, value: HeroSlideResponsiveVisual[K]) => {
+    updateSlide(setSlideVisualOverride(slide, viewport, key, value))
+  }
+
+  const updateSegment = (index: number, patch: Partial<HeroTitleSegment>) => {
+    updateSlide({ title: slide.title.map((item, itemIndex) => itemIndex === index ? { ...item, ...patch } : item) })
+  }
+
+  const updateSegmentVisual = (index: number, key: keyof HeroTitleSegmentVisual, value: number | undefined) => {
+    const segment = slide.title[index]
+    if (viewport === 'desktop') {
+      updateSegment(index, { [key]: value })
+      return
+    }
+    updateSegment(index, { responsive: { ...(segment.responsive || {}), [viewport]: { ...(segment.responsive?.[viewport] || {}), [key]: value } } })
+  }
+
+  const resetSegmentVisual = (index: number, key: keyof HeroTitleSegmentVisual) => {
+    if (viewport === 'desktop') return
+    const segment = slide.title[index]
+    const current = { ...(segment.responsive?.[viewport] || {}) }
+    delete current[key]
+    updateSegment(index, { responsive: { ...(segment.responsive || {}), [viewport]: current } })
+  }
 
   const save = () => {
     writeHeroConfig(draft)
@@ -145,6 +197,15 @@ export function HeroEditor() {
     setSaved(false)
   }
 
+  const resetCurrentDevice = () => {
+    if (viewport === 'desktop') return
+    setAppearance(current => clearHeroAppearanceOverride(current, viewport))
+    updateSlide(clearSlideVisualOverrides(slide, viewport))
+    const title = slide.title.map(segment => ({ ...segment, responsive: { ...(segment.responsive || {}), [viewport]: {} } }))
+    updateSlide({ title })
+    markDirty()
+  }
+
   const addSlide = () => {
     const next = makeSlide(draft.slides.length + 1)
     setDraft(current => ({ ...current, slides: [...current.slides, next] }))
@@ -159,7 +220,8 @@ export function HeroEditor() {
       ...target,
       id: `hero-slide-${stamp}`,
       order: draft.slides.length + 1,
-      title: target.title.map(item => ({ ...item })),
+      responsive: { tablet: { ...(target.responsive?.tablet || {}) }, mobile: { ...(target.responsive?.mobile || {}) } },
+      title: target.title.map(item => ({ ...item, responsive: { tablet: { ...(item.responsive?.tablet || {}) }, mobile: { ...(item.responsive?.mobile || {}) } } })),
       ctas: (target.ctas || []).map(item => ({ ...item, id: `${item.id}-${stamp}` })),
     }
     setDraft(current => ({ ...current, slides: [...current.slides, next] }))
@@ -201,28 +263,10 @@ export function HeroEditor() {
     const next = ctas.map(item => item.id === id ? { ...item, ...patch } : item)
     const primary = next.find(item => item.variant === 'primary')
     const secondary = next.find(item => item.variant === 'secondary')
-    updateSlide({
-      ctas: next,
-      primaryCtaLabel: primary?.label || slide.primaryCtaLabel,
-      primaryCtaUrl: primary?.url || slide.primaryCtaUrl,
-      secondaryCtaLabel: secondary?.label || slide.secondaryCtaLabel,
-      secondaryCtaUrl: secondary?.url || slide.secondaryCtaUrl,
-    })
+    updateSlide({ ctas: next, primaryCtaLabel: primary?.label || slide.primaryCtaLabel, primaryCtaUrl: primary?.url || slide.primaryCtaUrl, secondaryCtaLabel: secondary?.label || slide.secondaryCtaLabel, secondaryCtaUrl: secondary?.url || slide.secondaryCtaUrl })
   }
 
-  const addCta = () => {
-    const next: HeroCta = {
-      id: `cta-${uniqueStamp()}`,
-      active: true,
-      label: 'NOVO CTA',
-      url: '#',
-      external: false,
-      order: ctas.length + 1,
-      variant: ctas.some(item => item.variant === 'primary') ? 'secondary' : 'primary',
-    }
-    updateSlide({ ctas: [...ctas, next] })
-  }
-
+  const addCta = () => updateSlide({ ctas: [...ctas, { id: `cta-${uniqueStamp()}`, active: true, label: 'NOVO CTA', url: '#', external: false, order: ctas.length + 1, variant: ctas.some(item => item.variant === 'primary') ? 'secondary' : 'primary' }] })
   const removeCta = (id: string) => updateSlide({ ctas: ctas.filter(item => item.id !== id).map((item, index) => ({ ...item, order: index + 1 })) })
   const moveCta = (id: string, delta: number) => {
     const next = [...ctas]
@@ -239,109 +283,106 @@ export function HeroEditor() {
     try {
       const optimized = await optimizeImage(file)
       updateSlide({ image: optimized, imageVisible: true, imageAlt: slide.imageAlt || file.name.replace(/\.[^.]+$/, '') })
-    } catch (error) {
-      console.error(error)
-    } finally {
-      setUploading(false)
-      if (fileRef.current) fileRef.current.value = ''
-    }
+    } catch (error) { console.error(error) }
+    finally { setUploading(false); if (fileRef.current) fileRef.current.value = '' }
   }
 
   const previewClass = `hero-cms-preview-stage ${viewport}`
   const selectedTitle = slide.title.filter(part => part.visible !== false).map(part => part.text).join(' ') || 'Sem headline'
+  const deviceName = viewport === 'desktop' ? 'Desktop' : viewport === 'tablet' ? 'Tablet' : 'Mobile'
+  const deviceHasOverrides = viewport !== 'desktop' && (hasHeroAppearanceOverride(appearance, viewport) || hasSlideVisualOverride(slide, viewport) || slide.title.some(segment => Object.keys(segment.responsive?.[viewport] || {}).length > 0))
 
   return <div className="hero-cms-editor">
-    <div className="hero-cms-topbar">
-      <div className="hero-cms-breadcrumb"><Link to="/app/site/secoes">← Seções das Páginas</Link><span className={`hero-cms-status ${appearance.active ? 'active' : ''}`}>{appearance.active ? 'Ativo' : 'Inativo'}</span></div>
-      <Link className="button outline" to="/" target="_blank">Ver no site <ExternalLink size={15} /></Link>
-    </div>
+    <div className="hero-cms-topbar"><div className="hero-cms-breadcrumb"><Link to="/app/site/secoes">← Seções das Páginas</Link><span className={`hero-cms-status ${appearance.active ? 'active' : ''}`}>{appearance.active ? 'Ativo' : 'Inativo'}</span></div><Link className="button outline" to="/" target="_blank">Ver no site <ExternalLink size={15} /></Link></div>
 
-    <div className="hero-cms-tabs" role="tablist" aria-label="Configuração do Hero">
-      <button className={tab === 'content' ? 'active' : ''} onClick={() => setTab('content')}>Conteúdo</button>
-      <button className={tab === 'appearance' ? 'active' : ''} onClick={() => setTab('appearance')}>Aparência</button>
-      <button className={tab === 'behavior' ? 'active' : ''} onClick={() => setTab('behavior')}>Comportamento</button>
-    </div>
+    <div className="hero-cms-tabs" role="tablist" aria-label="Configuração do Hero"><button className={tab === 'content' ? 'active' : ''} onClick={() => setTab('content')}>Conteúdo</button><button className={tab === 'appearance' ? 'active' : ''} onClick={() => setTab('appearance')}>Aparência</button><button className={tab === 'behavior' ? 'active' : ''} onClick={() => setTab('behavior')}>Comportamento</button></div>
 
     <div className="hero-cms-layout">
       <main className="hero-cms-panel">
-        {tab === 'content' && <>
-          <div className="hero-cms-section-title"><div><h2>Destaques do Hero</h2><p>Gerencie os destaques exibidos no Hero sem alterar a estrutura pública.</p></div><button className="button dark" onClick={addSlide}><Plus size={16} /> Novo destaque</button></div>
+        <div className={`hero-cms-device-context ${viewport}`}>
+          <div><strong>{deviceName}</strong><span>{viewport === 'desktop' ? 'Configuração base. Tablet e Mobile herdam estes valores.' : deviceHasOverrides ? 'Responsivo automático com sobrescritas específicas neste dispositivo.' : 'Responsivo automático. Nenhuma sobrescrita específica neste dispositivo.'}</span></div>
+          {viewport !== 'desktop' && <button className="button outline" onClick={resetCurrentDevice} disabled={!deviceHasOverrides}><RotateCcw size={14} /> Restaurar automático</button>}
+        </div>
 
+        {tab === 'content' && <>
+          <div className="hero-cms-section-title"><div><h2>Destaques do Hero</h2><p>Conteúdo editorial é único. Somente propriedades visuais podem variar por dispositivo.</p></div><button className="button dark" onClick={addSlide}><Plus size={16} /> Novo destaque</button></div>
           <div className="hero-cms-slide-list">{ordered.map((item, index) => {
             const title = item.title.filter(part => part.visible !== false).map(part => part.text).join(' ') || 'Sem headline'
-            return <div className={`hero-cms-slide-card ${item.id === slide.id ? 'active' : ''}`} key={item.id}>
-              <button type="button" className="hero-cms-slide-select" onClick={() => { setSelectedId(item.id); setSlideMenu(null) }}>
-                <strong>{String(index + 1).padStart(2, '0')}</strong>
-                <span><b>{title}</b><small>Ordem {item.order} · <em>{item.status === 'active' ? 'Ativo' : 'Inativo'}</em></small></span>
-              </button>
-              <GripVertical size={17} className="hero-cms-grip" aria-hidden="true" />
-              <button className="hero-cms-icon" onClick={() => duplicateSlide(item)} aria-label={`Duplicar ${title}`}><Copy size={16} /></button>
-              <div className="hero-cms-menu-wrap"><button className="hero-cms-icon" onClick={() => setSlideMenu(current => current === item.id ? null : item.id)} aria-label={`Ações de ${title}`}><MoreVertical size={17} /></button>{slideMenu === item.id && <div className="hero-cms-menu"><button onClick={() => moveSlide(item, -1)} disabled={index === 0}><ChevronUp size={14} /> Subir</button><button onClick={() => moveSlide(item, 1)} disabled={index === ordered.length - 1}><ChevronDown size={14} /> Descer</button><button onClick={() => removeSlide(item)} disabled={ordered.length <= 1}><Trash2 size={14} /> Remover</button></div>}</div>
-            </div>
+            return <div className={`hero-cms-slide-card ${item.id === slide.id ? 'active' : ''}`} key={item.id}><button type="button" className="hero-cms-slide-select" onClick={() => { setSelectedId(item.id); setSlideMenu(null) }}><strong>{String(index + 1).padStart(2, '0')}</strong><span><b>{title}</b><small>Ordem {item.order} · <em>{item.status === 'active' ? 'Ativo' : 'Inativo'}</em></small></span></button><GripVertical size={17} className="hero-cms-grip" aria-hidden="true" /><button className="hero-cms-icon" onClick={() => duplicateSlide(item)} aria-label={`Duplicar ${title}`}><Copy size={16} /></button><div className="hero-cms-menu-wrap"><button className="hero-cms-icon" onClick={() => setSlideMenu(current => current === item.id ? null : item.id)} aria-label={`Ações de ${title}`}><MoreVertical size={17} /></button>{slideMenu === item.id && <div className="hero-cms-menu"><button onClick={() => moveSlide(item, -1)} disabled={index === 0}><ChevronUp size={14} /> Subir</button><button onClick={() => moveSlide(item, 1)} disabled={index === ordered.length - 1}><ChevronDown size={14} /> Descer</button><button onClick={() => removeSlide(item)} disabled={ordered.length <= 1}><Trash2 size={14} /> Remover</button></div>}</div></div>
           })}</div>
 
           <div className="hero-cms-editing-label">Editando destaque: {String(selectedIndex + 1).padStart(2, '0')} — {selectedTitle}</div>
 
-          <Accordion id="content" title="Conteúdo" description="Headline, eyebrow, descrição e assinatura editorial" open={openAccordion === 'content'} onToggle={toggleAccordion}>
+          <Accordion id="content" title="Conteúdo" description="Conteúdo único + tipografia responsiva da headline" open={openAccordion === 'content'} onToggle={toggleAccordion}>
             <div className="hero-cms-grid two"><Field label="Eyebrow"><input value={slide.eyebrow} onChange={event => updateSlide({ eyebrow: event.target.value })} /></Field><Field label="Visibilidade"><select value={slide.eyebrowVisible === false ? 'off' : 'on'} onChange={event => updateSlide({ eyebrowVisible: event.target.value === 'on' })}><option value="on">Exibir</option><option value="off">Ocultar</option></select></Field></div>
-            <div className="hero-cms-segments">{slide.title.map((segment, index) => <div className="hero-cms-segment" key={`${index}-${segment.text}`}>
-              <input value={segment.text} onChange={event => updateSlide({ title: slide.title.map((item, itemIndex) => itemIndex === index ? { ...item, text: event.target.value } : item) })} />
-              <input type="color" aria-label={`Cor do trecho ${index + 1}`} value={segment.color || (segment.emphasis ? '#ff151f' : '#ffffff')} onChange={event => updateSlide({ title: slide.title.map((item, itemIndex) => itemIndex === index ? { ...item, color: event.target.value } : item) })} />
-              <label><input type="checkbox" checked={segment.visible !== false} onChange={event => updateSlide({ title: slide.title.map((item, itemIndex) => itemIndex === index ? { ...item, visible: event.target.checked } : item) })} /> Visível</label>
-              <input type="number" min="20" max="140" placeholder="Tamanho" value={segment.fontSize || ''} onChange={event => updateSlide({ title: slide.title.map((item, itemIndex) => itemIndex === index ? { ...item, fontSize: event.target.value ? Number(event.target.value) : undefined } : item) })} />
-              <select value={segment.fontWeight || ''} onChange={event => updateSlide({ title: slide.title.map((item, itemIndex) => itemIndex === index ? { ...item, fontWeight: event.target.value ? Number(event.target.value) : undefined } : item) })}><option value="">Peso padrão</option><option value="400">400</option><option value="600">600</option><option value="700">700</option><option value="800">800</option><option value="900">900</option></select>
-              <div className="hero-cms-row-actions"><button onClick={() => moveSegment(index, -1)} disabled={index === 0}><ChevronUp size={14} /></button><button onClick={() => moveSegment(index, 1)} disabled={index === slide.title.length - 1}><ChevronDown size={14} /></button><button onClick={() => updateSlide({ title: slide.title.filter((_, itemIndex) => itemIndex !== index) })} disabled={slide.title.length <= 1}><Trash2 size={14} /></button></div>
-            </div>)}</div>
-            <button className="hero-cms-text-action" onClick={() => updateSlide({ title: [...slide.title, { text: 'NOVO TRECHO', emphasis: false, color: '#ffffff', visible: true }] })}><Plus size={14} /> Adicionar trecho</button>
+            <div className="hero-cms-segments">{slide.title.map((segment, index) => {
+              const segmentVisual = resolveTitleSegmentVisual(segment, viewport)
+              const sizeOverride = viewport !== 'desktop' && segment.responsive?.[viewport]?.fontSize !== undefined
+              const weightOverride = viewport !== 'desktop' && segment.responsive?.[viewport]?.fontWeight !== undefined
+              return <div className="hero-cms-segment" key={`${index}-${segment.text}`}>
+                <input value={segment.text} onChange={event => updateSegment(index, { text: event.target.value })} />
+                <input type="color" aria-label={`Cor do trecho ${index + 1}`} value={segment.color || (segment.emphasis ? '#ff151f' : '#ffffff')} onChange={event => updateSegment(index, { color: event.target.value })} />
+                <label><input type="checkbox" checked={segment.visible !== false} onChange={event => updateSegment(index, { visible: event.target.checked })} /> Visível</label>
+                <div className="hero-cms-compact-responsive"><span><DeviceBadge breakpoint={viewport} overridden={sizeOverride} /></span><input aria-label={`Tamanho do trecho em ${deviceName}`} type="number" min="20" max="140" placeholder="Auto" value={segmentVisual.fontSize || ''} onChange={event => updateSegmentVisual(index, 'fontSize', event.target.value ? Number(event.target.value) : undefined)} />{viewport !== 'desktop' && sizeOverride && <button onClick={() => resetSegmentVisual(index, 'fontSize')} aria-label="Restaurar tamanho automático"><RotateCcw size={13} /></button>}</div>
+                <div className="hero-cms-compact-responsive"><span><DeviceBadge breakpoint={viewport} overridden={weightOverride} /></span><select value={segmentVisual.fontWeight || ''} onChange={event => updateSegmentVisual(index, 'fontWeight', event.target.value ? Number(event.target.value) : undefined)}><option value="">Peso padrão</option><option value="400">400</option><option value="600">600</option><option value="700">700</option><option value="800">800</option><option value="900">900</option></select>{viewport !== 'desktop' && weightOverride && <button onClick={() => resetSegmentVisual(index, 'fontWeight')} aria-label="Restaurar peso automático"><RotateCcw size={13} /></button>}</div>
+                <div className="hero-cms-row-actions"><button onClick={() => moveSegment(index, -1)} disabled={index === 0}><ChevronUp size={14} /></button><button onClick={() => moveSegment(index, 1)} disabled={index === slide.title.length - 1}><ChevronDown size={14} /></button><button onClick={() => updateSlide({ title: slide.title.filter((_, itemIndex) => itemIndex !== index) })} disabled={slide.title.length <= 1}><Trash2 size={14} /></button></div>
+              </div>
+            })}</div>
+            <button className="hero-cms-text-action" onClick={() => updateSlide({ title: [...slide.title, { text: 'NOVO TRECHO', emphasis: false, color: '#ffffff', visible: true, responsive: {} }] })}><Plus size={14} /> Adicionar trecho</button>
             <div className="hero-cms-grid two"><Field label="Descrição"><textarea rows={4} value={slide.description} onChange={event => updateSlide({ description: event.target.value })} /></Field><Field label="Exibir descrição"><select value={slide.descriptionVisible === false ? 'off' : 'on'} onChange={event => updateSlide({ descriptionVisible: event.target.value === 'on' })}><option value="on">Exibir</option><option value="off">Ocultar</option></select></Field><Field label="Assinatura editorial"><input value={slide.mediaCaption} onChange={event => updateSlide({ mediaCaption: event.target.value })} /></Field><Field label="Exibir assinatura"><select value={slide.mediaCaptionVisible === false ? 'off' : 'on'} onChange={event => updateSlide({ mediaCaptionVisible: event.target.value === 'on' })}><option value="on">Exibir</option><option value="off">Ocultar</option></select></Field></div>
           </Accordion>
 
-          <Accordion id="media" title="Mídia principal" description="Imagem, biblioteca, upload, texto alternativo e enquadramento" open={openAccordion === 'media'} onToggle={toggleAccordion}>
-            <div className="hero-cms-media-preview">{slide.image && slide.imageVisible !== false ? <img src={slide.image} alt={slide.imageAlt || 'Preview da imagem principal'} style={{ objectPosition: `${slide.imagePositionX}% ${slide.imagePositionY}%` }} /> : <ImageIcon size={34} />}</div>
+          <Accordion id="media" title="Mídia principal" description={`Imagem única; enquadramento responsivo em ${deviceName}`} open={openAccordion === 'media'} onToggle={toggleAccordion}>
+            <div className="hero-cms-media-preview">{slide.image && slide.imageVisible !== false ? <img src={slide.image} alt={slide.imageAlt || 'Preview da imagem principal'} style={{ objectPosition: `${effectiveVisual.imagePositionX}% ${effectiveVisual.imagePositionY}%`, transform: `scale(${Math.min(effectiveVisual.imageScale, 1.8)})` }} /> : <ImageIcon size={34} />}</div>
             <div className="hero-cms-inline-actions"><input ref={fileRef} type="file" accept="image/*" hidden onChange={event => void upload(event.target.files?.[0])} /><button className="button outline" disabled={uploading} onClick={() => fileRef.current?.click()}><Upload size={15} /> {uploading ? 'Processando...' : 'Fazer upload'}</button><button className="button outline" onClick={() => setLibraryOpen(true)}><ImageIcon size={15} /> Biblioteca de mídia</button><button className="button outline" onClick={() => updateSlide({ image: '', imageVisible: false })}><Trash2 size={15} /> Remover imagem</button></div>
             <div className="hero-cms-grid two"><Field label="Exibir imagem"><select value={slide.imageVisible === false ? 'off' : 'on'} onChange={event => updateSlide({ imageVisible: event.target.value === 'on' })}><option value="on">Exibir</option><option value="off">Ocultar</option></select></Field><Field label="Texto alternativo"><input value={slide.imageAlt} onChange={event => updateSlide({ imageAlt: event.target.value })} /></Field></div>
-            <details className="hero-cms-details" open><summary>Ajustar enquadramento</summary><div className="hero-cms-grid two"><Field label={`Posição X · ${slide.imagePositionX}%`}><input type="range" min="0" max="100" value={slide.imagePositionX} onChange={event => updateSlide({ imagePositionX: Number(event.target.value) })} /></Field><Field label={`Posição Y · ${slide.imagePositionY}%`}><input type="range" min="0" max="100" value={slide.imagePositionY} onChange={event => updateSlide({ imagePositionY: Number(event.target.value) })} /></Field></div></details>
-            <details className="hero-cms-details"><summary>Ajustes avançados</summary><div className="hero-cms-grid two"><Field label={`Escala · ${slide.imageScale.toFixed(2)}x`}><input type="range" min="0.4" max="2.4" step="0.01" value={slide.imageScale} onChange={event => updateSlide({ imageScale: Number(event.target.value) })} /></Field><Field label={`Offset X · ${slide.imageOffsetX}px`}><input type="range" min="-400" max="400" value={slide.imageOffsetX} onChange={event => updateSlide({ imageOffsetX: Number(event.target.value) })} /></Field><Field label={`Offset Y · ${slide.imageOffsetY}px`}><input type="range" min="-300" max="300" value={slide.imageOffsetY} onChange={event => updateSlide({ imageOffsetY: Number(event.target.value) })} /></Field></div></details>
+            <details className="hero-cms-details" open><summary>Ajustar enquadramento · {deviceName}</summary><div className="hero-cms-grid two"><Field label={<ResponsiveLabel text={`Posição X · ${Math.round(effectiveVisual.imagePositionX)}%`} breakpoint={viewport} overridden={hasSlideVisualOverride(slide, viewport, 'imagePositionX')} />}><input type="range" min="0" max="100" value={effectiveVisual.imagePositionX} onChange={event => patchSlideVisual('imagePositionX', Number(event.target.value))} /></Field><Field label={<ResponsiveLabel text={`Posição Y · ${Math.round(effectiveVisual.imagePositionY)}%`} breakpoint={viewport} overridden={hasSlideVisualOverride(slide, viewport, 'imagePositionY')} />}><input type="range" min="0" max="100" value={effectiveVisual.imagePositionY} onChange={event => patchSlideVisual('imagePositionY', Number(event.target.value))} /></Field></div></details>
+            <details className="hero-cms-details"><summary>Ajustes avançados · {deviceName}</summary><div className="hero-cms-grid two"><Field label={<ResponsiveLabel text={`Escala · ${effectiveVisual.imageScale.toFixed(2)}x`} breakpoint={viewport} overridden={hasSlideVisualOverride(slide, viewport, 'imageScale')} />}><input type="range" min="0.4" max="2.4" step="0.01" value={effectiveVisual.imageScale} onChange={event => patchSlideVisual('imageScale', Number(event.target.value))} /></Field><Field label={<ResponsiveLabel text={`Offset X · ${Math.round(effectiveVisual.imageOffsetX)}px`} breakpoint={viewport} overridden={hasSlideVisualOverride(slide, viewport, 'imageOffsetX')} />}><input type="range" min="-400" max="400" value={effectiveVisual.imageOffsetX} onChange={event => patchSlideVisual('imageOffsetX', Number(event.target.value))} /></Field><Field label={<ResponsiveLabel text={`Offset Y · ${Math.round(effectiveVisual.imageOffsetY)}px`} breakpoint={viewport} overridden={hasSlideVisualOverride(slide, viewport, 'imageOffsetY')} />}><input type="range" min="-300" max="300" value={effectiveVisual.imageOffsetY} onChange={event => patchSlideVisual('imageOffsetY', Number(event.target.value))} /></Field></div></details>
           </Accordion>
 
-          <Accordion id="ctas" title="Ações (CTAs)" description="Botões de chamada para ação" open={openAccordion === 'ctas'} onToggle={toggleAccordion}>
-            <div className="hero-cms-cta-list">{ctas.map((cta, index) => <div className="hero-cms-cta-card" key={cta.id}><div className="hero-cms-cta-summary"><strong>{cta.label || `CTA ${index + 1}`}</strong><small>{cta.url || 'Sem destino'} · {cta.active ? 'Ativo' : 'Oculto'} · {cta.variant === 'primary' ? 'Primário' : 'Secundário'}</small></div><div className="hero-cms-grid two"><Field label="Texto"><input value={cta.label} onChange={event => updateCta(cta.id, { label: event.target.value })} /></Field><Field label="URL / destino"><input value={cta.url} onChange={event => updateCta(cta.id, { url: event.target.value })} /></Field><Field label="Status"><select value={cta.active ? 'on' : 'off'} onChange={event => updateCta(cta.id, { active: event.target.value === 'on' })}><option value="on">Ativo</option><option value="off">Oculto</option></select></Field><Field label="Abertura"><select value={cta.external ? 'external' : 'internal'} onChange={event => updateCta(cta.id, { external: event.target.value === 'external' })}><option value="internal">Interna</option><option value="external">Externa</option></select></Field><Field label="Estilo"><select value={cta.variant} onChange={event => updateCta(cta.id, { variant: event.target.value as HeroCta['variant'] })}><option value="primary">Primário</option><option value="secondary">Secundário</option></select></Field></div><div className="hero-cms-row-actions"><button onClick={() => moveCta(cta.id, -1)} disabled={index === 0}><ChevronUp size={14} /> Subir</button><button onClick={() => moveCta(cta.id, 1)} disabled={index === ctas.length - 1}><ChevronDown size={14} /> Descer</button><button onClick={() => removeCta(cta.id)}><Trash2 size={14} /> Excluir</button></div></div>)}</div>
-            <button className="hero-cms-text-action" onClick={addCta}><Plus size={14} /> Adicionar CTA</button>
+          <Accordion id="ctas" title="Ações (CTAs)" description="Conteúdo único; dimensões responsivas ficam em Aparência" open={openAccordion === 'ctas'} onToggle={toggleAccordion}>
+            <div className="hero-cms-cta-list">{ctas.map((cta, index) => <div className="hero-cms-cta-card" key={cta.id}><div className="hero-cms-cta-summary"><strong>{cta.label || `CTA ${index + 1}`}</strong><small>{cta.url || 'Sem destino'} · {cta.active ? 'Ativo' : 'Oculto'} · {cta.variant === 'primary' ? 'Primário' : 'Secundário'}</small></div><div className="hero-cms-grid two"><Field label="Texto"><input value={cta.label} onChange={event => updateCta(cta.id, { label: event.target.value })} /></Field><Field label="URL / destino"><input value={cta.url} onChange={event => updateCta(cta.id, { url: event.target.value })} /></Field><Field label="Status"><select value={cta.active ? 'on' : 'off'} onChange={event => updateCta(cta.id, { active: event.target.value === 'on' })}><option value="on">Ativo</option><option value="off">Oculto</option></select></Field><Field label="Abertura"><select value={cta.external ? 'external' : 'internal'} onChange={event => updateCta(cta.id, { external: event.target.value === 'external' })}><option value="internal">Interna</option><option value="external">Externa</option></select></Field><Field label="Estilo"><select value={cta.variant} onChange={event => updateCta(cta.id, { variant: event.target.value as HeroCta['variant'] })}><option value="primary">Primário</option><option value="secondary">Secundário</option></select></Field></div><div className="hero-cms-row-actions"><button onClick={() => moveCta(cta.id, -1)} disabled={index === 0}><ChevronUp size={14} /> Subir</button><button onClick={() => moveCta(cta.id, 1)} disabled={index === ctas.length - 1}><ChevronDown size={14} /> Descer</button><button onClick={() => removeCta(cta.id)}><Trash2 size={14} /> Excluir</button></div></div>)}</div><button className="hero-cms-text-action" onClick={addCta}><Plus size={14} /> Adicionar CTA</button>
           </Accordion>
 
-          <Accordion id="ticker" title="Barra “AGORA”" description="Composição contínua abaixo do Hero, sem espaçamento" open={openAccordion === 'ticker'} onToggle={toggleAccordion}>
+          <Accordion id="ticker" title="Barra “AGORA”" description="Conteúdo único da composição contínua Hero + AGORA" open={openAccordion === 'ticker'} onToggle={toggleAccordion}>
             <div className="hero-cms-grid two"><Field label="Status"><select value={draft.ticker.active ? 'on' : 'off'} onChange={event => patchConfig({ ticker: { ...draft.ticker, active: event.target.value === 'on' } })}><option value="on">Exibir</option><option value="off">Ocultar</option></select></Field><Field label="Label principal"><input value={draft.ticker.label} onChange={event => patchConfig({ ticker: { ...draft.ticker, label: event.target.value } })} /></Field><Field label="Selo / tag"><input value={draft.ticker.tag || ''} onChange={event => patchConfig({ ticker: { ...draft.ticker, tag: event.target.value } })} /></Field><Field label="Exibir selo"><select value={draft.ticker.tagVisible === false ? 'off' : 'on'} onChange={event => patchConfig({ ticker: { ...draft.ticker, tagVisible: event.target.value === 'on' } })}><option value="on">Exibir</option><option value="off">Ocultar</option></select></Field><Field label="Texto"><input value={draft.ticker.text} onChange={event => patchConfig({ ticker: { ...draft.ticker, text: event.target.value } })} /></Field><Field label="Destino / link"><input value={draft.ticker.url} onChange={event => patchConfig({ ticker: { ...draft.ticker, url: event.target.value } })} /></Field><Field label="Abertura"><select value={draft.ticker.external ? 'external' : 'internal'} onChange={event => patchConfig({ ticker: { ...draft.ticker, external: event.target.value === 'external' } })}><option value="internal">Interna</option><option value="external">Externa</option></select></Field><Field label="Seta"><select value={draft.ticker.showArrow === false ? 'off' : 'on'} onChange={event => patchConfig({ ticker: { ...draft.ticker, showArrow: event.target.value === 'on' } })}><option value="on">Exibir</option><option value="off">Ocultar</option></select></Field></div>
             <div className="hero-cms-grid colors"><Field label="Cor de fundo"><input type="color" value={draft.ticker.background || '#ef0011'} onChange={event => patchConfig({ ticker: { ...draft.ticker, background: event.target.value } })} /></Field><Field label="Cor do texto"><input type="color" value={draft.ticker.textColor || '#ffffff'} onChange={event => patchConfig({ ticker: { ...draft.ticker, textColor: event.target.value } })} /></Field><Field label="Cor do selo"><input type="color" value={draft.ticker.tagBackground || '#111111'} onChange={event => patchConfig({ ticker: { ...draft.ticker, tagBackground: event.target.value } })} /></Field><Field label="Texto do selo"><input type="color" value={draft.ticker.tagTextColor || '#ffffff'} onChange={event => patchConfig({ ticker: { ...draft.ticker, tagTextColor: event.target.value } })} /></Field></div>
           </Accordion>
 
-          <Accordion id="linking" title="Vinculação de conteúdo" description="Vincule a uma notícia ou conteúdo existente" open={openAccordion === 'linking'} onToggle={toggleAccordion}>
-            <Field label="Conteúdo vinculado"><select value={slide.articleId} onChange={event => { const article = heroArticles.find(item => item.id === event.target.value); if (article) updateSlide(applyArticleToSlide(slide, article)); else updateSlide({ articleId: '' }) }}><option value="">Sem vínculo</option>{heroArticles.map(article => <option value={article.id} key={article.id}>{article.title}</option>)}</select></Field>
-          </Accordion>
-
-          <Accordion id="publication" title="Publicação" description="Status e agendamento de publicação" open={openAccordion === 'publication'} onToggle={toggleAccordion}>
-            <div className="hero-cms-grid two"><Field label="Status"><select value={slide.status} onChange={event => updateSlide({ status: event.target.value as HeroSlide['status'] })}><option value="active">Ativo</option><option value="inactive">Inativo</option></select></Field><Field label="Agendar para"><input type="datetime-local" value={slide.scheduledAt} onChange={event => updateSlide({ scheduledAt: event.target.value })} /></Field></div>
-          </Accordion>
+          <Accordion id="linking" title="Vinculação de conteúdo" description="Vincule a uma notícia ou conteúdo existente" open={openAccordion === 'linking'} onToggle={toggleAccordion}><Field label="Conteúdo vinculado"><select value={slide.articleId} onChange={event => { const article = heroArticles.find(item => item.id === event.target.value); if (article) updateSlide(applyArticleToSlide(slide, article)); else updateSlide({ articleId: '' }) }}><option value="">Sem vínculo</option>{heroArticles.map(article => <option value={article.id} key={article.id}>{article.title}</option>)}</select></Field></Accordion>
+          <Accordion id="publication" title="Publicação" description="Status e agendamento de publicação" open={openAccordion === 'publication'} onToggle={toggleAccordion}><div className="hero-cms-grid two"><Field label="Status"><select value={slide.status} onChange={event => updateSlide({ status: event.target.value as HeroSlide['status'] })}><option value="active">Ativo</option><option value="inactive">Inativo</option></select></Field><Field label="Agendar para"><input type="datetime-local" value={slide.scheduledAt} onChange={event => updateSlide({ scheduledAt: event.target.value })} /></Field></div></Accordion>
         </>}
 
         {tab === 'appearance' && <div className="hero-cms-tab-content">
-          <div className="hero-cms-section-title"><div><h2>Aparência</h2><p>As mesmas propriedades visuais já existentes, reorganizadas por responsabilidade.</p></div><button className="button outline" onClick={() => { setAppearance({ ...defaultHeroAppearance }); markDirty() }}><RotateCcw size={15} /> Restaurar aparência</button></div>
-          <section className="hero-cms-group"><h3>Dimensões</h3><div className="hero-cms-grid two"><Field label={`Largura · ${appearance.width <= 100 ? 'Auto' : `${appearance.width}px`}`}><input type="range" min="100" max="1600" value={appearance.width <= 100 ? 100 : appearance.width} onChange={event => patchAppearance({ width: Number(event.target.value) })} /></Field><Field label={`Altura · ${appearance.height}px`}><input type="range" min="300" max="1000" value={appearance.height} onChange={event => patchAppearance({ height: Number(event.target.value) })} /></Field></div></section>
-          <section className="hero-cms-group"><h3>Alinhamento</h3><div className="hero-cms-grid two"><Field label="Horizontal"><select value={appearance.contentAlign} onChange={event => patchAppearance({ contentAlign: event.target.value as HeroAppearanceConfig['contentAlign'] })}><option value="left">Esquerda</option><option value="center">Centro</option><option value="right">Direita</option></select></Field><Field label="Vertical"><select value={appearance.verticalAlign} onChange={event => patchAppearance({ verticalAlign: event.target.value as HeroAppearanceConfig['verticalAlign'] })}><option value="start">Topo</option><option value="center">Centro</option><option value="end">Base</option></select></Field></div></section>
-          <section className="hero-cms-group"><h3>Espaçamento</h3><div className="hero-cms-grid two"><Field label={`Padding horizontal · ${appearance.paddingX}px`}><input type="range" min="0" max="120" value={appearance.paddingX} onChange={event => patchAppearance({ paddingX: Number(event.target.value) })} /></Field><Field label={`Padding vertical · ${appearance.paddingY}px`}><input type="range" min="0" max="120" value={appearance.paddingY} onChange={event => patchAppearance({ paddingY: Number(event.target.value) })} /></Field><Field label={`Arredondamento · ${appearance.radius}px`}><input type="range" min="0" max="48" value={appearance.radius} onChange={event => patchAppearance({ radius: Number(event.target.value) })} /></Field></div></section>
-          <section className="hero-cms-group"><h3>Cores</h3><div className="hero-cms-grid colors">{([['background', 'Background'], ['textColor', 'Texto'], ['titleColor', 'Headline'], ['accentColor', 'Destaque / CTA'], ['borderColor', 'Borda'], ['eyebrowColor', 'Eyebrow']] as const).map(([field, label]) => <Field label={label} key={field}><span className="hero-cms-color"><input type="color" value={appearance[field]} onChange={event => patchAppearance({ [field]: event.target.value } as Partial<HeroAppearanceConfig>)} /><input value={appearance[field]} onChange={event => patchAppearance({ [field]: event.target.value } as Partial<HeroAppearanceConfig>)} /></span></Field>)}</div></section>
-          <section className="hero-cms-group"><h3>Tipografia</h3><div className="hero-cms-grid two"><Field label={`Eyebrow · ${appearance.eyebrowSize}px`}><input type="range" min="9" max="28" value={appearance.eyebrowSize} onChange={event => patchAppearance({ eyebrowSize: Number(event.target.value) })} /></Field><Field label={`Descrição · ${appearance.descriptionSize}px`}><input type="range" min="11" max="32" value={appearance.descriptionSize} onChange={event => patchAppearance({ descriptionSize: Number(event.target.value) })} /></Field><Field label={`CTAs · ${appearance.ctaSize}px`}><input type="range" min="10" max="24" value={appearance.ctaSize} onChange={event => patchAppearance({ ctaSize: Number(event.target.value) })} /></Field><Field label="Peso eyebrow"><select value={appearance.eyebrowWeight} onChange={event => patchAppearance({ eyebrowWeight: Number(event.target.value) })}><option value="400">400</option><option value="600">600</option><option value="700">700</option><option value="800">800</option><option value="900">900</option></select></Field><Field label="Peso descrição"><select value={appearance.descriptionWeight} onChange={event => patchAppearance({ descriptionWeight: Number(event.target.value) })}><option value="300">300</option><option value="400">400</option><option value="500">500</option><option value="600">600</option><option value="700">700</option></select></Field><Field label="Peso CTAs"><select value={appearance.ctaWeight} onChange={event => patchAppearance({ ctaWeight: Number(event.target.value) })}><option value="500">500</option><option value="600">600</option><option value="700">700</option><option value="800">800</option><option value="900">900</option></select></Field></div></section>
+          <div className="hero-cms-section-title"><div><h2>Aparência · {deviceName}</h2><p>{viewport === 'desktop' ? 'Valores base usados pelo Hero.' : 'Valores automáticos herdados do Desktop; alterar um controle cria sobrescrita apenas neste breakpoint.'}</p></div>{viewport === 'desktop' ? <button className="button outline" onClick={() => { setAppearance({ ...defaultHeroAppearance }); markDirty() }}><RotateCcw size={15} /> Restaurar aparência</button> : <button className="button outline" onClick={() => { setAppearance(current => clearHeroAppearanceOverride(current, viewport)); markDirty() }} disabled={!hasHeroAppearanceOverride(appearance, viewport)}><RotateCcw size={15} /> Herdar automático</button>}</div>
+          <section className="hero-cms-group"><h3>Dimensões e composição</h3><div className="hero-cms-grid two">
+            {viewport === 'desktop' && <Field label={`Largura · ${appearance.width <= 100 ? 'Auto' : `${appearance.width}px`}`}><input type="range" min="100" max="1600" value={appearance.width <= 100 ? 100 : appearance.width} onChange={event => patchAppearance({ width: Number(event.target.value) })} /></Field>}
+            <Field label={<ResponsiveLabel text={`Altura · ${effectiveAppearance.height}px`} breakpoint={viewport} overridden={hasHeroAppearanceOverride(appearance, viewport, 'height')} />}><input type="range" min="300" max="1000" value={effectiveAppearance.height} onChange={event => patchResponsiveAppearance('height', Number(event.target.value))} /></Field>
+            <Field label={<ResponsiveLabel text={`Largura máx. headline · ${effectiveAppearance.titleMaxWidth}px`} breakpoint={viewport} overridden={hasHeroAppearanceOverride(appearance, viewport, 'titleMaxWidth')} />}><input type="range" min="240" max="900" value={effectiveAppearance.titleMaxWidth} onChange={event => patchResponsiveAppearance('titleMaxWidth', Number(event.target.value))} /></Field>
+            <Field label={<ResponsiveLabel text={`Largura máx. descrição · ${effectiveAppearance.descriptionMaxWidth}px`} breakpoint={viewport} overridden={hasHeroAppearanceOverride(appearance, viewport, 'descriptionMaxWidth')} />}><input type="range" min="220" max="760" value={effectiveAppearance.descriptionMaxWidth} onChange={event => patchResponsiveAppearance('descriptionMaxWidth', Number(event.target.value))} /></Field>
+            <Field label={<ResponsiveLabel text={`Largura da imagem · ${effectiveAppearance.mediaWidthPercent}%`} breakpoint={viewport} overridden={hasHeroAppearanceOverride(appearance, viewport, 'mediaWidthPercent')} />}><input type="range" min="40" max="110" value={effectiveAppearance.mediaWidthPercent} onChange={event => patchResponsiveAppearance('mediaWidthPercent', Number(event.target.value))} /></Field>
+            <Field label={<ResponsiveLabel text={`Altura da área de imagem · ${effectiveAppearance.mediaMinHeight}px`} breakpoint={viewport} overridden={hasHeroAppearanceOverride(appearance, viewport, 'mediaMinHeight')} />}><input type="range" min="240" max="900" value={effectiveAppearance.mediaMinHeight} onChange={event => patchResponsiveAppearance('mediaMinHeight', Number(event.target.value))} /></Field>
+          </div></section>
+          <section className="hero-cms-group"><h3>Alinhamento</h3><div className="hero-cms-grid two"><Field label={<ResponsiveLabel text="Horizontal" breakpoint={viewport} overridden={hasHeroAppearanceOverride(appearance, viewport, 'contentAlign')} />}><select value={effectiveAppearance.contentAlign} onChange={event => patchResponsiveAppearance('contentAlign', event.target.value as HeroResponsiveAppearance['contentAlign'])}><option value="left">Esquerda</option><option value="center">Centro</option><option value="right">Direita</option></select></Field><Field label={<ResponsiveLabel text="Vertical" breakpoint={viewport} overridden={hasHeroAppearanceOverride(appearance, viewport, 'verticalAlign')} />}><select value={effectiveAppearance.verticalAlign} onChange={event => patchResponsiveAppearance('verticalAlign', event.target.value as HeroResponsiveAppearance['verticalAlign'])}><option value="start">Topo</option><option value="center">Centro</option><option value="end">Base</option></select></Field></div></section>
+          <section className="hero-cms-group"><h3>Espaçamento</h3><div className="hero-cms-grid two">
+            {([['paddingX', 'Padding horizontal', 0, 120], ['paddingY', 'Padding vertical', 0, 120], ['contentPaddingTop', 'Padding conteúdo superior', 0, 140], ['contentPaddingBottom', 'Padding conteúdo inferior', 0, 140], ['contentGap', 'Espaço entre textos', 0, 60], ['ctaGap', 'Espaço entre CTAs', 0, 50], ['ctaHeight', 'Altura dos CTAs', 34, 80], ['ctaPaddingX', 'Padding horizontal CTA', 8, 50], ['radius', 'Arredondamento', 0, 48]] as const).map(([key, label, min, max]) => <Field key={key} label={<ResponsiveLabel text={`${label} · ${effectiveAppearance[key]}px`} breakpoint={viewport} overridden={hasHeroAppearanceOverride(appearance, viewport, key)} />}><input type="range" min={min} max={max} value={effectiveAppearance[key]} onChange={event => patchResponsiveAppearance(key, Number(event.target.value))} /></Field>)}
+          </div></section>
+          <section className="hero-cms-group"><h3>Cores globais</h3><p className="hero-cms-group-note">Cores são conteúdo visual global do mesmo Hero e não variam por dispositivo.</p><div className="hero-cms-grid colors">{([['background', 'Background'], ['textColor', 'Texto'], ['titleColor', 'Headline'], ['accentColor', 'Destaque / CTA'], ['borderColor', 'Borda'], ['eyebrowColor', 'Eyebrow']] as const).map(([field, label]) => <Field label={label} key={field}><span className="hero-cms-color"><input type="color" value={appearance[field]} onChange={event => patchAppearance({ [field]: event.target.value } as Partial<HeroAppearanceConfig>)} /><input value={appearance[field]} onChange={event => patchAppearance({ [field]: event.target.value } as Partial<HeroAppearanceConfig>)} /></span></Field>)}</div></section>
+          <section className="hero-cms-group"><h3>Tipografia responsiva</h3><div className="hero-cms-grid two">
+            <Field label={<ResponsiveLabel text={`Eyebrow · ${effectiveAppearance.eyebrowSize}px`} breakpoint={viewport} overridden={hasHeroAppearanceOverride(appearance, viewport, 'eyebrowSize')} />}><input type="range" min="9" max="28" value={effectiveAppearance.eyebrowSize} onChange={event => patchResponsiveAppearance('eyebrowSize', Number(event.target.value))} /></Field>
+            <Field label={<ResponsiveLabel text={`Descrição · ${effectiveAppearance.descriptionSize}px`} breakpoint={viewport} overridden={hasHeroAppearanceOverride(appearance, viewport, 'descriptionSize')} />}><input type="range" min="11" max="32" value={effectiveAppearance.descriptionSize} onChange={event => patchResponsiveAppearance('descriptionSize', Number(event.target.value))} /></Field>
+            <Field label={<ResponsiveLabel text={`CTAs · ${effectiveAppearance.ctaSize}px`} breakpoint={viewport} overridden={hasHeroAppearanceOverride(appearance, viewport, 'ctaSize')} />}><input type="range" min="10" max="24" value={effectiveAppearance.ctaSize} onChange={event => patchResponsiveAppearance('ctaSize', Number(event.target.value))} /></Field>
+            <Field label={<ResponsiveLabel text={`Line-height headline · ${effectiveAppearance.titleLineHeight.toFixed(2)}`} breakpoint={viewport} overridden={hasHeroAppearanceOverride(appearance, viewport, 'titleLineHeight')} />}><input type="range" min="0.65" max="1.25" step="0.01" value={effectiveAppearance.titleLineHeight} onChange={event => patchResponsiveAppearance('titleLineHeight', Number(event.target.value))} /></Field>
+          </div></section>
         </div>}
 
-        {tab === 'behavior' && <div className="hero-cms-tab-content"><div className="hero-cms-section-title"><div><h2>Comportamento</h2><p>Configurações globais do carrossel, sem misturar com um destaque individual.</p></div></div><section className="hero-cms-group"><div className="hero-cms-grid two"><Field label="Autoplay"><select value={draft.autoplay ? 'on' : 'off'} onChange={event => patchConfig({ autoplay: event.target.value === 'on' })}><option value="on">Ativo</option><option value="off">Inativo</option></select></Field><Field label="Intervalo (segundos)"><input type="number" min="3" max="60" value={Math.max(3, Math.round(draft.intervalMs / 1000))} onChange={event => patchConfig({ intervalMs: Math.max(3000, Number(event.target.value) * 1000) })} /></Field><Field label="Navegação"><select value={draft.navigation || 'arrows-dots'} onChange={event => patchConfig({ navigation: event.target.value as HeroCarouselConfig['navigation'] })}><option value="arrows-dots">Setas + pontos</option><option value="arrows">Somente setas</option><option value="dots">Somente pontos</option><option value="none">Sem navegação</option></select></Field><Field label="Loop"><select value={draft.loop === false ? 'off' : 'on'} onChange={event => patchConfig({ loop: event.target.value === 'on' })}><option value="on">Ativo</option><option value="off">Inativo</option></select></Field></div></section></div>}
+        {tab === 'behavior' && <div className="hero-cms-tab-content"><div className="hero-cms-section-title"><div><h2>Comportamento</h2><p>Configurações globais do carrossel. Não variam por breakpoint.</p></div></div><section className="hero-cms-group"><div className="hero-cms-grid two"><Field label="Autoplay"><select value={draft.autoplay ? 'on' : 'off'} onChange={event => patchConfig({ autoplay: event.target.value === 'on' })}><option value="on">Ativo</option><option value="off">Inativo</option></select></Field><Field label="Intervalo (segundos)"><input type="number" min="3" max="60" value={Math.max(3, Math.round(draft.intervalMs / 1000))} onChange={event => patchConfig({ intervalMs: Math.max(3000, Number(event.target.value) * 1000) })} /></Field><Field label="Navegação"><select value={draft.navigation || 'arrows-dots'} onChange={event => patchConfig({ navigation: event.target.value as HeroCarouselConfig['navigation'] })}><option value="arrows-dots">Setas + pontos</option><option value="arrows">Somente setas</option><option value="dots">Somente pontos</option><option value="none">Sem navegação</option></select></Field><Field label="Loop"><select value={draft.loop === false ? 'off' : 'on'} onChange={event => patchConfig({ loop: event.target.value === 'on' })}><option value="on">Ativo</option><option value="off">Inativo</option></select></Field></div></section></div>}
       </main>
 
-      <aside className="hero-cms-preview-column">
-        <div className="hero-cms-preview-head"><div><h2>Preview em tempo real</h2><p>Mesmo componente utilizado pela Home.</p></div><div className="hero-cms-viewports"><button className={viewport === 'desktop' ? 'active' : ''} onClick={() => setViewport('desktop')} aria-label="Desktop"><Monitor size={17} /></button><button className={viewport === 'tablet' ? 'active' : ''} onClick={() => setViewport('tablet')} aria-label="Tablet"><Tablet size={17} /></button><button className={viewport === 'mobile' ? 'active' : ''} onClick={() => setViewport('mobile')} aria-label="Mobile"><Smartphone size={17} /></button></div></div>
-        <div className={previewClass}><HeroSection config={draft} appearance={appearance} previewIndex={selectedIndex} disableAutoplay /></div>
-      </aside>
+      <aside className="hero-cms-preview-column"><div className="hero-cms-preview-head"><div><h2>Preview em tempo real</h2><p>{deviceName}: breakpoint real + valores herdados/sobrescritos.</p></div><div className="hero-cms-viewports"><button className={viewport === 'desktop' ? 'active' : ''} onClick={() => setViewport('desktop')} aria-label="Desktop"><Monitor size={17} /></button><button className={viewport === 'tablet' ? 'active' : ''} onClick={() => setViewport('tablet')} aria-label="Tablet"><Tablet size={17} /></button><button className={viewport === 'mobile' ? 'active' : ''} onClick={() => setViewport('mobile')} aria-label="Mobile"><Smartphone size={17} /></button></div></div><div className={previewClass}><HeroSection config={draft} appearance={appearance} previewIndex={selectedIndex} previewViewport={viewport} disableAutoplay /></div></aside>
     </div>
 
-    <div className="hero-cms-savebar"><div><span className={`hero-cms-unsaved-dot ${dirty ? 'dirty' : ''}`} /><strong>{dirty ? 'Alterações não salvas' : saved ? 'Alterações salvas' : 'Sem alterações pendentes'}</strong><small>{dirty ? 'Revise o preview antes de publicar.' : 'O estado salvo continua sendo usado pela Home.'}</small></div><div><button className="button outline" onClick={discard} disabled={!dirty}>Descartar alterações</button><button className="button dark hero-cms-save" onClick={save} disabled={!dirty}><Save size={16} /> Salvar alterações</button></div></div>
+    <div className="hero-cms-savebar"><div><span className={`hero-cms-unsaved-dot ${dirty ? 'dirty' : ''}`} /><strong>{dirty ? 'Alterações não salvas' : saved ? 'Alterações salvas' : 'Sem alterações pendentes'}</strong><small>{dirty ? 'Revise Desktop, Tablet e Mobile antes de publicar.' : 'O estado salvo continua sendo usado pela Home.'}</small></div><div><button className="button outline" onClick={discard} disabled={!dirty}>Descartar alterações</button><button className="button dark hero-cms-save" onClick={save} disabled={!dirty}><Save size={16} /> Salvar alterações</button></div></div>
 
     {libraryOpen && <div className="hero-cms-modal-backdrop" role="presentation" onMouseDown={() => setLibraryOpen(false)}><div className="hero-cms-modal" role="dialog" aria-modal="true" aria-label="Biblioteca de mídia" onMouseDown={event => event.stopPropagation()}><div className="hero-cms-section-title"><div><h2>Biblioteca de mídia</h2><p>Imagens já disponíveis nos conteúdos do portal.</p></div><button className="hero-cms-icon" onClick={() => setLibraryOpen(false)}>×</button></div><div className="hero-cms-library">{heroArticles.filter(article => article.image).map(article => <button key={article.id} onClick={() => { updateSlide({ image: article.image, imageAlt: article.imageAlt || article.title, imageVisible: true }); setLibraryOpen(false) }}><img src={article.image} alt="" /><span>{article.title}</span></button>)}</div></div></div>}
   </div>

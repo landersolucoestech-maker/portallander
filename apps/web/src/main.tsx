@@ -16,8 +16,6 @@ setRuntimeDataProvider(mockDataProvider)
 scenarioController.bootstrapFromLocation()
 prepareMockSeedStorage()
 purgeRemovedModuleStorage()
-installRhMarketingTableSorting()
-installAutoTablePagination()
 
 const queryClient=new QueryClient()
 
@@ -35,6 +33,10 @@ function mountApp() {
   ReactDOM.createRoot(document.getElementById('root')!).render(
     <React.StrictMode><QueryClientProvider client={queryClient}><HashRouter><App/></HashRouter></QueryClientProvider></React.StrictMode>,
   )
+  requestAnimationFrame(()=>{
+    installRhMarketingTableSorting()
+    installAutoTablePagination()
+  })
 }
 
 void waitForPublicFonts().catch(() => undefined).finally(() => {

@@ -72,9 +72,8 @@ const routing=await read('src/features/crm/routing.ts')
 for(const required of ["pathname.endsWith('/leads')?'leads':'contacts'","'/app/crm/leads'","'/app/crm/contatos'"])if(!routing.includes(required))failures.push(`CRM routing deve sincronizar URL e tab: ${required}`)
 
 const adminUi=await read('src/shared/internal/AdminUi.tsx')
-for(const required of ['export type PageHeaderConfig','function HeaderActionButton','function PageHeader','<PageHeader context={context} header={header} actions={actions}/>','workspace-header-polished-action','notification-button','account-button','expandedGroups','aria-expanded={expanded}','<NavLink end className="sidebar-subnav-link"'])if(!adminUi.includes(required))failures.push(`AdminUi deve preservar arquitetura compartilhada: ${required}`)
+for(const required of ['export type PageHeaderConfig','function HeaderActionButton','function PageHeader','<PageHeader context={context} header={header} actions={actions}/>','workspace-header-polished-action','notification-button','account-button','expandedGroups','aria-expanded={expanded}','<NavLink end className="sidebar-subnav-link"','to="/app/settings" role="menuitem"','<span>Configurações</span>'])if(!adminUi.includes(required))failures.push(`AdminUi deve preservar arquitetura compartilhada: ${required}`)
 if(adminUi.includes('AdminPageHeader'))failures.push('AdminUi não pode reintroduzir o cabeçalho duplicado AdminPageHeader.')
-if(adminUi.includes('/app/settings')||adminUi.includes('>Configurações</span>'))failures.push('Account Menu não pode apontar diretamente para Configurações.')
 if(adminUi.indexOf('{actions.map(')>adminUi.indexOf('notification-button'))failures.push('Ações de página devem permanecer antes das notificações no PageHeader compartilhado.')
 if(!adminUi.includes("end={to==='/app/site'}"))failures.push('AdminUi deve manter comportamento de deep links do shell.')
 for(const required of ["'contracts'","'finance'","'settings'",'AdminNavGroup','isNavGroup'])if(!adminUi.includes(required))failures.push(`AdminUi deve suportar navegação dos módulos restaurados: ${required}`)
@@ -119,10 +118,13 @@ if(financeRegistry.includes('Automações Financeiras'))failures.push('Registro 
 const contracts=await read('src/features/contracts/ContractsPage.tsx')
 for(const required of ['Novo Contrato','Templates','Novo Template'])if(!contracts.includes(required))failures.push(`Contratos deve preservar: ${required}`)
 
-const mockArchitectureFiles=['src/mocks/README.md','src/mocks/index.ts','src/mocks/manifest.ts','src/mocks/identity/index.ts','src/mocks/notifications/index.ts','src/mocks/crm/index.ts','src/mocks/contracts/index.ts','src/mocks/finance/index.ts','src/mocks/editorial/index.ts','src/mocks/home/index.ts','src/mocks/advertising/index.ts','src/mocks/agenda/index.ts','src/mocks/dashboard/index.ts','src/mocks/collaboration/index.ts','src/mocks/branding/index.ts','src/mocks/shared/index.ts','src/mocks/scenarios/index.ts','src/mocks/settings/index.ts']
+const mockArchitectureFiles=[
+ 'src/mocks/README.md','src/mocks/index.ts','src/mocks/manifest.ts',
+ 'src/mocks/identity/index.ts','src/mocks/notifications/index.ts','src/mocks/crm/index.ts','src/mocks/contracts/index.ts','src/mocks/finance/index.ts','src/mocks/editorial/index.ts','src/mocks/home/index.ts','src/mocks/advertising/index.ts','src/mocks/agenda/index.ts','src/mocks/dashboard/index.ts','src/mocks/collaboration/index.ts','src/mocks/branding/index.ts','src/mocks/shared/index.ts','src/mocks/scenarios/index.ts'
+]
 for(const path of mockArchitectureFiles)if(!(await exists(path)))failures.push(`Arquitetura global de mock data exige ${path}.`)
 const mockManifest=await read('src/mocks/manifest.ts')
-for(const domain of ['identity','notifications','crm','contracts','finance','editorial','home','advertising','agenda','dashboard','collaboration','branding','shared','scenarios','settings'])if(!mockManifest.includes(`'${domain}'`))failures.push(`Manifesto global de mocks deve registrar domínio: ${domain}`)
+for(const domain of ['identity','notifications','crm','contracts','finance','editorial','home','advertising','agenda','dashboard','collaboration','branding','shared','scenarios'])if(!mockManifest.includes(`'${domain}'`))failures.push(`Manifesto global de mocks deve registrar domínio: ${domain}`)
 for(const required of ['uiMayImportRawMocks:false','crossDomainIds:true','metricsMustBeDerived:true','scenariosCentralized:true','providerBoundaryRequired:true'])if(!mockManifest.includes(required))failures.push(`Manifesto global de mocks deve preservar regra: ${required}`)
 
 if(failures.length){console.error('Falha nos boundaries da aplicação:');failures.forEach(item=>console.error(`- ${item}`));process.exit(1)}

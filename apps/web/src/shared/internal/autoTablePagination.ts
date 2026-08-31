@@ -16,7 +16,7 @@ function insertionAnchor(table:HTMLTableElement){
 function hasNativePagination(table:HTMLTableElement){
   const surface=nearestSurface(table)
   if(!surface)return false
-  return Array.from(surface.querySelectorAll<HTMLElement>(NATIVE_PAGINATION)).some(node=>!node.classList.contains('portal-auto-pagination'))
+  return Array.from(surface.querySelectorAll<HTMLElement>(NATIVE_PAGINATION)).some(node=>node.isConnected&&!node.classList.contains('portal-auto-pagination'))
 }
 
 function makeButton(label:string,text:string,onClick:()=>void){
@@ -75,6 +75,17 @@ function render(table:HTMLTableElement,state:TableState){
   footer.append(summary,center,pageSize)
 }
 
+function createState(table:HTMLTableElement){
+  const footer=document.createElement('footer')
+  footer.className='tableview-pagination portal-auto-pagination'
+  footer.setAttribute('aria-label','Paginação da tabela')
+  const anchor=insertionAnchor(table)
+  anchor.insertAdjacentElement('afterend',footer)
+  const state={page:1,pageSize:10,footer}
+  states.set(table,state)
+  return state
+}
+
 function ensurePagination(table:HTMLTableElement){
   if(table.closest('[role="dialog"],.contracts-a4,.marketing-phone-preview'))return
   if(!table.tBodies.length)return
@@ -84,15 +95,8 @@ function ensurePagination(table:HTMLTableElement){
     return
   }
   let state=states.get(table)
-  if(!state){
-    const footer=document.createElement('footer')
-    footer.className='tableview-pagination portal-auto-pagination'
-    footer.setAttribute('aria-label','Paginação da tabela')
-    const anchor=insertionAnchor(table)
-    anchor.insertAdjacentElement('afterend',footer)
-    state={page:1,pageSize:10,footer}
-    states.set(table,state)
-  }
+  if(state&&!state.footer.isConnected){states.delete(table);state=undefined}
+  state??=createState(table)
   render(table,state)
 }
 
@@ -104,12 +108,20 @@ function scan(){
 
 export function installAutoTablePagination(){
   if(typeof document==='undefined')return
-  queueMicrotask(scan)
+  const rescan=()=>requestAnimationFrame(scan)
+  scan()
+  rescan()
+  setTimeout(scan,50)
+  setTimeout(scan,250)
+  setTimeout(scan,750)
+  setTimeout(scan,1500)
+  window.addEventListener('hashchange',rescan)
+  window.addEventListener('popstate',rescan)
   let scheduled=false
   const observer=new MutationObserver(()=>{
     if(scheduled)return
     scheduled=true
-    queueMicrotask(()=>{scheduled=false;scan()})
+    requestAnimationFrame(()=>{scheduled=false;scan()})
   })
   observer.observe(document.documentElement,{childList:true,subtree:true})
 }

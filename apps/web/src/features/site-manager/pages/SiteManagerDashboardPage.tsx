@@ -1,4 +1,4 @@
-import { CalendarDays, Clock3, DollarSign, Eye, FileClock, FileText, Newspaper, PencilLine } from 'lucide-react'
+import { CalendarDays, DollarSign, Eye, FileClock, FileText, Newspaper, PencilLine } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { agendaRepository } from '../../agenda/repository'
 import { dashboardReadModel } from '../../dashboard/dashboardReadModel'
@@ -29,8 +29,7 @@ export function SiteManagerDashboardPage(){
     ...contents.map(content=>({id:`content-${content.id}`,title:content.title,detail:`Conteúdo · ${statusLabel[content.status]??content.status}`,updatedAt:content.updatedAt})),
     ...pages.map(page=>({id:`page-${page.id}`,title:page.title,detail:'Página atualizada',updatedAt:page.updatedAt})),
   ].sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt)).slice(0,5)
-  const now=Date.now()
-  const agenda=agendaRepository.list().filter(item=>item.status!=='cancelado'&&item.status!=='concluido'&&new Date(item.startsAt).getTime()>=now).sort((a,b)=>a.startsAt.localeCompare(b.startsAt)).slice(0,5)
+  const agenda=agendaRepository.list().filter(item=>item.status!=='cancelado'&&item.status!=='concluido').sort((a,b)=>a.startsAt.localeCompare(b.startsAt)).slice(0,5)
 
   return <AdminShell area="cms" items={SITE_MANAGER_NAV} header={{title:'Dashboard',description:'Visão geral do seu site e atividades recentes.'}} headerAction={{label:'Ver Site',variant:'secondary',onClick:()=>window.open(`${window.location.origin}${window.location.pathname}#/`,'_blank','noopener,noreferrer')}}>
     <section className="site-manager-dashboard">

@@ -137,6 +137,7 @@ export function HeroSection({
     '--hero-title-max-width': `${runtimeAppearance.titleMaxWidth}px`,
     '--hero-description-max-width': `${runtimeAppearance.descriptionMaxWidth}px`,
     '--hero-content-gap': `${runtimeAppearance.contentGap}px`,
+    '--hero-content-media-gap': `${runtimeAppearance.contentMediaGap}px`,
     '--hero-cta-gap': `${runtimeAppearance.ctaGap}px`,
     '--hero-cta-height': `${runtimeAppearance.ctaHeight}px`,
     '--hero-cta-padding-x': `${runtimeAppearance.ctaPaddingX}px`,
@@ -148,10 +149,14 @@ export function HeroSection({
     paddingLeft: runtimeAppearance.paddingX,
     paddingRight: runtimeAppearance.paddingX,
     paddingTop: runtimeAppearance.paddingY,
-    paddingBottom: runtimeAppearance.paddingY,
+    paddingBottom: 0,
     alignItems: runtimeAppearance.verticalAlign === 'start' ? 'start' : runtimeAppearance.verticalAlign === 'end' ? 'end' : 'center',
   }
-  const contentStyle: CSSProperties = { textAlign: runtimeAppearance.contentAlign, maxWidth: runtimeAppearance.titleMaxWidth }
+  const contentStyle: CSSProperties = {
+    textAlign: runtimeAppearance.contentAlign,
+    maxWidth: runtimeAppearance.titleMaxWidth,
+    paddingBottom: runtimeAppearance.contentPaddingBottom + runtimeAppearance.paddingY,
+  }
   const tickerStyle: CSSProperties = {
     marginTop: 0,
     background: ticker.background || '#ef0011',
@@ -161,14 +166,16 @@ export function HeroSection({
   }
   const imageStyle: CSSProperties = {
     left: `${visual.imagePositionX}%`,
-    top: `${visual.imagePositionY}%`,
-    width: `min(690px, ${runtimeAppearance.mediaWidthPercent}%)`,
+    top: 'auto',
+    bottom: 0,
+    width: `min(${runtimeAppearance.mediaWidthPercent}%, 100%)`,
     height: 'auto',
-    maxWidth: 'none',
+    maxWidth: '100%',
+    maxHeight: '100%',
     objectFit: 'contain',
     objectPosition: `${visual.imagePositionX}% ${visual.imagePositionY}%`,
     transform: `translate(calc(-50% + ${visual.imageOffsetX}px), ${visual.imageOffsetY}px) scale(${visual.imageScale})`,
-    transformOrigin: 'center top',
+    transformOrigin: 'center bottom',
     display: 'block',
     visibility: 'visible',
     opacity: 1,

@@ -1,0 +1,116 @@
+/* Final table-control layer for Marketing TableViews. Keep after all reference styles. */
+.marketing-page .marketing-campaign-table th .portal-auto-sort-header,
+.marketing-page .marketing-task-table th .portal-auto-sort-header,
+.marketing-page .marketing-briefing-table th .portal-auto-sort-header{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:flex-start!important;
+  gap:4px!important;
+  overflow:visible!important;
+  white-space:nowrap!important;
+}
+.marketing-page .marketing-campaign-table th .portal-auto-sort-buttons,
+.marketing-page .marketing-task-table th .portal-auto-sort-buttons,
+.marketing-page .marketing-briefing-table th .portal-auto-sort-buttons{
+  display:inline-flex!important;
+  align-items:center!important;
+  gap:0!important;
+  margin:0!important;
+  visibility:visible!important;
+  opacity:1!important;
+}
+.marketing-page .marketing-campaign-table th .portal-auto-sort-buttons button,
+.marketing-page .marketing-task-table th .portal-auto-sort-buttons button,
+.marketing-page .marketing-briefing-table th .portal-auto-sort-buttons button{
+  display:inline-grid!important;
+  place-items:center!important;
+  width:14px!important;
+  min-width:14px!important;
+  height:20px!important;
+  min-height:20px!important;
+  padding:0!important;
+  margin:0!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  color:#aaa!important;
+  font:700 13px/1 Arial,sans-serif!important;
+  opacity:.55!important;
+  cursor:pointer!important;
+}
+.marketing-page .marketing-campaign-table th .portal-auto-sort-buttons button.active,
+.marketing-page .marketing-campaign-table th .portal-auto-sort-buttons button[aria-pressed="true"],
+.marketing-page .marketing-task-table th .portal-auto-sort-buttons button.active,
+.marketing-page .marketing-task-table th .portal-auto-sort-buttons button[aria-pressed="true"],
+.marketing-page .marketing-briefing-table th .portal-auto-sort-buttons button.active,
+.marketing-page .marketing-briefing-table th .portal-auto-sort-buttons button[aria-pressed="true"]{
+  color:#111!important;
+  font-weight:900!important;
+  opacity:1!important;
+}
+
+.marketing-page .marketing-table-wrap>.marketing-pagination.tableview-pagination{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) auto minmax(0,1fr)!important;
+  align-items:center!important;
+  gap:14px!important;
+  width:100%!important;
+  min-height:54px!important;
+  margin:0!important;
+  padding:10px 14px!important;
+  border:0!important;
+  border-top:1px solid var(--admin-line,#e5e7eb)!important;
+  border-radius:0!important;
+  background:#fafafa!important;
+  color:#777!important;
+}
+.marketing-page .marketing-pagination .tableview-pagination-summary{
+  display:flex!important;
+  align-items:center!important;
+  gap:5px!important;
+  min-width:0!important;
+  color:#777!important;
+  font-size:9px!important;
+}
+.marketing-page .marketing-pagination .tableview-pagination-summary strong{color:#222!important;font-size:10px!important}
+.marketing-page .marketing-pagination .tableview-pagination-range{margin-left:7px!important;padding-left:8px!important;border-left:1px solid #ddd!important;color:#999!important}
+.marketing-page .marketing-pagination .tableview-pagination-center{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:5px!important;
+}
+.marketing-page .marketing-pagination .tableview-pagination-center button{
+  width:30px!important;
+  min-width:30px!important;
+  height:30px!important;
+  min-height:30px!important;
+  padding:0!important;
+  border:1px solid var(--admin-line-strong,#d0d5dd)!important;
+  border-radius:6px!important;
+  background:#fff!important;
+  color:#444!important;
+  display:grid!important;
+  place-items:center!important;
+  cursor:pointer!important;
+}
+.marketing-page .marketing-pagination .tableview-pagination-center button:hover:not(:disabled){border-color:#999!important;background:#f5f5f5!important}
+.marketing-page .marketing-pagination .tableview-pagination-center button:disabled{opacity:.32!important;cursor:not-allowed!important}
+.marketing-page .marketing-pagination .tableview-pagination-center>span{min-width:112px!important;text-align:center!important;color:#777!important;font-size:9px!important}
+.marketing-page .marketing-pagination .tableview-pagination-center strong{color:#222!important}
+.marketing-page .marketing-pagination .tableview-page-size{
+  justify-self:end!important;
+  display:flex!important;
+  align-items:center!important;
+  gap:7px!important;
+  color:#777!important;
+  font-size:9px!important;
+}
+
+@media(max-width:760px){
+  .marketing-page .marketing-table-wrap>.marketing-pagination.tableview-pagination{grid-template-columns:1fr!important;justify-items:center!important;gap:9px!important;padding:10px!important}
+  .marketing-page .marketing-pagination .tableview-pagination-summary,
+  .marketing-page .marketing-pagination .tableview-page-size{justify-self:center!important}
+  .marketing-page .marketing-pagination .tableview-pagination-range{display:none!important}
+}

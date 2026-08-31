@@ -21,6 +21,14 @@ const viewports=[
 
 const safeName=(route:string)=>route==='/'?'home':route.replace(/^\//,'').replaceAll('/','-')
 
+async function openRoute(page:Page,route:string){
+ await page.goto(`${base}#${route}`,{waitUntil:'domcontentloaded'})
+ await page.locator('#root').waitFor({state:'attached'})
+ await page.waitForFunction(()=>document.querySelector('#root')?.childElementCount!==0)
+ await page.evaluate(async()=>{try{if(document.fonts)await Promise.race([document.fonts.ready,new Promise(resolve=>setTimeout(resolve,1200))])}catch{/* visual audit still validates fallback rendering */}})
+ await page.waitForTimeout(120)
+}
+
 async function assertViewportIntegrity(page:Page,internal:boolean){
  const dimensions=await page.evaluate(()=>({
    bodyScrollWidth:document.body.scrollWidth,
@@ -44,7 +52,7 @@ for(const viewport of viewports){
    test.use({viewport:{width:viewport.width,height:viewport.height}})
    for(const route of internalRoutes){
      test(`internal ${route}`,async({page})=>{
-       await page.goto(`${base}#${route}`,{waitUntil:'networkidle'})
+       await openRoute(page,route)
        await assertViewportIntegrity(page,true)
        if(viewport.name==='mobile'&&(await page.locator('.workspace-primary-action').count())>0){
          await expect(page.locator('.workspace-primary-action').first()).toBeVisible()
@@ -54,7 +62,7 @@ for(const viewport of viewports){
    }
    for(const route of accessRoutes){
      test(`access ${route}`,async({page})=>{
-       await page.goto(`${base}#${route}`,{waitUntil:'networkidle'})
+       await openRoute(page,route)
        await assertViewportIntegrity(page,false)
        await expect(page.locator('.access-page,.workspace-selection-page').first()).toBeVisible()
        await page.screenshot({path:`test-results/visual/${viewport.name}-access-${safeName(route)}.png`,fullPage:true})
@@ -62,7 +70,7 @@ for(const viewport of viewports){
    }
    for(const route of publicRoutes){
      test(`public ${route}`,async({page})=>{
-       await page.goto(`${base}#${route}`,{waitUntil:'networkidle'})
+       await openRoute(page,route)
        await assertViewportIntegrity(page,false)
        await page.screenshot({path:`test-results/visual/${viewport.name}-public-${safeName(route)}.png`,fullPage:true})
      })
@@ -80,7 +88,7 @@ test.describe('modal viewport integrity',()=>{
  ]
  for(const item of cases){
    test(`${item.route} modal remains inside mobile viewport`,async({page})=>{
-     await page.goto(`${base}#${item.route}`,{waitUntil:'networkidle'})
+     await openRoute(page,item.route)
      const button=page.getByRole('button',{name:item.button}).first()
      if((await button.count())===0)test.skip(true,`No action matching ${item.button}`)
      await button.click()

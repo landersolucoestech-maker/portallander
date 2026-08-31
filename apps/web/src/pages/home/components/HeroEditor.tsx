@@ -53,6 +53,7 @@ import '../styles/hero-editor-cms.css'
 
 type EditorTab = 'content' | 'appearance' | 'behavior'
 type AccordionKey = 'content' | 'media' | 'ctas' | 'ticker' | 'linking' | 'publication'
+type NumericVisualKey = keyof HeroSlideResponsiveVisual
 
 type FieldProps = { label: ReactNode; children: ReactNode; hint?: string }
 
@@ -91,6 +92,34 @@ function makeSlide(order: number): HeroSlide {
     title: defaultHeroSlide.title.map(item => ({ ...item, visible: item.visible !== false, responsive: {} })),
     ctas: (defaultHeroSlide.ctas || []).map(item => ({ ...item, id: `${item.id}-${stamp}` })),
   }
+}
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, value))
+}
+
+function signed(value: number, suffix = '') {
+  const normalized = Math.abs(value) < .005 ? 0 : value
+  return `${normalized > 0 ? '+' : ''}${normalized}${suffix}`
+}
+
+function getVisualBaseline(slide: HeroSlide, breakpoint: HeroBreakpoint): Required<HeroSlideResponsiveVisual> {
+  if (breakpoint === 'desktop') {
+    return {
+      imagePositionX: defaultHeroSlide.imagePositionX,
+      imagePositionY: defaultHeroSlide.imagePositionY,
+      imageScale: defaultHeroSlide.imageScale,
+      imageOffsetX: defaultHeroSlide.imageOffsetX,
+      imageOffsetY: defaultHeroSlide.imageOffsetY,
+    }
+  }
+  return resolveSlideVisual({
+    ...slide,
+    responsive: {
+      ...(slide.responsive || {}),
+      [breakpoint]: {},
+    },
+  }, breakpoint)
 }
 
 async function optimizeImage(file: File): Promise<string> {
@@ -141,6 +170,12 @@ export function HeroEditor() {
   const ctas = useMemo(() => [...(slide.ctas || [])].sort((a, b) => a.order - b.order), [slide.ctas])
   const effectiveAppearance = resolveHeroAppearance(appearance, viewport)
   const effectiveVisual = resolveSlideVisual(slide, viewport)
+  const visualBaseline = getVisualBaseline(slide, viewport)
+  const positionXAdjustment = Math.round(effectiveVisual.imagePositionX - visualBaseline.imagePositionX)
+  const positionYAdjustment = Math.round(effectiveVisual.imagePositionY - visualBaseline.imagePositionY)
+  const offsetXAdjustment = Math.round(effectiveVisual.imageOffsetX - visualBaseline.imageOffsetX)
+  const offsetYAdjustment = Math.round(effectiveVisual.imageOffsetY - visualBaseline.imageOffsetY)
+  const zoomAdjustment = visualBaseline.imageScale > 0 ? Math.round(((effectiveVisual.imageScale / visualBaseline.imageScale) - 1) * 100) : 0
 
   const markDirty = () => { setDirty(true); setSaved(false) }
   const patchConfig = (patch: Partial<HeroCarouselConfig>) => { setDraft(current => ({ ...current, ...patch })); markDirty() }
@@ -158,6 +193,33 @@ export function HeroEditor() {
 
   const patchSlideVisual = <K extends keyof HeroSlideResponsiveVisual>(key: K, value: HeroSlideResponsiveVisual[K]) => {
     updateSlide(setSlideVisualOverride(slide, viewport, key, value))
+  }
+
+  const patchVisualAdjustment = (key: Exclude<NumericVisualKey, 'imageScale'>, adjustment: number) => {
+    const baseline = visualBaseline[key]
+    const next = key === 'imagePositionX' || key === 'imagePositionY'
+      ? clamp(baseline + adjustment, 0, 100)
+      : baseline + adjustment
+    patchSlideVisual(key, next)
+  }
+
+  const patchZoomAdjustment = (adjustmentPercent: number) => {
+    const nextScale = Math.max(.1, visualBaseline.imageScale * (1 + adjustmentPercent / 100))
+    patchSlideVisual('imageScale', Number(nextScale.toFixed(4)))
+  }
+
+  const resetImageAdjustments = () => {
+    if (viewport === 'desktop') {
+      updateSlide({
+        imagePositionX: visualBaseline.imagePositionX,
+        imagePositionY: visualBaseline.imagePositionY,
+        imageScale: visualBaseline.imageScale,
+        imageOffsetX: visualBaseline.imageOffsetX,
+        imageOffsetY: visualBaseline.imageOffsetY,
+      })
+      return
+    }
+    updateSlide(clearSlideVisualOverrides(slide, viewport))
   }
 
   const updateSegment = (index: number, patch: Partial<HeroTitleSegment>) => {
@@ -332,12 +394,20 @@ export function HeroEditor() {
             <div className="hero-cms-grid two"><Field label="Descrição"><textarea rows={4} value={slide.description} onChange={event => updateSlide({ description: event.target.value })} /></Field><Field label="Exibir descrição"><select value={slide.descriptionVisible === false ? 'off' : 'on'} onChange={event => updateSlide({ descriptionVisible: event.target.value === 'on' })}><option value="on">Exibir</option><option value="off">Ocultar</option></select></Field><Field label="Assinatura editorial"><input value={slide.mediaCaption} onChange={event => updateSlide({ mediaCaption: event.target.value })} /></Field><Field label="Exibir assinatura"><select value={slide.mediaCaptionVisible === false ? 'off' : 'on'} onChange={event => updateSlide({ mediaCaptionVisible: event.target.value === 'on' })}><option value="on">Exibir</option><option value="off">Ocultar</option></select></Field></div>
           </Accordion>
 
-          <Accordion id="media" title="Mídia principal" description={`Imagem única; enquadramento responsivo em ${deviceName}`} open={openAccordion === 'media'} onToggle={toggleAccordion}>
+          <Accordion id="media" title="Mídia principal" description={`Imagem única; ajustes neutros a partir de zero em ${deviceName}`} open={openAccordion === 'media'} onToggle={toggleAccordion}>
             <div className="hero-cms-media-preview">{slide.image && slide.imageVisible !== false ? <img src={slide.image} alt={slide.imageAlt || 'Preview da imagem principal'} style={{ objectPosition: `${effectiveVisual.imagePositionX}% ${effectiveVisual.imagePositionY}%`, transform: `scale(${Math.min(effectiveVisual.imageScale, 1.8)})` }} /> : <ImageIcon size={34} />}</div>
             <div className="hero-cms-inline-actions"><input ref={fileRef} type="file" accept="image/*" hidden onChange={event => void upload(event.target.files?.[0])} /><button className="button outline" disabled={uploading} onClick={() => fileRef.current?.click()}><Upload size={15} /> {uploading ? 'Processando...' : 'Fazer upload'}</button><button className="button outline" onClick={() => setLibraryOpen(true)}><ImageIcon size={15} /> Biblioteca de mídia</button><button className="button outline" onClick={() => updateSlide({ image: '', imageVisible: false })}><Trash2 size={15} /> Remover imagem</button></div>
             <div className="hero-cms-grid two"><Field label="Exibir imagem"><select value={slide.imageVisible === false ? 'off' : 'on'} onChange={event => updateSlide({ imageVisible: event.target.value === 'on' })}><option value="on">Exibir</option><option value="off">Ocultar</option></select></Field><Field label="Texto alternativo"><input value={slide.imageAlt} onChange={event => updateSlide({ imageAlt: event.target.value })} /></Field></div>
-            <details className="hero-cms-details" open><summary>Ajustar enquadramento · {deviceName}</summary><div className="hero-cms-grid two"><Field label={<ResponsiveLabel text={`Posição X · ${Math.round(effectiveVisual.imagePositionX)}%`} breakpoint={viewport} overridden={hasSlideVisualOverride(slide, viewport, 'imagePositionX')} />}><input type="range" min="0" max="100" value={effectiveVisual.imagePositionX} onChange={event => patchSlideVisual('imagePositionX', Number(event.target.value))} /></Field><Field label={<ResponsiveLabel text={`Posição Y · ${Math.round(effectiveVisual.imagePositionY)}%`} breakpoint={viewport} overridden={hasSlideVisualOverride(slide, viewport, 'imagePositionY')} />}><input type="range" min="0" max="100" value={effectiveVisual.imagePositionY} onChange={event => patchSlideVisual('imagePositionY', Number(event.target.value))} /></Field></div></details>
-            <details className="hero-cms-details"><summary>Ajustes avançados · {deviceName}</summary><div className="hero-cms-grid two"><Field label={<ResponsiveLabel text={`Escala · ${effectiveVisual.imageScale.toFixed(2)}x`} breakpoint={viewport} overridden={hasSlideVisualOverride(slide, viewport, 'imageScale')} />}><input type="range" min="0.4" max="2.4" step="0.01" value={effectiveVisual.imageScale} onChange={event => patchSlideVisual('imageScale', Number(event.target.value))} /></Field><Field label={<ResponsiveLabel text={`Offset X · ${Math.round(effectiveVisual.imageOffsetX)}px`} breakpoint={viewport} overridden={hasSlideVisualOverride(slide, viewport, 'imageOffsetX')} />}><input type="range" min="-400" max="400" value={effectiveVisual.imageOffsetX} onChange={event => patchSlideVisual('imageOffsetX', Number(event.target.value))} /></Field><Field label={<ResponsiveLabel text={`Offset Y · ${Math.round(effectiveVisual.imageOffsetY)}px`} breakpoint={viewport} overridden={hasSlideVisualOverride(slide, viewport, 'imageOffsetY')} />}><input type="range" min="-300" max="300" value={effectiveVisual.imageOffsetY} onChange={event => patchSlideVisual('imageOffsetY', Number(event.target.value))} /></Field></div></details>
+            <div className="hero-cms-inline-actions"><button className="button outline" type="button" onClick={resetImageAdjustments}><RotateCcw size={14} /> Zerar ajustes da imagem</button><small>Zero é o ponto neutro: mantém a composição base/automática do dispositivo.</small></div>
+            <details className="hero-cms-details" open><summary>Ajustar enquadramento · {deviceName}</summary><div className="hero-cms-grid two">
+              <Field label={<ResponsiveLabel text={`Posição X · ${signed(positionXAdjustment)}`} breakpoint={viewport} overridden={hasSlideVisualOverride(slide, viewport, 'imagePositionX')} />} hint={`0 = posição base/automática. Efetivo: ${Math.round(effectiveVisual.imagePositionX)}%.`}><input type="range" min="-100" max="100" value={positionXAdjustment} onChange={event => patchVisualAdjustment('imagePositionX', Number(event.target.value))} /></Field>
+              <Field label={<ResponsiveLabel text={`Posição Y · ${signed(positionYAdjustment)}`} breakpoint={viewport} overridden={hasSlideVisualOverride(slide, viewport, 'imagePositionY')} />} hint={`0 = posição base/automática. Efetivo: ${Math.round(effectiveVisual.imagePositionY)}%.`}><input type="range" min="-100" max="100" value={positionYAdjustment} onChange={event => patchVisualAdjustment('imagePositionY', Number(event.target.value))} /></Field>
+            </div></details>
+            <details className="hero-cms-details"><summary>Ajustes avançados · {deviceName}</summary><div className="hero-cms-grid two">
+              <Field label={<ResponsiveLabel text={`Zoom · ${signed(zoomAdjustment, '%')}`} breakpoint={viewport} overridden={hasSlideVisualOverride(slide, viewport, 'imageScale')} />} hint={`0% = escala base/automática (${visualBaseline.imageScale.toFixed(2)}x). Efetivo: ${effectiveVisual.imageScale.toFixed(2)}x.`}><input type="range" min="-80" max="150" step="1" value={zoomAdjustment} onChange={event => patchZoomAdjustment(Number(event.target.value))} /></Field>
+              <Field label={<ResponsiveLabel text={`Offset X · ${signed(offsetXAdjustment, 'px')}`} breakpoint={viewport} overridden={hasSlideVisualOverride(slide, viewport, 'imageOffsetX')} />} hint={`0px = sem deslocamento adicional. Efetivo: ${Math.round(effectiveVisual.imageOffsetX)}px.`}><input type="range" min="-500" max="500" value={offsetXAdjustment} onChange={event => patchVisualAdjustment('imageOffsetX', Number(event.target.value))} /></Field>
+              <Field label={<ResponsiveLabel text={`Offset Y · ${signed(offsetYAdjustment, 'px')}`} breakpoint={viewport} overridden={hasSlideVisualOverride(slide, viewport, 'imageOffsetY')} />} hint={`0px = sem deslocamento adicional. Efetivo: ${Math.round(effectiveVisual.imageOffsetY)}px.`}><input type="range" min="-500" max="500" value={offsetYAdjustment} onChange={event => patchVisualAdjustment('imageOffsetY', Number(event.target.value))} /></Field>
+            </div></details>
           </Accordion>
 
           <Accordion id="ctas" title="Ações (CTAs)" description="Conteúdo único; dimensões responsivas ficam em Aparência" open={openAccordion === 'ctas'} onToggle={toggleAccordion}>

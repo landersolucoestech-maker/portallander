@@ -18,6 +18,7 @@ import {
   type HeroCarouselConfig,
   type HeroSlide,
 } from '../models/heroModel'
+import '../styles/hero-responsive.css'
 
 function SmartLink({ to, className, children, external: forcedExternal, style }: { to: string; className?: string; children: React.ReactNode; external?: boolean; style?: CSSProperties }) {
   const external = forcedExternal ?? /^https?:\/\//i.test(to)

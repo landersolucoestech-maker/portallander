@@ -9,6 +9,7 @@ import {setRuntimeDataProvider} from './shared/data/runtimeDataProvider'
 import {scenarioController} from './shared/data/scenarioController'
 import {purgeRemovedModuleStorage} from './shared/internal/legacyStorageCleanup'
 import {installRhMarketingTableSorting} from './shared/internal/tableSortEnhancer'
+import {installAutoTablePagination} from './shared/internal/autoTablePagination'
 import './styles/public-styles.css'
 
 setRuntimeDataProvider(mockDataProvider)
@@ -16,6 +17,7 @@ scenarioController.bootstrapFromLocation()
 prepareMockSeedStorage()
 purgeRemovedModuleStorage()
 installRhMarketingTableSorting()
+installAutoTablePagination()
 
 const queryClient=new QueryClient()
 

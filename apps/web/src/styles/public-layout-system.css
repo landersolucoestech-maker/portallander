@@ -1,0 +1,31 @@
+/* Portal Lander — public layout, viewport and interaction baseline. */
+html,body,#root{min-height:100%}
+body{min-height:100dvh;overflow-x:clip}
+.public-page,.article-page,.article-route-overlay{min-height:100dvh}
+.public-page{display:flex;flex-direction:column;min-width:0;background:#fff}
+.public-page>main,.public-page>.public-shell,.article-page main{min-width:0}
+.public-page .public-footer{margin-top:auto}
+.public-page img,.article-page img{max-width:100%}
+
+/* One keyboard-focus language across the public portal. */
+.public-page a:focus-visible,.public-page button:focus-visible,.public-page input:focus-visible,.public-page select:focus-visible,.public-page textarea:focus-visible,.article-page a:focus-visible,.article-page button:focus-visible{outline:3px solid #e30613;outline-offset:3px}
+
+/* Prevent menus, search and dynamic editorial content from creating horizontal page scroll. */
+.public-header,.public-nav,.public-links,.public-search-panel,.public-footer,.pl-newsletter{max-width:100vw}
+.public-search-panel form{min-width:0}
+.public-search-panel input{min-width:0}
+.public-submenu,.public-search-suggestions{max-width:min(92vw,720px)}
+
+/* Long editorial/user-generated strings must wrap rather than expand layouts. */
+.public-page p,.public-page h1,.public-page h2,.public-page h3,.public-page h4,.article-page p,.article-page h1,.article-page h2,.article-page h3,.public-footer a{overflow-wrap:anywhere}
+
+@media(max-width:760px){
+  .public-page,.article-page{min-height:100dvh}
+  .public-header .public-nav{min-width:0}
+  .public-search-panel{width:100%}
+  .public-search-panel form{width:100%}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .public-page *,.article-page *{scroll-behavior:auto!important;transition-duration:.01ms!important;animation-duration:.01ms!important;animation-iteration-count:1!important}
+}

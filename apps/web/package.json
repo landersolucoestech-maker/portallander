@@ -10,7 +10,7 @@
     "typecheck": "tsc -b --pretty false",
     "check:architecture": "node scripts/check-internal-boundaries.mjs && node scripts/check-data-boundaries.mjs",
     "test": "vitest run",
-    "test:visual": "playwright test e2e/visual.spec.ts --reporter=line",
+    "test:visual": "playwright test --reporter=line",
     "preview": "vite preview"
   },
   "dependencies": {

@@ -1,4 +1,4 @@
-import { Activity, AlertTriangle, Briefcase, Calendar, ClipboardList, DollarSign, FileText, Newspaper, PieChart, Wallet } from 'lucide-react'
+import { Activity, Briefcase, Calendar, ClipboardList, DollarSign, FileText, Newspaper, PieChart, Wallet } from 'lucide-react'
 import { AdminShell } from '../../shared/internal/AdminUi'
 import { CRM_WORKSPACE_NAV } from '../../shared/internal/adminNavigation'
 import { useActivityHistory } from './hooks/useActivityHistory'
@@ -25,11 +25,6 @@ export default function DashboardPage(){
         <article className="dashboard-stat-card"><div><span>Contratos Ativos</span><strong>{data.activeContracts}</strong><small>vigentes ou em processo de assinatura</small></div><FileText size={17} aria-hidden="true"/></article>
         <article className="dashboard-stat-card"><div><span>Publicações Contratadas Pendentes</span><strong>{data.pendingCommercialPublications}</strong><small>obrigações comerciais de conteúdo em aberto</small></div><ClipboardList size={17} aria-hidden="true"/></article>
       </div>
-
-      {data.alerts.length>0&&<section className="dashboard-reference-panel dashboard-attention-panel">
-        <div className="dashboard-section-heading"><div><h2>Atenção Necessária</h2><p>Ocorrências operacionais que exigem ação</p></div><AlertTriangle size={18} aria-hidden="true"/></div>
-        <div className="dashboard-panel-body dashboard-alert-list">{data.alerts.map(item=><div key={item}>{item}</div>)}</div>
-      </section>}
 
       <div className="dashboard-reference-split">
         <section className="dashboard-reference-panel">

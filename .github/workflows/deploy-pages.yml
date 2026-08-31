@@ -51,6 +51,27 @@ jobs:
         run: npm install
       - name: Build web
         run: npm run build
+      - name: Install Chromium for visual audit
+        working-directory: apps/web
+        run: npx playwright install --with-deps chromium
+      - name: Start production preview
+        run: |
+          npm --workspace @portallander/web run preview -- --host 127.0.0.1 > /tmp/portallander-preview.log 2>&1 &
+          for i in {1..40}; do
+            if curl -fsS http://127.0.0.1:4173/portallander/ >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/portallander-preview.log
+          exit 1
+      - name: Visual viewport audit
+        run: npm --workspace @portallander/web run test:visual
+      - name: Upload visual audit screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-audit
+          path: apps/web/test-results/visual
+          if-no-files-found: warn
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:

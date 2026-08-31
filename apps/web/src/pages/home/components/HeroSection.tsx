@@ -38,8 +38,12 @@ function getViewportSnapshot(): HeroBreakpoint {
   return 'desktop'
 }
 
-function useViewportBreakpoint() {
-  return useSyncExternalStore(subscribeViewport, getViewportSnapshot, () => 'desktop')
+function getServerViewportSnapshot(): HeroBreakpoint {
+  return 'desktop'
+}
+
+function useViewportBreakpoint(): HeroBreakpoint {
+  return useSyncExternalStore<HeroBreakpoint>(subscribeViewport, getViewportSnapshot, getServerViewportSnapshot)
 }
 
 export function HeroSection({
@@ -60,7 +64,7 @@ export function HeroSection({
   const [activeIndex, setActiveIndex] = useState(previewIndex)
   const [paused, setPaused] = useState(false)
   const liveBreakpoint = useViewportBreakpoint()
-  const breakpoint = previewViewport ?? liveBreakpoint
+  const breakpoint: HeroBreakpoint = previewViewport ?? liveBreakpoint
   const runtimeConfig = config ?? storedConfig
   const baseAppearance = appearance ?? storedAppearance
   const runtimeAppearance = resolveHeroAppearance(baseAppearance, breakpoint)

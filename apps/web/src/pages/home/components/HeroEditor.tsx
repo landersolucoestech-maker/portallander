@@ -1,7 +1,7 @@
 import { Copy, Image as ImageIcon, Plus, RotateCcw, Save, Trash2, Upload, ChevronUp, ChevronDown } from 'lucide-react'
 import { useMemo, useRef, useState } from 'react'
 import { HeroSection } from './HeroSection'
-import { applyArticleToSlide, defaultHeroConfig, defaultHeroSlide, heroArticles, readHeroConfig, resetHeroConfig, writeHeroConfig, type HeroCarouselConfig, type HeroCta, type HeroSlide } from '../models/heroModel'
+import { applyArticleToSlide, defaultHeroSlide, heroArticles, readHeroConfig, resetHeroConfig, writeHeroConfig, type HeroCarouselConfig, type HeroCta, type HeroSlide } from '../models/heroModel'
 
 function Field({ label, children, hint }: { label: string; children: React.ReactNode; hint?: string }) {
   return <label className="hero-editor-field"><span>{label}</span>{children}{hint&&<small>{hint}</small>}</label>

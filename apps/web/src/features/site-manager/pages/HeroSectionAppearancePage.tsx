@@ -1,5 +1,5 @@
 import { ArrowLeft, Save } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useMemo, useState, type CSSProperties } from 'react'
 import { Link } from 'react-router-dom'
 import { HeroSection } from '../../../pages/home/components/HeroSection'
 import { readHeroConfig, type HeroCarouselConfig } from '../../../pages/home/models/heroModel'
@@ -20,6 +20,7 @@ type HeroSectionConfig={
   accentColor:string
   borderColor:string
 }
+type ColorField='background'|'textColor'|'titleColor'|'accentColor'|'borderColor'
 
 const STORAGE_KEY='portal-lander:cms:section-config:hero:v4'
 const DEFAULTS:HeroSectionConfig={active:true,width:100,height:560,paddingX:0,paddingY:0,radius:0,background:'#090909',textColor:'#ffffff',titleColor:'#ffffff',accentColor:'#ff151f',borderColor:'#090909'}
@@ -42,8 +43,21 @@ export function HeroSectionAppearancePage(){
   const slide=liveHero.slides[0]
   const currentTitle=slide?.title.map(item=>item.text).join(' ')||''
   const patch=(next:Partial<HeroSectionConfig>)=>{setConfig(current=>({...current,...next}));setSaved(false)}
+  const setColor=(field:ColorField,value:string)=>patch({[field]:value} as Partial<HeroSectionConfig>)
   const save=()=>{localStorage.setItem(STORAGE_KEY,JSON.stringify(config));setSaved(true)}
   const widthValue=config.width<=100?1200:config.width
+  const previewStyle={
+    maxWidth:config.width<=100?'100%':config.width,
+    height:config.height,
+    borderRadius:config.radius,
+    borderColor:config.borderColor,
+    background:config.background,
+    padding:`${config.paddingY}px ${config.paddingX}px`,
+    '--section-preview-bg':config.background,
+    '--section-preview-text':config.textColor,
+    '--section-preview-title':config.titleColor,
+    '--section-preview-accent':config.accentColor,
+  } as CSSProperties
 
   return <AdminShell area="cms" items={SITE_MANAGER_NAV} header={{title:'Configurar seção: Hero principal',description:'Ajuste somente a aparência e as dimensões. A prévia usa exatamente o Hero que está publicado hoje na Home.'}}>
     <div className="section-editor-toolbar">
@@ -71,14 +85,14 @@ export function HeroSectionAppearancePage(){
         <div className="section-editor-slider"><span>Arredondamento</span><input type="range" min="0" max="32" value={config.radius} onChange={event=>patch({radius:Number(event.target.value)})}/><b>{config.radius}px</b></div>
 
         <div className="section-editor-colors">
-          {([['background','Cor de fundo'],['titleColor','Cor do título'],['textColor','Cor do texto'],['accentColor','Cor de destaque'],['borderColor','Cor da borda']] as const).map(([field,label])=><label key={field}>{label}<span><input type="color" value={config[field]} onChange={event=>patch({[field]:event.target.value})}/><input value={config[field]} onChange={event=>patch({[field]:event.target.value})}/></span></label>)}
+          {([['background','Cor de fundo'],['titleColor','Cor do título'],['textColor','Cor do texto'],['accentColor','Cor de destaque'],['borderColor','Cor da borda']] as const).map(([field,label])=><label key={field}>{label}<span><input type="color" value={config[field]} onChange={event=>setColor(field,event.target.value)}/><input value={config[field]} onChange={event=>setColor(field,event.target.value)}/></span></label>)}
         </div>
       </section>
 
       <section className="section-editor-preview-column">
         <div className="section-editor-card">
           <h2>Prévia real da seção</h2>
-          <div className="section-real-preview-frame" style={{maxWidth:config.width<=100?'100%':config.width,height:config.height,borderRadius:config.radius,borderColor:config.borderColor,background:config.background,padding:`${config.paddingY}px ${config.paddingX}px`}}>
+          <div className="section-real-preview-frame" style={previewStyle}>
             <div className="section-real-preview-content"><HeroSection config={liveHero} disableAutoplay/></div>
           </div>
         </div>

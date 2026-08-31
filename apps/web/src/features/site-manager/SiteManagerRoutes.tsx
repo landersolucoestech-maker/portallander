@@ -12,24 +12,29 @@ import { SiteContentsPage } from './pages/SiteContentsPage'
 import { SiteManagerDashboardPage } from './pages/SiteManagerDashboardPage'
 import { SiteMediaPage } from './pages/SiteMediaPage'
 import { SitePagesPage } from './pages/SitePagesPage'
+import { SiteSectionsPage } from './pages/SiteSectionsPage'
 
 export default function SiteManagerRoutes(){
   return <Routes>
     <Route index element={<SiteManagerDashboardPage/>}/>
     <Route path="home" element={<HomeManagerPage/>}/>
     <Route path="home/hero" element={<HeroManagerPage/>}/>
-    <Route path="home/barra-agora" element={<HomeSectionManagerPage section="ticker"/>}/>
-    <Route path="home/grid-principal" element={<HomeSectionManagerPage section="grid"/>}/>
-    <Route path="home/ranking" element={<HomeSectionManagerPage section="ranking"/>}/>
-    <Route path="home/publicidade-lateral" element={<HomeSectionManagerPage section="side-ad"/>}/>
-    <Route path="home/destaques" element={<HomeSectionManagerPage section="secondary"/>}/>
-    <Route path="home/em-alta" element={<HomeSectionManagerPage section="trending"/>}/>
-    <Route path="home/banner-horizontal" element={<HomeSectionManagerPage section="banner"/>}/>
-    <Route path="home/videos" element={<HomeSectionManagerPage section="videos"/>}/>
-    <Route path="home/agenda" element={<HomeSectionManagerPage section="agenda"/>}/>
-    <Route path="home/newsletter" element={<HomeSectionManagerPage section="newsletter"/>}/>
-    <Route path="home/footer" element={<HomeSectionManagerPage section="footer"/>}/>
     <Route path="home/anuncio" element={<HomeAdManagerPage/>}/>
+
+    <Route path="secoes" element={<SiteSectionsPage/>}/>
+    <Route path="secoes/home/hero" element={<HomeSectionManagerPage section="hero"/>}/>
+    <Route path="secoes/home/barra-agora" element={<HomeSectionManagerPage section="ticker"/>}/>
+    <Route path="secoes/home/grid-principal" element={<HomeSectionManagerPage section="grid"/>}/>
+    <Route path="secoes/home/ranking" element={<HomeSectionManagerPage section="ranking"/>}/>
+    <Route path="secoes/home/publicidade-lateral" element={<HomeSectionManagerPage section="side-ad"/>}/>
+    <Route path="secoes/home/destaques" element={<HomeSectionManagerPage section="secondary"/>}/>
+    <Route path="secoes/home/em-alta" element={<HomeSectionManagerPage section="trending"/>}/>
+    <Route path="secoes/home/banner-horizontal" element={<HomeSectionManagerPage section="banner"/>}/>
+    <Route path="secoes/home/videos" element={<HomeSectionManagerPage section="videos"/>}/>
+    <Route path="secoes/home/agenda" element={<HomeSectionManagerPage section="agenda"/>}/>
+    <Route path="secoes/home/newsletter" element={<HomeSectionManagerPage section="newsletter"/>}/>
+    <Route path="secoes/home/footer" element={<HomeSectionManagerPage section="footer"/>}/>
+
     <Route path="marca" element={<BrandAssetsManagerPage/>}/>
     <Route path="cabecalho" element={<HeaderBrandManagerPage/>}/>
     <Route path="conteudos" element={<SiteContentsPage/>}/>

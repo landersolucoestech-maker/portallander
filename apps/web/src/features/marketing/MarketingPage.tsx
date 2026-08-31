@@ -15,6 +15,7 @@ import './marketing.css'
 import './marketing-reference.css'
 import './marketing-reference-exact.css'
 import './marketing-ai-exact.css'
+import './marketing-table-controls.css'
 const tabFromPath=(path:string):MarketingTab|null=>path==='/app/marketing'||path==='/app/marketing/'?'overview':path==='/app/marketing/campanhas'?'campaigns':path==='/app/marketing/calendario'?'calendar':path==='/app/marketing/tarefas'?'tasks':path==='/app/marketing/metricas'?'metrics':path==='/app/marketing/briefings'?'briefings':path==='/app/marketing/ia-criativa'?'ai':null
 const title=(tab:MarketingTab)=>tab==='overview'?'Visão Geral':tab==='campaigns'?'Campanhas de Marketing':tab==='calendar'?'Marketing - Calendário de Conteúdo':tab==='tasks'?'Marketing · Tarefas':tab==='metrics'?'Métricas':tab==='briefings'?'Briefings':'IA Criativa'
 const description=(tab:MarketingTab)=>tab==='overview'?'Cockpit operacional do setor de marketing':tab==='campaigns'?'Planeje, execute e monitore campanhas e tráfego pago':tab==='calendar'?'Programação de conteúdos':tab==='tasks'?'Núcleo operacional de tarefas':tab==='metrics'?'Performance de marketing por plataforma':tab==='briefings'?'Origem estratégica dos projetos':'Criação, perfil, pitching, tendências, métricas e histórico.'

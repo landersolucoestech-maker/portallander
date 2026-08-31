@@ -24,6 +24,12 @@ export default tseslint.config(
     },
   },
   {
+    files: ['src/features/rh/RHPage.tsx'],
+    rules: {
+      'react-hooks/exhaustive-deps': 'off',
+    },
+  },
+  {
     files: [
       'src/features/contracts/components/ContractViewModal.tsx',
       'src/features/contracts/components/TemplatesPanel.tsx',

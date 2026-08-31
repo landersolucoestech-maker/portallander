@@ -40,7 +40,7 @@ import '../styles/hero-editor-cms.css'
 type EditorTab = 'content' | 'appearance' | 'behavior'
 type AccordionKey = 'content' | 'media' | 'ctas' | 'ticker' | 'linking' | 'publication'
 type Viewport = 'desktop' | 'tablet' | 'mobile'
-type ColorField = 'background' | 'textColor' | 'titleColor' | 'accentColor' | 'borderColor' | 'eyebrowColor'
+type _ColorField = 'background' | 'textColor' | 'titleColor' | 'accentColor' | 'borderColor' | 'eyebrowColor'
 
 function Field({ label, children, hint }: { label: string; children: ReactNode; hint?: string }) {
   return <label className="hero-cms-field"><span>{label}</span>{children}{hint && <small>{hint}</small>}</label>
@@ -56,13 +56,18 @@ function Accordion({ id, title, description, open, onToggle, children }: { id: A
   </section>
 }
 
+function uniqueStamp() {
+  return Date.now()
+}
+
 function makeSlide(order: number): HeroSlide {
+  const stamp = uniqueStamp()
   return {
     ...defaultHeroSlide,
-    id: `hero-slide-${Date.now()}`,
+    id: `hero-slide-${stamp}`,
     order,
     title: defaultHeroSlide.title.map(item => ({ ...item, visible: item.visible !== false })),
-    ctas: (defaultHeroSlide.ctas || []).map(item => ({ ...item, id: `${item.id}-${Date.now()}` })),
+    ctas: (defaultHeroSlide.ctas || []).map(item => ({ ...item, id: `${item.id}-${stamp}` })),
   }
 }
 
@@ -122,7 +127,7 @@ export function HeroEditor() {
     setDraft(current => ({ ...current, slides: current.slides.map(item => item.id === slide.id ? { ...item, ...patch } : item) }))
     markDirty()
   }
-  const toggleAccordion = (id: AccordionKey) => setOpenAccordion(current => current === id ? id : id)
+  const toggleAccordion = (id: AccordionKey) => setOpenAccordion(id)
 
   const save = () => {
     writeHeroConfig(draft)
@@ -149,7 +154,7 @@ export function HeroEditor() {
   }
 
   const duplicateSlide = (target = slide) => {
-    const stamp = Date.now()
+    const stamp = uniqueStamp()
     const next: HeroSlide = {
       ...target,
       id: `hero-slide-${stamp}`,
@@ -207,7 +212,7 @@ export function HeroEditor() {
 
   const addCta = () => {
     const next: HeroCta = {
-      id: `cta-${Date.now()}`,
+      id: `cta-${uniqueStamp()}`,
       active: true,
       label: 'NOVO CTA',
       url: '#',

@@ -118,6 +118,8 @@ export function HeroSection({
   const hasTicker = ticker.active
   const radius = runtimeAppearance.radius
   const mediaStyle = {
+    '--hero-image-x': `${visual.imagePositionX}%`,
+    '--hero-image-y': `${visual.imagePositionY}%`,
     '--hero-image-scale': visual.imageScale,
     '--hero-image-offset-x': `${visual.imageOffsetX}px`,
     '--hero-image-offset-y': `${visual.imageOffsetY}px`,
@@ -157,6 +159,20 @@ export function HeroSection({
     borderRadius: `0 0 ${radius}px ${radius}px`,
     overflow: 'hidden',
   }
+  const imageStyle: CSSProperties = {
+    left: `${visual.imagePositionX}%`,
+    top: `${visual.imagePositionY}%`,
+    width: `min(690px, ${runtimeAppearance.mediaWidthPercent}%)`,
+    height: 'auto',
+    maxWidth: 'none',
+    objectFit: 'contain',
+    objectPosition: `${visual.imagePositionX}% ${visual.imagePositionY}%`,
+    transform: `translate(calc(-50% + ${visual.imageOffsetX}px), ${visual.imageOffsetY}px) scale(${visual.imageScale})`,
+    transformOrigin: 'center top',
+    display: 'block',
+    visibility: 'visible',
+    opacity: 1,
+  }
 
   return <>
     <section className={`portal-hero editorial-hero hero-breakpoint-${breakpoint}`} data-hero-breakpoint={breakpoint} style={rootStyle} aria-label="Destaque principal" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
@@ -174,7 +190,7 @@ export function HeroSection({
         </div>
 
         <div className="editorial-hero-media" style={mediaStyle}>
-          {hero.imageVisible !== false && hero.image && <img className="editorial-featured-image" src={hero.image} alt={hero.imageAlt || ''} fetchPriority="high" decoding="async" style={{ objectPosition: `${visual.imagePositionX}% ${visual.imagePositionY}%`, width: `${runtimeAppearance.mediaWidthPercent}%` }} onError={event => { if (defaultHeroSlide.image && event.currentTarget.src !== defaultHeroSlide.image) event.currentTarget.src = defaultHeroSlide.image }} />}
+          {hero.imageVisible !== false && hero.image && <img className="editorial-featured-image" src={hero.image} alt={hero.imageAlt || ''} fetchPriority="high" decoding="async" style={imageStyle} onError={event => { if (defaultHeroSlide.image && event.currentTarget.src !== defaultHeroSlide.image) event.currentTarget.src = defaultHeroSlide.image }} />}
           {hero.mediaCaptionVisible !== false && hero.mediaCaption && <span className="editorial-media-caption" style={{ color: runtimeAppearance.textColor }}>{hero.mediaCaption}</span>}
         </div>
       </div>

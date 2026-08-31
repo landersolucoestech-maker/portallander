@@ -1,0 +1,9 @@
+export type SettingsTab='empresa'|'automacoes'|'seguranca'|'integracoes'|'cadastro-publico'|'billing'|'usuarios'
+export interface SettingsCompany{legalName:string;tradeName:string;cnpj:string;address:string;phone:string;responsible:string;slug:string;logoUrl:string}
+export interface SettingsAutomation{id:string;title:string;description:string;enabled:boolean;email:boolean;push:boolean;sms:boolean;frequency?:string;preferredTime?:string}
+export interface SettingsIntegration{id:string;name:string;category:string;description:string;status:'connected'|'available'|'external'|'unavailable';logo:string;actionLabel:string}
+export interface SettingsUser{id:string;name:string;email:string;role:string;phone:string;createdAt:string;status:'ativo'|'inativo'}
+export interface SettingsRole{id:string;slug:string;name:string;archived:boolean}
+export interface SettingsPlan{id:string;name:string;description:string;price:number;current:boolean;features:string[]}
+export interface SettingsAudit{id:string;createdAt:string;userId:string;actorRole:string;action:string;entity:string;entityId:string;method:string;path:string;ip:string;correlationId:string;before:Record<string,unknown>|null;after:Record<string,unknown>|null;diff:Record<string,{from:unknown;to:unknown}>|null}
+export interface SettingsSeed{company:SettingsCompany;automations:SettingsAutomation[];integrations:SettingsIntegration[];users:SettingsUser[];roles:SettingsRole[];plans:SettingsPlan[];audit:SettingsAudit[];publicRegistration:{active:boolean;received:number}}

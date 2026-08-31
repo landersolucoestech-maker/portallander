@@ -1,4 +1,4 @@
-import {BookOpen,CalendarDays,ContactRound,FileText,Globe2,Home,Images,Landmark,LayoutDashboard,MessageCircle,Megaphone,Newspaper,Palette,PanelsTopLeft,ReceiptText,Tags} from 'lucide-react'
+import {BookOpen,CalendarDays,ContactRound,FileText,Globe2,Home,Images,Landmark,LayoutDashboard,MessageCircle,Megaphone,Newspaper,Palette,PanelsTopLeft,ReceiptText,Tags,UsersRound} from 'lucide-react'
 import type {AdminNavItem} from './AdminUi'
 
 export const CRM_WORKSPACE_NAV:readonly AdminNavItem[]=[
@@ -7,6 +7,7 @@ export const CRM_WORKSPACE_NAV:readonly AdminNavItem[]=[
  ['Contratos',FileText,'/app/contracts'],
  ['Agenda',CalendarDays,'/app/agenda'],
  ['Chat',MessageCircle,'/app/chat'],
+ ['RH',UsersRound,'/app/rh'],
  {label:'Financeiro',icon:Landmark,to:'/app/finance',children:[
   ['Transações',Landmark,'/app/finance'],
   ['Notas Fiscais',ReceiptText,'/app/finance/invoices'],

@@ -1,5 +1,0 @@
-.settings-tabs button:nth-child(5),
-.settings-tabs button:nth-child(6){display:none!important}
-
-/* Configurações é uso interno da própria empresa: não exibir estados comerciais/plano nas integrações. */
-.settings-integration-list .settings-status{display:none!important}

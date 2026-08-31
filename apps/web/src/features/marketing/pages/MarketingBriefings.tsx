@@ -1,4 +1,4 @@
-import {CheckCircle2,ClipboardList,Eye,Plus,Rocket,Target} from 'lucide-react'
+import {ClipboardList,Eye,Plus,Rocket,Target} from 'lucide-react'
 import {useState,type FormEvent} from 'react'
 import {dateLabel,type BriefingStatus,type MarketingBriefing,type MarketingSeed} from '../domain'
 import {marketingRepository} from '../repository'

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import type { LucideIcon } from 'lucide-react'
-import { ArrowLeft, Bell, Building2, ChevronDown, FilePlus2, FileStack, LayoutTemplate, LogOut, PanelLeftClose, PanelLeftOpen, Settings, UserPlus, UserRound } from 'lucide-react'
+import { ArrowLeft, Bell, ChevronDown, FilePlus2, FileStack, LayoutTemplate, LogOut, PanelLeftClose, PanelLeftOpen, Settings, UserPlus, UserRound } from 'lucide-react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
 import { portalLogo } from '../branding/assets/brandAsset'
 import { appReadModel } from '../data/appReadModel'
@@ -51,16 +51,16 @@ function PageHeader({context,header,actions}:{context:string;header?:PageHeaderC
   },[notificationsOpen,accountOpen])
 
   return <header className={`workspace-top${header?' workspace-top-page':''}`}>
-    {header?<div className="workspace-page-heading-row">{header.backTo&&<Link className="workspace-header-back" to={header.backTo}><ArrowLeft size={15}/><span>{header.backLabel||'Voltar'}</span></Link>}<div className="workspace-page-heading"><h1>{header.title}</h1><p>{header.description}</p></div></div>:<div className="workspace-identity"><span className="workspace-name">Portal Lander</span><span className="workspace-divider"/><span className="workspace-context">{context}</span></div>}
+    {header?<div className="workspace-page-heading-row">{header.backTo&&<Link className="workspace-header-back" to={header.backTo}><ArrowLeft size={15}/><span>{header.backLabel||'Voltar'}</span></Link>}<div className="workspace-page-heading"><h1>{header.title}</h1><p>{header.description}</p></div></div>:<div className="workspace-identity"><span className="workspace-context">{context}</span></div>}
     <div className="workspace-actions">
       {actions.map(action=><HeaderActionButton key={action.label} action={action}/>)}
       <div className="workspace-popover-wrap" ref={notificationsRef}>
-        <button className="icon-button notification-button" type="button" aria-label={unread.length?`Abrir notificações, ${unread.length} não lidas`:'Abrir notificações'} aria-expanded={notificationsOpen} onClick={()=>{setNotificationsOpen(value=>!value);setAccountOpen(false)}}><Bell size={17}/></button>
+        <button className="icon-button notification-button" type="button" aria-label={unread.length?`Abrir notificações, ${unread.length} não lidas`:'Abrir notificações'} aria-expanded={notificationsOpen} onClick={()=>{setNotificationsOpen(value=>!value);setAccountOpen(false)}}><Bell size={17}/>{unread.length>0&&<span className="notification-count">{Math.min(unread.length,99)}</span>}</button>
         {notificationsOpen&&<div className="workspace-popover notifications-popover" role="status"><strong>Notificações</strong>{notifications.length===0?<p>Nenhuma notificação no momento.</p>:notifications.slice(0,4).map(item=><p key={item.id}>{item.title}</p>)}</div>}
       </div>
       <div className="workspace-popover-wrap" ref={accountRef}>
-        <button className="account-button" type="button" aria-label="Abrir menu da conta" aria-haspopup="menu" aria-expanded={accountOpen} onClick={()=>{setAccountOpen(value=>!value);setNotificationsOpen(false)}}><span>{user.initials}</span><div><b>{user.roleLabel}</b><small>{user.name}</small></div><ChevronDown size={14}/></button>
-        {accountOpen&&<div className="workspace-popover account-popover" role="menu" aria-label="Menu da conta"><Link to="/app/profile" role="menuitem" onClick={()=>setAccountOpen(false)}><UserRound size={15}/><span>Meu perfil</span></Link><Link to="/app/settings" role="menuitem" onClick={()=>setAccountOpen(false)}><Settings size={15}/><span>Configurações</span></Link><Link className="account-popover-logout" to="/app/login" role="menuitem" onClick={()=>setAccountOpen(false)}><LogOut size={15}/><span>Sair</span></Link></div>}
+        <button className="account-button" type="button" aria-label="Abrir menu da conta" aria-haspopup="menu" aria-expanded={accountOpen} onClick={()=>{setAccountOpen(value=>!value);setNotificationsOpen(false)}}><span>{user.initials}</span><div><b>{user.name}</b><small>{user.roleLabel}</small></div><ChevronDown size={14}/></button>
+        {accountOpen&&<div className="workspace-popover account-popover" role="menu" aria-label="Menu da conta"><Link to="/app/profile" role="menuitem" onClick={()=>setAccountOpen(false)}><UserRound size={15}/><span>Perfil</span></Link><Link to="/app/site/configuracoes" role="menuitem" onClick={()=>setAccountOpen(false)}><Settings size={15}/><span>Configurações</span></Link><Link className="account-popover-logout" to="/app/login" role="menuitem" onClick={()=>setAccountOpen(false)}><LogOut size={15}/><span>Sair / Logout</span></Link></div>}
       </div>
     </div>
   </header>
@@ -68,42 +68,41 @@ function PageHeader({context,header,actions}:{context:string;header?:PageHeaderC
 
 export function AdminShell({area,items,children,header,headerAction,headerActions}:{area:AdminArea;items:readonly AdminNavItem[];children:ReactNode;header?:PageHeaderConfig;headerAction?:AdminShellAction;headerActions?:readonly AdminShellAction[]}){
   const location=useLocation()
-  const context=area==='crm'?'CRM':area==='contracts'?'Contratos':area==='finance'?'Financeiro':area==='agenda'?'Agenda':area==='chat'?'Chat':area==='rh'?'RH':area==='marketing'?'Marketing':area==='reports'?'Relatórios':area==='settings'?'Configurações':'Gerenciador do Site'
+  const context=area==='crm'?'CRM':area==='contracts'?'Contratos':area==='finance'?'Financeiro':area==='agenda'?'Agenda':area==='chat'?'Chat':area==='rh'?'RH':area==='marketing'?'Marketing':area==='reports'?'Relatórios':area==='settings'?'Configurações':'Site'
   const [expandedGroups,setExpandedGroups]=useState<Record<string,boolean>>({})
-  const [cmsCollapsed,setCmsCollapsed]=useState(()=>area==='cms'&&typeof window!=='undefined'&&window.sessionStorage.getItem('portal-lander:cms-sidebar-collapsed')==='1')
+  const [sidebarCollapsed,setSidebarCollapsed]=useState(()=>typeof window!=='undefined'&&window.sessionStorage.getItem('portal-lander:admin-sidebar-collapsed')==='1')
   const rawActions=headerActions??(headerAction?[headerAction]:[])
   const actions=area==='finance'?rawActions.filter(action=>action.label!=='Automações'):rawActions
-  const toggleCmsSidebar=()=>{
-    setCmsCollapsed(current=>{
+  const toggleSidebar=()=>{
+    setSidebarCollapsed(current=>{
       const next=!current
-      try{window.sessionStorage.setItem('portal-lander:cms-sidebar-collapsed',next?'1':'0')}catch{/* storage indisponível */}
+      try{window.sessionStorage.setItem('portal-lander:admin-sidebar-collapsed',next?'1':'0')}catch{/* storage indisponível */}
       return next
     })
   }
 
-  return <div className={`app-shell${area==='cms'?' cms-shell':''}${area==='cms'&&cmsCollapsed?' cms-sidebar-collapsed':''}`}>
+  return <div className={`app-shell unified-admin-shell${sidebarCollapsed?' admin-sidebar-collapsed':''}`}>
     <a className="admin-skip-link" href="#admin-main">Pular para o conteúdo</a>
-    <aside className="sidebar" aria-label={`Navegação do ${context}`}>
+    <aside className="sidebar" aria-label="Navegação da Administração">
       <div className="sidebar-head">
         <div className="sidebar-brand-row">
           <Link to="/" className="brand" aria-label="Ir para o Portal Lander"><img src={portalLogo} alt="Portal Lander"/></Link>
-          {area==='cms'&&<button className="cms-sidebar-toggle" type="button" aria-label={cmsCollapsed?'Expandir menu':'Recolher menu'} aria-pressed={cmsCollapsed} onClick={toggleCmsSidebar}>{cmsCollapsed?<PanelLeftOpen size={16}/>:<PanelLeftClose size={16}/>}</button>}
+          <button className="cms-sidebar-toggle" type="button" aria-label={sidebarCollapsed?'Expandir menu':'Recolher menu'} aria-pressed={sidebarCollapsed} onClick={toggleSidebar}>{sidebarCollapsed?<PanelLeftOpen size={16}/>:<PanelLeftClose size={16}/>}</button>
         </div>
-        <span>{context}</span>
+        <span>ADMINISTRAÇÃO</span>
       </div>
-      <nav aria-label={`Seções do ${context}`}>
+      <nav aria-label="Módulos da Administração">
         {items.map(item=>{
           if(isNavGroup(item)){
             const GroupIcon=item.icon
-            const activeChild=item.children.some(([, ,to])=>to===location.pathname||(to!=='/app/marketing'&&location.pathname.startsWith(`${to}/`)))
+            const activeChild=item.children.some(([, ,to])=>to===location.pathname||(to!=='/app/marketing'&&to!=='/app/site'&&location.pathname.startsWith(`${to}/`)))
             const expanded=expandedGroups[item.label]??activeChild
             return <div className={`sidebar-nav-group${expanded?' expanded':''}`} key={item.label}><button className="sidebar-nav-group-label" type="button" aria-expanded={expanded} onClick={()=>setExpandedGroups(current=>({...current,[item.label]:!expanded}))}><GroupIcon size={17}/><span>{item.label}</span><ChevronDown size={13}/></button>{expanded&&<div className="sidebar-subnav">{item.children.map(([label,Icon,to])=><NavLink end className="sidebar-subnav-link" key={to} to={to}><Icon size={14}/><span>{label}</span></NavLink>)}</div>}</div>
           }
           const [label,Icon,to]=item
-          return <NavLink key={to} end={to==='/app/site'} to={to}><Icon size={17}/><span>{label}</span></NavLink>
+          return <NavLink key={to} end={to==='/app/dashboard'||to==='/app/crm'||to==='/app/agenda'||to==='/app/chat'||to==='/app/rh'} to={to}><Icon size={17}/><span>{label}</span></NavLink>
         })}
       </nav>
-      <div className="sidebar-bottom"><NavLink to="/app/workspaces"><Building2 size={17}/><span>Trocar workspace</span></NavLink></div>
     </aside>
     <div className="workspace"><PageHeader context={context} header={header} actions={actions}/><main className="workspace-main" id="admin-main" tabIndex={-1}>{children}</main></div>
   </div>

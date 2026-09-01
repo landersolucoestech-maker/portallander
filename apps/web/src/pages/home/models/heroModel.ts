@@ -20,17 +20,59 @@ export type HeroTitleSegment = {
   }
 }
 
+export type HeroTickerItem = {
+  id: string
+  active: boolean
+  text: string
+  url: string
+  external: boolean
+  order: number
+}
+
+export type HeroTickerViewportConfig = {
+  speed?: number
+  gap?: number
+  height?: number
+  fontSize?: number
+  hidden?: boolean
+}
+
 export type HeroTicker = {
   active: boolean
   label: string
-  text: string
-  url: string
+  items: HeroTickerItem[]
+  separator: string
+  direction: 'rtl' | 'ltr'
+  speed: number
+  pauseOnHover: boolean
+  loop: boolean
+  gap: number
+  height: number
+  verticalAlign: 'start' | 'center' | 'end'
+  fontFamily: string
+  fontSize: number
+  fontWeight: number
+  textTransform: 'none' | 'uppercase' | 'lowercase' | 'capitalize'
+  background: string
+  textColor: string
+  labelColor: string
+  separatorColor: string
+  hoverColor: string
+  borderEnabled: boolean
+  borderWidth: number
+  borderColor: string
+  hiddenDesktop: boolean
+  responsive: {
+    tablet?: HeroTickerViewportConfig
+    mobile?: HeroTickerViewportConfig
+  }
+  // Campos legados mantidos apenas para migração de configurações antigas.
+  text?: string
+  url?: string
   tag?: string
   tagVisible?: boolean
   external?: boolean
   showArrow?: boolean
-  background?: string
-  textColor?: string
   tagBackground?: string
   tagTextColor?: string
 }
@@ -119,7 +161,7 @@ const DESKTOP_FRAMING_MIGRATION_KEY = 'portal-lander:home:hero:desktop-framing:2
 
 export const heroArticles: HeroArticleSource[] = getRuntimeDataProvider().home.heroArticles()
 export const defaultHeroSlide: HeroSlide = getRuntimeDataProvider().home.defaultHeroSlide()
-export const defaultHeroConfig: HeroCarouselConfig = getRuntimeDataProvider().home.defaultHeroConfig()
+export const defaultHeroConfig = getRuntimeDataProvider().home.defaultHeroConfig() as HeroCarouselConfig
 
 export const AUTO_HERO_IMAGE_VISUAL: Required<HeroSlideResponsiveVisual> = {
   imagePositionX: 50,
@@ -197,23 +239,69 @@ function normalizeNavigation(value: HeroCarouselConfig['navigation']): HeroNavig
   return 'arrows-dots'
 }
 
+function normalizeTickerItems(raw: Partial<HeroTicker> | undefined, base: Partial<HeroTicker>): HeroTickerItem[] {
+  const source = Array.isArray(raw?.items) && raw?.items.length
+    ? raw.items
+    : Array.isArray(base.items) && base.items.length
+      ? base.items
+      : [{
+          id: 'ticker-item-1',
+          active: true,
+          text: String(raw?.text ?? base.text ?? 'Novos lançamentos, bastidores e assuntos que estão dominando a conversa.'),
+          url: String(raw?.url ?? base.url ?? '/'),
+          external: Boolean(raw?.external ?? base.external),
+          order: 1,
+        }]
+
+  return source.map((item, index) => ({
+    id: String(item?.id || `ticker-item-${index + 1}`),
+    active: item?.active !== false,
+    text: String(item?.text || ''),
+    url: String(item?.url || ''),
+    external: Boolean(item?.external),
+    order: Number(item?.order) || index + 1,
+  })).sort((a, b) => a.order - b.order)
+}
+
 function normalizeTicker(raw: Partial<HeroTicker> | undefined): HeroTicker {
-  const base = defaultHeroConfig.ticker
+  const base = (defaultHeroConfig.ticker || {}) as Partial<HeroTicker>
   return {
-    ...base,
-    ...(raw || {}),
-    active: raw?.active ?? base.active,
+    active: raw?.active ?? base.active ?? true,
     label: String(raw?.label ?? base.label ?? 'AGORA'),
-    text: String(raw?.text ?? base.text ?? ''),
-    url: String(raw?.url ?? base.url ?? '/'),
-    tag: String(raw?.tag ?? 'NOVO'),
-    tagVisible: raw?.tagVisible !== false,
-    external: Boolean(raw?.external),
-    showArrow: raw?.showArrow !== false,
-    background: String(raw?.background ?? '#ef0011'),
-    textColor: String(raw?.textColor ?? '#ffffff'),
-    tagBackground: String(raw?.tagBackground ?? '#111111'),
-    tagTextColor: String(raw?.tagTextColor ?? '#ffffff'),
+    items: normalizeTickerItems(raw, base),
+    separator: String(raw?.separator ?? base.separator ?? '•'),
+    direction: raw?.direction === 'ltr' ? 'ltr' : 'rtl',
+    speed: Math.max(1, Math.min(100, Number(raw?.speed ?? base.speed ?? 42))),
+    pauseOnHover: raw?.pauseOnHover ?? base.pauseOnHover ?? true,
+    loop: raw?.loop ?? base.loop ?? true,
+    gap: Math.max(0, Number(raw?.gap ?? base.gap ?? 28)),
+    height: Math.max(28, Number(raw?.height ?? base.height ?? 48)),
+    verticalAlign: raw?.verticalAlign === 'start' || raw?.verticalAlign === 'end' ? raw.verticalAlign : 'center',
+    fontFamily: String(raw?.fontFamily ?? base.fontFamily ?? 'inherit'),
+    fontSize: Math.max(8, Number(raw?.fontSize ?? base.fontSize ?? 13)),
+    fontWeight: Math.max(100, Number(raw?.fontWeight ?? base.fontWeight ?? 700)),
+    textTransform: raw?.textTransform === 'uppercase' || raw?.textTransform === 'lowercase' || raw?.textTransform === 'capitalize' ? raw.textTransform : 'none',
+    background: String(raw?.background ?? base.background ?? '#ef0011'),
+    textColor: String(raw?.textColor ?? base.textColor ?? '#ffffff'),
+    labelColor: String(raw?.labelColor ?? base.labelColor ?? '#ffffff'),
+    separatorColor: String(raw?.separatorColor ?? base.separatorColor ?? '#ffffff'),
+    hoverColor: String(raw?.hoverColor ?? base.hoverColor ?? '#111111'),
+    borderEnabled: raw?.borderEnabled ?? base.borderEnabled ?? false,
+    borderWidth: Math.max(0, Number(raw?.borderWidth ?? base.borderWidth ?? 0)),
+    borderColor: String(raw?.borderColor ?? base.borderColor ?? '#ef0011'),
+    hiddenDesktop: Boolean(raw?.hiddenDesktop ?? base.hiddenDesktop),
+    responsive: {
+      tablet: { ...(base.responsive?.tablet || {}), ...(raw?.responsive?.tablet || {}) },
+      mobile: { ...(base.responsive?.mobile || {}), ...(raw?.responsive?.mobile || {}) },
+    },
+    text: raw?.text,
+    url: raw?.url,
+    tag: raw?.tag,
+    tagVisible: raw?.tagVisible,
+    external: raw?.external,
+    showArrow: raw?.showArrow,
+    tagBackground: raw?.tagBackground,
+    tagTextColor: raw?.tagTextColor,
   }
 }
 
@@ -258,7 +346,7 @@ function legacyToConfig(raw: unknown): HeroCarouselConfig {
   const legacy = raw as LegacyHero
   return normalizeConfig({
     slides: [normalizeSlide({ ...legacy, order: 1, scheduledAt: '' }, 0)],
-    ticker: { ...defaultHeroConfig.ticker, ...(legacy.ticker || {}) },
+    ticker: { ...(defaultHeroConfig.ticker || {}), ...(legacy.ticker || {}) } as HeroTicker,
   })
 }
 
@@ -328,6 +416,18 @@ export function resolveSlideVisual(slide: HeroSlide, breakpoint: HeroBreakpoint)
   const automatic = getAutomaticSlideVisual(slide, breakpoint)
   if (breakpoint === 'desktop') return automatic
   return { ...automatic, ...(slide.responsive?.[breakpoint] || {}) }
+}
+
+export function resolveTickerViewport(ticker: HeroTicker, breakpoint: HeroBreakpoint) {
+  const base = {
+    speed: ticker.speed,
+    gap: ticker.gap,
+    height: ticker.height,
+    fontSize: ticker.fontSize,
+    hidden: ticker.hiddenDesktop,
+  }
+  if (breakpoint === 'desktop') return base
+  return { ...base, ...(ticker.responsive?.[breakpoint] || {}) }
 }
 
 export function hasSlideVisualOverride(slide: HeroSlide, breakpoint: HeroBreakpoint, key?: keyof HeroSlideResponsiveVisual) {

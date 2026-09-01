@@ -42,10 +42,12 @@ for(const required of [
  "['Transações',Landmark,'/app/finance']",
  "['Notas Fiscais',ReceiptText,'/app/finance/invoices']",
  "['Contabilidade',BookOpen,'/app/finance/accounting']",
- "['Configurações',Settings,'/app/settings']"
+ "['Configurações',Settings,'/app/settings']",
+ "['Cabeçalho',PanelsTopLeft,'/app/site/cabecalho']",
+ "['Rodapé',Layers3,'/app/site/rodape']"
 ])if(!adminNavigation.includes(required))failures.push(`adminNavigation deve preservar módulo obrigatório: ${required}`)
 for(const forbidden of ["['Dashboard',LayoutDashboard,'/app/crm']","['Leads'","['Contatos'",'/app/crm/dashboard','/app/crm/integrations','Integrações','PlugZap',"['Categorias',Tags,'/app/finance/categories']","['Regras'","/app/finance/automations"])if(adminNavigation.includes(forbidden))failures.push(`adminNavigation contém item proibido ou removido: ${forbidden}`)
-for(const removedSiteModule of ["['Marca & Logos'","['Cabeçalho'","['Páginas',","['Categorias',Tags,","['Publicidade',Megaphone",'/app/site/marca','/app/site/cabecalho','/app/site/paginas','/app/site/categorias','/app/site/noticias/anuncio'])if(adminNavigation.includes(removedSiteModule))failures.push(`adminNavigation não pode reintroduzir módulo administrativo removido: ${removedSiteModule}`)
+for(const removedSiteModule of ["['Marca & Logos'","['Páginas',","['Categorias',Tags,","['Publicidade',Megaphone",'/app/site/marca','/app/site/paginas','/app/site/categorias','/app/site/noticias/anuncio'])if(adminNavigation.includes(removedSiteModule))failures.push(`adminNavigation não pode reintroduzir módulo administrativo removido: ${removedSiteModule}`)
 
 const requiredFiles=[
  'src/features/contracts/ContractsPage.tsx',
@@ -83,6 +85,7 @@ const siteHeaderFiles=[
  'src/features/site-manager/pages/SiteManagerDashboardPage.tsx',
  'src/features/site-manager/pages/HeroSectionAppearancePage.tsx',
  'src/features/site-manager/pages/SiteSectionsPage.tsx',
+ 'src/features/site-manager/pages/HeaderManagerPage.tsx',
  'src/features/site-manager/pages/FooterSectionManagerPage.tsx',
  'src/features/site-manager/pages/SiteMediaPage.tsx',
  'src/features/site-manager/pages/MediaKitPage.tsx',

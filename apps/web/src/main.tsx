@@ -11,6 +11,7 @@ import {purgeRemovedModuleStorage} from './shared/internal/legacyStorageCleanup'
 import {installRhMarketingTableSorting} from './shared/internal/tableSortEnhancer'
 import {installAutoTablePagination} from './shared/internal/autoTablePagination'
 import './styles/public-styles.css'
+import './styles/admin-hero-editor-layout.css'
 
 setRuntimeDataProvider(mockDataProvider)
 scenarioController.bootstrapFromLocation()

@@ -53,7 +53,7 @@ function Preview({section,config,items,viewport}:{section:SectionKey;config:Sect
 
 export function HomeSectionManagerPage({section}:{section:SectionKey}){
   const d=defs[section]
-  const isGrid=section==='grid'
+  const usesHeroEditorPattern=section==='grid'||section==='ranking'
   const [config,setConfig]=useState<SectionConfig>(()=>load(section,d))
   const [saved,setSaved]=useState(false)
   const [viewport,setViewport]=useState<PreviewViewport>('desktop')
@@ -62,19 +62,22 @@ export function HomeSectionManagerPage({section}:{section:SectionKey}){
   const save=()=>{localStorage.setItem(key(section),JSON.stringify(config));setSaved(true)}
   const widthValue=config.width<=100?1200:config.width
   const openPublicSite=()=>{const publicUrl=`${window.location.origin}${window.location.pathname}#/`;window.open(publicUrl,'_blank','noopener,noreferrer')}
-  const header=isGrid?{title:`Configurar seção: ${d.title}`,description:d.description,backTo:'/app/site/secoes',backLabel:'Seções das Páginas'}:{title:`Configurar seção: ${d.title}`,description:d.description}
+  const header=usesHeroEditorPattern?{title:`Configurar seção: ${d.title}`,description:d.description,backTo:'/app/site/secoes',backLabel:'Seções das Páginas'}:{title:`Configurar seção: ${d.title}`,description:d.description}
+  const previewDescription=section==='grid'
+    ? viewport==='desktop'?'Desktop: 3 cards por linha.':viewport==='tablet'?'Tablet: composição adaptada para o breakpoint.':'Mobile: composição empilhada e proporcional.'
+    : viewport==='desktop'?'Desktop: ranking lateral na proporção real da Home.':viewport==='tablet'?'Tablet: ranking recalculado para a largura do dispositivo.':'Mobile: ranking adaptado para leitura vertical.'
 
-  return <AdminShell area="cms" items={SITE_MANAGER_NAV} header={header} headerAction={isGrid?{label:'Ver no site',icon:ExternalLink,variant:'secondary',onClick:openPublicSite}:undefined}>
-    {!isGrid&&<div className="section-editor-toolbar"><div><Link to="/app/site/secoes">← Seções das Páginas</Link><span className="section-editor-status"><input type="checkbox" checked={config.active} onChange={e=>patch({active:e.target.checked})}/> {config.active?'Ativo':'Inativo'}</span></div><div><Link className="button outline" to="/app/site/secoes">Cancelar</Link><button className="button dark" onClick={save}><Save size={15}/> Salvar alterações</button></div></div>}
+  return <AdminShell area="cms" items={SITE_MANAGER_NAV} header={header} headerAction={usesHeroEditorPattern?{label:'Ver no site',icon:ExternalLink,variant:'secondary',onClick:openPublicSite}:undefined}>
+    {!usesHeroEditorPattern&&<div className="section-editor-toolbar"><div><Link to="/app/site/secoes">← Seções das Páginas</Link><span className="section-editor-status"><input type="checkbox" checked={config.active} onChange={e=>patch({active:e.target.checked})}/> {config.active?'Ativo':'Inativo'}</span></div><div><Link className="button outline" to="/app/site/secoes">Cancelar</Link><button className="button dark" onClick={save}><Save size={15}/> Salvar alterações</button></div></div>}
 
-    <div className={`section-editor-layout${isGrid?' grid-editor-layout':''}`}>
-      <section className={`section-editor-card${isGrid?' grid-editor-settings':''}`}>
+    <div className={`section-editor-layout${usesHeroEditorPattern?' grid-editor-layout':''}`}>
+      <section className={`section-editor-card${usesHeroEditorPattern?' grid-editor-settings':''}`}>
         <h2>Configurações gerais</h2>
         <label>Título da seção<input value={config.title} onChange={e=>patch({title:e.target.value})}/></label>
         <label>Subtítulo<input value={config.subtitle} onChange={e=>patch({subtitle:e.target.value})}/></label>
         <div className="section-editor-two"><label>Texto “Ver todos”<input value={config.linkLabel} onChange={e=>patch({linkLabel:e.target.value})}/></label><label>Link<input value={config.linkUrl} onChange={e=>patch({linkUrl:e.target.value})}/></label></div>
         <label>{d.sourceLabel}<select value={config.source} onChange={e=>patch({source:e.target.value})}>{d.sourceOptions.map(o=><option key={o}>{o}</option>)}</select></label>
-        <label>Quantidade exibida<input type="number" min="1" max="20" value={config.quantity} onChange={e=>patch({quantity:Number(e.target.value)})}/><small>{section==='grid'?'A estrutura continua fixa em 3 cards por linha no desktop.':''}</small></label>
+        <label>Quantidade exibida<input type="number" min="1" max="20" value={config.quantity} onChange={e=>patch({quantity:Number(e.target.value)})}/><small>{section==='grid'?'A estrutura continua fixa em 3 cards por linha no desktop.':section==='ranking'?'O Ranking permanece posicionado à direita do Grid principal no desktop.':''}</small></label>
 
         <h2>Aparência e dimensões</h2>
         <div className="section-editor-slider"><span>Largura</span><input type="range" min="220" max="1600" value={widthValue} onChange={e=>patch({width:Number(e.target.value)})}/><b>{config.width<=100?'Auto':`${config.width}px`}</b></div>
@@ -84,19 +87,19 @@ export function HomeSectionManagerPage({section}:{section:SectionKey}){
         <div className="section-editor-slider"><span>Arredondamento</span><input type="range" min="0" max="32" value={config.radius} onChange={e=>patch({radius:Number(e.target.value)})}/><b>{config.radius}px</b></div>
         <div className="section-editor-colors">{([['background','Cor de fundo'],['titleColor','Cor do título'],['textColor','Cor do texto'],['accentColor','Cor de destaque'],['borderColor','Cor da borda']] as const).map(([field,label])=><label key={field}>{label}<span><input type="color" value={config[field]} onChange={e=>patch({[field]:e.target.value} as Partial<SectionConfig>)}/><input value={config[field]} onChange={e=>patch({[field]:e.target.value} as Partial<SectionConfig>)}/></span></label>)}</div>
 
-        {isGrid&&<div className="section-editor-card section-details grid-details-inline"><h2>Detalhes da seção</h2><dl><dt>Identificador</dt><dd>{d.identifier}</dd><dt>Posição na página</dt><dd>{d.position}</dd><dt>Comportamento</dt><dd>Posição fixa; conteúdo editorial administrado fora deste módulo</dd><dt>Responsividade</dt><dd>Adaptativa para desktop, tablet e mobile</dd></dl><div className="section-editor-note"><ExternalLink size={16}/><span>Este módulo manipula apenas a seção. Conteúdos continuam sendo administrados em Conteúdos e campanhas em Publicidade.</span></div></div>}
+        {usesHeroEditorPattern&&<div className="section-editor-card section-details grid-details-inline"><h2>Detalhes da seção</h2><dl><dt>Identificador</dt><dd>{d.identifier}</dd><dt>Posição na página</dt><dd>{d.position}</dd><dt>Comportamento</dt><dd>Posição fixa; conteúdo editorial administrado fora deste módulo</dd><dt>Responsividade</dt><dd>Adaptativa para desktop, tablet e mobile</dd></dl><div className="section-editor-note"><ExternalLink size={16}/><span>Este módulo manipula apenas a seção. Conteúdos continuam sendo administrados em Conteúdos e campanhas em Publicidade.</span></div></div>}
       </section>
 
-      <section className={`section-editor-preview-column${isGrid?' grid-editor-preview':''}`}>
+      <section className={`section-editor-preview-column${usesHeroEditorPattern?' grid-editor-preview':''}`}>
         <div className="section-editor-card section-preview-card">
-          <div className="section-preview-toolbar"><div><h2>Prévia da seção</h2>{isGrid&&<p>{viewport==='desktop'?'Desktop: 3 cards por linha.':viewport==='tablet'?'Tablet: composição adaptada para o breakpoint.':'Mobile: composição empilhada e proporcional.'}</p>}</div>{isGrid&&<div className="hero-cms-viewports" aria-label="Visualização responsiva"><button className={viewport==='desktop'?'active':''} onClick={()=>setViewport('desktop')} aria-label="Desktop"><Monitor size={17}/></button><button className={viewport==='tablet'?'active':''} onClick={()=>setViewport('tablet')} aria-label="Tablet"><Tablet size={17}/></button><button className={viewport==='mobile'?'active':''} onClick={()=>setViewport('mobile')} aria-label="Mobile"><Smartphone size={17}/></button></div>}</div>
-          <Preview section={section} config={config} items={previewItems} viewport={isGrid?viewport:'desktop'}/>
+          <div className="section-preview-toolbar"><div><h2>Prévia da seção</h2>{usesHeroEditorPattern&&<p>{previewDescription}</p>}</div>{usesHeroEditorPattern&&<div className="hero-cms-viewports" aria-label="Visualização responsiva"><button className={viewport==='desktop'?'active':''} onClick={()=>setViewport('desktop')} aria-label="Desktop"><Monitor size={17}/></button><button className={viewport==='tablet'?'active':''} onClick={()=>setViewport('tablet')} aria-label="Tablet"><Tablet size={17}/></button><button className={viewport==='mobile'?'active':''} onClick={()=>setViewport('mobile')} aria-label="Mobile"><Smartphone size={17}/></button></div>}</div>
+          <Preview section={section} config={config} items={previewItems} viewport={usesHeroEditorPattern?viewport:'desktop'}/>
         </div>
 
-        {isGrid&&<div className="grid-editor-actions"><Link className="button outline" to="/app/site/secoes">Cancelar</Link><button className="button dark" onClick={save}><Save size={15}/> Salvar alterações</button></div>}
-        {isGrid&&saved&&<div className="home-section-manager-success grid-save-success">Alterações salvas para esta seção.</div>}
+        {usesHeroEditorPattern&&<div className="grid-editor-actions"><Link className="button outline" to="/app/site/secoes">Cancelar</Link><button className="button dark" onClick={save}><Save size={15}/> Salvar alterações</button></div>}
+        {usesHeroEditorPattern&&saved&&<div className="home-section-manager-success grid-save-success">Alterações salvas para esta seção.</div>}
 
-        {!isGrid&&<div className="section-editor-card section-details"><h2>Detalhes da seção</h2><dl><dt>Identificador</dt><dd>{d.identifier}</dd><dt>Posição na página</dt><dd>{d.position}</dd><dt>Comportamento</dt><dd>Posição fixa; conteúdo editorial administrado fora deste módulo</dd><dt>Responsividade</dt><dd>Adaptativa para desktop, tablet e mobile</dd></dl><div className="section-editor-note"><ExternalLink size={16}/><span>Este módulo manipula apenas a seção. Conteúdos continuam sendo administrados em Conteúdos e campanhas em Publicidade.</span></div></div>}
+        {!usesHeroEditorPattern&&<div className="section-editor-card section-details"><h2>Detalhes da seção</h2><dl><dt>Identificador</dt><dd>{d.identifier}</dd><dt>Posição na página</dt><dd>{d.position}</dd><dt>Comportamento</dt><dd>Posição fixa; conteúdo editorial administrado fora deste módulo</dd><dt>Responsividade</dt><dd>Adaptativa para desktop, tablet e mobile</dd></dl><div className="section-editor-note"><ExternalLink size={16}/><span>Este módulo manipula apenas a seção. Conteúdos continuam sendo administrados em Conteúdos e campanhas em Publicidade.</span></div></div>}
       </section>
     </div>
   </AdminShell>

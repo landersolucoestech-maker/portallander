@@ -4,15 +4,15 @@ import { SITE_MANAGER_NAV } from '../../../shared/internal/adminNavigation'
 import { AdminShell } from '../../../shared/internal/AdminUi'
 import '../../../styles/site-sections.css'
 
-type SiteSectionKey='hero'|'grid'|'ranking'|'side-ad'|'secondary'|'trending'|'banner'|'videos'|'agenda'|'newsletter'|'footer'
+type SiteSectionKey='hero'|'grid'|'most-read'|'side-ad'|'secondary'|'trending'|'banner'|'videos'|'agenda'|'newsletter'|'footer'
 
 const SITE_SECTIONS:{key:SiteSectionKey;name:string;summary:string;route:string}[]=[
   {key:'hero',name:'Hero principal',summary:'Destaque principal da página, com título, CTA, imagem, Barra Agora e aparência.',route:'hero'},
   {key:'grid',name:'Grid principal',summary:'Bloco editorial principal. Estrutura fixa de 3 cards por linha no desktop.',route:'grid-principal'},
-  {key:'ranking',name:'Ranking',summary:'Lista de ranking fixa na lateral direita do Grid principal.',route:'ranking'},
-  {key:'side-ad',name:'Publicidade lateral',summary:'Slot publicitário fixo abaixo do Ranking.',route:'publicidade-lateral'},
+  {key:'most-read',name:'Mais Lidas',summary:'Lista Mais Lidas fixa na lateral direita do Grid principal.',route:'mais-lidas'},
+  {key:'side-ad',name:'Publicidade lateral',summary:'Slot publicitário fixo abaixo de Mais Lidas.',route:'publicidade-lateral'},
   {key:'secondary',name:'Destaques secundários',summary:'Segundo bloco editorial da página inicial.',route:'destaques'},
-  {key:'trending',name:'Em alta',summary:'Lista lateral fixa ao lado dos Destaques secundários.',route:'em-alta'},
+  {key:'trending',name:'Em alta',summary:'Lista Em Alta fixa ao lado dos Destaques secundários.',route:'em-alta'},
   {key:'banner',name:'Banner horizontal',summary:'Slot publicitário horizontal entre os blocos da Home.',route:'banner-horizontal'},
   {key:'videos',name:'Vídeos',summary:'Seção audiovisual com conteúdos vindos do módulo de Conteúdos.',route:'videos'},
   {key:'agenda',name:'Agenda / Eventos',summary:'Agenda fixa na lateral da seção de Vídeos.',route:'agenda'},

@@ -1,4 +1,4 @@
-import { Activity, CircleDollarSign, Eye, FileText, Handshake, Newspaper, UsersRound, Wallet } from 'lucide-react'
+import { CircleDollarSign, Eye, FileText, Handshake, Newspaper, UsersRound, Wallet } from 'lucide-react'
 import { AdminShell } from '../../shared/internal/AdminUi'
 import { UNIFIED_ADMIN_NAV } from '../../shared/internal/adminNavigation'
 import { useActivityHistory } from './hooks/useActivityHistory'
@@ -30,38 +30,14 @@ export default function DashboardPage(){
     <article className="unified-kpi-card"><span className="unified-kpi-icon"><FileText size={18}/></span><div><span>Site · Publicações</span><strong>{data.editorialCounts.published}</strong><small>{data.editorialCounts.publishedThisMonth} publicadas no mês</small></div></article>
     <article className="unified-kpi-card"><span className="unified-kpi-icon"><Wallet size={18}/></span><div><span>A Receber</span><strong>{money(data.receivable)}</strong><small>receitas pendentes</small></div></article>
    </div>
-
    <div className="unified-dashboard-main-grid">
-    <section className="unified-dashboard-card unified-visits-card">
-     <div className="unified-card-heading"><div><h2>Visitas no Site <small>(últimos 7 dias)</small></h2></div></div>
-     <div className="unified-line-chart" aria-label="Visitas no site nos últimos sete dias">
-      <div className="unified-chart-y"><span>5K</span><span>4K</span><span>3K</span><span>2K</span><span>1K</span><span>0</span></div>
-      <div className="unified-chart-plot"><svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="dashboardArea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="currentColor" stopOpacity=".16"/><stop offset="1" stopColor="currentColor" stopOpacity="0"/></linearGradient></defs><polygon points={`0,100 ${points} 100,100`} fill="url(#dashboardArea)"/><polyline points={points} fill="none" vectorEffect="non-scaling-stroke"/></svg><div className="unified-chart-dates"><span>26/Ago</span><span>27/Ago</span><span>28/Ago</span><span>29/Ago</span><span>30/Ago</span><span>31/Ago</span><span>01/Set</span></div></div>
-     </div>
-    </section>
-
-    <section className="unified-dashboard-card">
-     <div className="unified-card-heading"><div><h2>Atividades Recentes</h2></div><button type="button">Ver todas</button></div>
-     <div className="unified-activity-list">{activity.isLoading?<div className="unified-dashboard-empty">Carregando atividades...</div>:activity.data?.length?activity.data.slice(0,5).map(item=><article key={item.id}><span className="unified-row-icon"><Newspaper size={14}/></span><div><strong>{item.action==='published'?'Novo conteúdo publicado':'Conteúdo atualizado'}</strong><p>{item.title} · {item.category}</p></div><time>{formatDate(item.occurred_at)}</time><i/></article>):<div className="unified-dashboard-empty">Nenhuma atividade registrada.</div>}</div>
-    </section>
+    <section className="unified-dashboard-card unified-visits-card"><div className="unified-card-heading"><div><h2>Visitas no Site <small>(últimos 7 dias)</small></h2></div></div><div className="unified-line-chart" aria-label="Visitas no site nos últimos sete dias"><div className="unified-chart-y"><span>5K</span><span>4K</span><span>3K</span><span>2K</span><span>1K</span><span>0</span></div><div className="unified-chart-plot"><svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="dashboardArea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="currentColor" stopOpacity=".16"/><stop offset="1" stopColor="currentColor" stopOpacity="0"/></linearGradient></defs><polygon points={`0,100 ${points} 100,100`} fill="url(#dashboardArea)"/><polyline points={points} fill="none" vectorEffect="non-scaling-stroke"/></svg><div className="unified-chart-dates"><span>26/Ago</span><span>27/Ago</span><span>28/Ago</span><span>29/Ago</span><span>30/Ago</span><span>31/Ago</span><span>01/Set</span></div></div></div></section>
+    <section className="unified-dashboard-card"><div className="unified-card-heading"><div><h2>Atividades Recentes</h2></div><button type="button">Ver todas</button></div><div className="unified-activity-list">{activity.isLoading?<div className="unified-dashboard-empty">Carregando atividades...</div>:activity.data?.length?activity.data.slice(0,5).map(item=><article key={item.id}><span className="unified-row-icon"><Newspaper size={14}/></span><div><strong>{item.action==='published'?'Novo conteúdo publicado':'Conteúdo atualizado'}</strong><p>{item.title} · {item.category}</p></div><time>{formatDate(item.occurred_at)}</time><i/></article>):<div className="unified-dashboard-empty">Nenhuma atividade registrada.</div>}</div></section>
    </div>
-
    <div className="unified-dashboard-bottom-grid">
-    <section className="unified-dashboard-card">
-     <div className="unified-card-heading"><div><h2>Distribuição de Leads</h2><p>Por estágio</p></div></div>
-     <div className="unified-lead-summary"><div className="unified-donut"><div><span>Total</span><strong>{totalLeads}</strong></div></div><div className="unified-lead-legend">{leadEntries.map(([status,total])=><div key={status}><span>{pipelineLabels[status]??status}</span><strong>{totalLeads?Math.round((total/totalLeads)*100):0}%</strong></div>)}</div></div>
-    </section>
-
-    <section className="unified-dashboard-card">
-     <div className="unified-card-heading"><div><h2>Conteúdos em Destaque</h2></div><button type="button">Ver todas</button></div>
-     <div className="unified-content-list">{recentContent.length?recentContent.map(item=><article key={item.id}><span className="unified-content-thumb"><FileText size={18}/></span><div><strong>{item.title}</strong><p>{formatDate(item.occurred_at)}</p><small><Eye size={12}/> {item.category}</small></div><b>⋮</b></article>):<div className="unified-dashboard-empty">Nenhum conteúdo recente.</div>}</div>
-    </section>
-
-    <section className="unified-dashboard-card">
-     <div className="unified-card-heading"><div><h2>Tarefas Pendentes</h2></div><button type="button">Ver todas</button></div>
-     <div className="unified-task-progress"><div className="unified-task-ring"><strong>{data.upcoming.length}</strong></div><div><span>Agenda operacional</span><strong>{data.upcoming.length} pendente{data.upcoming.length===1?'':'s'}</strong></div></div>
-     <div className="unified-task-list">{data.upcoming.length?data.upcoming.slice(0,3).map((item,index)=><article key={item.id}><span className="unified-task-check"/><div><strong>{item.title}</strong></div><em>{index===0?'Alta':index===1?'Média':'Baixa'}</em><time>{formatDate(item.startsAt)}</time></article>):<div className="unified-dashboard-empty">Nenhuma tarefa pendente.</div>}</div>
-    </section>
+    <section className="unified-dashboard-card"><div className="unified-card-heading"><div><h2>Distribuição de Leads</h2><p>Por estágio</p></div></div><div className="unified-lead-summary"><div className="unified-donut"><div><span>Total</span><strong>{totalLeads}</strong></div></div><div className="unified-lead-legend">{leadEntries.map(([status,total])=><div key={status}><span>{pipelineLabels[status]??status}</span><strong>{totalLeads?Math.round((total/totalLeads)*100):0}%</strong></div>)}</div></div></section>
+    <section className="unified-dashboard-card"><div className="unified-card-heading"><div><h2>Conteúdos em Destaque</h2></div><button type="button">Ver todas</button></div><div className="unified-content-list">{recentContent.length?recentContent.map(item=><article key={item.id}><span className="unified-content-thumb"><FileText size={18}/></span><div><strong>{item.title}</strong><p>{formatDate(item.occurred_at)}</p><small><Eye size={12}/> {item.category}</small></div><b>⋮</b></article>):<div className="unified-dashboard-empty">Nenhum conteúdo recente.</div>}</div></section>
+    <section className="unified-dashboard-card"><div className="unified-card-heading"><div><h2>Tarefas Pendentes</h2></div><button type="button">Ver todas</button></div><div className="unified-task-progress"><div className="unified-task-ring"><strong>{data.upcoming.length}</strong></div><div><span>Agenda operacional</span><strong>{data.upcoming.length} pendente{data.upcoming.length===1?'':'s'}</strong></div></div><div className="unified-task-list">{data.upcoming.length?data.upcoming.slice(0,3).map((item,index)=><article key={item.id}><span className="unified-task-check"/><div><strong>{item.title}</strong></div><em>{index===0?'Alta':index===1?'Média':'Baixa'}</em><time>{formatDate(item.startsAt)}</time></article>):<div className="unified-dashboard-empty">Nenhuma tarefa pendente.</div>}</div></section>
    </div>
   </section>
  </AdminShell>

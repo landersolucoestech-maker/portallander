@@ -1,12 +1,11 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
-import { FooterSectionManagerPage } from './pages/FooterSectionManagerPage'
-import { HeaderManagerPage } from './pages/HeaderManagerPage'
 import { HeroSectionAppearancePage } from './pages/HeroSectionAppearancePage'
 import { MediaKitPage } from './pages/MediaKitPage'
 import { SiteContentsPage } from './pages/SiteContentsPage'
 import { SiteManagerDashboardPage } from './pages/SiteManagerDashboardPage'
 import { SiteMediaPage } from './pages/SiteMediaPage'
 import { SiteSectionsPage } from './pages/SiteSectionsPage'
+import { SiteSettingsPage } from './pages/SiteSettingsPage'
 
 export default function SiteManagerRoutes(){
   return <Routes>
@@ -20,10 +19,11 @@ export default function SiteManagerRoutes(){
 
     <Route path="secoes" element={<Navigate to="/app/site/paginas" replace/>}/>
     <Route path="secoes/home/hero" element={<Navigate to="/app/site/paginas/home/hero" replace/>}/>
-    <Route path="secoes/home/rodape" element={<Navigate to="/app/site/rodape" replace/>}/>
+    <Route path="secoes/home/rodape" element={<Navigate to="/app/site/configuracoes" replace/>}/>
 
-    <Route path="cabecalho" element={<HeaderManagerPage/>}/>
-    <Route path="rodape" element={<FooterSectionManagerPage/>}/>
+    <Route path="cabecalho" element={<Navigate to="/app/site/configuracoes" replace/>}/>
+    <Route path="rodape" element={<Navigate to="/app/site/configuracoes" replace/>}/>
+    <Route path="configuracoes" element={<SiteSettingsPage/>}/>
     <Route path="conteudos" element={<SiteContentsPage/>}/>
     <Route path="midia" element={<SiteMediaPage/>}/>
     <Route path="midia-kit" element={<MediaKitPage/>}/>

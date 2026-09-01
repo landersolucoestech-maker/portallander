@@ -34,19 +34,31 @@ for(const forbidden of ['DashboardPage','crm/dashboard'])if(crmWorkspace.include
 
 const adminNavigation=await read('src/shared/internal/adminNavigation.ts')
 for(const required of [
- 'CRM_WORKSPACE_NAV',
+ 'UNIFIED_ADMIN_NAV',
  "['Dashboard',LayoutDashboard,'/app/dashboard']",
  "['CRM',ContactRound,'/app/crm']",
- "['Contratos',FileText,'/app/contracts']",
  "label:'Financeiro'",
  "['Transações',Landmark,'/app/finance']",
  "['Notas Fiscais',ReceiptText,'/app/finance/invoices']",
  "['Contabilidade',BookOpen,'/app/finance/accounting']",
- "['Configurações',Settings,'/app/settings']",
+ "['Agenda',CalendarDays,'/app/agenda']",
+ "['Chat',MessageCircle,'/app/chat']",
+ "['RH',UsersRound,'/app/rh']",
+ "label:'Site'",
+ "['Conteúdos',FileText,'/app/site/conteudos']",
+ "['Mídias',Images,'/app/site/midia']",
  "['Páginas',Layers3,'/app/site/paginas']",
+ "['Mídia Kit',Newspaper,'/app/site/midia-kit']",
+ "label:'Marketing'",
+ "['Visão Geral',LayoutDashboard,'/app/marketing']",
+ "['Campanhas',Megaphone,'/app/marketing/campanhas']",
+ "['Calendário',CalendarDays,'/app/marketing/calendario']",
+ "['Tarefas',ListChecks,'/app/marketing/tarefas']",
+ "['Briefings',ClipboardList,'/app/marketing/briefings']",
+ "['IA Criativa',Sparkles,'/app/marketing/ia-criativa']",
  "['Configurações',Settings,'/app/site/configuracoes']"
 ])if(!adminNavigation.includes(required))failures.push(`adminNavigation deve preservar módulo obrigatório: ${required}`)
-for(const forbidden of ["['Dashboard',LayoutDashboard,'/app/crm']","['Leads'","['Contatos'",'/app/crm/dashboard','/app/crm/integrations','Integrações','PlugZap',"['Categorias',Tags,'/app/finance/categories']","['Regras'","/app/finance/automations"])if(adminNavigation.includes(forbidden))failures.push(`adminNavigation contém item proibido ou removido: ${forbidden}`)
+for(const forbidden of ["['Dashboard',LayoutDashboard,'/app/crm']","['Leads'","['Contatos'",'/app/crm/dashboard','/app/crm/integrations','Integrações','PlugZap',"['Categorias',Tags,'/app/finance/categories']","['Regras'","/app/finance/automations","['Contratos',FileText,'/app/contracts']","['Relatórios'"])if(adminNavigation.includes(forbidden))failures.push(`adminNavigation contém item proibido ou removido: ${forbidden}`)
 for(const removedSiteModule of ["['Marca & Logos'","['Cabeçalho'","['Rodapé'","['Categorias',Tags,","['Publicidade',Megaphone",'/app/site/marca','/app/site/categorias','/app/site/noticias/anuncio'])if(adminNavigation.includes(removedSiteModule))failures.push(`adminNavigation não pode reintroduzir módulo administrativo removido do sidebar: ${removedSiteModule}`)
 
 const requiredFiles=[
@@ -62,7 +74,9 @@ const requiredFiles=[
  'src/features/settings/repository.ts',
  'src/styles/admin-contracts.css',
  'src/styles/admin-finance.css',
- 'src/styles/admin-nav-groups.css'
+ 'src/styles/admin-nav-groups.css',
+ 'src/styles/admin-unified-shell.css',
+ 'src/styles/admin-dashboard-unified.css'
 ]
 for(const path of requiredFiles)if(!(await exists(path)))failures.push(`${path} é obrigatório e não pode ser removido.`)
 if(await exists('src/features/finance/FinancePage.tsx'))failures.push('FinancePage monolítico obsoleto não pode ser reintroduzido.')
@@ -75,11 +89,10 @@ const routing=await read('src/features/crm/routing.ts')
 for(const required of ["pathname.endsWith('/leads')?'leads':'contacts'","'/app/crm/leads'","'/app/crm/contatos'"])if(!routing.includes(required))failures.push(`CRM routing deve sincronizar URL e tab: ${required}`)
 
 const adminUi=await read('src/shared/internal/AdminUi.tsx')
-for(const required of ['export type PageHeaderConfig','function HeaderActionButton','function PageHeader','<PageHeader context={context} header={header} actions={actions}/>','workspace-header-polished-action','notification-button','account-button','expandedGroups','aria-expanded={expanded}','<NavLink end className="sidebar-subnav-link"','to="/app/settings" role="menuitem"','<span>Configurações</span>'])if(!adminUi.includes(required))failures.push(`AdminUi deve preservar arquitetura compartilhada: ${required}`)
+for(const required of ['export type PageHeaderConfig','function HeaderActionButton','function PageHeader','<PageHeader context={context} header={header} actions={actions}/>','workspace-header-polished-action','notification-button','notification-count','account-button','expandedGroups','aria-expanded={expanded}','<NavLink end className="sidebar-subnav-link"','to="/app/site/configuracoes" role="menuitem"','<span>Configurações</span>','admin-sidebar-collapsed','portal-lander:admin-sidebar-collapsed','Recolher menu'])if(!adminUi.includes(required))failures.push(`AdminUi deve preservar arquitetura compartilhada: ${required}`)
 if(adminUi.includes('AdminPageHeader'))failures.push('AdminUi não pode reintroduzir o cabeçalho duplicado AdminPageHeader.')
 if(adminUi.indexOf('{actions.map(')>adminUi.indexOf('notification-button'))failures.push('Ações de página devem permanecer antes das notificações no PageHeader compartilhado.')
-if(!adminUi.includes("end={to==='/app/site'}"))failures.push('AdminUi deve manter comportamento de deep links do shell.')
-for(const required of ["'contracts'","'finance'","'settings'",'AdminNavGroup','isNavGroup'])if(!adminUi.includes(required))failures.push(`AdminUi deve suportar navegação dos módulos restaurados: ${required}`)
+for(const required of ["'contracts'","'finance'","'settings'",'AdminNavGroup','isNavGroup'])if(!adminUi.includes(required))failures.push(`AdminUi deve suportar navegação dos módulos preservados: ${required}`)
 
 const siteHeaderFiles=[
  'src/features/site-manager/pages/SiteManagerDashboardPage.tsx',

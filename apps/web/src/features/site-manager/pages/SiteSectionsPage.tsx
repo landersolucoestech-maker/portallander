@@ -6,16 +6,14 @@ import { AdminShell } from '../../../shared/internal/AdminUi'
 import { editorialReadModel } from '../../editorial/repository'
 import '../../../styles/site-sections.css'
 
-type SiteSection={id:string;name:string;summary:string;target?:string;kind:'module'|'section';locked?:boolean}
+type SiteSection={id:string;name:string;summary:string;target?:string;kind:'section';locked?:boolean}
 type CmsPageOption={id:string;title:string;slug:string;source:'system'|'local'}
 type StoredPageSection={id:string;name:string;slug:string}
 type StoredPageSections=Record<string,StoredPageSection[]>
 
-const HEADER_SECTION:SiteSection={id:'header',name:'Cabeçalho',summary:'Cabeçalho obrigatório da página. Sempre ocupa a primeira posição.',target:'/app/site/cabecalho',kind:'module',locked:true}
-const HOME_MIDDLE_SECTIONS:SiteSection[]=[
+const HOME_SECTIONS:SiteSection[]=[
   {id:'hero',name:'Hero Section',summary:'Hero oficial da Homepage, incluindo o Ticker integrado.',target:'/app/site/paginas/home/hero',kind:'section',locked:true},
 ]
-const FOOTER_SECTION:SiteSection={id:'footer',name:'Rodapé',summary:'Rodapé obrigatório da página. Sempre ocupa a última posição.',target:'/app/site/rodape',kind:'module',locked:true}
 
 const LOCAL_PAGES_KEY='portal-lander:cms:pages:local:v1'
 const PAGE_SECTIONS_KEY='portal-lander:cms:page-sections:v1'
@@ -72,8 +70,7 @@ export function SiteSectionsPage(){
 
   const selected=pages.find(page=>page.id===selectedPage)??pages[0]
   const customSections=storedSections[selectedPage]??[]
-  const middleSections:SiteSection[]=[...(selectedPage==='home'?HOME_MIDDLE_SECTIONS:[]),...customSections.map(section=>({id:section.id,name:section.name,summary:`Seção criada para ${selected?.title||'esta página'}.`,kind:'section' as const}))]
-  const pageSections=[HEADER_SECTION,...middleSections,FOOTER_SECTION]
+  const pageSections:SiteSection[]=[...(selectedPage==='home'?HOME_SECTIONS:[]),...customSections.map(section=>({id:section.id,name:section.name,summary:`Seção criada para ${selected?.title||'esta página'}.`,kind:'section' as const}))]
 
   const createPage=()=>{
     const cleanTitle=title.trim()
@@ -107,7 +104,7 @@ export function SiteSectionsPage(){
     setStoredSections(next);writePageSections(next)
   }
 
-  return <AdminShell area="cms" items={SITE_MANAGER_NAV} header={{title:'Páginas',description:'Crie páginas, selecione-as pelo menu e monte suas seções. Cabeçalho permanece sempre no início e Rodapé sempre no final.'}}>
+  return <AdminShell area="cms" items={SITE_MANAGER_NAV} header={{title:'Páginas',description:'Crie páginas, selecione-as pelo menu e monte somente as seções próprias de cada página. Cabeçalho e Rodapé são globais e ficam em Configurações > Identidade do Site.'}}>
     <div className="site-sections-toolbar">
       <div style={{display:'flex',alignItems:'flex-end',gap:10,flexWrap:'wrap'}}>
         <label>Página<select value={selectedPage} onChange={event=>setSelectedPage(event.target.value)}>{pages.map(page=><option key={page.id} value={page.id}>{page.title}</option>)}</select></label>
@@ -117,11 +114,13 @@ export function SiteSectionsPage(){
       <a href={selected?.slug?`${new URL(import.meta.env.BASE_URL,window.location.origin).toString()}#/${selected.slug}`:new URL(import.meta.env.BASE_URL,window.location.origin).toString()} target="_blank" rel="noreferrer"><Eye size={15}/> Ver página pública</a>
     </div>
 
+    <div className="section-editor-card" style={{marginBottom:16}}><strong>Estrutura global automática</strong><p style={{margin:'6px 0 0'}}>Todas as páginas usam o mesmo Cabeçalho antes das seções e o mesmo Rodapé após a última seção. Essas configurações não variam por página.</p><Link className="site-sections-configure" style={{marginTop:10,display:'inline-flex'}} to="/app/site/configuracoes"><Settings2 size={15}/> Configurar Identidade do Site</Link></div>
+
     <div className="site-sections-list" role="table" aria-label={`Seções de ${selected?.title||'página selecionada'}`}>
       <div className="site-sections-head" role="row"><span>SEÇÃO</span><span>ESTRUTURA</span><span>STATUS</span><span>AÇÕES</span></div>
-      {pageSections.map((section,index)=><div className="site-sections-row" role="row" key={`${selectedPage}-${section.id}`}>
+      {pageSections.length?pageSections.map((section,index)=><div className="site-sections-row" role="row" key={`${selectedPage}-${section.id}`}>
         <div className="site-sections-name"><strong>{String(index+1).padStart(2,'0')}</strong><span><b>{section.name}</b><small>{section.summary}</small></span></div>
-        <span className="site-sections-structure">{section.kind==='module'?'Estrutura obrigatória':`Seção de ${selected?.title||'página'}`}</span>
+        <span className="site-sections-structure">Seção de {selected?.title||'página'}</span>
         <span className="site-sections-status"><i/> Ativo</span>
         <div style={{display:'flex',gap:8,justifyContent:'flex-end',alignItems:'center'}}>
           {section.target&&<Link className="site-sections-configure" to={section.target}><Settings2 size={15}/> Configurar</Link>}
@@ -130,12 +129,12 @@ export function SiteSectionsPage(){
             <button type="button" className="site-sections-configure" onClick={()=>removeSection(section.id)} aria-label={`Excluir ${section.name}`}><Trash2 size={15}/> Excluir</button>
           </>}
         </div>
-      </div>)}
+      </div>):<div className="site-sections-row" role="row"><div className="site-sections-name"><strong>—</strong><span><b>Nenhuma seção criada</b><small>Crie a primeira seção desta página. Cabeçalho e Rodapé globais serão aplicados automaticamente no site.</small></span></div><span className="site-sections-structure">Sem seções próprias</span><span className="site-sections-status">—</span><span/></div>}
     </div>
 
     {createOpen&&<div role="presentation" style={{position:'fixed',inset:0,zIndex:2000,background:'rgba(0,0,0,.55)',display:'grid',placeItems:'center',padding:20}} onMouseDown={event=>{if(event.currentTarget===event.target)setCreateOpen(false)}}>
       <section role="dialog" aria-modal="true" aria-labelledby="create-page-title" className="section-editor-card" style={{width:'min(560px,100%)',boxShadow:'0 24px 80px rgba(0,0,0,.28)'}}>
-        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:12}}><div><h2 id="create-page-title" style={{marginBottom:4}}>Criar página</h2><p style={{margin:0}}>A nova página será adicionada ao menu Página e já receberá Cabeçalho no início e Rodapé no final.</p></div><button type="button" onClick={()=>setCreateOpen(false)} aria-label="Fechar"><X size={18}/></button></div>
+        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:12}}><div><h2 id="create-page-title" style={{marginBottom:4}}>Criar página</h2><p style={{margin:0}}>A nova página será adicionada ao menu Página. O Cabeçalho e o Rodapé globais serão aplicados automaticamente.</p></div><button type="button" onClick={()=>setCreateOpen(false)} aria-label="Fechar"><X size={18}/></button></div>
         <div style={{display:'grid',gap:14,marginTop:20}}>
           <label>Nome da página<input autoFocus value={title} onChange={event=>{setTitle(event.target.value);if(!slug)setSlug(normalizeSlug(event.target.value));setError('')}} placeholder="Ex.: Música"/></label>
           <label>Slug<input value={slug} onChange={event=>{setSlug(normalizeSlug(event.target.value));setError('')}} placeholder="musica"/></label>
@@ -147,7 +146,7 @@ export function SiteSectionsPage(){
 
     {sectionOpen&&<div role="presentation" style={{position:'fixed',inset:0,zIndex:2000,background:'rgba(0,0,0,.55)',display:'grid',placeItems:'center',padding:20}} onMouseDown={event=>{if(event.currentTarget===event.target)setSectionOpen(false)}}>
       <section role="dialog" aria-modal="true" aria-labelledby="section-dialog-title" className="section-editor-card" style={{width:'min(560px,100%)',boxShadow:'0 24px 80px rgba(0,0,0,.28)'}}>
-        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:12}}><div><h2 id="section-dialog-title" style={{marginBottom:4}}>{editingSectionId?'Editar seção':'Criar seção'}</h2><p style={{margin:0}}>A seção será posicionada entre o Cabeçalho e o Rodapé da página selecionada.</p></div><button type="button" onClick={()=>setSectionOpen(false)} aria-label="Fechar"><X size={18}/></button></div>
+        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:12}}><div><h2 id="section-dialog-title" style={{marginBottom:4}}>{editingSectionId?'Editar seção':'Criar seção'}</h2><p style={{margin:0}}>Esta configuração afeta somente a página selecionada. Cabeçalho e Rodapé continuam globais.</p></div><button type="button" onClick={()=>setSectionOpen(false)} aria-label="Fechar"><X size={18}/></button></div>
         <div style={{display:'grid',gap:14,marginTop:20}}>
           <label>Nome da seção<input autoFocus value={sectionName} onChange={event=>{setSectionName(event.target.value);if(!sectionSlug)setSectionSlug(normalizeSlug(event.target.value));setError('')}} placeholder="Ex.: Conteúdo principal"/></label>
           <label>Identificador<input value={sectionSlug} onChange={event=>{setSectionSlug(normalizeSlug(event.target.value));setError('')}} placeholder="conteudo-principal"/></label>

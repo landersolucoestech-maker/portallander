@@ -45,6 +45,7 @@ for(const required of [
  "['Configurações',Settings,'/app/settings']"
 ])if(!adminNavigation.includes(required))failures.push(`adminNavigation deve preservar módulo obrigatório: ${required}`)
 for(const forbidden of ["['Dashboard',LayoutDashboard,'/app/crm']","['Leads'","['Contatos'",'/app/crm/dashboard','/app/crm/integrations','Integrações','PlugZap',"['Categorias',Tags,'/app/finance/categories']","['Regras'","/app/finance/automations"])if(adminNavigation.includes(forbidden))failures.push(`adminNavigation contém item proibido ou removido: ${forbidden}`)
+for(const removedSiteModule of ['Marca & Logos','Cabeçalho','Páginas','Categorias','Publicidade','/app/site/marca','/app/site/cabecalho','/app/site/paginas','/app/site/categorias','/app/site/noticias/anuncio'])if(adminNavigation.includes(removedSiteModule))failures.push(`adminNavigation não pode reintroduzir módulo administrativo removido: ${removedSiteModule}`)
 
 const requiredFiles=[
  'src/features/contracts/ContractsPage.tsx',
@@ -80,23 +81,26 @@ for(const required of ["'contracts'","'finance'","'settings'",'AdminNavGroup','i
 
 const siteHeaderFiles=[
  'src/features/site-manager/pages/SiteManagerDashboardPage.tsx',
- 'src/features/site-manager/pages/BrandAssetsManagerPage.tsx',
- 'src/features/site-manager/pages/HeaderBrandManagerPage.tsx',
  'src/features/site-manager/pages/HeroSectionAppearancePage.tsx',
  'src/features/site-manager/pages/SiteSectionsPage.tsx',
- 'src/features/site-manager/pages/NewsAdManagerPage.tsx',
- 'src/features/site-manager/pages/SiteCategoriesPage.tsx',
+ 'src/features/site-manager/pages/FooterSectionManagerPage.tsx',
  'src/features/site-manager/pages/SiteMediaPage.tsx',
  'src/features/site-manager/pages/MediaKitPage.tsx',
- 'src/features/site-manager/pages/SitePagesPage.tsx',
  'src/features/site-manager/pages/SiteContentsPage.tsx'
 ]
 for(const path of siteHeaderFiles){const source=await read(path);if(!source.includes('<AdminShell')||!source.includes('header={{'))failures.push(`${path} deve usar o PageHeader compartilhado via AdminShell.header.`);if(source.includes('AdminPageHeader'))failures.push(`${path} não pode usar AdminPageHeader embutido no conteúdo.`)}
-for(const removed of ['src/features/site-manager/HeroManagerPage.tsx','src/features/site-manager/pages/HomeManagerPage.tsx','src/features/site-manager/pages/HomeAdManagerPage.tsx'])if(await exists(removed))failures.push(`${removed} é legado e não pode ser reintroduzido.`)
+for(const removed of [
+ 'src/features/site-manager/HeroManagerPage.tsx',
+ 'src/features/site-manager/pages/HomeManagerPage.tsx',
+ 'src/features/site-manager/pages/HomeAdManagerPage.tsx',
+ 'src/features/site-manager/pages/BrandAssetsManagerPage.tsx',
+ 'src/features/site-manager/pages/HeaderBrandManagerPage.tsx',
+ 'src/features/site-manager/pages/SitePagesPage.tsx',
+ 'src/features/site-manager/pages/SiteCategoriesPage.tsx',
+ 'src/features/site-manager/pages/NewsAdManagerPage.tsx'
+])if(await exists(removed))failures.push(`${removed} foi removido e não pode ser reintroduzido.`)
 const editorialAdmin=await read('src/features/editorial/components/EditorialAdmin.tsx')
 if(editorialAdmin.includes('AdminPageHeader'))failures.push('EditorialAdmin não pode reconstruir cabeçalho dentro do conteúdo.')
-const brandAssets=await read('src/features/site-manager/pages/BrandAssetsManagerPage.tsx')
-if(brandAssets.includes('brand-assets-top'))failures.push('Marca & Logos não pode manter cabeçalho manual duplicado dentro do conteúdo.')
 
 const financeMain=await read('src/features/finance/FinanceMainPage.tsx')
 for(const required of ['Financeiro','Nova Transação','Importar OFX'])if(!financeMain.includes(required))failures.push(`Financeiro principal deve preservar: ${required}`)
@@ -112,7 +116,7 @@ for(const forbidden of ['finance-accounting-tabs','P&amp;L Empresa','P&amp;L Con
 if(financeAccounting.indexOf('finance-kpis accounting-original-kpis')>financeAccounting.indexOf('finance-filters'))failures.push('Contabilidade deve manter KPI Cards acima dos filtros.')
 
 const financeRegistry=await read('src/features/finance/FinanceRegistryPage.tsx')
-for(const required of ['Categorias Financeiras','Regras Financeiras','financeRepository.listCategories','financeRepository.listRules','financeRepository.saveCategories','financeRepository.saveRules'])if(!financeRegistry.includes(required))failures.push(`Registros financeiros devem preservar: ${required}`)
+for(const required of ['Categorias Financeiras','Regras Financeiras','financeRepository.listCategories','financeRepository.listRules','financeRepository.saveCategories','financeRepository.saveRules'])if(!financeRegistry.includes(required))failures.push(`Registros financeiros devem preservar fluxo funcional: ${required}`)
 if(financeRegistry.includes('Automações Financeiras'))failures.push('Registro financeiro não pode reintroduzir página de Automações.')
 
 const contracts=await read('src/features/contracts/ContractsPage.tsx')

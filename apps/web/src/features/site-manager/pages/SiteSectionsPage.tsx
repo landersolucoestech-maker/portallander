@@ -7,29 +7,30 @@ import '../../../styles/site-sections.css'
 type SiteSection={name:string;summary:string;route:string}
 
 const SITE_SECTIONS:SiteSection[]=[
-  {name:'Hero principal',summary:'Hero real da Home. A Barra “AGORA” continua integrada e configurada dentro dele.',route:'hero'},
-  {name:'Grid principal',summary:'Primeiro grid editorial da Home, exibido publicamente com o cabeçalho “EM DESTAQUE”.',route:'grid-principal'},
-  {name:'Mais Lidas',summary:'Lista “MAIS LIDAS” posicionada na lateral direita do Grid principal.',route:'mais-lidas'},
-  {name:'Publicidade lateral',summary:'Publicidade posicionada abaixo de Mais Lidas na mesma lateral direita.',route:'publicidade-lateral'},
-  {name:'Últimas Notícias',summary:'Seção “ÚLTIMAS NOTÍCIAS” exibida abaixo do primeiro bloco editorial.',route:'ultimas-noticias'},
-  {name:'Em Alta',summary:'Lista “EM ALTA” posicionada à direita de Últimas Notícias.',route:'em-alta'},
-  {name:'Publicidade horizontal',summary:'Publicidade horizontal exibida entre Últimas Notícias e Lançamentos.',route:'publicidade-horizontal'},
-  {name:'Lançamentos',summary:'Seção “LANÇAMENTOS” exibida abaixo da publicidade horizontal.',route:'lancamentos'},
-  {name:'Agenda',summary:'Seção “AGENDA” posicionada à direita de Lançamentos.',route:'agenda'},
-  {name:'Rodapé',summary:'Rodapé institucional que encerra a página inicial.',route:'rodape'},
+  {name:'Hero Section',summary:'Hero oficial da Homepage.',route:'hero'},
+  {name:'Ticker',summary:'Ticker oficial imediatamente abaixo do Hero Section; sua configuração permanece no mesmo editor do Hero.',route:'ticker'},
+  {name:'Em Destaque',summary:'Seção “EM DESTAQUE” da Homepage.',route:'em-destaque'},
+  {name:'Mais Lidas',summary:'Seção “MAIS LIDAS” da Homepage.',route:'mais-lidas'},
+  {name:'Últimas Notícias',summary:'Seção “ÚLTIMAS NOTÍCIAS” da Homepage.',route:'ultimas-noticias'},
+  {name:'Publicidade Lateral',summary:'Seção de publicidade lateral da Homepage.',route:'publicidade-lateral'},
+  {name:'Em Alta',summary:'Seção “EM ALTA” da Homepage.',route:'em-alta'},
+  {name:'Seção Anuncie Aqui',summary:'Seção publicitária “ANUNCIE AQUI” da Homepage.',route:'secao-anuncie-aqui'},
+  {name:'Lançamentos',summary:'Seção “LANÇAMENTOS” da Homepage.',route:'lancamentos'},
+  {name:'Agenda',summary:'Seção “AGENDA” da Homepage.',route:'agenda'},
+  {name:'Rodapé',summary:'Rodapé oficial da Homepage.',route:'rodape'},
 ]
 
 export function SiteSectionsPage(){
-  return <AdminShell area="cms" items={SITE_MANAGER_NAV} header={{title:'Seções das Páginas',description:'Esta lista espelha exclusivamente os blocos que existem hoje na Página inicial. Não há seções legadas ou paralelas.'}}>
+  return <AdminShell area="cms" items={SITE_MANAGER_NAV} header={{title:'Seções das Páginas',description:'Fonte de verdade da Homepage: somente as seções oficiais, com os nomes e a ordem definidos para a página pública.'}}>
     <div className="site-sections-toolbar">
       <label>Página<select defaultValue="home"><option value="home">Página inicial</option></select></label>
       <a href={new URL(import.meta.env.BASE_URL,window.location.origin).toString()} target="_blank" rel="noreferrer"><Eye size={15}/> Ver página pública</a>
     </div>
-    <div className="site-sections-list" role="table" aria-label="Seções reais da página inicial">
+    <div className="site-sections-list" role="table" aria-label="Seções oficiais da Homepage">
       <div className="site-sections-head" role="row"><span>SEÇÃO</span><span>ESTRUTURA</span><span>STATUS</span><span>AÇÕES</span></div>
       {SITE_SECTIONS.map((section,index)=><div className="site-sections-row" role="row" key={section.route}>
         <div className="site-sections-name"><strong>{String(index+1).padStart(2,'0')}</strong><span><b>{section.name}</b><small>{section.summary}</small></span></div>
-        <span className="site-sections-structure">Posição definida pela estrutura atual da Home</span>
+        <span className="site-sections-structure">Ordem oficial da Homepage</span>
         <span className="site-sections-status"><i/> Ativo</span>
         <Link className="site-sections-configure" to={`/app/site/secoes/home/${section.route}`}><Settings2 size={15}/> Configurar</Link>
       </div>)}

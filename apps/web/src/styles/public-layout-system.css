@@ -1,8 +1,8 @@
 /* Portal Lander — public layout, viewport and interaction baseline. */
-html,body,#root{min-height:100%}
-body{min-height:100dvh;overflow-x:clip}
-.public-page,.article-page,.article-route-overlay{min-height:100dvh}
-.public-page{display:flex;flex-direction:column;min-width:0;background:#fff}
+html,body,#root{min-height:100%;background:#000}
+body{min-height:100dvh;overflow-x:clip;background:#000}
+.public-page,.article-page,.article-route-overlay{min-height:100dvh;background:#000}
+.public-page{display:flex;flex-direction:column;min-width:0;background:#000}
 .public-page>main,.public-page>.public-shell,.article-page main{min-width:0}
 .public-page .public-footer{margin-top:auto}
 .public-page img,.article-page img{max-width:100%}

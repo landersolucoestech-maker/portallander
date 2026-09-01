@@ -63,6 +63,10 @@
 .workspace-main table .actions,.workspace-main table .actions-col,.workspace-main table .crm-actions-column,.workspace-main table .crm-actions-cell{text-align:right!important}
 .workspace-main table .table-row-actions,.workspace-main table .crm-row-actions{justify-content:flex-end!important;margin-left:auto!important;margin-right:0!important}
 
+/* RH TableViews intentionally use equal-width data columns. Keep every header/cell anchored to the left edge of its grid track. */
+.workspace-main table.rh-table th,.workspace-main table.rh-table td,.workspace-main table.rh-table .numeric,.workspace-main table.rh-table .tabular,.workspace-main table.rh-table td.positive,.workspace-main table.rh-table td.negative,.workspace-main table.rh-table .actions,.workspace-main table.rh-table .actions-col{text-align:left!important}
+.workspace-main table.rh-table .table-row-actions,.workspace-main table.rh-table .crm-row-actions{justify-content:flex-start!important;margin-left:0!important;margin-right:auto!important}
+
 /* Status/badge family. */
 .crm-badge,.finance-type,.finance-status,.contracts-status,.rh-status,.marketing-status,.settings-badge{min-height:22px;padding:3px 8px;border-radius:999px;font-size:10px;font-weight:700;line-height:1.2}
 

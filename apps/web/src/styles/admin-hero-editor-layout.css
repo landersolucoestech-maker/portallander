@@ -1,0 +1,20 @@
+.hero-cms-topbar,.hero-cms-device-context{display:none!important}
+
+@media(min-width:1041px){
+  .hero-cms-editor{gap:16px}
+  .hero-cms-tabs{max-width:calc((100% - 16px)*.46);width:100%;border-radius:10px;background:#fff}
+  .hero-cms-layout{grid-template-columns:minmax(500px,.46fr) minmax(560px,.54fr);gap:16px;align-items:start}
+  .hero-cms-panel{max-height:calc(100vh - 230px);overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;scrollbar-width:none;-ms-overflow-style:none;scrollbar-gutter:auto;padding-right:18px;border-radius:10px}
+  .hero-cms-panel::-webkit-scrollbar{display:none;width:0;height:0}
+  .hero-cms-preview-column{position:sticky;top:18px;align-self:start;height:max-content;max-height:none;overflow:visible;margin-top:-78px;border-radius:10px}
+  .hero-cms-preview-head{min-height:50px;align-items:flex-start}
+  .hero-cms-viewports{margin-left:auto;align-self:flex-start}
+  .hero-cms-savebar{margin-top:0}
+}
+
+@media(max-width:1040px){
+  .hero-cms-tabs{max-width:none;width:100%}
+  .hero-cms-layout{grid-template-columns:1fr}
+  .hero-cms-panel{max-height:none;overflow:visible;scrollbar-width:auto}
+  .hero-cms-preview-column{position:relative;top:auto;order:-1;margin-top:0;max-height:none;overflow:visible}
+}

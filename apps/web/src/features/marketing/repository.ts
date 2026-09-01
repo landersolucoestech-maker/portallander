@@ -1,11 +1,13 @@
 import {getRuntimeDataProvider} from '../../shared/data/runtimeDataProvider'
 import {uid,type MarketingBriefing,type MarketingCampaign,type MarketingContent,type MarketingSeed,type MarketingTask} from './domain'
-const STORAGE_KEY='portal-lander:marketing:v1'
+const STORAGE_KEY='portal-lander:marketing:v2'
+const LEGACY_STORAGE_KEY='portal-lander:marketing:v1'
 const EVENT='portal-lander:marketing:changed'
 const clone=<T>(value:T):T=>structuredClone(value)
 const seed=():MarketingSeed=>getRuntimeDataProvider().marketing.seed()
-const read=():MarketingSeed=>{try{const raw=localStorage.getItem(STORAGE_KEY);return raw?JSON.parse(raw) as MarketingSeed:seed()}catch{return seed()}}
-const write=(state:MarketingSeed)=>{localStorage.setItem(STORAGE_KEY,JSON.stringify(state));window.dispatchEvent(new CustomEvent(EVENT));return clone(state)}
+const clearLegacy=()=>{try{localStorage.removeItem(LEGACY_STORAGE_KEY)}catch{/* storage unavailable */}}
+const read=():MarketingSeed=>{clearLegacy();try{const raw=localStorage.getItem(STORAGE_KEY);return raw?JSON.parse(raw) as MarketingSeed:seed()}catch{return seed()}}
+const write=(state:MarketingSeed)=>{clearLegacy();localStorage.setItem(STORAGE_KEY,JSON.stringify(state));window.dispatchEvent(new CustomEvent(EVENT));return clone(state)}
 const stamp=()=>new Date().toISOString()
 export const marketingRepository={
  eventName:EVENT,
@@ -19,5 +21,5 @@ export const marketingRepository={
  saveBriefing(input:Omit<MarketingBriefing,'id'|'createdAt'|'updatedAt'>,id?:string){const state=read(),now=stamp();if(id)state.briefings=state.briefings.map(x=>x.id===id?{...x,...input,updatedAt:now}:x);else state.briefings.unshift({...input,id:uid('mkt_brf'),createdAt:now,updatedAt:now});return write(state)},
  deleteBriefing(id:string){const state=read();state.briefings=state.briefings.filter(x=>x.id!==id);return write(state)},
  addAiHistory(input:{kind:string;title:string;context:string;result:string}){const state=read();state.aiHistory.unshift({...input,id:uid('mkt_ai'),createdAt:stamp()});return write(state)},
- reset(){localStorage.removeItem(STORAGE_KEY);window.dispatchEvent(new CustomEvent(EVENT))},
+ reset(){try{localStorage.removeItem(STORAGE_KEY);localStorage.removeItem(LEGACY_STORAGE_KEY)}catch{/* storage unavailable */}window.dispatchEvent(new CustomEvent(EVENT))},
 }

@@ -1,19 +1,19 @@
 import { Eye, Plus, Settings2, X } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { HeaderBrandEditor } from '../../../shared/branding/components/HeaderBrandEditor'
 import { SITE_MANAGER_NAV } from '../../../shared/internal/adminNavigation'
 import { AdminShell } from '../../../shared/internal/AdminUi'
 import { editorialReadModel } from '../../editorial/repository'
 import '../../../styles/site-sections.css'
 
-type SiteSection={name:string;summary:string;route:string}
+type SiteSection={name:string;summary:string;target:string;kind:'module'|'section'}
 type CmsPageOption={id:string;title:string;slug:string;source:'system'|'local'}
 
-const SITE_SECTIONS:SiteSection[]=[
-  {name:'Hero Section',summary:'Hero oficial da Homepage, incluindo o Ticker integrado.',route:'hero'},
-  {name:'Rodapé',summary:'Rodapé oficial da Homepage.',route:'rodape'},
+const HEADER_SECTION:SiteSection={name:'Cabeçalho',summary:'Cabeçalho obrigatório da página. Sempre ocupa a primeira posição.',target:'/app/site/cabecalho',kind:'module'}
+const HOME_MIDDLE_SECTIONS:SiteSection[]=[
+  {name:'Hero Section',summary:'Hero oficial da Homepage, incluindo o Ticker integrado.',target:'/app/site/secoes/home/hero',kind:'section'},
 ]
+const FOOTER_SECTION:SiteSection={name:'Rodapé',summary:'Rodapé obrigatório da página. Sempre ocupa a última posição.',target:'/app/site/rodape',kind:'module'}
 
 const LOCAL_PAGES_KEY='portal-lander:cms:pages:local:v1'
 
@@ -44,6 +44,10 @@ function purgeLegacySectionData(){for(const key of LEGACY_SECTION_KEYS)localStor
 function normalizeSlug(value:string){return value.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'')}
 function readLocalPages():CmsPageOption[]{try{const parsed=JSON.parse(localStorage.getItem(LOCAL_PAGES_KEY)||'[]');return Array.isArray(parsed)?parsed:[]}catch{return []}}
 function writeLocalPages(pages:CmsPageOption[]){localStorage.setItem(LOCAL_PAGES_KEY,JSON.stringify(pages))}
+function sectionsForPage(pageId:string):SiteSection[]{
+  const middle=pageId==='home'?HOME_MIDDLE_SECTIONS:[]
+  return [HEADER_SECTION,...middle,FOOTER_SECTION]
+}
 
 export function SiteSectionsPage(){
   const [localPages,setLocalPages]=useState<CmsPageOption[]>(()=>readLocalPages())
@@ -61,19 +65,21 @@ export function SiteSectionsPage(){
   },[localPages])
 
   const selected=pages.find(page=>page.id===selectedPage)??pages[0]
+  const pageSections=sectionsForPage(selectedPage)
+
   const createPage=()=>{
     const cleanTitle=title.trim()
     const cleanSlug=normalizeSlug(slug||title)
     if(!cleanTitle){setError('Informe o nome da página.');return}
     if(!cleanSlug){setError('Informe um slug válido.');return}
     if(pages.some(page=>page.slug===cleanSlug)){setError('Já existe uma página com este slug.');return}
-    const page: CmsPageOption={id:`local-${Date.now()}`,title:cleanTitle,slug:cleanSlug,source:'local'}
+    const page:CmsPageOption={id:`local-${Date.now()}`,title:cleanTitle,slug:cleanSlug,source:'local'}
     const next=[...localPages,page]
     setLocalPages(next);writeLocalPages(next);setSelectedPage(page.id)
     setTitle('');setSlug('');setError('');setCreateOpen(false)
   }
 
-  return <AdminShell area="cms" items={SITE_MANAGER_NAV} header={{title:'Seções das Páginas',description:'Crie páginas, selecione-as pelo menu e configure suas seções neste único contexto administrativo.'}}>
+  return <AdminShell area="cms" items={SITE_MANAGER_NAV} header={{title:'Seções das Páginas',description:'Crie páginas, selecione-as pelo menu e configure suas seções. Cabeçalho e Rodapé são módulos próprios e permanecem, respectivamente, no início e no final de toda página.'}}>
     <div className="site-sections-toolbar">
       <div style={{display:'flex',alignItems:'flex-end',gap:10,flexWrap:'wrap'}}>
         <label>Página<select value={selectedPage} onChange={event=>setSelectedPage(event.target.value)}>{pages.map(page=><option key={page.id} value={page.id}>{page.title}</option>)}</select></label>
@@ -84,28 +90,17 @@ export function SiteSectionsPage(){
 
     <div className="site-sections-list" role="table" aria-label={`Seções de ${selected?.title||'página selecionada'}`}>
       <div className="site-sections-head" role="row"><span>SEÇÃO</span><span>ESTRUTURA</span><span>STATUS</span><span>AÇÕES</span></div>
-      {selectedPage==='home'?SITE_SECTIONS.map((section,index)=><div className="site-sections-row" role="row" key={section.route}>
+      {pageSections.map((section,index)=><div className="site-sections-row" role="row" key={`${selectedPage}-${section.name}`}>
         <div className="site-sections-name"><strong>{String(index+1).padStart(2,'0')}</strong><span><b>{section.name}</b><small>{section.summary}</small></span></div>
-        <span className="site-sections-structure">Seção da Página inicial</span>
+        <span className="site-sections-structure">{section.kind==='module'?'Módulo próprio':`Seção de ${selected?.title||'página'}`}</span>
         <span className="site-sections-status"><i/> Ativo</span>
-        <Link className="site-sections-configure" to={`/app/site/secoes/home/${section.route}`}><Settings2 size={15}/> Configurar</Link>
-      </div>):<div className="site-sections-row" role="row">
-        <div className="site-sections-name"><strong>01</strong><span><b>Estrutura da página</b><small>As seções específicas desta página serão administradas aqui.</small></span></div>
-        <span className="site-sections-structure">{selected?.title}</span>
-        <span className="site-sections-status"><i/> Ativo</span>
-        <button type="button" className="site-sections-configure" disabled><Settings2 size={15}/> Configurar</button>
-      </div>}
+        <Link className="site-sections-configure" to={section.target}><Settings2 size={15}/> Configurar</Link>
+      </div>)}
     </div>
-
-    {selectedPage==='home'&&<section className="section-editor-card" style={{marginTop:24}} aria-labelledby="page-header-title">
-      <h2 id="page-header-title">Cabeçalho da Página inicial</h2>
-      <p>A configuração do cabeçalho permanece vinculada à página dentro deste módulo, sem rota ou módulo administrativo independente.</p>
-      <HeaderBrandEditor/>
-    </section>}
 
     {createOpen&&<div role="presentation" style={{position:'fixed',inset:0,zIndex:2000,background:'rgba(0,0,0,.55)',display:'grid',placeItems:'center',padding:20}} onMouseDown={event=>{if(event.currentTarget===event.target)setCreateOpen(false)}}>
       <section role="dialog" aria-modal="true" aria-labelledby="create-page-title" className="section-editor-card" style={{width:'min(560px,100%)',boxShadow:'0 24px 80px rgba(0,0,0,.28)'}}>
-        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:12}}><div><h2 id="create-page-title" style={{marginBottom:4}}>Criar página</h2><p style={{margin:0}}>A nova página será adicionada imediatamente ao menu Página.</p></div><button type="button" onClick={()=>setCreateOpen(false)} aria-label="Fechar"><X size={18}/></button></div>
+        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:12}}><div><h2 id="create-page-title" style={{marginBottom:4}}>Criar página</h2><p style={{margin:0}}>A nova página será adicionada imediatamente ao menu Página e já receberá Cabeçalho no início e Rodapé no final.</p></div><button type="button" onClick={()=>setCreateOpen(false)} aria-label="Fechar"><X size={18}/></button></div>
         <div style={{display:'grid',gap:14,marginTop:20}}>
           <label>Nome da página<input autoFocus value={title} onChange={event=>{setTitle(event.target.value);if(!slug)setSlug(normalizeSlug(event.target.value));setError('')}} placeholder="Ex.: Música"/></label>
           <label>Slug<input value={slug} onChange={event=>{setSlug(normalizeSlug(event.target.value));setError('')}} placeholder="musica"/></label>

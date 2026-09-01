@@ -28,16 +28,44 @@ const defs:Record<SectionKey,Definition>={
   footer:{title:'Footer',description:'Configuração visual e institucional do rodapé.',position:'Último bloco da página',identifier:'home_footer',defaultTitle:'Portal Lander',defaultSubtitle:'Conteúdo, cultura e movimento.',defaultQuantity:1,defaultWidth:100,defaultHeight:300,sourceLabel:'Estrutura',sourceOptions:['Padrão do Portal','Personalizada']},
 }
 
-const defaultConfig=(d:Definition):SectionConfig=>({active:true,title:d.defaultTitle,subtitle:d.defaultSubtitle,linkLabel:'Ver todos',linkUrl:'#',source:d.sourceOptions[0],quantity:d.defaultQuantity,width:d.defaultWidth,height:d.defaultHeight,paddingX:24,paddingY:24,radius:0,background:'#ffffff',textColor:'#333333',titleColor:'#111111',accentColor:'#e50914',borderColor:'#e5e5e5',bodyLines:d.identifier==='home_pub_lateral'?['SUA MARCA NO RITMO CERTO!']:[],imageUrl:'',imageAlt:''})
+const defaultConfig=(d:Definition):SectionConfig=>({active:true,title:d.defaultTitle,subtitle:d.defaultSubtitle,linkLabel:'Ver todos',linkUrl:'#',source:d.sourceOptions[0],quantity:d.defaultQuantity,width:d.defaultWidth,height:d.defaultHeight,paddingX:24,paddingY:24,radius:0,background:d.identifier==='home_pub_lateral'?'#090909':'#ffffff',textColor:d.identifier==='home_pub_lateral'?'#ffffff':'#333333',titleColor:d.identifier==='home_pub_lateral'?'#ffffff':'#111111',accentColor:'#e50914',borderColor:d.identifier==='home_pub_lateral'?'#090909':'#e5e5e5',bodyLines:d.identifier==='home_pub_lateral'?['SUA MARCA NO RITMO CERTO!']:[],imageUrl:'',imageAlt:''})
 const key=(s:SectionKey)=>`portal-lander:cms:section-config:${s}:v4`
 const legacyRankingKey='portal-lander:cms:section-config:ranking:v4'
+const SECTION_UPDATED_EVENT='portal-lander:section-config-updated'
+
 function load(section:SectionKey,d:Definition){try{const current=localStorage.getItem(key(section));if(current)return {...defaultConfig(d),...JSON.parse(current)};if(section==='most-read'){const legacy=localStorage.getItem(legacyRankingKey);if(legacy){const migrated={...defaultConfig(d),...JSON.parse(legacy),title:'Mais Lidas'};localStorage.setItem(key(section),JSON.stringify(migrated));return migrated}}return defaultConfig(d)}catch{return defaultConfig(d)}}
+
+function optimizeImage(file:File):Promise<string>{
+  return new Promise((resolve,reject)=>{
+    const reader=new FileReader()
+    reader.onerror=()=>reject(new Error('Não foi possível ler a imagem.'))
+    reader.onload=()=>{
+      const image=new Image()
+      image.onerror=()=>reject(new Error('Não foi possível processar a imagem.'))
+      image.onload=()=>{
+        const maxDimension=1200
+        const ratio=Math.min(1,maxDimension/Math.max(image.naturalWidth,image.naturalHeight))
+        const width=Math.max(1,Math.round(image.naturalWidth*ratio))
+        const height=Math.max(1,Math.round(image.naturalHeight*ratio))
+        const canvas=document.createElement('canvas')
+        canvas.width=width
+        canvas.height=height
+        const context=canvas.getContext('2d')
+        if(!context){reject(new Error('Não foi possível preparar a imagem.'));return}
+        context.drawImage(image,0,0,width,height)
+        resolve(canvas.toDataURL('image/webp',.78))
+      }
+      image.src=String(reader.result||'')
+    }
+    reader.readAsDataURL(file)
+  })
+}
 
 function getPreviewItems(section:SectionKey):PreviewItem[]{if(section==='grid')return homeReadModel.featuredStories.slice(0,3).map(item=>({title:item.title,image:item.image,category:item.category}));if(section==='secondary'||section==='trending')return homeReadModel.latestStories.slice(0,4).map(item=>({title:item.title,image:item.image,category:item.category}));if(section==='videos')return homeReadModel.releases.slice(0,4).map(item=>({title:item.title,image:item.image}));if(section==='agenda')return homeReadModel.agenda.slice(0,6).map(item=>({title:item.title,place:item.place}));if(section==='most-read')return homeReadModel.mostRead.slice(0,5).map(title=>({title}));return []}
 
 function Preview({section,config,items,viewport}:{section:SectionKey;config:SectionConfig;items:PreviewItem[];viewport:PreviewViewport}){
   const previewClass=section==='most-read'?'ranking':section
-  if(section==='side-ad')return <div className={`section-preview-stage ${viewport}`}><div className="section-preview side-ad-preview" style={{background:config.background,color:config.textColor,minHeight:config.height,borderColor:config.borderColor,borderRadius:config.radius,padding:`${config.paddingY}px ${config.paddingX}px`}}>{config.imageUrl&&<img src={config.imageUrl} alt={config.imageAlt} style={{display:'block',width:'100%',maxHeight:220,objectFit:'contain',marginBottom:16}}/>}<small style={{color:config.textColor}}>{config.title}</small><h3 style={{color:config.titleColor,margin:'8px 0'}}>{config.subtitle}</h3>{config.bodyLines.map((line,index)=><p key={`${line}-${index}`} style={{color:config.accentColor,fontWeight:800}}>{line}</p>)}{config.linkLabel&&<span style={{display:'inline-block',marginTop:12,border:`1px solid ${config.accentColor}`,padding:'8px 12px',color:config.accentColor}}>{config.linkLabel} →</span>}</div></div>
+  if(section==='side-ad')return <div className={`section-preview-stage ${viewport}`}><div className="section-preview side-ad-preview" style={{background:config.background,color:config.textColor,minHeight:config.height,border:`1px solid ${config.borderColor}`,borderRadius:config.radius,padding:`${config.paddingY}px ${config.paddingX}px`,overflow:'hidden'}}>{config.imageUrl&&<img src={config.imageUrl} alt={config.imageAlt} style={{display:'block',width:'100%',maxHeight:Math.max(180,config.height*.58),objectFit:'contain',marginBottom:16}}/>}<small style={{color:config.textColor}}>{config.title}</small><h3 style={{color:config.titleColor,margin:'8px 0'}}>{config.subtitle}</h3>{config.bodyLines.filter(Boolean).map((line,index)=><p key={`${line}-${index}`} style={{color:config.accentColor,fontWeight:800}}>{line}</p>)}{config.linkLabel&&<span style={{display:'inline-block',marginTop:12,border:`1px solid ${config.accentColor}`,padding:'8px 12px',color:config.accentColor}}>{config.linkLabel} →</span>}</div></div>
   return <div className={`section-preview-stage ${viewport}`}><div className="section-preview" style={{background:config.background,color:config.textColor,minHeight:config.height,borderColor:config.borderColor,borderRadius:config.radius,padding:`${config.paddingY}px ${config.paddingX}px`}}><div className="section-preview-head"><h3 style={{color:config.titleColor}}>{config.title}</h3>{config.linkLabel&&<span style={{color:config.accentColor}}>{config.linkLabel} →</span>}</div><p>{config.subtitle}</p>{items.length>0?<div className={`section-preview-items ${previewClass}`}>{items.map((item,index)=><div className="section-preview-item" key={index}>{item.image?<img src={item.image} alt=""/>:<span className="section-preview-number" style={{color:config.accentColor}}>{String(index+1).padStart(2,'0')}</span>}<strong>{item.title}</strong>{item.category&&<small>{item.category}</small>}{item.place&&<small>{item.place}</small>}</div>)}</div>:<div className="section-preview-placeholder" style={{borderColor:config.borderColor}}>{section==='banner'?'SUA MARCA AQUI':section==='newsletter'?'Seu melhor e-mail     INSCREVER-SE':section==='footer'?'PORTAL LANDER · NAVEGAÇÃO · INSTITUCIONAL · REDES SOCIAIS':section==='hero'?'IMAGEM / DESTAQUE PRINCIPAL':config.subtitle}</div>}</div></div>
 }
 
@@ -47,9 +75,22 @@ export function HomeSectionManagerPage({section}:{section:SectionKey}){
   const usesCompactPreview=usesHeroEditorPattern
   const [config,setConfig]=useState<SectionConfig>(()=>load(section,d))
   const [saved,setSaved]=useState(false)
-  const patch=(p:Partial<SectionConfig>)=>{setConfig(c=>({...c,...p}));setSaved(false)}
+  const [saveError,setSaveError]=useState('')
+  const [imageBusy,setImageBusy]=useState(false)
+  const patch=(p:Partial<SectionConfig>)=>{setConfig(c=>({...c,...p}));setSaved(false);setSaveError('')}
   const previewItems=useMemo<PreviewItem[]>(()=>getPreviewItems(section),[section])
-  const save=()=>{localStorage.setItem(key(section),JSON.stringify(config));setSaved(true)}
+  const save=()=>{
+    try{
+      localStorage.setItem(key(section),JSON.stringify(config))
+      setSaved(true)
+      setSaveError('')
+      window.dispatchEvent(new CustomEvent(SECTION_UPDATED_EVENT,{detail:{section}}))
+    }catch(error){
+      setSaved(false)
+      const isQuota=error instanceof DOMException&&(error.name==='QuotaExceededError'||error.name==='NS_ERROR_DOM_QUOTA_REACHED')
+      setSaveError(isQuota?'Não foi possível salvar: a imagem ainda está grande demais para o armazenamento local. Envie uma imagem menor ou use uma URL.':'Não foi possível salvar esta seção. Tente novamente.')
+    }
+  }
   const widthValue=config.width<=100?1200:config.width
   const openPublicSite=()=>{const publicUrl=`${window.location.origin}${window.location.pathname}#/`;window.open(publicUrl,'_blank','noopener,noreferrer')}
   const header=usesHeroEditorPattern?{title:`Configurar seção: ${d.title}`,description:d.description,backTo:'/app/site/secoes',backLabel:'Seções das Páginas'}:{title:`Configurar seção: ${d.title}`,description:d.description}
@@ -58,7 +99,17 @@ export function HomeSectionManagerPage({section}:{section:SectionKey}){
   const updateBodyLine=(index:number,value:string)=>patch({bodyLines:config.bodyLines.map((line,i)=>i===index?value:line)})
   const removeBodyLine=(index:number)=>patch({bodyLines:config.bodyLines.filter((_,i)=>i!==index)})
   const addBodyLine=()=>patch({bodyLines:[...config.bodyLines,'Novo texto']})
-  const handleImageUpload=(event:ChangeEvent<HTMLInputElement>)=>{const file=event.target.files?.[0];if(!file)return;const reader=new FileReader();reader.onload=()=>patch({imageUrl:String(reader.result||''),imageAlt:config.imageAlt||file.name});reader.readAsDataURL(file)}
+  const handleImageUpload=async(event:ChangeEvent<HTMLInputElement>)=>{
+    const file=event.target.files?.[0]
+    if(!file)return
+    setImageBusy(true)
+    setSaveError('')
+    try{
+      const imageUrl=await optimizeImage(file)
+      patch({imageUrl,imageAlt:config.imageAlt||file.name})
+    }catch(error){setSaveError(error instanceof Error?error.message:'Não foi possível processar a imagem.')}
+    finally{setImageBusy(false);event.target.value=''}
+  }
 
   return <AdminShell area="cms" items={SITE_MANAGER_NAV} header={header} headerAction={usesHeroEditorPattern?{label:'Ver no site',icon:ExternalLink,variant:'secondary',onClick:openPublicSite}:undefined}>
     {!usesHeroEditorPattern&&<div className="section-editor-toolbar"><div><Link to="/app/site/secoes">← Seções das Páginas</Link><span className="section-editor-status"><input type="checkbox" checked={config.active} onChange={e=>patch({active:e.target.checked})}/> {config.active?'Ativo':'Inativo'}</span></div><div><Link className="button outline" to="/app/site/secoes">Cancelar</Link><button className="button dark" onClick={save}><Save size={15}/> Salvar alterações</button></div></div>}
@@ -78,7 +129,8 @@ export function HomeSectionManagerPage({section}:{section:SectionKey}){
           <button type="button" className="button outline" onClick={addBodyLine} style={{marginTop:10}}><Plus size={15}/> Adicionar texto</button>
           <h2>Imagem da publicidade</h2>
           {config.imageUrl&&<img src={config.imageUrl} alt={config.imageAlt} style={{display:'block',width:'100%',maxHeight:220,objectFit:'contain',border:'1px solid #e5e5e5',marginBottom:10}}/>}
-          <div style={{display:'flex',gap:8,flexWrap:'wrap'}}><label className="button outline" style={{cursor:'pointer'}}><Upload size={15}/> Fazer upload<input type="file" accept="image/*" onChange={handleImageUpload} style={{display:'none'}}/></label>{config.imageUrl&&<button type="button" className="button outline" onClick={()=>patch({imageUrl:'',imageAlt:''})}><Trash2 size={15}/> Remover imagem</button>}</div>
+          <div style={{display:'flex',gap:8,flexWrap:'wrap'}}><label className="button outline" style={{cursor:imageBusy?'wait':'pointer',opacity:imageBusy?.65:1}}><Upload size={15}/> {imageBusy?'Otimizando imagem...':'Fazer upload'}<input type="file" accept="image/*" disabled={imageBusy} onChange={handleImageUpload} style={{display:'none'}}/></label>{config.imageUrl&&<button type="button" className="button outline" onClick={()=>patch({imageUrl:'',imageAlt:''})}><Trash2 size={15}/> Remover imagem</button>}</div>
+          <small style={{display:'block',marginTop:8}}>O upload é redimensionado e otimizado automaticamente antes do salvamento.</small>
           <label style={{marginTop:10}}>URL da imagem<input value={config.imageUrl} onChange={e=>patch({imageUrl:e.target.value})} placeholder="https://..."/></label>
           <label>Texto alternativo<input value={config.imageAlt} onChange={e=>patch({imageAlt:e.target.value})}/></label>
         </>}
@@ -96,8 +148,9 @@ export function HomeSectionManagerPage({section}:{section:SectionKey}){
 
       <section className={`section-editor-preview-column${usesHeroEditorPattern?' grid-editor-preview':''}`}>
         <div className="section-editor-card section-preview-card"><div className="section-preview-toolbar"><div><h2>Prévia da seção</h2>{usesHeroEditorPattern&&<p>{previewDescription}</p>}</div>{usesCompactPreview&&<div className="hero-cms-viewports" aria-label="Prévia única"><button type="button" className="active" aria-label="Prévia compacta em formato mobile" title="Prévia compacta"><Smartphone size={17}/></button></div>}</div><Preview section={section} config={config} items={previewItems} viewport={previewViewport}/></div>
-        {usesHeroEditorPattern&&<div className="grid-editor-actions"><Link className="button outline" to="/app/site/secoes">Cancelar</Link><button className="button dark" onClick={save}><Save size={15}/> Salvar alterações</button></div>}
-        {usesHeroEditorPattern&&saved&&<div className="home-section-manager-success grid-save-success">Alterações salvas para esta seção.</div>}
+        {usesHeroEditorPattern&&<div className="grid-editor-actions"><Link className="button outline" to="/app/site/secoes">Cancelar</Link><button className="button dark" onClick={save} disabled={imageBusy}><Save size={15}/> Salvar alterações</button></div>}
+        {saveError&&<div className="home-section-manager-error grid-save-error" role="alert" style={{marginTop:10,color:'#b42318',fontWeight:700}}>{saveError}</div>}
+        {usesHeroEditorPattern&&saved&&<div className="home-section-manager-success grid-save-success">Alterações salvas. A Home pública já pode consumir esta configuração.</div>}
         {!usesHeroEditorPattern&&<div className="section-editor-card section-details"><h2>Detalhes da seção</h2><dl><dt>Identificador</dt><dd>{d.identifier}</dd><dt>Posição na página</dt><dd>{d.position}</dd><dt>Comportamento</dt><dd>Posição fixa; conteúdo editorial administrado fora deste módulo</dd><dt>Responsividade</dt><dd>Adaptativa para desktop, tablet e mobile</dd></dl></div>}
       </section>
     </div>

@@ -45,7 +45,7 @@ for(const required of [
  "['Configurações',Settings,'/app/settings']"
 ])if(!adminNavigation.includes(required))failures.push(`adminNavigation deve preservar módulo obrigatório: ${required}`)
 for(const forbidden of ["['Dashboard',LayoutDashboard,'/app/crm']","['Leads'","['Contatos'",'/app/crm/dashboard','/app/crm/integrations','Integrações','PlugZap',"['Categorias',Tags,'/app/finance/categories']","['Regras'","/app/finance/automations"])if(adminNavigation.includes(forbidden))failures.push(`adminNavigation contém item proibido ou removido: ${forbidden}`)
-for(const removedSiteModule of ['Marca & Logos','Cabeçalho','Páginas','Categorias','Publicidade','/app/site/marca','/app/site/cabecalho','/app/site/paginas','/app/site/categorias','/app/site/noticias/anuncio'])if(adminNavigation.includes(removedSiteModule))failures.push(`adminNavigation não pode reintroduzir módulo administrativo removido: ${removedSiteModule}`)
+for(const removedSiteModule of ["['Marca & Logos'","['Cabeçalho'","['Páginas',","['Categorias',Tags,","['Publicidade',Megaphone",'/app/site/marca','/app/site/cabecalho','/app/site/paginas','/app/site/categorias','/app/site/noticias/anuncio'])if(adminNavigation.includes(removedSiteModule))failures.push(`adminNavigation não pode reintroduzir módulo administrativo removido: ${removedSiteModule}`)
 
 const requiredFiles=[
  'src/features/contracts/ContractsPage.tsx',

@@ -11,6 +11,11 @@ function formatDate(raw:string|undefined){
   const date=new Date(raw)
   return Number.isFinite(date.getTime())?date.toLocaleDateString('pt-BR'):'—'
 }
+function barWidthClass(value:number,max:number){
+  const ratio=max>0?Math.max(0,Math.min(1,value/max)):0
+  const bucket=Math.max(1,Math.ceil(ratio*10))*10
+  return `w${bucket}`
+}
 
 const pipelineLabels:Record<string,string>={novo:'Novos',contato_realizado:'Contato realizado',qualificado:'Qualificados',proposta:'Propostas',negociacao:'Negociação',fechado:'Fechados',perdido:'Perdidos'}
 
@@ -39,7 +44,7 @@ export default function DashboardPage(){
         <section className="unified-dashboard-card unified-dashboard-overview">
           <div className="unified-card-heading"><div><h2>Visão Comercial</h2><p>Distribuição atual das oportunidades do CRM.</p></div><Activity size={18}/></div>
           <div className="unified-pipeline-chart">
-            {pipelineEntries.length?pipelineEntries.map(([status,total])=><div className="unified-pipeline-row" key={status}><span>{pipelineLabels[status]??status}</span><div><i style={{width:`${Math.max(6,(total/pipelineMax)*100)}%`}}/></div><strong>{total}</strong></div>):<div className="unified-dashboard-empty">Nenhum lead disponível.</div>}
+            {pipelineEntries.length?pipelineEntries.map(([status,total])=><div className="unified-pipeline-row" key={status}><span>{pipelineLabels[status]??status}</span><div><i className={barWidthClass(total,pipelineMax)}/></div><strong>{total}</strong></div>):<div className="unified-dashboard-empty">Nenhum lead disponível.</div>}
           </div>
         </section>
 

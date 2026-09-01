@@ -21,7 +21,7 @@ function HeaderActionButton({action}:{action:AdminShellAction}){
   return <button className={`button ${secondary?'outline workspace-header-secondary':'dark workspace-primary-action'} workspace-header-polished-action${action.className?` ${action.className}`:''}`} type="button" onClick={action.onClick} disabled={action.disabled} title={action.disabled?action.disabledReason:undefined}>{ActionIcon&&<ActionIcon size={14} aria-hidden="true"/>}{action.label}</button>
 }
 
-function PageHeader({context,header,actions,sidebarCollapsed,onToggleSidebar}:{context:string;header?:PageHeaderConfig;actions:readonly AdminShellAction[];sidebarCollapsed:boolean;onToggleSidebar:()=>void}){
+function PageHeader({context,header,actions}:{context:string;header?:PageHeaderConfig;actions:readonly AdminShellAction[]}){
   const [notificationsOpen,setNotificationsOpen]=useState(false)
   const [accountOpen,setAccountOpen]=useState(false)
   const notificationsRef=useRef<HTMLDivElement>(null)
@@ -49,10 +49,8 @@ function PageHeader({context,header,actions,sidebarCollapsed,onToggleSidebar}:{c
     }
   },[notificationsOpen,accountOpen])
 
-  const showHeaderSidebarToggle=header?.title!=='DASHBOARD'
-
   return <header className={`workspace-top${header?' workspace-top-page':''}`}>
-    {header?<div className="workspace-page-heading-row">{header.backTo&&<Link className="workspace-header-back" to={header.backTo}><ArrowLeft size={15}/><span>{header.backLabel||'Voltar'}</span></Link>}{showHeaderSidebarToggle&&<button className="cms-sidebar-toggle workspace-header-sidebar-toggle" type="button" aria-label={sidebarCollapsed?'Expandir menu':'Recolher menu'} aria-pressed={sidebarCollapsed} onClick={onToggleSidebar}>{sidebarCollapsed?<PanelLeftOpen size={16}/>:<PanelLeftClose size={16}/>}</button>}<div className="workspace-page-heading"><h1>{header.title}</h1><p>{header.description}</p></div></div>:<div className="workspace-page-heading-row"><button className="cms-sidebar-toggle workspace-header-sidebar-toggle" type="button" aria-label={sidebarCollapsed?'Expandir menu':'Recolher menu'} aria-pressed={sidebarCollapsed} onClick={onToggleSidebar}>{sidebarCollapsed?<PanelLeftOpen size={16}/>:<PanelLeftClose size={16}/>}</button><div className="workspace-identity"><span className="workspace-context">{context}</span></div></div>}
+    {header?<div className="workspace-page-heading-row">{header.backTo&&<Link className="workspace-header-back" to={header.backTo}><ArrowLeft size={15}/><span>{header.backLabel||'Voltar'}</span></Link>}<div className="workspace-page-heading"><h1>{header.title}</h1><p>{header.description}</p></div></div>:<div className="workspace-identity"><span className="workspace-context">{context}</span></div>}
     <div className="workspace-actions">
       {actions.map(action=><HeaderActionButton key={action.label} action={action}/>)}
       <div className="workspace-popover-wrap" ref={notificationsRef}>
@@ -88,8 +86,9 @@ export function AdminShell({area,items,children,header,headerAction,headerAction
       <div className="sidebar-head">
         <div className="sidebar-brand-row">
           <Link to="/" className="brand" aria-label="Ir para o Portal Lander"><img src={portalLogo} alt="Portal Lander"/></Link>
+          <button className="cms-sidebar-toggle" type="button" aria-label={sidebarCollapsed?'Expandir menu':'Recolher menu'} aria-pressed={sidebarCollapsed} onClick={toggleSidebar}>{sidebarCollapsed?<PanelLeftOpen size={16}/>:<PanelLeftClose size={16}/>}</button>
         </div>
-        {header?.title==='DASHBOARD'?<div className="sidebar-dashboard-heading"><div><strong>Dashboard</strong><small>Visão geral</small></div><button className="cms-sidebar-toggle sidebar-dashboard-toggle" type="button" aria-label={sidebarCollapsed?'Expandir menu':'Recolher menu'} aria-pressed={sidebarCollapsed} onClick={toggleSidebar}>{sidebarCollapsed?<PanelLeftOpen size={16}/>:<PanelLeftClose size={16}/>}</button></div>:<span>ADMINISTRAÇÃO</span>}
+        <span>ADMINISTRAÇÃO</span>
       </div>
       <nav aria-label="Módulos da Administração">
         {items.map(item=>{
@@ -104,7 +103,7 @@ export function AdminShell({area,items,children,header,headerAction,headerAction
         })}
       </nav>
     </aside>
-    <div className="workspace"><PageHeader context={context} header={header} actions={actions} sidebarCollapsed={sidebarCollapsed} onToggleSidebar={toggleSidebar}/><main className="workspace-main" id="admin-main" tabIndex={-1}>{children}</main></div>
+    <div className="workspace"><PageHeader context={context} header={header} actions={actions}/><main className="workspace-main" id="admin-main" tabIndex={-1}>{children}</main></div>
   </div>
 }
 

@@ -115,6 +115,7 @@ type LegacyHero = Partial<HeroSlide> & { ticker?: Partial<HeroTicker> }
 
 export const HERO_STORAGE_KEY = 'portal-lander:home:hero:slides:v2'
 const LEGACY_HERO_STORAGE_KEY = 'portal-lander:home:hero'
+const DESKTOP_FRAMING_MIGRATION_KEY = 'portal-lander:home:hero:desktop-framing:2026-08-31-v1'
 
 export const heroArticles: HeroArticleSource[] = getRuntimeDataProvider().home.heroArticles()
 export const defaultHeroSlide: HeroSlide = getRuntimeDataProvider().home.defaultHeroSlide()
@@ -233,6 +234,25 @@ function normalizeConfig(raw: Partial<HeroCarouselConfig> | null | undefined): H
   }
 }
 
+function applyRequestedDesktopFraming(config: HeroCarouselConfig): HeroCarouselConfig {
+  if (!config.slides.length) return config
+  const slides = config.slides.map((slide, index) => index === 0 ? {
+    ...slide,
+    imagePositionX: 30,
+    imagePositionY: 100,
+    imageOffsetY: 32,
+  } : slide)
+  return { ...config, slides }
+}
+
+function migrateRequestedDesktopFraming(config: HeroCarouselConfig): HeroCarouselConfig {
+  if (heroPersistence.read(DESKTOP_FRAMING_MIGRATION_KEY)) return config
+  const migrated = applyRequestedDesktopFraming(config)
+  heroPersistence.write(HERO_STORAGE_KEY, JSON.stringify(migrated))
+  heroPersistence.write(DESKTOP_FRAMING_MIGRATION_KEY, '1')
+  return migrated
+}
+
 function legacyToConfig(raw: unknown): HeroCarouselConfig {
   if (!raw || typeof raw !== 'object') return normalizeConfig(defaultHeroConfig)
   const legacy = raw as LegacyHero
@@ -245,13 +265,13 @@ function legacyToConfig(raw: unknown): HeroCarouselConfig {
 export function readHeroConfig(): HeroCarouselConfig {
   try {
     const value = heroPersistence.read(HERO_STORAGE_KEY)
-    if (value) return normalizeConfig(JSON.parse(value))
+    if (value) return migrateRequestedDesktopFraming(normalizeConfig(JSON.parse(value)))
     const legacy = heroPersistence.read(LEGACY_HERO_STORAGE_KEY)
-    if (legacy) return legacyToConfig(JSON.parse(legacy))
+    if (legacy) return migrateRequestedDesktopFraming(legacyToConfig(JSON.parse(legacy)))
   } catch {
-    return normalizeConfig(structuredClone(defaultHeroConfig))
+    return applyRequestedDesktopFraming(normalizeConfig(structuredClone(defaultHeroConfig)))
   }
-  return normalizeConfig(structuredClone(defaultHeroConfig))
+  return applyRequestedDesktopFraming(normalizeConfig(structuredClone(defaultHeroConfig)))
 }
 
 export function writeHeroConfig(config: HeroCarouselConfig) {
@@ -262,6 +282,7 @@ export function writeHeroConfig(config: HeroCarouselConfig) {
 export function resetHeroConfig() {
   heroPersistence.remove(HERO_STORAGE_KEY)
   heroPersistence.remove(LEGACY_HERO_STORAGE_KEY)
+  heroPersistence.remove(DESKTOP_FRAMING_MIGRATION_KEY)
   heroPersistence.notify()
 }
 

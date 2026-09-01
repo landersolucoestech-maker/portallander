@@ -1,14 +1,15 @@
 import { ExternalLink, Plus, Save, Smartphone, Trash2, Upload } from 'lucide-react'
-import { ChangeEvent, useMemo, useState } from 'react'
+import { ChangeEvent, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { homeReadModel } from '../../../pages/home/models/homeReadModel'
 import { SITE_MANAGER_NAV } from '../../../shared/internal/adminNavigation'
 import { AdminShell } from '../../../shared/internal/AdminUi'
+import { loadSidebarAdConfig, saveSidebarAdConfig, SIDEBAR_AD_STORAGE_KEY, type SidebarAdConfig } from '../../../shared/persistence/sidebarAdStorage'
 import '../../../styles/home-section-manager.css'
 import '../../../styles/home-grid-section-editor.css'
 
 export type SectionKey='hero'|'ticker'|'grid'|'most-read'|'side-ad'|'secondary'|'trending'|'banner'|'videos'|'agenda'|'newsletter'|'footer'
-type SectionConfig={active:boolean;title:string;subtitle:string;linkLabel:string;linkUrl:string;source:string;quantity:number;width:number;height:number;paddingX:number;paddingY:number;radius:number;background:string;textColor:string;titleColor:string;accentColor:string;borderColor:string;bodyLines:string[];imageUrl:string;imageAlt:string}
+type SectionConfig={active:boolean;title:string;subtitle:string;linkLabel:string;linkUrl:string;source:string;quantity:number;width:number;height:number;paddingX:number;paddingY:number;radius:number;background:string;textColor:string;titleColor:string;accentColor:string;borderColor:string;bodyLines:string[];imageUrl:string;imageAlt:string;imageStored?:boolean}
 type Definition={title:string;description:string;position:string;identifier:string;defaultTitle:string;defaultSubtitle:string;defaultQuantity:number;defaultWidth:number;defaultHeight:number;sourceLabel:string;sourceOptions:string[]}
 type PreviewItem={title:string;image?:string;category?:string;place?:string}
 type PreviewViewport='desktop'|'tablet'|'mobile'
@@ -28,8 +29,8 @@ const defs:Record<SectionKey,Definition>={
   footer:{title:'Footer',description:'Configuração visual e institucional do rodapé.',position:'Último bloco da página',identifier:'home_footer',defaultTitle:'Portal Lander',defaultSubtitle:'Conteúdo, cultura e movimento.',defaultQuantity:1,defaultWidth:100,defaultHeight:300,sourceLabel:'Estrutura',sourceOptions:['Padrão do Portal','Personalizada']},
 }
 
-const defaultConfig=(d:Definition):SectionConfig=>({active:true,title:d.defaultTitle,subtitle:d.defaultSubtitle,linkLabel:'Ver todos',linkUrl:'#',source:d.sourceOptions[0],quantity:d.defaultQuantity,width:d.defaultWidth,height:d.defaultHeight,paddingX:24,paddingY:24,radius:0,background:d.identifier==='home_pub_lateral'?'#090909':'#ffffff',textColor:d.identifier==='home_pub_lateral'?'#ffffff':'#333333',titleColor:d.identifier==='home_pub_lateral'?'#ffffff':'#111111',accentColor:'#e50914',borderColor:d.identifier==='home_pub_lateral'?'#090909':'#e5e5e5',bodyLines:d.identifier==='home_pub_lateral'?['SUA MARCA NO RITMO CERTO!']:[],imageUrl:'',imageAlt:''})
-const key=(s:SectionKey)=>`portal-lander:cms:section-config:${s}:v4`
+const defaultConfig=(d:Definition):SectionConfig=>({active:true,title:d.defaultTitle,subtitle:d.defaultSubtitle,linkLabel:'Ver todos',linkUrl:'#',source:d.sourceOptions[0],quantity:d.defaultQuantity,width:d.defaultWidth,height:d.defaultHeight,paddingX:24,paddingY:24,radius:0,background:d.identifier==='home_pub_lateral'?'#090909':'#ffffff',textColor:d.identifier==='home_pub_lateral'?'#ffffff':'#333333',titleColor:d.identifier==='home_pub_lateral'?'#ffffff':'#111111',accentColor:'#e50914',borderColor:d.identifier==='home_pub_lateral'?'#090909':'#e5e5e5',bodyLines:d.identifier==='home_pub_lateral'?['SUA MARCA NO RITMO CERTO!']:[],imageUrl:'',imageAlt:'',imageStored:false})
+const key=(s:SectionKey)=>s==='side-ad'?SIDEBAR_AD_STORAGE_KEY:`portal-lander:cms:section-config:${s}:v4`
 const legacyRankingKey='portal-lander:cms:section-config:ranking:v4'
 const SECTION_UPDATED_EVENT='portal-lander:section-config-updated'
 
@@ -43,7 +44,7 @@ function optimizeImage(file:File):Promise<string>{
       const image=new Image()
       image.onerror=()=>reject(new Error('Não foi possível processar a imagem.'))
       image.onload=()=>{
-        const maxDimension=1200
+        const maxDimension=1600
         const ratio=Math.min(1,maxDimension/Math.max(image.naturalWidth,image.naturalHeight))
         const width=Math.max(1,Math.round(image.naturalWidth*ratio))
         const height=Math.max(1,Math.round(image.naturalHeight*ratio))
@@ -53,7 +54,7 @@ function optimizeImage(file:File):Promise<string>{
         const context=canvas.getContext('2d')
         if(!context){reject(new Error('Não foi possível preparar a imagem.'));return}
         context.drawImage(image,0,0,width,height)
-        resolve(canvas.toDataURL('image/webp',.78))
+        resolve(canvas.toDataURL('image/webp',.82))
       }
       image.src=String(reader.result||'')
     }
@@ -77,19 +78,29 @@ export function HomeSectionManagerPage({section}:{section:SectionKey}){
   const [saved,setSaved]=useState(false)
   const [saveError,setSaveError]=useState('')
   const [imageBusy,setImageBusy]=useState(false)
+  const [saving,setSaving]=useState(false)
+
+  useEffect(()=>{
+    let cancelled=false
+    if(section==='side-ad')loadSidebarAdConfig(defaultConfig(d) as SidebarAdConfig).then(next=>{if(!cancelled)setConfig(next)})
+    return()=>{cancelled=true}
+  },[section,d])
+
   const patch=(p:Partial<SectionConfig>)=>{setConfig(c=>({...c,...p}));setSaved(false);setSaveError('')}
   const previewItems=useMemo<PreviewItem[]>(()=>getPreviewItems(section),[section])
-  const save=()=>{
+  const save=async()=>{
+    if(saving||imageBusy)return
+    setSaving(true)
+    setSaveError('')
     try{
-      localStorage.setItem(key(section),JSON.stringify(config))
+      if(section==='side-ad')await saveSidebarAdConfig(config as SidebarAdConfig)
+      else localStorage.setItem(key(section),JSON.stringify(config))
       setSaved(true)
-      setSaveError('')
       window.dispatchEvent(new CustomEvent(SECTION_UPDATED_EVENT,{detail:{section}}))
     }catch(error){
       setSaved(false)
-      const isQuota=error instanceof DOMException&&(error.name==='QuotaExceededError'||error.name==='NS_ERROR_DOM_QUOTA_REACHED')
-      setSaveError(isQuota?'Não foi possível salvar: a imagem ainda está grande demais para o armazenamento local. Envie uma imagem menor ou use uma URL.':'Não foi possível salvar esta seção. Tente novamente.')
-    }
+      setSaveError(error instanceof Error?`Não foi possível salvar: ${error.message}`:'Não foi possível salvar esta seção.')
+    }finally{setSaving(false)}
   }
   const widthValue=config.width<=100?1200:config.width
   const openPublicSite=()=>{const publicUrl=`${window.location.origin}${window.location.pathname}#/`;window.open(publicUrl,'_blank','noopener,noreferrer')}
@@ -104,15 +115,13 @@ export function HomeSectionManagerPage({section}:{section:SectionKey}){
     if(!file)return
     setImageBusy(true)
     setSaveError('')
-    try{
-      const imageUrl=await optimizeImage(file)
-      patch({imageUrl,imageAlt:config.imageAlt||file.name})
-    }catch(error){setSaveError(error instanceof Error?error.message:'Não foi possível processar a imagem.')}
+    try{const imageUrl=await optimizeImage(file);patch({imageUrl,imageAlt:config.imageAlt||file.name,imageStored:false})}
+    catch(error){setSaveError(error instanceof Error?error.message:'Não foi possível processar a imagem.')}
     finally{setImageBusy(false);event.target.value=''}
   }
 
   return <AdminShell area="cms" items={SITE_MANAGER_NAV} header={header} headerAction={usesHeroEditorPattern?{label:'Ver no site',icon:ExternalLink,variant:'secondary',onClick:openPublicSite}:undefined}>
-    {!usesHeroEditorPattern&&<div className="section-editor-toolbar"><div><Link to="/app/site/secoes">← Seções das Páginas</Link><span className="section-editor-status"><input type="checkbox" checked={config.active} onChange={e=>patch({active:e.target.checked})}/> {config.active?'Ativo':'Inativo'}</span></div><div><Link className="button outline" to="/app/site/secoes">Cancelar</Link><button className="button dark" onClick={save}><Save size={15}/> Salvar alterações</button></div></div>}
+    {!usesHeroEditorPattern&&<div className="section-editor-toolbar"><div><Link to="/app/site/secoes">← Seções das Páginas</Link><span className="section-editor-status"><input type="checkbox" checked={config.active} onChange={e=>patch({active:e.target.checked})}/> {config.active?'Ativo':'Inativo'}</span></div><div><Link className="button outline" to="/app/site/secoes">Cancelar</Link><button type="button" className="button dark" onClick={save}><Save size={15}/> Salvar alterações</button></div></div>}
 
     <div className={`section-editor-layout${usesHeroEditorPattern?' grid-editor-layout':''}`}>
       <section className={`section-editor-card${usesHeroEditorPattern?' grid-editor-settings':''}`}>
@@ -129,9 +138,9 @@ export function HomeSectionManagerPage({section}:{section:SectionKey}){
           <button type="button" className="button outline" onClick={addBodyLine} style={{marginTop:10}}><Plus size={15}/> Adicionar texto</button>
           <h2>Imagem da publicidade</h2>
           {config.imageUrl&&<img src={config.imageUrl} alt={config.imageAlt} style={{display:'block',width:'100%',maxHeight:220,objectFit:'contain',border:'1px solid #e5e5e5',marginBottom:10}}/>}
-          <div style={{display:'flex',gap:8,flexWrap:'wrap'}}><label className="button outline" style={{cursor:imageBusy?'wait':'pointer',opacity:imageBusy?.65:1}}><Upload size={15}/> {imageBusy?'Otimizando imagem...':'Fazer upload'}<input type="file" accept="image/*" disabled={imageBusy} onChange={handleImageUpload} style={{display:'none'}}/></label>{config.imageUrl&&<button type="button" className="button outline" onClick={()=>patch({imageUrl:'',imageAlt:''})}><Trash2 size={15}/> Remover imagem</button>}</div>
-          <small style={{display:'block',marginTop:8}}>O upload é redimensionado e otimizado automaticamente antes do salvamento.</small>
-          <label style={{marginTop:10}}>URL da imagem<input value={config.imageUrl} onChange={e=>patch({imageUrl:e.target.value})} placeholder="https://..."/></label>
+          <div style={{display:'flex',gap:8,flexWrap:'wrap'}}><label className="button outline" style={{cursor:imageBusy?'wait':'pointer',opacity:imageBusy?.65:1}}><Upload size={15}/> {imageBusy?'Otimizando imagem...':'Fazer upload'}<input type="file" accept="image/*" disabled={imageBusy} onChange={handleImageUpload} style={{display:'none'}}/></label>{config.imageUrl&&<button type="button" className="button outline" onClick={()=>patch({imageUrl:'',imageAlt:'',imageStored:false})}><Trash2 size={15}/> Remover imagem</button>}</div>
+          <small style={{display:'block',marginTop:8}}>A imagem é otimizada e armazenada separadamente para não bloquear o salvamento da configuração.</small>
+          <label style={{marginTop:10}}>URL da imagem<input value={config.imageUrl.startsWith('blob:')?'':config.imageUrl} onChange={e=>patch({imageUrl:e.target.value,imageStored:false})} placeholder="https://..."/></label>
           <label>Texto alternativo<input value={config.imageAlt} onChange={e=>patch({imageAlt:e.target.value})}/></label>
         </>}
 
@@ -148,9 +157,9 @@ export function HomeSectionManagerPage({section}:{section:SectionKey}){
 
       <section className={`section-editor-preview-column${usesHeroEditorPattern?' grid-editor-preview':''}`}>
         <div className="section-editor-card section-preview-card"><div className="section-preview-toolbar"><div><h2>Prévia da seção</h2>{usesHeroEditorPattern&&<p>{previewDescription}</p>}</div>{usesCompactPreview&&<div className="hero-cms-viewports" aria-label="Prévia única"><button type="button" className="active" aria-label="Prévia compacta em formato mobile" title="Prévia compacta"><Smartphone size={17}/></button></div>}</div><Preview section={section} config={config} items={previewItems} viewport={previewViewport}/></div>
-        {usesHeroEditorPattern&&<div className="grid-editor-actions"><Link className="button outline" to="/app/site/secoes">Cancelar</Link><button className="button dark" onClick={save} disabled={imageBusy}><Save size={15}/> Salvar alterações</button></div>}
+        {usesHeroEditorPattern&&<div className="grid-editor-actions"><Link className="button outline" to="/app/site/secoes">Cancelar</Link><button type="button" className="button dark" onClick={save} disabled={imageBusy||saving}><Save size={15}/> {saving?'Salvando...':'Salvar alterações'}</button></div>}
         {saveError&&<div className="home-section-manager-error grid-save-error" role="alert" style={{marginTop:10,color:'#b42318',fontWeight:700}}>{saveError}</div>}
-        {usesHeroEditorPattern&&saved&&<div className="home-section-manager-success grid-save-success">Alterações salvas. A Home pública já pode consumir esta configuração.</div>}
+        {usesHeroEditorPattern&&saved&&<div className="home-section-manager-success grid-save-success">Alterações salvas com sucesso.</div>}
         {!usesHeroEditorPattern&&<div className="section-editor-card section-details"><h2>Detalhes da seção</h2><dl><dt>Identificador</dt><dd>{d.identifier}</dd><dt>Posição na página</dt><dd>{d.position}</dd><dt>Comportamento</dt><dd>Posição fixa; conteúdo editorial administrado fora deste módulo</dd><dt>Responsividade</dt><dd>Adaptativa para desktop, tablet e mobile</dd></dl></div>}
       </section>
     </div>

@@ -57,7 +57,7 @@ function SidebarAd(){
   const isExternal=/^https?:\/\//i.test(config.linkUrl)
   return <aside className="pl-home-sidebar-ad" style={{width:'100%',maxWidth:config.width<=100?300:config.width}}>
     <div className="pl-home-sidebar-ad-inner" style={{background:config.background,color:config.textColor,minHeight:config.height,border:`1px solid ${config.borderColor}`,borderRadius:config.radius,padding:`${config.paddingY}px ${config.paddingX}px`,overflow:'hidden'}}>
-      {config.imageUrl?<img src={config.imageUrl} alt={config.imageAlt||'Publicidade'} style={{display:'block',width:'100%',maxHeight:Math.max(180,config.height*.58),objectFit:'contain',margin:'0 auto 12px'}}/>:<img src={portalLogo} alt="Portal Lander"/>}
+      {config.imageUrl?<img src={config.imageUrl} alt={config.imageAlt||'Publicidade'} style={{display:'block',width:'100%',height:'auto',maxHeight:'none',objectFit:'contain',margin:'0 auto'}}/>:<img src={portalLogo} alt="Portal Lander"/>}
       {config.title&&<span className="pl-home-sidebar-ad-kicker" style={{color:config.textColor}}>{config.title}</span>}
       {config.subtitle&&<h3 style={{color:config.titleColor}}>{config.subtitle}</h3>}
       {config.bodyLines.filter(Boolean).map((line,index)=><p key={`${line}-${index}`} style={{color:config.accentColor}}>{line}</p>)}

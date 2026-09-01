@@ -27,16 +27,10 @@ export default function SiteManagerRoutes(){
     <Route path="secoes/home/publicidade-lateral" element={<HomeSectionManagerPage section="side-ad"/>}/>
     <Route path="secoes/home/ultimas-noticias" element={<HomeSectionManagerPage section="latest"/>}/>
     <Route path="secoes/home/em-alta" element={<HomeSectionManagerPage section="trending"/>}/>
-    <Route path="secoes/home/banner-horizontal" element={<HomeSectionManagerPage section="banner"/>}/>
+    <Route path="secoes/home/publicidade-horizontal" element={<HomeSectionManagerPage section="horizontal-ad"/>}/>
     <Route path="secoes/home/lancamentos" element={<HomeSectionManagerPage section="releases"/>}/>
     <Route path="secoes/home/agenda" element={<HomeSectionManagerPage section="agenda"/>}/>
-    <Route path="secoes/home/footer" element={<HomeSectionManagerPage section="footer"/>}/>
-
-    <Route path="secoes/home/ranking" element={<Navigate to="/app/site/secoes/home/mais-lidas" replace/>}/>
-    <Route path="secoes/home/barra-agora" element={<Navigate to="/app/site/secoes/home/hero" replace/>}/>
-    <Route path="secoes/home/destaques" element={<Navigate to="/app/site/secoes/home/ultimas-noticias" replace/>}/>
-    <Route path="secoes/home/videos" element={<Navigate to="/app/site/secoes/home/lancamentos" replace/>}/>
-    <Route path="secoes/home/newsletter" element={<Navigate to="/app/site/secoes" replace/>}/>
+    <Route path="secoes/home/rodape" element={<HomeSectionManagerPage section="footer"/>}/>
 
     <Route path="marca" element={<BrandAssetsManagerPage/>}/>
     <Route path="cabecalho" element={<HeaderBrandManagerPage/>}/>

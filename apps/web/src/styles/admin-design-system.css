@@ -67,6 +67,14 @@
 .workspace-main table.rh-table th,.workspace-main table.rh-table td,.workspace-main table.rh-table .numeric,.workspace-main table.rh-table .tabular,.workspace-main table.rh-table td.positive,.workspace-main table.rh-table td.negative,.workspace-main table.rh-table .actions,.workspace-main table.rh-table .actions-col{text-align:left!important}
 .workspace-main table.rh-table .table-row-actions,.workspace-main table.rh-table .crm-row-actions{justify-content:flex-start!important;margin-left:0!important;margin-right:auto!important}
 
+/* Marketing TableViews follow the same rule: compact selector + eight equal data columns, all anchored left. */
+.workspace-main table.marketing-reference-table{display:block!important;width:100%!important;min-width:900px!important;table-layout:fixed!important}
+.workspace-main table.marketing-reference-table thead,.workspace-main table.marketing-reference-table tbody{display:block!important;width:100%!important}
+.workspace-main table.marketing-reference-table tr{display:grid!important;grid-template-columns:38px repeat(8,minmax(0,1fr))!important;width:100%!important}
+.workspace-main table.marketing-reference-table th,.workspace-main table.marketing-reference-table td,.workspace-main table.marketing-reference-table .tabular,.workspace-main table.marketing-reference-table td.positive,.workspace-main table.marketing-reference-table td.negative,.workspace-main table.marketing-reference-table .actions{width:auto!important;min-width:0!important;max-width:none!important;text-align:left!important;box-sizing:border-box!important;overflow:hidden!important;text-overflow:ellipsis!important}
+.workspace-main table.marketing-reference-table .select{width:auto!important;min-width:0!important;max-width:none!important;text-align:center!important;display:grid!important;place-items:center!important}
+.workspace-main table.marketing-reference-table .table-row-actions,.workspace-main table.marketing-reference-table .crm-row-actions{justify-content:flex-start!important;margin-left:0!important;margin-right:auto!important}
+
 /* Status/badge family. */
 .crm-badge,.finance-type,.finance-status,.contracts-status,.rh-status,.marketing-status,.settings-badge{min-height:22px;padding:3px 8px;border-radius:999px;font-size:10px;font-weight:700;line-height:1.2}
 

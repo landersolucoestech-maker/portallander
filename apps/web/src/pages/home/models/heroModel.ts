@@ -238,9 +238,9 @@ function applyRequestedDesktopFraming(config: HeroCarouselConfig): HeroCarouselC
   if (!config.slides.length) return config
   const slides = config.slides.map((slide, index) => index === 0 ? {
     ...slide,
-    imagePositionX: -24,
-    imagePositionY: 0,
-    imageOffsetY: 0,
+    imagePositionX: 30,
+    imagePositionY: 100,
+    imageOffsetY: 32,
   } : slide)
   return { ...config, slides }
 }

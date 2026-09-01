@@ -23,15 +23,15 @@ export default function SiteManagerRoutes(){
     <Route path="secoes" element={<SiteSectionsPage/>}/>
     <Route path="secoes/home/hero" element={<HeroSectionAppearancePage/>}/>
     <Route path="secoes/home/ticker" element={<HeroSectionAppearancePage/>}/>
-    <Route path="secoes/home/em-destaque" element={<HomeSectionManagerPage section="grid"/>}/>
-    <Route path="secoes/home/mais-lidas" element={<HomeSectionManagerPage section="most-read"/>}/>
-    <Route path="secoes/home/ultimas-noticias" element={<HomeSectionManagerPage section="latest"/>}/>
-    <Route path="secoes/home/publicidade-lateral" element={<HomeSectionManagerPage section="side-ad"/>}/>
-    <Route path="secoes/home/em-alta" element={<HomeSectionManagerPage section="trending"/>}/>
-    <Route path="secoes/home/secao-anuncie-aqui" element={<HomeSectionManagerPage section="horizontal-ad"/>}/>
-    <Route path="secoes/home/lancamentos" element={<HomeSectionManagerPage section="releases"/>}/>
+    <Route path="secoes/home/em-destaque" element={<HomeSectionManagerPage section="em-destaque"/>}/>
+    <Route path="secoes/home/mais-lidas" element={<HomeSectionManagerPage section="mais-lidas"/>}/>
+    <Route path="secoes/home/ultimas-noticias" element={<HomeSectionManagerPage section="ultimas-noticias"/>}/>
+    <Route path="secoes/home/publicidade-lateral" element={<HomeSectionManagerPage section="publicidade-lateral"/>}/>
+    <Route path="secoes/home/em-alta" element={<HomeSectionManagerPage section="em-alta"/>}/>
+    <Route path="secoes/home/secao-anuncie-aqui" element={<HomeSectionManagerPage section="secao-anuncie-aqui"/>}/>
+    <Route path="secoes/home/lancamentos" element={<HomeSectionManagerPage section="lancamentos"/>}/>
     <Route path="secoes/home/agenda" element={<HomeSectionManagerPage section="agenda"/>}/>
-    <Route path="secoes/home/rodape" element={<HomeSectionManagerPage section="footer"/>}/>
+    <Route path="secoes/home/rodape" element={<HomeSectionManagerPage section="rodape"/>}/>
 
     <Route path="marca" element={<BrandAssetsManagerPage/>}/>
     <Route path="cabecalho" element={<HeaderBrandManagerPage/>}/>

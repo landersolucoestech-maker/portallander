@@ -8,156 +8,107 @@ import { loadSidebarAdConfig, saveSidebarAdConfig, SIDEBAR_AD_STORAGE_KEY, type 
 import '../../../styles/home-section-manager.css'
 import '../../../styles/home-grid-section-editor.css'
 
-export type SectionKey='hero'|'ticker'|'grid'|'most-read'|'side-ad'|'secondary'|'trending'|'banner'|'videos'|'agenda'|'newsletter'|'footer'
+export type SectionKey='grid'|'most-read'|'side-ad'|'latest'|'trending'|'banner'|'releases'|'agenda'|'footer'
 type SectionConfig={active:boolean;title:string;subtitle:string;linkLabel:string;linkUrl:string;source:string;quantity:number;width:number;height:number;paddingX:number;paddingY:number;radius:number;background:string;textColor:string;titleColor:string;accentColor:string;borderColor:string;bodyLines:string[];imageUrl:string;imageAlt:string;imageStored?:boolean}
-type Definition={title:string;description:string;position:string;identifier:string;defaultTitle:string;defaultSubtitle:string;defaultQuantity:number;defaultWidth:number;defaultHeight:number;sourceLabel:string;sourceOptions:string[]}
-type PreviewItem={title:string;image?:string;category?:string;place?:string}
-type PreviewViewport='desktop'|'tablet'|'mobile'
+type Definition={title:string;description:string;position:string;identifier:string;defaultTitle:string;defaultSubtitle:string;defaultQuantity:number;defaultWidth:number;defaultHeight:number;sourceLabel:string;sourceOptions:string[];legacyKey?:string}
+type PreviewItem={title:string;image?:string;category?:string;place?:string;meta?:string}
+
+type PreviewViewport='mobile'
 
 const defs:Record<SectionKey,Definition>={
-  hero:{title:'Hero principal',description:'Configuração visual e estrutural do Hero da página inicial.',position:'Primeiro bloco da página',identifier:'home_hero_principal',defaultTitle:'Viva o agora. Conte o que importa.',defaultSubtitle:'Histórias que conectam cultura, música e movimento.',defaultQuantity:1,defaultWidth:100,defaultHeight:560,sourceLabel:'Fonte',sourceOptions:['Destaque principal','Seleção manual']},
-  ticker:{title:'Barra Agora',description:'Faixa de chamadas rápidas logo abaixo do Hero.',position:'Logo abaixo do Hero',identifier:'home_barra_agora',defaultTitle:'AGORA',defaultSubtitle:'Fique por dentro do que está acontecendo agora.',defaultQuantity:1,defaultWidth:100,defaultHeight:56,sourceLabel:'Fonte',sourceOptions:['Últimas notícias','Seleção manual','Destaques']},
-  grid:{title:'Grid principal',description:'Configuração do bloco editorial principal da Home.',position:'Abaixo da Barra Agora, com Mais Lidas à direita',identifier:'home_grid_principal',defaultTitle:'Últimas notícias',defaultSubtitle:'Confira os destaques e novidades mais recentes.',defaultQuantity:6,defaultWidth:100,defaultHeight:320,sourceLabel:'Fonte dos conteúdos',sourceOptions:['Destaques da Home','Últimas notícias','Seleção manual']},
-  'most-read':{title:'Mais Lidas',description:'Configuração da lista Mais Lidas exibida na lateral direita do Grid principal.',position:'Lateral direita do Grid principal',identifier:'home_mais_lidas',defaultTitle:'Mais Lidas',defaultSubtitle:'Conteúdos mais acessados.',defaultQuantity:10,defaultWidth:300,defaultHeight:520,sourceLabel:'Fonte',sourceOptions:['Mais lidas','Mais recentes','Seleção manual']},
-  'side-ad':{title:'Publicidade lateral',description:'Configuração do slot publicitário abaixo de Mais Lidas.',position:'Abaixo de Mais Lidas, lateral direita',identifier:'home_pub_lateral',defaultTitle:'PUBLICIDADE',defaultSubtitle:'ANUNCIE AQUI',defaultQuantity:1,defaultWidth:300,defaultHeight:600,sourceLabel:'Slot',sourceOptions:['HOME_SIDEBAR_01','HOME_SIDEBAR_02']},
-  secondary:{title:'Últimas Notícias',description:'Configuração da seção Últimas Notícias exibida na Home, imediatamente ao lado de Em Alta.',position:'Abaixo do bloco principal, com Em Alta à direita',identifier:'home_ultimas_noticias',defaultTitle:'ÚLTIMAS NOTÍCIAS',defaultSubtitle:'',defaultQuantity:4,defaultWidth:100,defaultHeight:320,sourceLabel:'Fonte dos conteúdos',sourceOptions:['Últimas notícias','Seleção manual']},
-  trending:{title:'Em alta',description:'Configuração da lista Em Alta exibida ao lado de Últimas Notícias.',position:'Lateral direita de Últimas Notícias',identifier:'home_em_alta',defaultTitle:'EM ALTA',defaultSubtitle:'',defaultQuantity:4,defaultWidth:300,defaultHeight:360,sourceLabel:'Fonte',sourceOptions:['Em alta','Mais lidas','Seleção manual']},
-  banner:{title:'Banner horizontal',description:'Configuração do banner publicitário horizontal.',position:'Entre Últimas Notícias e Lançamentos',identifier:'home_banner_horizontal',defaultTitle:'Banner horizontal',defaultSubtitle:'Campanha horizontal ativa.',defaultQuantity:1,defaultWidth:100,defaultHeight:180,sourceLabel:'Slot',sourceOptions:['HOME_BANNER_01','HOME_BANNER_02']},
-  videos:{title:'Lançamentos',description:'Configuração da seção de lançamentos da Home.',position:'Abaixo do Banner horizontal',identifier:'home_lancamentos',defaultTitle:'LANÇAMENTOS',defaultSubtitle:'',defaultQuantity:4,defaultWidth:100,defaultHeight:420,sourceLabel:'Fonte dos conteúdos',sourceOptions:['Lançamentos','Mais recentes','Seleção manual']},
-  agenda:{title:'Agenda',description:'Configuração da agenda exibida ao lado de Lançamentos.',position:'Lateral direita de Lançamentos',identifier:'home_agenda',defaultTitle:'AGENDA',defaultSubtitle:'',defaultQuantity:6,defaultWidth:300,defaultHeight:420,sourceLabel:'Fonte',sourceOptions:['Próximos eventos','Seleção manual']},
-  newsletter:{title:'Newsletter',description:'Faixa legada que não integra mais a estrutura atual da Home.',position:'Fora da Home atual',identifier:'home_newsletter',defaultTitle:'Newsletter',defaultSubtitle:'',defaultQuantity:1,defaultWidth:100,defaultHeight:200,sourceLabel:'Serviço',sourceOptions:['Interno']},
-  footer:{title:'Footer',description:'Configuração visual e institucional do rodapé.',position:'Último bloco da página',identifier:'home_footer',defaultTitle:'Portal Lander',defaultSubtitle:'Conteúdo, cultura e movimento.',defaultQuantity:1,defaultWidth:100,defaultHeight:300,sourceLabel:'Estrutura',sourceOptions:['Padrão do Portal','Personalizada']},
+  grid:{title:'Grid principal',description:'Configuração do primeiro bloco editorial da Home, exibido publicamente como EM DESTAQUE.',position:'Abaixo do Hero + Barra Agora; Mais Lidas fica à direita',identifier:'home_grid_principal',defaultTitle:'EM DESTAQUE',defaultSubtitle:'',defaultQuantity:6,defaultWidth:100,defaultHeight:320,sourceLabel:'Fonte dos conteúdos',sourceOptions:['Destaques da Home','Seleção manual']},
+  'most-read':{title:'Mais Lidas',description:'Configuração da lista MAIS LIDAS exibida na lateral direita do Grid principal.',position:'Lateral direita do Grid principal',identifier:'home_mais_lidas',defaultTitle:'MAIS LIDAS',defaultSubtitle:'',defaultQuantity:10,defaultWidth:300,defaultHeight:520,sourceLabel:'Fonte',sourceOptions:['Mais lidas','Seleção manual']},
+  'side-ad':{title:'Publicidade lateral',description:'Configuração da publicidade exibida abaixo de Mais Lidas.',position:'Abaixo de Mais Lidas, lateral direita',identifier:'home_pub_lateral',defaultTitle:'PUBLICIDADE',defaultSubtitle:'ANUNCIE AQUI',defaultQuantity:1,defaultWidth:300,defaultHeight:600,sourceLabel:'Slot',sourceOptions:['HOME_SIDEBAR_01','HOME_SIDEBAR_02']},
+  latest:{title:'Últimas Notícias',description:'Configuração da seção ÚLTIMAS NOTÍCIAS da Home.',position:'Abaixo do Grid principal; Em Alta fica à direita',identifier:'home_ultimas_noticias',defaultTitle:'ÚLTIMAS NOTÍCIAS',defaultSubtitle:'',defaultQuantity:4,defaultWidth:100,defaultHeight:320,sourceLabel:'Fonte dos conteúdos',sourceOptions:['Últimas notícias','Seleção manual'],legacyKey:'secondary'},
+  trending:{title:'Em Alta',description:'Configuração da lista EM ALTA exibida ao lado de Últimas Notícias.',position:'Lateral direita de Últimas Notícias',identifier:'home_em_alta',defaultTitle:'EM ALTA',defaultSubtitle:'',defaultQuantity:4,defaultWidth:300,defaultHeight:360,sourceLabel:'Fonte',sourceOptions:['Em alta','Mais lidas','Seleção manual']},
+  banner:{title:'Banner horizontal',description:'Configuração da publicidade horizontal exibida entre Últimas Notícias e Lançamentos.',position:'Entre Últimas Notícias e Lançamentos',identifier:'home_banner_horizontal',defaultTitle:'Banner horizontal',defaultSubtitle:'',defaultQuantity:1,defaultWidth:100,defaultHeight:180,sourceLabel:'Slot',sourceOptions:['HOME_BANNER_01','HOME_BANNER_02']},
+  releases:{title:'Lançamentos',description:'Configuração da seção LANÇAMENTOS da Home.',position:'Abaixo do Banner horizontal; Agenda fica à direita',identifier:'home_lancamentos',defaultTitle:'LANÇAMENTOS',defaultSubtitle:'',defaultQuantity:4,defaultWidth:100,defaultHeight:420,sourceLabel:'Fonte dos conteúdos',sourceOptions:['Lançamentos','Seleção manual'],legacyKey:'videos'},
+  agenda:{title:'Agenda',description:'Configuração da seção AGENDA exibida ao lado de Lançamentos.',position:'Lateral direita de Lançamentos',identifier:'home_agenda',defaultTitle:'AGENDA',defaultSubtitle:'',defaultQuantity:6,defaultWidth:300,defaultHeight:420,sourceLabel:'Fonte',sourceOptions:['Próximos eventos','Seleção manual']},
+  footer:{title:'Footer',description:'Configuração do rodapé institucional da página inicial.',position:'Encerramento da Home',identifier:'home_footer',defaultTitle:'Portal Lander',defaultSubtitle:'',defaultQuantity:1,defaultWidth:100,defaultHeight:300,sourceLabel:'Estrutura',sourceOptions:['Padrão do Portal','Personalizada']},
 }
 
-const defaultConfig=(d:Definition):SectionConfig=>({active:true,title:d.defaultTitle,subtitle:d.defaultSubtitle,linkLabel:'Ver todos',linkUrl:'#',source:d.sourceOptions[0],quantity:d.defaultQuantity,width:d.defaultWidth,height:d.defaultHeight,paddingX:24,paddingY:24,radius:0,background:d.identifier==='home_pub_lateral'?'#090909':'#ffffff',textColor:d.identifier==='home_pub_lateral'?'#ffffff':'#333333',titleColor:d.identifier==='home_pub_lateral'?'#ffffff':'#111111',accentColor:'#e50914',borderColor:d.identifier==='home_pub_lateral'?'#090909':'#e5e5e5',bodyLines:d.identifier==='home_pub_lateral'?['SUA MARCA NO RITMO CERTO!']:[],imageUrl:'',imageAlt:'',imageStored:false})
-const key=(s:SectionKey)=>s==='side-ad'?SIDEBAR_AD_STORAGE_KEY:`portal-lander:cms:section-config:${s}:v4`
-const legacyRankingKey='portal-lander:cms:section-config:ranking:v4'
+const defaultConfig=(d:Definition):SectionConfig=>({active:true,title:d.defaultTitle,subtitle:d.defaultSubtitle,linkLabel:d.identifier==='home_ultimas_noticias'?'VER TODAS AS NOTÍCIAS':'Ver todos',linkUrl:'#',source:d.sourceOptions[0],quantity:d.defaultQuantity,width:d.defaultWidth,height:d.defaultHeight,paddingX:24,paddingY:24,radius:0,background:d.identifier==='home_pub_lateral'?'#090909':'#ffffff',textColor:d.identifier==='home_pub_lateral'?'#ffffff':'#333333',titleColor:d.identifier==='home_pub_lateral'?'#ffffff':'#111111',accentColor:'#e50914',borderColor:d.identifier==='home_pub_lateral'?'#090909':'#e5e5e5',bodyLines:d.identifier==='home_pub_lateral'?['SUA MARCA NO RITMO CERTO!']:[],imageUrl:'',imageAlt:'',imageStored:false})
+const storageKey=(section:SectionKey)=>section==='side-ad'?SIDEBAR_AD_STORAGE_KEY:`portal-lander:cms:section-config:${section}:v4`
 const SECTION_UPDATED_EVENT='portal-lander:section-config-updated'
+
+function normalizeLegacy(section:SectionKey,d:Definition,parsed:Partial<SectionConfig>):SectionConfig{
+  const next={...defaultConfig(d),...parsed}
+  if(section==='grid'&&(parsed.title==='Últimas notícias'||parsed.title==='Em destaque'))next.title='EM DESTAQUE'
+  if(section==='latest'){
+    if(parsed.title==='Em destaque'||parsed.title==='Destaques secundários')next.title='ÚLTIMAS NOTÍCIAS'
+    if(parsed.subtitle==='Seleção editorial em evidência.')next.subtitle=''
+    if(parsed.source==='Seleção manual')next.source='Últimas notícias'
+  }
+  if(section==='releases'&&parsed.title==='Vídeos')next.title='LANÇAMENTOS'
+  return next
+}
 
 function load(section:SectionKey,d:Definition){
   try{
-    const current=localStorage.getItem(key(section))
-    if(current){
-      const parsed=JSON.parse(current) as Partial<SectionConfig>
-      if(section==='secondary')return {...defaultConfig(d),...parsed,title:parsed.title==='Em destaque'?'ÚLTIMAS NOTÍCIAS':parsed.title,subtitle:parsed.subtitle==='Seleção editorial em evidência.'?'':parsed.subtitle,source:parsed.source==='Seleção manual'?'Últimas notícias':parsed.source}
-      return {...defaultConfig(d),...parsed}
-    }
+    const current=localStorage.getItem(storageKey(section))
+    if(current)return normalizeLegacy(section,d,JSON.parse(current))
     if(section==='most-read'){
-      const legacy=localStorage.getItem(legacyRankingKey)
-      if(legacy){const migrated={...defaultConfig(d),...JSON.parse(legacy),title:'Mais Lidas'};localStorage.setItem(key(section),JSON.stringify(migrated));return migrated}
+      const legacy=localStorage.getItem('portal-lander:cms:section-config:ranking:v4')
+      if(legacy){const migrated=normalizeLegacy(section,d,JSON.parse(legacy));localStorage.setItem(storageKey(section),JSON.stringify(migrated));return migrated}
+    }
+    if(d.legacyKey){
+      const legacy=localStorage.getItem(`portal-lander:cms:section-config:${d.legacyKey}:v4`)
+      if(legacy){const migrated=normalizeLegacy(section,d,JSON.parse(legacy));localStorage.setItem(storageKey(section),JSON.stringify(migrated));return migrated}
     }
     return defaultConfig(d)
   }catch{return defaultConfig(d)}
 }
 
-function optimizeImage(file:File):Promise<string>{
-  return new Promise((resolve,reject)=>{
-    const reader=new FileReader()
-    reader.onerror=()=>reject(new Error('Não foi possível ler a imagem.'))
-    reader.onload=()=>{
-      const image=new Image()
-      image.onerror=()=>reject(new Error('Não foi possível processar a imagem.'))
-      image.onload=()=>{
-        const maxDimension=1600
-        const ratio=Math.min(1,maxDimension/Math.max(image.naturalWidth,image.naturalHeight))
-        const width=Math.max(1,Math.round(image.naturalWidth*ratio))
-        const height=Math.max(1,Math.round(image.naturalHeight*ratio))
-        const canvas=document.createElement('canvas')
-        canvas.width=width
-        canvas.height=height
-        const context=canvas.getContext('2d')
-        if(!context){reject(new Error('Não foi possível preparar a imagem.'));return}
-        context.drawImage(image,0,0,width,height)
-        resolve(canvas.toDataURL('image/webp',.82))
-      }
-      image.src=String(reader.result||'')
-    }
-    reader.readAsDataURL(file)
-  })
+function optimizeImage(file:File):Promise<string>{return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onerror=()=>reject(new Error('Não foi possível ler a imagem.'));reader.onload=()=>{const image=new Image();image.onerror=()=>reject(new Error('Não foi possível processar a imagem.'));image.onload=()=>{const maxDimension=1600;const ratio=Math.min(1,maxDimension/Math.max(image.naturalWidth,image.naturalHeight));const width=Math.max(1,Math.round(image.naturalWidth*ratio));const height=Math.max(1,Math.round(image.naturalHeight*ratio));const canvas=document.createElement('canvas');canvas.width=width;canvas.height=height;const context=canvas.getContext('2d');if(!context){reject(new Error('Não foi possível preparar a imagem.'));return}context.drawImage(image,0,0,width,height);resolve(canvas.toDataURL('image/webp',.82))};image.src=String(reader.result||'')};reader.readAsDataURL(file)})}
+
+function getPreviewItems(section:SectionKey):PreviewItem[]{
+  if(section==='grid')return homeReadModel.featuredStories.map(item=>({title:item.title,image:item.image,category:item.category,meta:item.meta}))
+  if(section==='latest')return homeReadModel.latestStories.map(item=>({title:item.title,image:item.image,category:item.category,meta:item.meta}))
+  if(section==='trending'||section==='most-read')return homeReadModel.mostRead.map((title,index)=>({title,meta:`Há ${index+3} horas`}))
+  if(section==='releases')return homeReadModel.releases.map(item=>({title:item.title,image:item.image,meta:item.year}))
+  if(section==='agenda')return homeReadModel.agenda.map(item=>({title:item.title,place:item.place,meta:`${item.day} ${item.month}`}))
+  return []
 }
 
-function getPreviewItems(section:SectionKey):PreviewItem[]{if(section==='grid')return homeReadModel.featuredStories.slice(0,3).map(item=>({title:item.title,image:item.image,category:item.category}));if(section==='secondary')return homeReadModel.latestStories.slice(0,4).map(item=>({title:item.title,image:item.image,category:item.category}));if(section==='trending')return homeReadModel.mostRead.slice(0,4).map(title=>({title}));if(section==='videos')return homeReadModel.releases.slice(0,4).map(item=>({title:item.title,image:item.image}));if(section==='agenda')return homeReadModel.agenda.slice(0,6).map(item=>({title:item.title,place:item.place}));if(section==='most-read')return homeReadModel.mostRead.slice(0,5).map(title=>({title}));return []}
-
 function Preview({section,config,items,viewport}:{section:SectionKey;config:SectionConfig;items:PreviewItem[];viewport:PreviewViewport}){
-  const previewClass=section==='most-read'?'ranking':section
-  if(section==='side-ad')return <div className={`section-preview-stage ${viewport}`}><div className="section-preview side-ad-preview" style={{background:config.background,color:config.textColor,minHeight:config.height,border:`1px solid ${config.borderColor}`,borderRadius:config.radius,padding:`${config.paddingY}px ${config.paddingX}px`,overflow:'hidden'}}>{config.imageUrl&&<img src={config.imageUrl} alt={config.imageAlt} style={{display:'block',width:'100%',height:'auto',maxHeight:'none',objectFit:'contain',margin:0}}/>}{config.title&&<small style={{color:config.textColor}}>{config.title}</small>}{config.subtitle&&<h3 style={{color:config.titleColor,margin:'8px 0'}}>{config.subtitle}</h3>}{config.bodyLines.filter(Boolean).map((line,index)=><p key={`${line}-${index}`} style={{color:config.accentColor,fontWeight:800}}>{line}</p>)}{config.linkLabel&&<span style={{display:'inline-block',marginTop:12,border:`1px solid ${config.accentColor}`,padding:'8px 12px',color:config.accentColor}}>{config.linkLabel} →</span>}</div></div>
-  if(section==='secondary')return <div className={`section-preview-stage ${viewport}`}><div className="section-preview" style={{background:config.background,color:config.textColor,minHeight:config.height,borderColor:config.borderColor,borderRadius:config.radius,padding:`${config.paddingY}px ${config.paddingX}px`}}><div className="section-preview-head"><h3 style={{color:config.titleColor}}>{config.title||'ÚLTIMAS NOTÍCIAS'}</h3>{config.linkLabel&&<span style={{color:config.accentColor}}>{config.linkLabel} →</span>}</div>{config.subtitle&&<p>{config.subtitle}</p>}<div className="section-preview-items secondary" style={{gridTemplateColumns:'repeat(2,minmax(0,1fr))'}}>{items.slice(0,config.quantity).map((item,index)=><div className="section-preview-item" key={index}>{item.image&&<img src={item.image} alt=""/>}<strong>{item.title}</strong>{item.category&&<small>{item.category}</small>}</div>)}</div><div style={{display:'flex',justifyContent:'center',marginTop:16}}><span style={{border:`1px solid ${config.borderColor}`,padding:'8px 12px',fontSize:10,fontWeight:900,color:config.accentColor}}>VER TODAS AS NOTÍCIAS</span></div></div></div>
-  return <div className={`section-preview-stage ${viewport}`}><div className="section-preview" style={{background:config.background,color:config.textColor,minHeight:config.height,borderColor:config.borderColor,borderRadius:config.radius,padding:`${config.paddingY}px ${config.paddingX}px`}}><div className="section-preview-head"><h3 style={{color:config.titleColor}}>{config.title}</h3>{config.linkLabel&&<span style={{color:config.accentColor}}>{config.linkLabel} →</span>}</div>{config.subtitle&&<p>{config.subtitle}</p>}{items.length>0?<div className={`section-preview-items ${previewClass}`}>{items.slice(0,config.quantity).map((item,index)=><div className="section-preview-item" key={index}>{item.image?<img src={item.image} alt=""/>:<span className="section-preview-number" style={{color:config.accentColor}}>{String(index+1).padStart(2,'0')}</span>}<strong>{item.title}</strong>{item.category&&<small>{item.category}</small>}{item.place&&<small>{item.place}</small>}</div>)}</div>:<div className="section-preview-placeholder" style={{borderColor:config.borderColor}}>{section==='banner'?'SUA MARCA AQUI':section==='newsletter'?'Seu melhor e-mail     INSCREVER-SE':section==='footer'?'PORTAL LANDER · NAVEGAÇÃO · INSTITUCIONAL · REDES SOCIAIS':section==='hero'?'IMAGEM / DESTAQUE PRINCIPAL':config.subtitle}</div>}</div></div>
+  const shell={background:config.background,color:config.textColor,minHeight:config.height,border:`1px solid ${config.borderColor}`,borderRadius:config.radius,padding:`${config.paddingY}px ${config.paddingX}px`,overflow:'hidden'}
+  if(section==='side-ad')return <div className={`section-preview-stage ${viewport}`}><div className="section-preview side-ad-preview" style={shell}>{config.imageUrl&&<img src={config.imageUrl} alt={config.imageAlt} style={{display:'block',width:'100%',height:'auto',objectFit:'contain',margin:0}}/>}{config.title&&<small style={{color:config.textColor}}>{config.title}</small>}{config.subtitle&&<h3 style={{color:config.titleColor,margin:'8px 0'}}>{config.subtitle}</h3>}{config.bodyLines.filter(Boolean).map((line,index)=><p key={`${line}-${index}`} style={{color:config.accentColor,fontWeight:800}}>{line}</p>)}{config.linkLabel&&<span style={{display:'inline-block',marginTop:12,border:`1px solid ${config.accentColor}`,padding:'8px 12px',color:config.accentColor}}>{config.linkLabel} →</span>}</div></div>
+  if(section==='banner')return <div className={`section-preview-stage ${viewport}`}><div className="section-preview" style={shell}><div className="section-preview-placeholder" style={{borderColor:config.borderColor}}>BANNER HORIZONTAL</div></div></div>
+  if(section==='footer')return <div className={`section-preview-stage ${viewport}`}><div className="section-preview" style={shell}><div className="section-preview-placeholder" style={{borderColor:config.borderColor}}>PORTAL LANDER · NAVEGAÇÃO · INSTITUCIONAL · REDES SOCIAIS</div></div></div>
+  const listMode=section==='most-read'||section==='trending'||section==='agenda'
+  return <div className={`section-preview-stage ${viewport}`}><div className="section-preview" style={shell}><div className="section-preview-head"><h3 style={{color:config.titleColor}}>{config.title}</h3>{config.linkLabel&&<span style={{color:config.accentColor}}>{config.linkLabel} →</span>}</div>{config.subtitle&&<p>{config.subtitle}</p>}<div className={`section-preview-items ${listMode?'ranking':section}`}>{items.slice(0,config.quantity).map((item,index)=><div className="section-preview-item" key={`${item.title}-${index}`}>{item.image?<img src={item.image} alt=""/>:<span className="section-preview-number" style={{color:config.accentColor}}>{section==='agenda'?(item.meta||''):String(index+1).padStart(2,'0')}</span>}<strong>{item.title}</strong>{item.category&&<small>{item.category}</small>}{item.place&&<small>{item.place}</small>}{item.meta&&section!=='agenda'&&<small>{item.meta}</small>}</div>)}</div>{section==='latest'&&<div style={{display:'flex',justifyContent:'center',marginTop:16}}><span style={{border:`1px solid ${config.borderColor}`,padding:'8px 12px',fontSize:10,fontWeight:900,color:config.accentColor}}>VER TODAS AS NOTÍCIAS</span></div>}</div></div>
 }
 
 export function HomeSectionManagerPage({section}:{section:SectionKey}){
   const d=defs[section]
-  const usesHeroEditorPattern=section==='grid'||section==='most-read'||section==='side-ad'||section==='secondary'
-  const usesCompactPreview=usesHeroEditorPattern
   const [config,setConfig]=useState<SectionConfig>(()=>load(section,d))
   const [saved,setSaved]=useState(false)
   const [saveError,setSaveError]=useState('')
   const [imageBusy,setImageBusy]=useState(false)
   const [saving,setSaving]=useState(false)
 
-  useEffect(()=>{
-    let cancelled=false
-    if(section==='side-ad')loadSidebarAdConfig(defaultConfig(d) as SidebarAdConfig).then(next=>{if(!cancelled)setConfig(next)})
-    return()=>{cancelled=true}
-  },[section,d])
-
+  useEffect(()=>{let cancelled=false;if(section==='side-ad')loadSidebarAdConfig(defaultConfig(d) as SidebarAdConfig).then(next=>{if(!cancelled)setConfig(next)});return()=>{cancelled=true}},[section,d])
   const patch=(p:Partial<SectionConfig>)=>{setConfig(c=>({...c,...p}));setSaved(false);setSaveError('')}
-  const previewItems=useMemo<PreviewItem[]>(()=>getPreviewItems(section),[section])
-  const save=async()=>{
-    if(saving||imageBusy)return
-    setSaving(true)
-    setSaveError('')
-    try{
-      if(section==='side-ad')await saveSidebarAdConfig(config as SidebarAdConfig)
-      else localStorage.setItem(key(section),JSON.stringify(config))
-      setSaved(true)
-      window.dispatchEvent(new CustomEvent(SECTION_UPDATED_EVENT,{detail:{section}}))
-    }catch(error){
-      setSaved(false)
-      setSaveError(error instanceof Error?`Não foi possível salvar: ${error.message}`:'Não foi possível salvar esta seção.')
-    }finally{setSaving(false)}
-  }
+  const previewItems=useMemo(()=>getPreviewItems(section),[section])
+  const save=async()=>{if(saving||imageBusy)return;setSaving(true);setSaveError('');try{if(section==='side-ad')await saveSidebarAdConfig(config as SidebarAdConfig);else localStorage.setItem(storageKey(section),JSON.stringify(config));setSaved(true);window.dispatchEvent(new CustomEvent(SECTION_UPDATED_EVENT,{detail:{section}}))}catch(error){setSaved(false);setSaveError(error instanceof Error?`Não foi possível salvar: ${error.message}`:'Não foi possível salvar esta seção.')}finally{setSaving(false)}}
   const widthValue=config.width<=100?1200:config.width
   const openPublicSite=()=>{const publicUrl=`${window.location.origin}${window.location.pathname}#/`;window.open(publicUrl,'_blank','noopener,noreferrer')}
-  const header=usesHeroEditorPattern?{title:`Configurar seção: ${d.title}`,description:d.description,backTo:'/app/site/secoes',backLabel:'Seções das Páginas'}:{title:`Configurar seção: ${d.title}`,description:d.description}
-  const previewDescription=section==='grid'?'Prévia única e compacta. A responsividade do Grid é automática no site.':section==='most-read'?'Prévia única e compacta. A responsividade de Mais Lidas é automática no site.':section==='side-ad'?'Prévia única e compacta. A responsividade da Publicidade lateral é automática no site.':section==='secondary'?'Prévia compacta da seção real Últimas Notícias. Em Alta permanece uma seção independente ao lado no site.':''
-  const previewViewport:PreviewViewport=usesCompactPreview?'mobile':'desktop'
   const updateBodyLine=(index:number,value:string)=>patch({bodyLines:config.bodyLines.map((line,i)=>i===index?value:line)})
   const removeBodyLine=(index:number)=>patch({bodyLines:config.bodyLines.filter((_,i)=>i!==index)})
   const addBodyLine=()=>patch({bodyLines:[...config.bodyLines,'Novo texto']})
-  const handleImageUpload=async(event:ChangeEvent<HTMLInputElement>)=>{
-    const file=event.target.files?.[0]
-    if(!file)return
-    setImageBusy(true)
-    setSaveError('')
-    try{const imageUrl=await optimizeImage(file);patch({imageUrl,imageAlt:config.imageAlt||file.name,imageStored:false})}
-    catch(error){setSaveError(error instanceof Error?error.message:'Não foi possível processar a imagem.')}
-    finally{setImageBusy(false);event.target.value=''}
-  }
+  const handleImageUpload=async(event:ChangeEvent<HTMLInputElement>)=>{const file=event.target.files?.[0];if(!file)return;setImageBusy(true);setSaveError('');try{const imageUrl=await optimizeImage(file);patch({imageUrl,imageAlt:config.imageAlt||file.name,imageStored:false})}catch(error){setSaveError(error instanceof Error?error.message:'Não foi possível processar a imagem.')}finally{setImageBusy(false);event.target.value=''}}
 
-  return <AdminShell area="cms" items={SITE_MANAGER_NAV} header={header} headerAction={usesHeroEditorPattern?{label:'Ver no site',icon:ExternalLink,variant:'secondary',onClick:openPublicSite}:undefined}>
-    {!usesHeroEditorPattern&&<div className="section-editor-toolbar"><div><Link to="/app/site/secoes">← Seções das Páginas</Link><span className="section-editor-status"><input type="checkbox" checked={config.active} onChange={e=>patch({active:e.target.checked})}/> {config.active?'Ativo':'Inativo'}</span></div><div><Link className="button outline" to="/app/site/secoes">Cancelar</Link><button type="button" className="button dark" onClick={save}><Save size={15}/> Salvar alterações</button></div></div>}
-
-    <div className={`section-editor-layout${usesHeroEditorPattern?' grid-editor-layout':''}`}>
-      <section className={`section-editor-card${usesHeroEditorPattern?' grid-editor-settings':''}`}>
+  return <AdminShell area="cms" items={SITE_MANAGER_NAV} header={{title:`Configurar seção: ${d.title}`,description:d.description,backTo:'/app/site/secoes',backLabel:'Seções das Páginas'}} headerAction={{label:'Ver no site',icon:ExternalLink,variant:'secondary',onClick:openPublicSite}}>
+    <div className="section-editor-layout grid-editor-layout">
+      <section className="section-editor-card grid-editor-settings">
         <h2>Configurações gerais</h2>
         <label>Título da seção<input value={config.title} onChange={e=>patch({title:e.target.value})}/></label>
-        <label>Subtítulo<input value={config.subtitle} onChange={e=>patch({subtitle:e.target.value})} placeholder={section==='secondary'?'Opcional':''}/></label>
+        <label>Subtítulo<input value={config.subtitle} onChange={e=>patch({subtitle:e.target.value})} placeholder="Opcional"/></label>
         <div className="section-editor-two"><label>Texto do botão<input value={config.linkLabel} onChange={e=>patch({linkLabel:e.target.value})}/></label><label>Link<input value={config.linkUrl} onChange={e=>patch({linkUrl:e.target.value})}/></label></div>
-        <label>{d.sourceLabel}<select value={config.source} onChange={e=>patch({source:e.target.value})}>{d.sourceOptions.map(o=><option key={o}>{o}</option>)}</select></label>
-        <label>Quantidade exibida<input type="number" min="1" max="20" value={config.quantity} onChange={e=>patch({quantity:Number(e.target.value)})}/><small>{section==='grid'?'A estrutura continua fixa em 3 cards por linha no desktop.':section==='most-read'?'Mais Lidas permanece posicionada à direita do Grid principal no desktop.':section==='side-ad'?'A Publicidade lateral permanece abaixo de Mais Lidas na lateral direita.':section==='secondary'?'A Home atual exibe 4 cards de Últimas Notícias com Em Alta ao lado.':''}</small></label>
+        <label>{d.sourceLabel}<select value={config.source} onChange={e=>patch({source:e.target.value})}>{d.sourceOptions.map(option=><option key={option}>{option}</option>)}</select></label>
+        <label>Quantidade exibida<input type="number" min="1" max="20" value={config.quantity} onChange={e=>patch({quantity:Number(e.target.value)})}/><small>{d.position}</small></label>
 
-        {section==='side-ad'&&<>
-          <h2>Conteúdo da publicidade</h2>
-          <div style={{display:'grid',gap:10}}>{config.bodyLines.map((line,index)=><div key={index} style={{display:'grid',gridTemplateColumns:'1fr auto',gap:8,alignItems:'center'}}><input value={line} onChange={e=>updateBodyLine(index,e.target.value)} aria-label={`Texto ${index+1}`}/><button type="button" className="button outline" onClick={()=>removeBodyLine(index)} aria-label={`Excluir texto ${index+1}`}><Trash2 size={15}/></button></div>)}</div>
-          <button type="button" className="button outline" onClick={addBodyLine} style={{marginTop:10}}><Plus size={15}/> Adicionar texto</button>
-          <h2>Imagem da publicidade</h2>
-          {config.imageUrl&&<img src={config.imageUrl} alt={config.imageAlt} style={{display:'block',width:'100%',height:'auto',maxHeight:220,objectFit:'contain',border:'1px solid #e5e5e5',marginBottom:10}}/>}
-          <div style={{display:'flex',gap:8,flexWrap:'wrap'}}><label className="button outline" style={{cursor:imageBusy?'wait':'pointer',opacity:imageBusy?.65:1}}><Upload size={15}/> {imageBusy?'Otimizando imagem...':'Fazer upload'}<input type="file" accept="image/*" disabled={imageBusy} onChange={handleImageUpload} style={{display:'none'}}/></label>{config.imageUrl&&<button type="button" className="button outline" onClick={()=>patch({imageUrl:'',imageAlt:'',imageStored:false})}><Trash2 size={15}/> Remover imagem</button>}</div>
-          <small style={{display:'block',marginTop:8}}>A imagem é otimizada e armazenada separadamente para não bloquear o salvamento da configuração.</small>
-          <label style={{marginTop:10}}>URL da imagem<input value={config.imageUrl.startsWith('blob:')?'':config.imageUrl} onChange={e=>patch({imageUrl:e.target.value,imageStored:false})} placeholder="https://..."/></label>
-          <label>Texto alternativo<input value={config.imageAlt} onChange={e=>patch({imageAlt:e.target.value})}/></label>
-        </>}
+        {section==='side-ad'&&<><h2>Conteúdo da publicidade</h2><div style={{display:'grid',gap:10}}>{config.bodyLines.map((line,index)=><div key={index} style={{display:'grid',gridTemplateColumns:'1fr auto',gap:8,alignItems:'center'}}><input value={line} onChange={e=>updateBodyLine(index,e.target.value)} aria-label={`Texto ${index+1}`}/><button type="button" className="button outline" onClick={()=>removeBodyLine(index)}><Trash2 size={15}/></button></div>)}</div><button type="button" className="button outline" onClick={addBodyLine} style={{marginTop:10}}><Plus size={15}/> Adicionar texto</button><h2>Imagem da publicidade</h2>{config.imageUrl&&<img src={config.imageUrl} alt={config.imageAlt} style={{display:'block',width:'100%',height:'auto',maxHeight:220,objectFit:'contain',border:'1px solid #e5e5e5',marginBottom:10}}/>}<div style={{display:'flex',gap:8,flexWrap:'wrap'}}><label className="button outline" style={{cursor:imageBusy?'wait':'pointer',opacity:imageBusy?.65:1}}><Upload size={15}/> {imageBusy?'Otimizando imagem...':'Fazer upload'}<input type="file" accept="image/*" disabled={imageBusy} onChange={handleImageUpload} style={{display:'none'}}/></label>{config.imageUrl&&<button type="button" className="button outline" onClick={()=>patch({imageUrl:'',imageAlt:'',imageStored:false})}><Trash2 size={15}/> Remover imagem</button>}</div><label style={{marginTop:10}}>URL da imagem<input value={config.imageUrl.startsWith('blob:')?'':config.imageUrl} onChange={e=>patch({imageUrl:e.target.value,imageStored:false})} placeholder="https://..."/></label><label>Texto alternativo<input value={config.imageAlt} onChange={e=>patch({imageAlt:e.target.value})}/></label></>}
 
         <h2>Aparência e dimensões</h2>
         <div className="section-editor-slider"><span>Largura</span><input type="range" min="220" max="1600" value={widthValue} onChange={e=>patch({width:Number(e.target.value)})}/><b>{config.width<=100?'Auto':`${config.width}px`}</b></div>
@@ -166,16 +117,14 @@ export function HomeSectionManagerPage({section}:{section:SectionKey}){
         <div className="section-editor-slider"><span>Padding vertical</span><input type="range" min="0" max="80" value={config.paddingY} onChange={e=>patch({paddingY:Number(e.target.value)})}/><b>{config.paddingY}px</b></div>
         <div className="section-editor-slider"><span>Arredondamento</span><input type="range" min="0" max="32" value={config.radius} onChange={e=>patch({radius:Number(e.target.value)})}/><b>{config.radius}px</b></div>
         <div className="section-editor-colors">{([['background','Cor de fundo'],['titleColor','Cor do título'],['textColor','Cor do texto'],['accentColor','Cor de destaque'],['borderColor','Cor da borda']] as const).map(([field,label])=><label key={field}>{label}<span><input type="color" value={config[field]} onChange={e=>patch({[field]:e.target.value} as Partial<SectionConfig>)}/><input value={config[field]} onChange={e=>patch({[field]:e.target.value} as Partial<SectionConfig>)}/></span></label>)}</div>
-
-        {usesHeroEditorPattern&&<div className="section-editor-card section-details grid-details-inline"><h2>Detalhes da seção</h2><dl><dt>Identificador</dt><dd>{d.identifier}</dd><dt>Posição na página</dt><dd>{d.position}</dd><dt>Comportamento</dt><dd>Posição fixa; conteúdo administrável neste módulo</dd><dt>Responsividade</dt><dd>Adaptativa automaticamente pelo frontend</dd></dl><div className="section-editor-note"><ExternalLink size={16}/><span>As alterações desta seção são refletidas imediatamente na prévia.</span></div></div>}
+        <div className="section-editor-card section-details grid-details-inline"><h2>Detalhes da seção</h2><dl><dt>Identificador</dt><dd>{d.identifier}</dd><dt>Posição na página</dt><dd>{d.position}</dd><dt>Comportamento</dt><dd>Estrutura espelhada da Home pública; conteúdo administrável sem criar seção paralela</dd><dt>Responsividade</dt><dd>Automática pelo frontend</dd></dl></div>
       </section>
 
-      <section className={`section-editor-preview-column${usesHeroEditorPattern?' grid-editor-preview':''}`}>
-        <div className="section-editor-card section-preview-card"><div className="section-preview-toolbar"><div><h2>Prévia da seção</h2>{usesHeroEditorPattern&&<p>{previewDescription}</p>}</div>{usesCompactPreview&&<div className="hero-cms-viewports" aria-label="Prévia única"><button type="button" className="active" aria-label="Prévia compacta em formato mobile" title="Prévia compacta"><Smartphone size={17}/></button></div>}</div><Preview section={section} config={config} items={previewItems} viewport={previewViewport}/></div>
-        {usesHeroEditorPattern&&<div className="grid-editor-actions"><Link className="button outline" to="/app/site/secoes">Cancelar</Link><button type="button" className="button dark" onClick={save} disabled={imageBusy||saving}><Save size={15}/> {saving?'Salvando...':'Salvar alterações'}</button></div>}
+      <section className="section-editor-preview-column grid-editor-preview">
+        <div className="section-editor-card section-preview-card"><div className="section-preview-toolbar"><div><h2>Prévia da seção</h2><p>Prévia compacta da mesma seção existente na Home. Responsividade automática no site.</p></div><div className="hero-cms-viewports" aria-label="Prévia única"><button type="button" className="active" aria-label="Prévia compacta" title="Prévia compacta"><Smartphone size={17}/></button></div></div><Preview section={section} config={config} items={previewItems} viewport="mobile"/></div>
+        <div className="grid-editor-actions"><Link className="button outline" to="/app/site/secoes">Cancelar</Link><button type="button" className="button dark" onClick={save} disabled={imageBusy||saving}><Save size={15}/> {saving?'Salvando...':'Salvar alterações'}</button></div>
         {saveError&&<div className="home-section-manager-error grid-save-error" role="alert" style={{marginTop:10,color:'#b42318',fontWeight:700}}>{saveError}</div>}
-        {usesHeroEditorPattern&&saved&&<div className="home-section-manager-success grid-save-success">Alterações salvas com sucesso.</div>}
-        {!usesHeroEditorPattern&&<div className="section-editor-card section-details"><h2>Detalhes da seção</h2><dl><dt>Identificador</dt><dd>{d.identifier}</dd><dt>Posição na página</dt><dd>{d.position}</dd><dt>Comportamento</dt><dd>Posição fixa; conteúdo editorial administrado fora deste módulo</dd><dt>Responsividade</dt><dd>Adaptativa para desktop, tablet e mobile</dd></dl></div>}
+        {saved&&<div className="home-section-manager-success grid-save-success">Alterações salvas com sucesso.</div>}
       </section>
     </div>
   </AdminShell>

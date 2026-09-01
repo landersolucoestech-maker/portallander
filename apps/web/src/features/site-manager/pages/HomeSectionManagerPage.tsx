@@ -69,8 +69,8 @@ function Preview({section,config,items,viewport}:{section:SectionKey;config:Sect
 
 export function HomeSectionManagerPage({section}:{section:SectionKey}){
   const d=defs[section]
-  const usesHeroEditorPattern=section==='grid'||section==='most-read'
-  const usesCompactPreview=section==='grid'||section==='most-read'
+  const usesHeroEditorPattern=section==='grid'||section==='most-read'||section==='side-ad'
+  const usesCompactPreview=section==='grid'||section==='most-read'||section==='side-ad'
   const [config,setConfig]=useState<SectionConfig>(()=>load(section,d))
   const [saved,setSaved]=useState(false)
   const patch=(p:Partial<SectionConfig>)=>{setConfig(c=>({...c,...p}));setSaved(false)}
@@ -83,7 +83,9 @@ export function HomeSectionManagerPage({section}:{section:SectionKey}){
     ? 'Prévia única e compacta. A responsividade do Grid é automática no site.'
     : section==='most-read'
       ? 'Prévia única e compacta. A responsividade de Mais Lidas é automática no site.'
-      : ''
+      : section==='side-ad'
+        ? 'Prévia única e compacta. A responsividade da Publicidade lateral é automática no site.'
+        : ''
   const previewViewport:PreviewViewport=usesCompactPreview?'mobile':'desktop'
 
   return <AdminShell area="cms" items={SITE_MANAGER_NAV} header={header} headerAction={usesHeroEditorPattern?{label:'Ver no site',icon:ExternalLink,variant:'secondary',onClick:openPublicSite}:undefined}>
@@ -96,7 +98,7 @@ export function HomeSectionManagerPage({section}:{section:SectionKey}){
         <label>Subtítulo<input value={config.subtitle} onChange={e=>patch({subtitle:e.target.value})}/></label>
         <div className="section-editor-two"><label>Texto “Ver todos”<input value={config.linkLabel} onChange={e=>patch({linkLabel:e.target.value})}/></label><label>Link<input value={config.linkUrl} onChange={e=>patch({linkUrl:e.target.value})}/></label></div>
         <label>{d.sourceLabel}<select value={config.source} onChange={e=>patch({source:e.target.value})}>{d.sourceOptions.map(o=><option key={o}>{o}</option>)}</select></label>
-        <label>Quantidade exibida<input type="number" min="1" max="20" value={config.quantity} onChange={e=>patch({quantity:Number(e.target.value)})}/><small>{section==='grid'?'A estrutura continua fixa em 3 cards por linha no desktop.':section==='most-read'?'Mais Lidas permanece posicionada à direita do Grid principal no desktop.':''}</small></label>
+        <label>Quantidade exibida<input type="number" min="1" max="20" value={config.quantity} onChange={e=>patch({quantity:Number(e.target.value)})}/><small>{section==='grid'?'A estrutura continua fixa em 3 cards por linha no desktop.':section==='most-read'?'Mais Lidas permanece posicionada à direita do Grid principal no desktop.':section==='side-ad'?'A Publicidade lateral permanece abaixo de Mais Lidas na lateral direita.':''}</small></label>
 
         <h2>Aparência e dimensões</h2>
         <div className="section-editor-slider"><span>Largura</span><input type="range" min="220" max="1600" value={widthValue} onChange={e=>patch({width:Number(e.target.value)})}/><b>{config.width<=100?'Auto':`${config.width}px`}</b></div>

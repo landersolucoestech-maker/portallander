@@ -1,4 +1,4 @@
-import { ExternalLink, Monitor, Save, Smartphone, Tablet } from 'lucide-react'
+import { ExternalLink, Save, Smartphone } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { homeReadModel } from '../../../pages/home/models/homeReadModel'
@@ -70,20 +70,21 @@ function Preview({section,config,items,viewport}:{section:SectionKey;config:Sect
 export function HomeSectionManagerPage({section}:{section:SectionKey}){
   const d=defs[section]
   const usesHeroEditorPattern=section==='grid'||section==='most-read'
-  const isGrid=section==='grid'
+  const usesCompactPreview=section==='grid'||section==='most-read'
   const [config,setConfig]=useState<SectionConfig>(()=>load(section,d))
   const [saved,setSaved]=useState(false)
-  const [viewport,setViewport]=useState<PreviewViewport>('desktop')
   const patch=(p:Partial<SectionConfig>)=>{setConfig(c=>({...c,...p}));setSaved(false)}
   const previewItems=useMemo<PreviewItem[]>(()=>getPreviewItems(section),[section])
   const save=()=>{localStorage.setItem(key(section),JSON.stringify(config));setSaved(true)}
   const widthValue=config.width<=100?1200:config.width
   const openPublicSite=()=>{const publicUrl=`${window.location.origin}${window.location.pathname}#/`;window.open(publicUrl,'_blank','noopener,noreferrer')}
   const header=usesHeroEditorPattern?{title:`Configurar seção: ${d.title}`,description:d.description,backTo:'/app/site/secoes',backLabel:'Seções das Páginas'}:{title:`Configurar seção: ${d.title}`,description:d.description}
-  const previewDescription=isGrid
+  const previewDescription=section==='grid'
     ? 'Prévia única e compacta. A responsividade do Grid é automática no site.'
-    : viewport==='desktop'?'Desktop: Mais Lidas na lateral direita do Grid principal.':viewport==='tablet'?'Tablet: Mais Lidas recalculada para a largura do dispositivo.':'Mobile: Mais Lidas adaptada para leitura vertical.'
-  const previewViewport:PreviewViewport=isGrid?'mobile':usesHeroEditorPattern?viewport:'desktop'
+    : section==='most-read'
+      ? 'Prévia única e compacta. A responsividade de Mais Lidas é automática no site.'
+      : ''
+  const previewViewport:PreviewViewport=usesCompactPreview?'mobile':'desktop'
 
   return <AdminShell area="cms" items={SITE_MANAGER_NAV} header={header} headerAction={usesHeroEditorPattern?{label:'Ver no site',icon:ExternalLink,variant:'secondary',onClick:openPublicSite}:undefined}>
     {!usesHeroEditorPattern&&<div className="section-editor-toolbar"><div><Link to="/app/site/secoes">← Seções das Páginas</Link><span className="section-editor-status"><input type="checkbox" checked={config.active} onChange={e=>patch({active:e.target.checked})}/> {config.active?'Ativo':'Inativo'}</span></div><div><Link className="button outline" to="/app/site/secoes">Cancelar</Link><button className="button dark" onClick={save}><Save size={15}/> Salvar alterações</button></div></div>}
@@ -105,14 +106,14 @@ export function HomeSectionManagerPage({section}:{section:SectionKey}){
         <div className="section-editor-slider"><span>Arredondamento</span><input type="range" min="0" max="32" value={config.radius} onChange={e=>patch({radius:Number(e.target.value)})}/><b>{config.radius}px</b></div>
         <div className="section-editor-colors">{([['background','Cor de fundo'],['titleColor','Cor do título'],['textColor','Cor do texto'],['accentColor','Cor de destaque'],['borderColor','Cor da borda']] as const).map(([field,label])=><label key={field}>{label}<span><input type="color" value={config[field]} onChange={e=>patch({[field]:e.target.value} as Partial<SectionConfig>)}/><input value={config[field]} onChange={e=>patch({[field]:e.target.value} as Partial<SectionConfig>)}/></span></label>)}</div>
 
-        {usesHeroEditorPattern&&<div className="section-editor-card section-details grid-details-inline"><h2>Detalhes da seção</h2><dl><dt>Identificador</dt><dd>{d.identifier}</dd><dt>Posição na página</dt><dd>{d.position}</dd><dt>Comportamento</dt><dd>Posição fixa; conteúdo editorial administrado fora deste módulo</dd><dt>Responsividade</dt><dd>Adaptativa para desktop, tablet e mobile</dd></dl><div className="section-editor-note"><ExternalLink size={16}/><span>Este módulo manipula apenas a seção. Conteúdos continuam sendo administrados em Conteúdos e campanhas em Publicidade.</span></div></div>}
+        {usesHeroEditorPattern&&<div className="section-editor-card section-details grid-details-inline"><h2>Detalhes da seção</h2><dl><dt>Identificador</dt><dd>{d.identifier}</dd><dt>Posição na página</dt><dd>{d.position}</dd><dt>Comportamento</dt><dd>Posição fixa; conteúdo editorial administrado fora deste módulo</dd><dt>Responsividade</dt><dd>Adaptativa automaticamente pelo frontend</dd></dl><div className="section-editor-note"><ExternalLink size={16}/><span>Este módulo manipula apenas a seção. Conteúdos continuam sendo administrados em Conteúdos e campanhas em Publicidade.</span></div></div>}
       </section>
 
       <section className={`section-editor-preview-column${usesHeroEditorPattern?' grid-editor-preview':''}`}>
         <div className="section-editor-card section-preview-card">
           <div className="section-preview-toolbar">
             <div><h2>Prévia da seção</h2>{usesHeroEditorPattern&&<p>{previewDescription}</p>}</div>
-            {isGrid?<div className="hero-cms-viewports" aria-label="Prévia única"><button type="button" className="active" aria-label="Prévia compacta em formato mobile" title="Prévia compacta"><Smartphone size={17}/></button></div>:usesHeroEditorPattern&&<div className="hero-cms-viewports" aria-label="Visualização responsiva"><button className={viewport==='desktop'?'active':''} onClick={()=>setViewport('desktop')} aria-label="Desktop"><Monitor size={17}/></button><button className={viewport==='tablet'?'active':''} onClick={()=>setViewport('tablet')} aria-label="Tablet"><Tablet size={17}/></button><button className={viewport==='mobile'?'active':''} onClick={()=>setViewport('mobile')} aria-label="Mobile"><Smartphone size={17}/></button></div>}
+            {usesCompactPreview&&<div className="hero-cms-viewports" aria-label="Prévia única"><button type="button" className="active" aria-label="Prévia compacta em formato mobile" title="Prévia compacta"><Smartphone size={17}/></button></div>}
           </div>
           <Preview section={section} config={config} items={previewItems} viewport={previewViewport}/>
         </div>

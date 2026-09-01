@@ -59,6 +59,7 @@
 .crm-link strong,.finance-link strong,.contracts-title-link strong,.marketing-table strong,.rh-table strong{font-size:12px}
 .crm-link small,.finance-link small,.finance-cell-sub,.contracts-title-link small,.marketing-table small,.rh-table small{font-size:10px}
 .workspace-main table .numeric,.workspace-main table .tabular,.workspace-main table td.positive,.workspace-main table td.negative{text-align:right!important;font-variant-numeric:tabular-nums}
+.workspace-main table.accounting-result-table td.positive,.workspace-main table.accounting-result-table td.negative{text-align:left!important}
 .workspace-main table .actions,.workspace-main table .actions-col,.workspace-main table .crm-actions-column,.workspace-main table .crm-actions-cell{text-align:right!important}
 .workspace-main table .table-row-actions,.workspace-main table .crm-row-actions{justify-content:flex-end!important;margin-left:auto!important;margin-right:0!important}
 

@@ -1,6 +1,6 @@
 import { Image as ImageIcon, RotateCcw, Save, Trash2, Upload } from 'lucide-react'
 import { useRef, useState } from 'react'
-import { HomeAdSection } from './HomeAdSection'
+import { AdvertiseHereSection } from './AdvertiseHereSection'
 import { defaultHomeAdConfig, readHomeAdConfig, resetHomeAdConfig, writeHomeAdConfig, type HomeAdConfig } from '../models/adModel'
 
 function Field({ label, children, hint }: { label: string; children: React.ReactNode; hint?: string }) {
@@ -73,20 +73,20 @@ export function HomeAdEditor() {
 
   return <div className="home-ad-editor">
     <div className="hero-editor-toolbar">
-      <div><span>CONTEÚDO / HOME</span><h1>Bloco de anúncio</h1><p>Gerencie o anúncio principal da Home. As alterações atuais permanecem somente neste navegador até existir uma fonte persistente compartilhada.</p></div>
+      <div><span>CONTEÚDO / HOME</span><h1>Seção Anuncie Aqui</h1><p>Gerencie a Seção Anuncie Aqui da Home. As alterações atuais permanecem somente neste navegador até existir uma fonte persistente compartilhada.</p></div>
       <div className="hero-editor-toolbar-actions"><button className="button outline" onClick={reset}><RotateCcw size={16}/> Restaurar</button><button className="button dark" onClick={save}><Save size={16}/> Salvar localmente</button></div>
     </div>
 
-    {saved && <div className="hero-editor-success">Anúncio salvo somente neste navegador. Nenhuma publicação compartilhada foi realizada.</div>}
+    {saved && <div className="hero-editor-success">Seção Anuncie Aqui salva somente neste navegador. Nenhuma publicação compartilhada foi realizada.</div>}
 
     <div className="home-ad-editor-layout">
       <section className="panel home-ad-editor-form">
-        <div className="hero-editor-section-head"><span>Publicação</span><h2>Estado do anúncio</h2></div>
+        <div className="hero-editor-section-head"><span>Publicação</span><h2>Estado da Seção Anuncie Aqui</h2></div>
         <Field label="Visibilidade"><select value={draft.active ? 'on' : 'off'} onChange={e => update({ active: e.target.value === 'on' })}><option value="on">Ativo</option><option value="off">Inativo</option></select></Field>
 
-        <div className="hero-editor-section-head"><span>Imagem</span><h2>Arte do anúncio</h2></div>
+        <div className="hero-editor-section-head"><span>Imagem</span><h2>Arte da Seção Anuncie Aqui</h2></div>
         <div className="home-ad-image-picker">
-          <div className="home-ad-image-preview">{draft.image ? <img src={draft.image} alt="Preview do anúncio" /> : <ImageIcon size={34}/>}</div>
+          <div className="home-ad-image-preview">{draft.image ? <img src={draft.image} alt="Preview da Seção Anuncie Aqui" /> : <ImageIcon size={34}/>}</div>
           <input ref={fileRef} type="file" accept="image/*" hidden onChange={e => upload(e.target.files?.[0])}/>
           <div className="home-ad-image-actions"><button className="button outline" disabled={processing} onClick={() => fileRef.current?.click()}><Upload size={16}/>{processing ? ' Processando...' : ' Fazer upload'}</button><button className="button outline" disabled={!draft.image} onClick={() => update({ image: '' })}><Trash2 size={16}/> Remover imagem</button></div>
         </div>
@@ -102,10 +102,10 @@ export function HomeAdEditor() {
         <Field label={`Largura útil · ${draft.contentWidth}px`}><input type="range" min="320" max="1600" step="20" value={draft.contentWidth} onChange={e => update({ contentWidth: Number(e.target.value) })}/></Field>
         <Field label="Alinhamento"><select value={draft.align} onChange={e => update({ align: e.target.value as HomeAdConfig['align'] })}><option value="left">Esquerda</option><option value="center">Centro</option><option value="right">Direita</option></select></Field>
 
-        <div className="home-ad-danger"><button onClick={remove}><Trash2 size={16}/> Desativar e limpar anúncio local</button><small>Esta ação afeta somente o estado salvo neste navegador. Você pode restaurar os valores padrão depois.</small></div>
+        <div className="home-ad-danger"><button onClick={remove}><Trash2 size={16}/> Desativar e limpar Seção Anuncie Aqui local</button><small>Esta ação afeta somente o estado salvo neste navegador. Você pode restaurar os valores padrão depois.</small></div>
       </section>
 
-      <section className="home-ad-preview-panel"><div className="hero-editor-preview-head"><span>PREVIEW</span><strong>Mesmo componente da Home</strong></div><div className="home-ad-preview-frame"><HomeAdSection config={draft}/></div></section>
+      <section className="home-ad-preview-panel"><div className="hero-editor-preview-head"><span>PREVIEW</span><strong>Mesma Seção Anuncie Aqui da Home</strong></div><div className="home-ad-preview-frame"><AdvertiseHereSection config={draft}/></div></section>
     </div>
   </div>
 }

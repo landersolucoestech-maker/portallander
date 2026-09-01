@@ -13,10 +13,24 @@
     overflow-x:hidden;
   }
   .app-shell>.workspace{grid-column:2;min-width:0}
+
+  /* O toggle altera somente a largura/comportamento; a identidade visual continua sendo a nativa do projeto. */
+  .app-shell.admin-sidebar-collapsed{grid-template-columns:78px minmax(0,1fr)}
+  .app-shell.admin-sidebar-collapsed>.sidebar{width:78px}
+  .app-shell.admin-sidebar-collapsed .sidebar-head{align-items:center;padding-inline:0}
+  .app-shell.admin-sidebar-collapsed .sidebar-brand-row{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;width:100%}
+  .app-shell.admin-sidebar-collapsed .sidebar-head .brand img{width:42px;max-width:42px;object-position:center}
+  .app-shell.admin-sidebar-collapsed .sidebar-head>span,
+  .app-shell.admin-sidebar-collapsed .sidebar nav span,
+  .app-shell.admin-sidebar-collapsed .sidebar-nav-group-label>svg:last-child{display:none}
+  .app-shell.admin-sidebar-collapsed .sidebar nav a,
+  .app-shell.admin-sidebar-collapsed .sidebar-nav-group-label{justify-content:center;padding-inline:0}
+  .app-shell.admin-sidebar-collapsed .sidebar-subnav{padding-left:0}
 }
 
 @media (min-width:1081px) and (max-width:1280px){
   .app-shell>.sidebar{width:220px}
+  .app-shell.admin-sidebar-collapsed>.sidebar{width:78px}
 }
 
 @media (min-width:761px) and (max-width:1080px){

@@ -1,10 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
-import HeroManagerPage from './HeroManagerPage'
 import { BrandAssetsManagerPage } from './pages/BrandAssetsManagerPage'
 import { HeaderBrandManagerPage } from './pages/HeaderBrandManagerPage'
 import { HeroSectionAppearancePage } from './pages/HeroSectionAppearancePage'
-import { HomeAdManagerPage } from './pages/HomeAdManagerPage'
-import { HomeManagerPage } from './pages/HomeManagerPage'
 import { HomeSectionManagerPage } from './pages/HomeSectionManagerPage'
 import { MediaKitPage } from './pages/MediaKitPage'
 import { NewsAdManagerPage } from './pages/NewsAdManagerPage'
@@ -18,9 +15,10 @@ import { SiteSectionsPage } from './pages/SiteSectionsPage'
 export default function SiteManagerRoutes(){
   return <Routes>
     <Route index element={<SiteManagerDashboardPage/>}/>
-    <Route path="home" element={<HomeManagerPage/>}/>
-    <Route path="home/hero" element={<HeroManagerPage/>}/>
-    <Route path="home/anuncio" element={<HomeAdManagerPage/>}/>
+
+    <Route path="home" element={<Navigate to="/app/site/secoes" replace/>}/>
+    <Route path="home/hero" element={<Navigate to="/app/site/secoes/home/hero" replace/>}/>
+    <Route path="home/anuncio" element={<Navigate to="/app/site/noticias/anuncio" replace/>}/>
 
     <Route path="secoes" element={<SiteSectionsPage/>}/>
     <Route path="secoes/home/hero" element={<HeroSectionAppearancePage/>}/>

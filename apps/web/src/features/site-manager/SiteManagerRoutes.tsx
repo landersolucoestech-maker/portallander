@@ -1,8 +1,8 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { BrandAssetsManagerPage } from './pages/BrandAssetsManagerPage'
+import { FooterSectionManagerPage } from './pages/FooterSectionManagerPage'
 import { HeaderBrandManagerPage } from './pages/HeaderBrandManagerPage'
 import { HeroSectionAppearancePage } from './pages/HeroSectionAppearancePage'
-import { HomeSectionManagerPage } from './pages/HomeSectionManagerPage'
 import { MediaKitPage } from './pages/MediaKitPage'
 import { NewsAdManagerPage } from './pages/NewsAdManagerPage'
 import { SiteCategoriesPage } from './pages/SiteCategoriesPage'
@@ -22,16 +22,7 @@ export default function SiteManagerRoutes(){
 
     <Route path="secoes" element={<SiteSectionsPage/>}/>
     <Route path="secoes/home/hero" element={<HeroSectionAppearancePage/>}/>
-    <Route path="secoes/home/ticker" element={<HeroSectionAppearancePage/>}/>
-    <Route path="secoes/home/em-destaque" element={<HomeSectionManagerPage section="em-destaque"/>}/>
-    <Route path="secoes/home/mais-lidas" element={<HomeSectionManagerPage section="mais-lidas"/>}/>
-    <Route path="secoes/home/ultimas-noticias" element={<HomeSectionManagerPage section="ultimas-noticias"/>}/>
-    <Route path="secoes/home/publicidade-lateral" element={<HomeSectionManagerPage section="publicidade-lateral"/>}/>
-    <Route path="secoes/home/em-alta" element={<HomeSectionManagerPage section="em-alta"/>}/>
-    <Route path="secoes/home/secao-anuncie-aqui" element={<HomeSectionManagerPage section="secao-anuncie-aqui"/>}/>
-    <Route path="secoes/home/lancamentos" element={<HomeSectionManagerPage section="lancamentos"/>}/>
-    <Route path="secoes/home/agenda" element={<HomeSectionManagerPage section="agenda"/>}/>
-    <Route path="secoes/home/rodape" element={<HomeSectionManagerPage section="rodape"/>}/>
+    <Route path="secoes/home/rodape" element={<FooterSectionManagerPage/>}/>
 
     <Route path="marca" element={<BrandAssetsManagerPage/>}/>
     <Route path="cabecalho" element={<HeaderBrandManagerPage/>}/>

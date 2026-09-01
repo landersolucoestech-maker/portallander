@@ -49,8 +49,10 @@ function PageHeader({context,header,actions,sidebarCollapsed,onToggleSidebar}:{c
     }
   },[notificationsOpen,accountOpen])
 
+  const showHeaderSidebarToggle=header?.title!=='DASHBOARD'
+
   return <header className={`workspace-top${header?' workspace-top-page':''}`}>
-    {header?<div className="workspace-page-heading-row">{header.backTo&&<Link className="workspace-header-back" to={header.backTo}><ArrowLeft size={15}/><span>{header.backLabel||'Voltar'}</span></Link>}<button className="cms-sidebar-toggle workspace-header-sidebar-toggle" type="button" aria-label={sidebarCollapsed?'Expandir menu':'Recolher menu'} aria-pressed={sidebarCollapsed} onClick={onToggleSidebar}>{sidebarCollapsed?<PanelLeftOpen size={16}/>:<PanelLeftClose size={16}/>}</button><div className="workspace-page-heading"><h1>{header.title}</h1><p>{header.description}</p></div></div>:<div className="workspace-page-heading-row"><button className="cms-sidebar-toggle workspace-header-sidebar-toggle" type="button" aria-label={sidebarCollapsed?'Expandir menu':'Recolher menu'} aria-pressed={sidebarCollapsed} onClick={onToggleSidebar}>{sidebarCollapsed?<PanelLeftOpen size={16}/>:<PanelLeftClose size={16}/>}</button><div className="workspace-identity"><span className="workspace-context">{context}</span></div></div>}
+    {header?<div className="workspace-page-heading-row">{header.backTo&&<Link className="workspace-header-back" to={header.backTo}><ArrowLeft size={15}/><span>{header.backLabel||'Voltar'}</span></Link>}{showHeaderSidebarToggle&&<button className="cms-sidebar-toggle workspace-header-sidebar-toggle" type="button" aria-label={sidebarCollapsed?'Expandir menu':'Recolher menu'} aria-pressed={sidebarCollapsed} onClick={onToggleSidebar}>{sidebarCollapsed?<PanelLeftOpen size={16}/>:<PanelLeftClose size={16}/>}</button>}<div className="workspace-page-heading"><h1>{header.title}</h1><p>{header.description}</p></div></div>:<div className="workspace-page-heading-row"><button className="cms-sidebar-toggle workspace-header-sidebar-toggle" type="button" aria-label={sidebarCollapsed?'Expandir menu':'Recolher menu'} aria-pressed={sidebarCollapsed} onClick={onToggleSidebar}>{sidebarCollapsed?<PanelLeftOpen size={16}/>:<PanelLeftClose size={16}/>}</button><div className="workspace-identity"><span className="workspace-context">{context}</span></div></div>}
     <div className="workspace-actions">
       {actions.map(action=><HeaderActionButton key={action.label} action={action}/>)}
       <div className="workspace-popover-wrap" ref={notificationsRef}>
@@ -87,7 +89,7 @@ export function AdminShell({area,items,children,header,headerAction,headerAction
         <div className="sidebar-brand-row">
           <Link to="/" className="brand" aria-label="Ir para o Portal Lander"><img src={portalLogo} alt="Portal Lander"/></Link>
         </div>
-        <span>ADMINISTRAÇÃO</span>
+        {header?.title==='DASHBOARD'?<div className="sidebar-dashboard-heading"><div><strong>Dashboard</strong><small>Visão geral</small></div><button className="cms-sidebar-toggle sidebar-dashboard-toggle" type="button" aria-label={sidebarCollapsed?'Expandir menu':'Recolher menu'} aria-pressed={sidebarCollapsed} onClick={toggleSidebar}>{sidebarCollapsed?<PanelLeftOpen size={16}/>:<PanelLeftClose size={16}/>}</button></div>:<span>ADMINISTRAÇÃO</span>}
       </div>
       <nav aria-label="Módulos da Administração">
         {items.map(item=>{

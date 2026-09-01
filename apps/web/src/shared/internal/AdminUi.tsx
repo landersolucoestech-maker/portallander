@@ -21,14 +21,13 @@ function HeaderActionButton({action}:{action:AdminShellAction}){
   return <button className={`button ${secondary?'outline workspace-header-secondary':'dark workspace-primary-action'} workspace-header-polished-action${action.className?` ${action.className}`:''}`} type="button" onClick={action.onClick} disabled={action.disabled} title={action.disabled?action.disabledReason:undefined}>{ActionIcon&&<ActionIcon size={14} aria-hidden="true"/>}{action.label}</button>
 }
 
-function PageHeader({context,header,actions}:{context:string;header?:PageHeaderConfig;actions:readonly AdminShellAction[]}){
+function PageHeader({context,header,actions,sidebarCollapsed,onToggleSidebar}:{context:string;header?:PageHeaderConfig;actions:readonly AdminShellAction[];sidebarCollapsed:boolean;onToggleSidebar:()=>void}){
   const [notificationsOpen,setNotificationsOpen]=useState(false)
   const [accountOpen,setAccountOpen]=useState(false)
   const notificationsRef=useRef<HTMLDivElement>(null)
   const accountRef=useRef<HTMLDivElement>(null)
   const user=appReadModel.currentUser()
   const notifications=appReadModel.notificationsForCurrentUser()
-  const unread=notifications.filter(item=>item.status==='unread')
 
   useEffect(()=>{
     if(!notificationsOpen&&!accountOpen)return
@@ -51,11 +50,11 @@ function PageHeader({context,header,actions}:{context:string;header?:PageHeaderC
   },[notificationsOpen,accountOpen])
 
   return <header className={`workspace-top${header?' workspace-top-page':''}`}>
-    {header?<div className="workspace-page-heading-row">{header.backTo&&<Link className="workspace-header-back" to={header.backTo}><ArrowLeft size={15}/><span>{header.backLabel||'Voltar'}</span></Link>}<div className="workspace-page-heading"><h1>{header.title}</h1><p>{header.description}</p></div></div>:<div className="workspace-identity"><span className="workspace-context">{context}</span></div>}
+    {header?<div className="workspace-page-heading-row">{header.backTo&&<Link className="workspace-header-back" to={header.backTo}><ArrowLeft size={15}/><span>{header.backLabel||'Voltar'}</span></Link>}<div className="workspace-page-heading"><h1>{header.title}</h1><p>{header.description}</p></div><button className="cms-sidebar-toggle workspace-header-sidebar-toggle" type="button" aria-label={sidebarCollapsed?'Expandir menu':'Recolher menu'} aria-pressed={sidebarCollapsed} onClick={onToggleSidebar}>{sidebarCollapsed?<PanelLeftOpen size={16}/>:<PanelLeftClose size={16}/>}</button></div>:<div className="workspace-page-heading-row"><div className="workspace-identity"><span className="workspace-context">{context}</span></div><button className="cms-sidebar-toggle workspace-header-sidebar-toggle" type="button" aria-label={sidebarCollapsed?'Expandir menu':'Recolher menu'} aria-pressed={sidebarCollapsed} onClick={onToggleSidebar}>{sidebarCollapsed?<PanelLeftOpen size={16}/>:<PanelLeftClose size={16}/>}</button></div>}
     <div className="workspace-actions">
       {actions.map(action=><HeaderActionButton key={action.label} action={action}/>)}
       <div className="workspace-popover-wrap" ref={notificationsRef}>
-        <button className="icon-button notification-button" type="button" aria-label={unread.length?`Abrir notificações, ${unread.length} não lidas`:'Abrir notificações'} aria-expanded={notificationsOpen} onClick={()=>{setNotificationsOpen(value=>!value);setAccountOpen(false)}}><Bell size={17}/>{unread.length>0&&<span className="notification-count">{Math.min(unread.length,99)}</span>}</button>
+        <button className="icon-button notification-button" type="button" aria-label="Abrir notificações" aria-expanded={notificationsOpen} onClick={()=>{setNotificationsOpen(value=>!value);setAccountOpen(false)}}><Bell size={17}/></button>
         {notificationsOpen&&<div className="workspace-popover notifications-popover" role="status"><strong>Notificações</strong>{notifications.length===0?<p>Nenhuma notificação no momento.</p>:notifications.slice(0,4).map(item=><p key={item.id}>{item.title}</p>)}</div>}
       </div>
       <div className="workspace-popover-wrap" ref={accountRef}>
@@ -87,7 +86,6 @@ export function AdminShell({area,items,children,header,headerAction,headerAction
       <div className="sidebar-head">
         <div className="sidebar-brand-row">
           <Link to="/" className="brand" aria-label="Ir para o Portal Lander"><img src={portalLogo} alt="Portal Lander"/></Link>
-          <button className="cms-sidebar-toggle" type="button" aria-label={sidebarCollapsed?'Expandir menu':'Recolher menu'} aria-pressed={sidebarCollapsed} onClick={toggleSidebar}>{sidebarCollapsed?<PanelLeftOpen size={16}/>:<PanelLeftClose size={16}/>}</button>
         </div>
         <span>ADMINISTRAÇÃO</span>
       </div>
@@ -104,7 +102,7 @@ export function AdminShell({area,items,children,header,headerAction,headerAction
         })}
       </nav>
     </aside>
-    <div className="workspace"><PageHeader context={context} header={header} actions={actions}/><main className="workspace-main" id="admin-main" tabIndex={-1}>{children}</main></div>
+    <div className="workspace"><PageHeader context={context} header={header} actions={actions} sidebarCollapsed={sidebarCollapsed} onToggleSidebar={toggleSidebar}/><main className="workspace-main" id="admin-main" tabIndex={-1}>{children}</main></div>
   </div>
 }
 

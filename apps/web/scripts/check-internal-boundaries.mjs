@@ -43,7 +43,8 @@ for(const required of [
  "['Notas Fiscais',ReceiptText,'/app/finance/invoices']",
  "['Contabilidade',BookOpen,'/app/finance/accounting']",
  "['Configurações',Settings,'/app/settings']",
- "['Páginas',Layers3,'/app/site/paginas']"
+ "['Páginas',Layers3,'/app/site/paginas']",
+ "['Configurações',Settings,'/app/site/configuracoes']"
 ])if(!adminNavigation.includes(required))failures.push(`adminNavigation deve preservar módulo obrigatório: ${required}`)
 for(const forbidden of ["['Dashboard',LayoutDashboard,'/app/crm']","['Leads'","['Contatos'",'/app/crm/dashboard','/app/crm/integrations','Integrações','PlugZap',"['Categorias',Tags,'/app/finance/categories']","['Regras'","/app/finance/automations"])if(adminNavigation.includes(forbidden))failures.push(`adminNavigation contém item proibido ou removido: ${forbidden}`)
 for(const removedSiteModule of ["['Marca & Logos'","['Cabeçalho'","['Rodapé'","['Categorias',Tags,","['Publicidade',Megaphone",'/app/site/marca','/app/site/categorias','/app/site/noticias/anuncio'])if(adminNavigation.includes(removedSiteModule))failures.push(`adminNavigation não pode reintroduzir módulo administrativo removido do sidebar: ${removedSiteModule}`)
@@ -84,8 +85,7 @@ const siteHeaderFiles=[
  'src/features/site-manager/pages/SiteManagerDashboardPage.tsx',
  'src/features/site-manager/pages/HeroSectionAppearancePage.tsx',
  'src/features/site-manager/pages/SiteSectionsPage.tsx',
- 'src/features/site-manager/pages/HeaderManagerPage.tsx',
- 'src/features/site-manager/pages/FooterSectionManagerPage.tsx',
+ 'src/features/site-manager/pages/SiteSettingsPage.tsx',
  'src/features/site-manager/pages/SiteMediaPage.tsx',
  'src/features/site-manager/pages/MediaKitPage.tsx',
  'src/features/site-manager/pages/SiteContentsPage.tsx'
@@ -97,6 +97,8 @@ for(const removed of [
  'src/features/site-manager/pages/HomeAdManagerPage.tsx',
  'src/features/site-manager/pages/BrandAssetsManagerPage.tsx',
  'src/features/site-manager/pages/HeaderBrandManagerPage.tsx',
+ 'src/features/site-manager/pages/HeaderManagerPage.tsx',
+ 'src/features/site-manager/pages/FooterSectionManagerPage.tsx',
  'src/features/site-manager/pages/SitePagesPage.tsx',
  'src/features/site-manager/pages/SiteCategoriesPage.tsx',
  'src/features/site-manager/pages/NewsAdManagerPage.tsx'

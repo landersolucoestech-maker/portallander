@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import type { LucideIcon } from 'lucide-react'
-import { Bell, Building2, ChevronDown, FilePlus2, FileStack, LayoutTemplate, LogOut, PanelLeftClose, PanelLeftOpen, Settings, UserPlus, UserRound } from 'lucide-react'
+import { ArrowLeft, Bell, Building2, ChevronDown, FilePlus2, FileStack, LayoutTemplate, LogOut, PanelLeftClose, PanelLeftOpen, Settings, UserPlus, UserRound } from 'lucide-react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
 import { portalLogo } from '../branding/assets/brandAsset'
 import { appReadModel } from '../data/appReadModel'
@@ -9,7 +9,7 @@ export type AdminArea = 'crm' | 'contracts' | 'finance' | 'agenda' | 'chat' | 'r
 export type AdminNavLink = readonly [label: string, icon: LucideIcon, to: string]
 export type AdminNavGroup = {label:string;icon:LucideIcon;to?:string;children:readonly AdminNavLink[]}
 export type AdminNavItem = AdminNavLink | AdminNavGroup
-export type PageHeaderConfig={title:string;description:string}
+export type PageHeaderConfig={title:string;description:string;backTo?:string;backLabel?:string}
 export type AdminShellAction={label:string;onClick?:()=>void;disabled?:boolean;disabledReason?:string;variant?:'primary'|'secondary';className?:string;icon?:LucideIcon}
 
 const isNavGroup=(item:AdminNavItem):item is AdminNavGroup=>!Array.isArray(item)
@@ -51,7 +51,7 @@ function PageHeader({context,header,actions}:{context:string;header?:PageHeaderC
   },[notificationsOpen,accountOpen])
 
   return <header className={`workspace-top${header?' workspace-top-page':''}`}>
-    {header?<div className="workspace-page-heading"><h1>{header.title}</h1><p>{header.description}</p></div>:<div className="workspace-identity"><span className="workspace-name">Portal Lander</span><span className="workspace-divider"/><span className="workspace-context">{context}</span></div>}
+    {header?<div className="workspace-page-heading-row">{header.backTo&&<Link className="workspace-header-back" to={header.backTo}><ArrowLeft size={15}/><span>{header.backLabel||'Voltar'}</span></Link>}<div className="workspace-page-heading"><h1>{header.title}</h1><p>{header.description}</p></div></div>:<div className="workspace-identity"><span className="workspace-name">Portal Lander</span><span className="workspace-divider"/><span className="workspace-context">{context}</span></div>}
     <div className="workspace-actions">
       {actions.map(action=><HeaderActionButton key={action.label} action={action}/>)}
       <div className="workspace-popover-wrap" ref={notificationsRef}>

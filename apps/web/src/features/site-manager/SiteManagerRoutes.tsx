@@ -12,11 +12,14 @@ export default function SiteManagerRoutes(){
   return <Routes>
     <Route index element={<SiteManagerDashboardPage/>}/>
 
-    <Route path="home" element={<Navigate to="/app/site/secoes" replace/>}/>
-    <Route path="home/hero" element={<Navigate to="/app/site/secoes/home/hero" replace/>}/>
+    <Route path="home" element={<Navigate to="/app/site/paginas" replace/>}/>
+    <Route path="home/hero" element={<Navigate to="/app/site/paginas/home/hero" replace/>}/>
 
-    <Route path="secoes" element={<SiteSectionsPage/>}/>
-    <Route path="secoes/home/hero" element={<HeroSectionAppearancePage/>}/>
+    <Route path="paginas" element={<SiteSectionsPage/>}/>
+    <Route path="paginas/home/hero" element={<HeroSectionAppearancePage/>}/>
+
+    <Route path="secoes" element={<Navigate to="/app/site/paginas" replace/>}/>
+    <Route path="secoes/home/hero" element={<Navigate to="/app/site/paginas/home/hero" replace/>}/>
     <Route path="secoes/home/rodape" element={<Navigate to="/app/site/rodape" replace/>}/>
 
     <Route path="cabecalho" element={<HeaderManagerPage/>}/>

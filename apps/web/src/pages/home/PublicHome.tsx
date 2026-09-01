@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { portalLogo } from '../../shared/branding/assets/brandAsset'
 import { PublicFooter, PublicHeader } from '../../shared/public/PublicChrome'
@@ -14,9 +15,20 @@ type SidebarAdConfig={
   bodyLines:string[]
   imageUrl:string
   imageAlt:string
+  width:number
+  height:number
+  paddingX:number
+  paddingY:number
+  radius:number
+  background:string
+  textColor:string
+  titleColor:string
+  accentColor:string
+  borderColor:string
 }
 
 const SIDEBAR_AD_STORAGE_KEY='portal-lander:cms:section-config:side-ad:v4'
+const SIDEBAR_AD_UPDATED_EVENT='portal-lander:section-config-updated'
 const DEFAULT_SIDEBAR_AD:SidebarAdConfig={
   active:true,
   title:'PUBLICIDADE',
@@ -26,6 +38,16 @@ const DEFAULT_SIDEBAR_AD:SidebarAdConfig={
   bodyLines:['SUA MARCA NO RITMO CERTO!'],
   imageUrl:'',
   imageAlt:'Publicidade Portal Lander',
+  width:300,
+  height:600,
+  paddingX:24,
+  paddingY:24,
+  radius:0,
+  background:'#090909',
+  textColor:'#ffffff',
+  titleColor:'#ffffff',
+  accentColor:'#ff151f',
+  borderColor:'#090909',
 }
 
 function readSidebarAdConfig():SidebarAdConfig{
@@ -47,17 +69,35 @@ function ImageThumb({src,badge,className=''}:{src:string;badge?:string;className
 function Card({item}:{item:HomeStory}){return <Link className="pl-card" to="/noticias" aria-label={`Abrir notícias relacionadas a ${item.title}`}><ImageThumb src={item.image} badge={item.category}/><div className="pl-card-body"><h3>{item.title}</h3><div className="pl-meta"><span>{item.meta}</span><span>◉ {item.views}</span></div></div></Link>}
 
 function SidebarAd(){
-  const config=readSidebarAdConfig()
+  const [config,setConfig]=useState<SidebarAdConfig>(()=>readSidebarAdConfig())
+
+  useEffect(()=>{
+    const refresh=()=>setConfig(readSidebarAdConfig())
+    const onStorage=(event:StorageEvent)=>{if(event.key===SIDEBAR_AD_STORAGE_KEY)refresh()}
+    const onSectionUpdated=(event:Event)=>{
+      const detail=(event as CustomEvent<{section?:string}>).detail
+      if(!detail?.section||detail.section==='side-ad')refresh()
+    }
+    window.addEventListener('storage',onStorage)
+    window.addEventListener(SIDEBAR_AD_UPDATED_EVENT,onSectionUpdated)
+    window.addEventListener('focus',refresh)
+    return ()=>{
+      window.removeEventListener('storage',onStorage)
+      window.removeEventListener(SIDEBAR_AD_UPDATED_EVENT,onSectionUpdated)
+      window.removeEventListener('focus',refresh)
+    }
+  },[])
+
   if(!config.active)return null
-  return <aside className="pl-home-sidebar-ad">
-    <div className="pl-home-sidebar-ad-inner">
+  return <aside className="pl-home-sidebar-ad" style={{width:'100%',maxWidth:config.width||300}}>
+    <div className="pl-home-sidebar-ad-inner" style={{background:config.background,color:config.textColor,minHeight:config.height,border:`1px solid ${config.borderColor}`,borderRadius:config.radius,padding:`${config.paddingY}px ${config.paddingX}px`,overflow:'hidden'}}>
       {config.imageUrl
-        ? <img src={config.imageUrl} alt={config.imageAlt||'Publicidade'} style={{display:'block',width:'100%',height:'auto',objectFit:'contain',marginBottom:12}}/>
+        ? <img src={config.imageUrl} alt={config.imageAlt||'Publicidade'} style={{display:'block',width:'100%',maxHeight:Math.max(180,(config.height||600)*.58),objectFit:'contain',margin:'0 auto 12px'}}/>
         : <img src={portalLogo} alt="Portal Lander"/>}
-      {config.title&&<span className="pl-home-sidebar-ad-kicker">{config.title}</span>}
-      {config.subtitle&&<h3>{config.subtitle}</h3>}
-      {config.bodyLines.filter(Boolean).map((line,index)=><p key={`${line}-${index}`}>{line}</p>)}
-      {config.linkLabel&&config.linkUrl&&<Link to={config.linkUrl}>{config.linkLabel} →</Link>}
+      {config.title&&<span className="pl-home-sidebar-ad-kicker" style={{color:config.textColor}}>{config.title}</span>}
+      {config.subtitle&&<h3 style={{color:config.titleColor}}>{config.subtitle}</h3>}
+      {config.bodyLines.filter(Boolean).map((line,index)=><p key={`${line}-${index}`} style={{color:config.accentColor}}>{line}</p>)}
+      {config.linkLabel&&config.linkUrl&&<Link to={config.linkUrl} style={{borderColor:config.accentColor,color:config.accentColor}}>{config.linkLabel} →</Link>}
     </div>
   </aside>
 }

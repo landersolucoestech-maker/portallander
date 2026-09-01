@@ -70,6 +70,7 @@ function Preview({section,config,items,viewport}:{section:SectionKey;config:Sect
 export function HomeSectionManagerPage({section}:{section:SectionKey}){
   const d=defs[section]
   const usesHeroEditorPattern=section==='grid'||section==='most-read'
+  const isGrid=section==='grid'
   const [config,setConfig]=useState<SectionConfig>(()=>load(section,d))
   const [saved,setSaved]=useState(false)
   const [viewport,setViewport]=useState<PreviewViewport>('desktop')
@@ -79,9 +80,10 @@ export function HomeSectionManagerPage({section}:{section:SectionKey}){
   const widthValue=config.width<=100?1200:config.width
   const openPublicSite=()=>{const publicUrl=`${window.location.origin}${window.location.pathname}#/`;window.open(publicUrl,'_blank','noopener,noreferrer')}
   const header=usesHeroEditorPattern?{title:`Configurar seção: ${d.title}`,description:d.description,backTo:'/app/site/secoes',backLabel:'Seções das Páginas'}:{title:`Configurar seção: ${d.title}`,description:d.description}
-  const previewDescription=section==='grid'
-    ? viewport==='desktop'?'Desktop: 3 cards por linha.':viewport==='tablet'?'Tablet: composição adaptada para o breakpoint.':'Mobile: composição empilhada e proporcional.'
+  const previewDescription=isGrid
+    ? 'Prévia única e compacta. A responsividade do Grid é automática no site.'
     : viewport==='desktop'?'Desktop: Mais Lidas na lateral direita do Grid principal.':viewport==='tablet'?'Tablet: Mais Lidas recalculada para a largura do dispositivo.':'Mobile: Mais Lidas adaptada para leitura vertical.'
+  const previewViewport:PreviewViewport=isGrid?'mobile':usesHeroEditorPattern?viewport:'desktop'
 
   return <AdminShell area="cms" items={SITE_MANAGER_NAV} header={header} headerAction={usesHeroEditorPattern?{label:'Ver no site',icon:ExternalLink,variant:'secondary',onClick:openPublicSite}:undefined}>
     {!usesHeroEditorPattern&&<div className="section-editor-toolbar"><div><Link to="/app/site/secoes">← Seções das Páginas</Link><span className="section-editor-status"><input type="checkbox" checked={config.active} onChange={e=>patch({active:e.target.checked})}/> {config.active?'Ativo':'Inativo'}</span></div><div><Link className="button outline" to="/app/site/secoes">Cancelar</Link><button className="button dark" onClick={save}><Save size={15}/> Salvar alterações</button></div></div>}
@@ -108,8 +110,11 @@ export function HomeSectionManagerPage({section}:{section:SectionKey}){
 
       <section className={`section-editor-preview-column${usesHeroEditorPattern?' grid-editor-preview':''}`}>
         <div className="section-editor-card section-preview-card">
-          <div className="section-preview-toolbar"><div><h2>Prévia da seção</h2>{usesHeroEditorPattern&&<p>{previewDescription}</p>}</div>{usesHeroEditorPattern&&<div className="hero-cms-viewports" aria-label="Visualização responsiva"><button className={viewport==='desktop'?'active':''} onClick={()=>setViewport('desktop')} aria-label="Desktop"><Monitor size={17}/></button><button className={viewport==='tablet'?'active':''} onClick={()=>setViewport('tablet')} aria-label="Tablet"><Tablet size={17}/></button><button className={viewport==='mobile'?'active':''} onClick={()=>setViewport('mobile')} aria-label="Mobile"><Smartphone size={17}/></button></div>}</div>
-          <Preview section={section} config={config} items={previewItems} viewport={usesHeroEditorPattern?viewport:'desktop'}/>
+          <div className="section-preview-toolbar">
+            <div><h2>Prévia da seção</h2>{usesHeroEditorPattern&&<p>{previewDescription}</p>}</div>
+            {isGrid?<div className="hero-cms-viewports" aria-label="Prévia única"><button type="button" className="active" aria-label="Prévia compacta em formato mobile" title="Prévia compacta"><Smartphone size={17}/></button></div>:usesHeroEditorPattern&&<div className="hero-cms-viewports" aria-label="Visualização responsiva"><button className={viewport==='desktop'?'active':''} onClick={()=>setViewport('desktop')} aria-label="Desktop"><Monitor size={17}/></button><button className={viewport==='tablet'?'active':''} onClick={()=>setViewport('tablet')} aria-label="Tablet"><Tablet size={17}/></button><button className={viewport==='mobile'?'active':''} onClick={()=>setViewport('mobile')} aria-label="Mobile"><Smartphone size={17}/></button></div>}
+          </div>
+          <Preview section={section} config={config} items={previewItems} viewport={previewViewport}/>
         </div>
 
         {usesHeroEditorPattern&&<div className="grid-editor-actions"><Link className="button outline" to="/app/site/secoes">Cancelar</Link><button className="button dark" onClick={save}><Save size={15}/> Salvar alterações</button></div>}

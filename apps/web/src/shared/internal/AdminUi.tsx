@@ -60,7 +60,7 @@ function PageHeader({context,header,actions}:{context:string;header?:PageHeaderC
       </div>
       <div className="workspace-popover-wrap" ref={accountRef}>
         <button className="account-button" type="button" aria-label="Abrir menu da conta" aria-haspopup="menu" aria-expanded={accountOpen} onClick={()=>{setAccountOpen(value=>!value);setNotificationsOpen(false)}}><span>{user.initials}</span><div><b>{user.name}</b><small>{user.roleLabel}</small></div><ChevronDown size={14}/></button>
-        {accountOpen&&<div className="workspace-popover account-popover" role="menu" aria-label="Menu da conta"><Link to="/app/profile" role="menuitem" onClick={()=>setAccountOpen(false)}><UserRound size={15}/><span>Perfil</span></Link><Link to="/app/site/configuracoes" role="menuitem" onClick={()=>setAccountOpen(false)}><Settings size={15}/><span>Configurações</span></Link><Link className="account-popover-logout" to="/app/login" role="menuitem" onClick={()=>setAccountOpen(false)}><LogOut size={15}/><span>Sair / Logout</span></Link></div>}
+        {accountOpen&&<div className="workspace-popover account-popover" role="menu" aria-label="Menu da conta"><Link to="/app/profile" role="menuitem" onClick={()=>setAccountOpen(false)}><UserRound size={15}/><span>Perfil</span></Link><Link to="/app/settings" role="menuitem" onClick={()=>setAccountOpen(false)}><Settings size={15}/><span>Configurações</span></Link><Link className="account-popover-logout" to="/app/login" role="menuitem" onClick={()=>setAccountOpen(false)}><LogOut size={15}/><span>Sair / Logout</span></Link></div>}
       </div>
     </div>
   </header>
@@ -109,5 +109,5 @@ export function AdminShell({area,items,children,header,headerAction,headerAction
 }
 
 export function AdminNotice({title,description}:{title:string;description:string}){return <div className="admin-notice"><div><strong>{title}</strong><p>{description}</p></div></div>}
-export function AdminEmpty({title,description}:{title:string;description:string}){return <div className="admin-empty"><strong>{title}</strong><p>{description}</p></div>}
+export function AdminEmpty({title,description}:{title:string;description:string}){return <div className="admin-empty"><strong>{title}</strong><p>{description}</p></div></div>}
 export function AdminKpi({label,value,detail,icon}:{label:string;value:string;detail:string;icon:ReactNode}){return <div className="admin-kpi"><div className="admin-kpi-top"><span className="admin-kpi-label">{label}</span><span className="admin-kpi-icon">{icon}</span></div><strong>{value}</strong><small>{detail}</small></div>}

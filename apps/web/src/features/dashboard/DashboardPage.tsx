@@ -21,7 +21,7 @@ export default function DashboardPage(){
  const visitMax=5000
  const points=visits.map((value,index)=>`${index*(100/(visits.length-1))},${100-(value/visitMax)*100}`).join(' ')
 
- return <AdminShell area="crm" items={UNIFIED_ADMIN_NAV} header={{title:'DASHBOARD'}}>
+ return <AdminShell area="crm" items={UNIFIED_ADMIN_NAV} header={{title:'DASHBOARD',description:''}}>
   <section className="unified-dashboard" aria-busy={activity.isLoading}>
    <div className="unified-dashboard-kpis">
     <article className="unified-kpi-card"><span className="unified-kpi-icon"><UsersRound size={18}/></span><div><span>Novos Leads</span><strong>{newLeads}</strong><small>{totalLeads} leads no total</small></div></article>

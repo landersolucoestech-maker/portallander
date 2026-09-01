@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { FooterSectionManagerPage } from './pages/FooterSectionManagerPage'
+import { HeaderManagerPage } from './pages/HeaderManagerPage'
 import { HeroSectionAppearancePage } from './pages/HeroSectionAppearancePage'
 import { MediaKitPage } from './pages/MediaKitPage'
 import { SiteContentsPage } from './pages/SiteContentsPage'
@@ -16,8 +17,10 @@ export default function SiteManagerRoutes(){
 
     <Route path="secoes" element={<SiteSectionsPage/>}/>
     <Route path="secoes/home/hero" element={<HeroSectionAppearancePage/>}/>
-    <Route path="secoes/home/rodape" element={<FooterSectionManagerPage/>}/>
+    <Route path="secoes/home/rodape" element={<Navigate to="/app/site/rodape" replace/>}/>
 
+    <Route path="cabecalho" element={<HeaderManagerPage/>}/>
+    <Route path="rodape" element={<FooterSectionManagerPage/>}/>
     <Route path="conteudos" element={<SiteContentsPage/>}/>
     <Route path="midia" element={<SiteMediaPage/>}/>
     <Route path="midia-kit" element={<MediaKitPage/>}/>

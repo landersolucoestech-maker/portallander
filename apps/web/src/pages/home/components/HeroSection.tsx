@@ -1,5 +1,5 @@
 import { ArrowLeft, ArrowRight } from 'lucide-react'
-import { useEffect, useMemo, useState, useSyncExternalStore, type CSSProperties } from 'react'
+import { Fragment, useEffect, useMemo, useState, useSyncExternalStore, type CSSProperties } from 'react'
 import { Link } from 'react-router-dom'
 import {
   HERO_APPEARANCE_EVENT,
@@ -14,6 +14,7 @@ import {
   getRenderableHeroSlides,
   readHeroConfig,
   resolveSlideVisual,
+  resolveTickerViewport,
   resolveTitleSegmentVisual,
   type HeroCarouselConfig,
   type HeroSlide,
@@ -115,8 +116,14 @@ export function HeroSection({
   }
 
   const ticker = runtimeConfig.ticker
-  const hasTicker = ticker.active
+  const tickerViewport = resolveTickerViewport(ticker, breakpoint)
+  const tickerItems = (ticker.items || []).filter(item => item.active && item.text).sort((a, b) => a.order - b.order)
+  const repeatCount = Math.max(4, Math.ceil(12 / Math.max(1, tickerItems.length)))
+  const tickerSequence = Array.from({ length: repeatCount }, () => tickerItems).flat()
+  const hasTicker = ticker.active && !tickerViewport.hidden && tickerItems.length > 0
+  const tickerDuration = Math.max(6, 62 - Math.min(100, Math.max(1, tickerViewport.speed)) * .48)
   const radius = runtimeAppearance.radius
+
   const mediaStyle = {
     '--hero-image-x': `${visual.imagePositionX}%`,
     '--hero-image-y': `${visual.imagePositionY}%`,
@@ -126,6 +133,7 @@ export function HeroSection({
     '--hero-media-width': `${runtimeAppearance.mediaWidthPercent}%`,
     '--hero-media-min-height': `${runtimeAppearance.mediaMinHeight}px`,
   } as CSSProperties
+
   const rootStyle = {
     background: runtimeAppearance.background,
     minHeight: runtimeAppearance.height,
@@ -144,6 +152,7 @@ export function HeroSection({
     '--hero-content-padding-top': `${runtimeAppearance.contentPaddingTop}px`,
     '--hero-content-padding-bottom': `${runtimeAppearance.contentPaddingBottom}px`,
   } as CSSProperties
+
   const shellStyle: CSSProperties = {
     maxWidth: runtimeAppearance.width <= 100 ? undefined : runtimeAppearance.width,
     paddingLeft: runtimeAppearance.paddingX,
@@ -152,18 +161,36 @@ export function HeroSection({
     paddingBottom: 0,
     alignItems: runtimeAppearance.verticalAlign === 'start' ? 'start' : runtimeAppearance.verticalAlign === 'end' ? 'end' : 'center',
   }
+
   const contentStyle: CSSProperties = {
     textAlign: runtimeAppearance.contentAlign,
     maxWidth: runtimeAppearance.titleMaxWidth,
     paddingBottom: runtimeAppearance.contentPaddingBottom + runtimeAppearance.paddingY,
   }
-  const tickerStyle: CSSProperties = {
+
+  const tickerStyle = {
     marginTop: 0,
-    background: ticker.background || '#ef0011',
-    color: ticker.textColor || '#ffffff',
+    background: ticker.background,
+    color: ticker.textColor,
+    minHeight: tickerViewport.height,
+    height: tickerViewport.height,
     borderRadius: `0 0 ${radius}px ${radius}px`,
     overflow: 'hidden',
-  }
+    borderStyle: ticker.borderEnabled ? 'solid' : 'none',
+    borderWidth: ticker.borderEnabled ? ticker.borderWidth : 0,
+    borderColor: ticker.borderColor,
+    fontFamily: ticker.fontFamily || 'inherit',
+    fontSize: tickerViewport.fontSize,
+    fontWeight: ticker.fontWeight,
+    textTransform: ticker.textTransform,
+    '--ticker-gap': `${tickerViewport.gap}px`,
+    '--ticker-duration': `${tickerDuration}s`,
+    '--ticker-text-color': ticker.textColor,
+    '--ticker-label-color': ticker.labelColor,
+    '--ticker-separator-color': ticker.separatorColor,
+    '--ticker-hover-color': ticker.hoverColor,
+  } as CSSProperties
+
   const imageStyle: CSSProperties = {
     left: `${visual.imagePositionX}%`,
     top: 'auto',
@@ -180,6 +207,8 @@ export function HeroSection({
     visibility: 'visible',
     opacity: 1,
   }
+
+  const tickerAlign: CSSProperties['alignItems'] = ticker.verticalAlign === 'start' ? 'flex-start' : ticker.verticalAlign === 'end' ? 'flex-end' : 'center'
 
   return <>
     <section className={`portal-hero editorial-hero hero-breakpoint-${breakpoint}`} data-hero-breakpoint={breakpoint} style={rootStyle} aria-label="Destaque principal" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
@@ -210,6 +239,20 @@ export function HeroSection({
       <div className="hero-noise" aria-hidden="true" />
     </section>
 
-    {hasTicker && <section className={`portal-breaking editorial-ticker hero-breakpoint-${breakpoint}`} style={tickerStyle} aria-label="Agora"><SmartLink to={ticker.url || '/'} external={ticker.external} className="shell" style={{ color: ticker.textColor || '#ffffff' }}><strong>{ticker.label}</strong><i aria-hidden="true" />{ticker.tagVisible !== false && ticker.tag && <span className="editorial-ticker-tag" style={{ background: ticker.tagBackground || '#111111', color: ticker.tagTextColor || '#ffffff' }}>{ticker.tag}</span>}<p>{ticker.text}</p>{ticker.showArrow !== false && <ArrowRight size={20} />}</SmartLink></section>}
+    {hasTicker && <section className={`portal-breaking editorial-ticker hero-breakpoint-${breakpoint}`} style={tickerStyle} aria-label="Agora">
+      <div className="editorial-ticker-shell" style={{ alignItems: tickerAlign }}>
+        <strong className="editorial-ticker-label">{ticker.label}</strong>
+        <div className="editorial-ticker-viewport">
+          <div className={`editorial-ticker-track ${ticker.direction === 'ltr' ? 'direction-ltr' : 'direction-rtl'} ${ticker.loop ? 'is-running' : 'is-static'} ${ticker.pauseOnHover ? 'pause-on-hover' : ''}`}>
+            {(ticker.loop ? [0, 1] : [0]).map(group => <div className="editorial-ticker-group" aria-hidden={group === 1 ? true : undefined} key={group}>
+              {tickerSequence.map((item, index) => <Fragment key={`${group}-${item.id}-${index}`}>
+                <SmartLink to={item.url || '/'} external={item.external} className="editorial-ticker-item">{item.text}</SmartLink>
+                <span className="editorial-ticker-separator" aria-hidden="true">{ticker.separator}</span>
+              </Fragment>)}
+            </div>)}
+          </div>
+        </div>
+      </div>
+    </section>}
   </>
 }

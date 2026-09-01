@@ -26,7 +26,7 @@ export const UNIFIED_ADMIN_NAV:readonly AdminNavItem[]=[
     ['Briefings',ClipboardList,'/app/marketing/briefings'],
     ['IA Criativa',Sparkles,'/app/marketing/ia-criativa'],
   ]},
-  ['Configurações',Settings,'/app/site/configuracoes'],
+  ['Configurações',Settings,'/app/settings'],
 ]
 
 // Aliases temporários preservam os consumidores atuais durante a migração módulo a módulo.

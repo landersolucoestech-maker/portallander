@@ -25,10 +25,10 @@ export default function SiteManagerRoutes(){
     <Route path="secoes/home/grid-principal" element={<HomeSectionManagerPage section="grid"/>}/>
     <Route path="secoes/home/mais-lidas" element={<HomeSectionManagerPage section="most-read"/>}/>
     <Route path="secoes/home/publicidade-lateral" element={<HomeSectionManagerPage section="side-ad"/>}/>
-    <Route path="secoes/home/ultimas-noticias" element={<HomeSectionManagerPage section="secondary"/>}/>
+    <Route path="secoes/home/ultimas-noticias" element={<HomeSectionManagerPage section="latest"/>}/>
     <Route path="secoes/home/em-alta" element={<HomeSectionManagerPage section="trending"/>}/>
     <Route path="secoes/home/banner-horizontal" element={<HomeSectionManagerPage section="banner"/>}/>
-    <Route path="secoes/home/lancamentos" element={<HomeSectionManagerPage section="videos"/>}/>
+    <Route path="secoes/home/lancamentos" element={<HomeSectionManagerPage section="releases"/>}/>
     <Route path="secoes/home/agenda" element={<HomeSectionManagerPage section="agenda"/>}/>
     <Route path="secoes/home/footer" element={<HomeSectionManagerPage section="footer"/>}/>
 

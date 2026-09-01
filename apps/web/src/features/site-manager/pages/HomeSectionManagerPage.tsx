@@ -5,6 +5,7 @@ import { homeReadModel } from '../../../pages/home/models/homeReadModel'
 import { SITE_MANAGER_NAV } from '../../../shared/internal/adminNavigation'
 import { AdminShell } from '../../../shared/internal/AdminUi'
 import '../../../styles/home-section-manager.css'
+import '../../../styles/home-grid-section-editor.css'
 
 export type SectionKey='hero'|'ticker'|'grid'|'ranking'|'side-ad'|'secondary'|'trending'|'banner'|'videos'|'agenda'|'newsletter'|'footer'
 type SectionConfig={active:boolean;title:string;subtitle:string;linkLabel:string;linkUrl:string;source:string;quantity:number;width:number;height:number;paddingX:number;paddingY:number;radius:number;background:string;textColor:string;titleColor:string;accentColor:string;borderColor:string}

@@ -22,18 +22,21 @@ export default function SiteManagerRoutes(){
 
     <Route path="secoes" element={<SiteSectionsPage/>}/>
     <Route path="secoes/home/hero" element={<HeroSectionAppearancePage/>}/>
-    <Route path="secoes/home/barra-agora" element={<HomeSectionManagerPage section="ticker"/>}/>
     <Route path="secoes/home/grid-principal" element={<HomeSectionManagerPage section="grid"/>}/>
     <Route path="secoes/home/mais-lidas" element={<HomeSectionManagerPage section="most-read"/>}/>
-    <Route path="secoes/home/ranking" element={<Navigate to="/app/site/secoes/home/mais-lidas" replace/>}/>
     <Route path="secoes/home/publicidade-lateral" element={<HomeSectionManagerPage section="side-ad"/>}/>
-    <Route path="secoes/home/destaques" element={<HomeSectionManagerPage section="secondary"/>}/>
+    <Route path="secoes/home/ultimas-noticias" element={<HomeSectionManagerPage section="secondary"/>}/>
     <Route path="secoes/home/em-alta" element={<HomeSectionManagerPage section="trending"/>}/>
     <Route path="secoes/home/banner-horizontal" element={<HomeSectionManagerPage section="banner"/>}/>
-    <Route path="secoes/home/videos" element={<HomeSectionManagerPage section="videos"/>}/>
+    <Route path="secoes/home/lancamentos" element={<HomeSectionManagerPage section="videos"/>}/>
     <Route path="secoes/home/agenda" element={<HomeSectionManagerPage section="agenda"/>}/>
-    <Route path="secoes/home/newsletter" element={<HomeSectionManagerPage section="newsletter"/>}/>
     <Route path="secoes/home/footer" element={<HomeSectionManagerPage section="footer"/>}/>
+
+    <Route path="secoes/home/ranking" element={<Navigate to="/app/site/secoes/home/mais-lidas" replace/>}/>
+    <Route path="secoes/home/barra-agora" element={<Navigate to="/app/site/secoes/home/hero" replace/>}/>
+    <Route path="secoes/home/destaques" element={<Navigate to="/app/site/secoes/home/ultimas-noticias" replace/>}/>
+    <Route path="secoes/home/videos" element={<Navigate to="/app/site/secoes/home/lancamentos" replace/>}/>
+    <Route path="secoes/home/newsletter" element={<Navigate to="/app/site/secoes" replace/>}/>
 
     <Route path="marca" element={<BrandAssetsManagerPage/>}/>
     <Route path="cabecalho" element={<HeaderBrandManagerPage/>}/>

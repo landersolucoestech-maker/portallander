@@ -13,7 +13,7 @@ export function FooterSectionManagerPage(){
   const reset=()=>{resetFooterBrandConfig();setConfig(defaultFooterBrandConfig);setSaved(false)}
   const openPublicSite=()=>{const publicUrl=`${window.location.origin}${window.location.pathname}#/`;window.open(publicUrl,'_blank','noopener,noreferrer')}
 
-  return <AdminShell area="cms" items={SITE_MANAGER_NAV} header={{title:'Rodapé',description:'Módulo próprio de configuração do Rodapé utilizado nas páginas do Portal Lander.'}} headerAction={{label:'Ver no site',icon:ExternalLink,variant:'secondary',onClick:openPublicSite}}>
+  return <AdminShell area="cms" items={SITE_MANAGER_NAV} header={{title:'Configurar seção: Rodapé',description:'Configuração do Rodapé utilizado nas páginas.',backTo:'/app/site/paginas',backLabel:'Páginas'}} headerAction={{label:'Ver no site',icon:ExternalLink,variant:'secondary',onClick:openPublicSite}}>
     <div className="section-editor-layout grid-editor-layout">
       <section className="section-editor-card grid-editor-settings">
         <h2>Configurações do Rodapé</h2>
@@ -26,7 +26,7 @@ export function FooterSectionManagerPage(){
       </section>
       <section className="section-editor-preview-column grid-editor-preview">
         <div className="section-editor-card section-preview-card">
-          <div className="section-preview-toolbar"><div><h2>Prévia do Rodapé</h2><p>O Rodapé é um módulo próprio e ocupa sempre o final da página.</p></div></div>
+          <div className="section-preview-toolbar"><div><h2>Prévia do Rodapé</h2><p>Rodapé compartilhado entre as páginas.</p></div></div>
           <div className="section-preview" style={{background:'#090909',color:'#fff',minHeight:220,padding:24}}>
             {config.active&&config.image&&<img src={config.image} alt={config.imageAlt||'Portal Lander'} style={{width:config.width,maxWidth:'100%',height:'auto'}}/>}
             <p style={{marginTop:20}}>O maior portal de notícias sobre funk, cultura urbana e entretenimento.</p>

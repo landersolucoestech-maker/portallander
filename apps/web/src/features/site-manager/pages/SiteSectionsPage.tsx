@@ -1,7 +1,6 @@
 import { Eye, Plus, Settings2, X } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { NewsAdEditor } from '../../../pages/noticias/components/NewsAdEditor'
 import { HeaderBrandEditor } from '../../../shared/branding/components/HeaderBrandEditor'
 import { SITE_MANAGER_NAV } from '../../../shared/internal/adminNavigation'
 import { AdminShell } from '../../../shared/internal/AdminUi'
@@ -98,19 +97,11 @@ export function SiteSectionsPage(){
       </div>}
     </div>
 
-    {selectedPage==='home'&&<>
-      <section className="section-editor-card" style={{marginTop:24}} aria-labelledby="page-header-title">
-        <h2 id="page-header-title">Cabeçalho da Página inicial</h2>
-        <p>A configuração do cabeçalho permanece vinculada à página dentro deste módulo, sem rota ou módulo administrativo independente.</p>
-        <HeaderBrandEditor/>
-      </section>
-
-      <section className="section-editor-card" style={{marginTop:24}} aria-labelledby="page-ad-title">
-        <h2 id="page-ad-title">Publicidade da página Notícias</h2>
-        <p>O espaço publicitário é configurado no contexto da página em que é utilizado, sem módulo global de Publicidade.</p>
-        <NewsAdEditor/>
-      </section>
-    </>}
+    {selectedPage==='home'&&<section className="section-editor-card" style={{marginTop:24}} aria-labelledby="page-header-title">
+      <h2 id="page-header-title">Cabeçalho da Página inicial</h2>
+      <p>A configuração do cabeçalho permanece vinculada à página dentro deste módulo, sem rota ou módulo administrativo independente.</p>
+      <HeaderBrandEditor/>
+    </section>}
 
     {createOpen&&<div role="presentation" style={{position:'fixed',inset:0,zIndex:2000,background:'rgba(0,0,0,.55)',display:'grid',placeItems:'center',padding:20}} onMouseDown={event=>{if(event.currentTarget===event.target)setCreateOpen(false)}}>
       <section role="dialog" aria-modal="true" aria-labelledby="create-page-title" className="section-editor-card" style={{width:'min(560px,100%)',boxShadow:'0 24px 80px rgba(0,0,0,.28)'}}>

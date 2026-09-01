@@ -15,8 +15,8 @@ export function HeroSectionAppearancePage() {
     header={{
       title: 'Configurar seção: Hero Editorial',
       description: 'Edite os destaques, aparência e comportamento do Hero sem duplicar a implementação usada pela Home.',
-      backTo: '/app/site/secoes',
-      backLabel: 'Seções das Páginas',
+      backTo: '/app/site/paginas',
+      backLabel: 'Páginas',
     }}
     headerAction={{
       label: 'Ver no site',

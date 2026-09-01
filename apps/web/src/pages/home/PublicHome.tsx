@@ -4,8 +4,9 @@ import { portalLogo } from '../../shared/branding/assets/brandAsset'
 import { loadSidebarAdConfig, SIDEBAR_AD_STORAGE_KEY, SIDEBAR_AD_UPDATED_EVENT, type SidebarAdConfig } from '../../shared/persistence/sidebarAdStorage'
 import { PublicFooter, PublicHeader } from '../../shared/public/PublicChrome'
 import { HeroSection } from './components/HeroSection'
-import { HomeAdSection } from './components/HomeAdSection'
+import { AdvertiseHereSection } from './components/AdvertiseHereSection'
 import { homeReadModel, type HomeStory } from './models/homeReadModel'
+import './styles/home-official-sections.css'
 
 const DEFAULT_SIDEBAR_AD:SidebarAdConfig={
   active:true,
@@ -35,7 +36,7 @@ function SectionHead({title,link}:{title:string;link?:string}){return <div class
 function ImageThumb({src,badge,className=''}:{src:string;badge?:string;className?:string}){return <div className={`pl-thumb has-image ${className}`} style={{backgroundImage:`linear-gradient(180deg,transparent 55%,rgba(0,0,0,.72)),url(${src})`}}>{badge&&<span className="pl-badge">{badge}</span>}</div>}
 function Card({item}:{item:HomeStory}){return <Link className="pl-card" to="/noticias" aria-label={`Abrir notícias relacionadas a ${item.title}`}><ImageThumb src={item.image} badge={item.category}/><div className="pl-card-body"><h3>{item.title}</h3><div className="pl-meta"><span>{item.meta}</span><span>◉ {item.views}</span></div></div></Link>}
 
-function SidebarAd(){
+function PublicidadeLateralSection(){
   const [config,setConfig]=useState<SidebarAdConfig>(DEFAULT_SIDEBAR_AD)
   const refresh=useCallback(()=>{loadSidebarAdConfig(DEFAULT_SIDEBAR_AD).then(setConfig)},[])
 
@@ -55,7 +56,7 @@ function SidebarAd(){
 
   if(!config.active)return null
   const isExternal=/^https?:\/\//i.test(config.linkUrl)
-  return <aside className="pl-home-sidebar-ad" style={{width:'100%',maxWidth:config.width<=100?300:config.width}}>
+  return <section className="pl-home-sidebar-ad official-publicidade-lateral" aria-label="Publicidade Lateral" style={{width:'100%',maxWidth:config.width<=100?300:config.width}}>
     <div className="pl-home-sidebar-ad-inner" style={{background:config.background,color:config.textColor,minHeight:config.height,border:`1px solid ${config.borderColor}`,borderRadius:config.radius,padding:`${config.paddingY}px ${config.paddingX}px`,overflow:'hidden'}}>
       {config.imageUrl?<img src={config.imageUrl} alt={config.imageAlt||'Publicidade'} style={{display:'block',width:'100%',height:'auto',maxHeight:'none',objectFit:'contain',margin:'0 auto'}}/>:<img src={portalLogo} alt="Portal Lander"/>}
       {config.title&&<span className="pl-home-sidebar-ad-kicker" style={{color:config.textColor}}>{config.title}</span>}
@@ -63,25 +64,30 @@ function SidebarAd(){
       {config.bodyLines.filter(Boolean).map((line,index)=><p key={`${line}-${index}`} style={{color:config.accentColor}}>{line}</p>)}
       {config.linkLabel&&config.linkUrl&&(isExternal?<a href={config.linkUrl} target="_blank" rel="noreferrer" style={{borderColor:config.accentColor,color:config.accentColor}}>{config.linkLabel} →</a>:<Link to={config.linkUrl} style={{borderColor:config.accentColor,color:config.accentColor}}>{config.linkLabel} →</Link>)}
     </div>
-  </aside>
+  </section>
 }
 
-function Trending(){return <aside className="pl-trending"><div className="pl-section-head pl-trending-head"><h2>EM ALTA</h2><Link to="/noticias">VER TODOS</Link></div><div className="pl-trending-list">{homeReadModel.mostRead.slice(0,4).map((title,index)=><Link className="pl-trending-item" to="/noticias" key={title}><span className="pl-trending-rank">{String(index+1).padStart(2,'0')}</span><div><strong>{title}</strong><small>Há {index+3} horas</small></div></Link>)}</div></aside>}
+function EmDestaqueSection(){return <section className="pl-section official-em-destaque" aria-label="Em Destaque"><SectionHead title="EM DESTAQUE"/><div className="pl-card-grid">{homeReadModel.featuredStories.map(story=><Card key={story.title} item={story}/>)}</div><div className="pl-center-link"><Link to="/noticias">EXPLORAR DESTAQUES</Link></div></section>}
 
-function HomeContent(){return <div className="pl-main public-shell">
-  <div className="pl-grid-main">
-    <section className="pl-section"><SectionHead title="EM DESTAQUE"/><div className="pl-card-grid">{homeReadModel.featuredStories.map(story=><Card key={story.title} item={story}/>)}</div><div className="pl-center-link"><Link to="/noticias">EXPLORAR DESTAQUES</Link></div></section>
-    <aside className="pl-most"><SectionHead title="MAIS LIDAS"/>{homeReadModel.mostRead.map((title,index)=><Link className="pl-ranked" to="/noticias" key={title} aria-label={`Abrir notícias relacionadas a ${title}`}><strong>{String(index+1).padStart(2,'0')}</strong><div><h4>{title}</h4><small>Há {index+3} horas</small></div></Link>)}<Link className="pl-outline-button" to="/noticias">VER TODOS</Link><SidebarAd/></aside>
-  </div>
-  <div className="pl-latest-wrap">
-    <section className="pl-section"><SectionHead title="ÚLTIMAS NOTÍCIAS" link="/noticias"/><div className="pl-latest-grid">{homeReadModel.latestStories.map(story=><Card key={story.title} item={story}/>)}</div><div className="pl-center-link"><Link to="/noticias">VER TODAS AS NOTÍCIAS</Link></div></section>
-    <Trending/>
-  </div>
-  <HomeAdSection/>
-  <div className="pl-release-agenda">
-    <section className="pl-section"><SectionHead title="LANÇAMENTOS"/><div className="pl-release-row">{homeReadModel.releases.map(release=><Link className="pl-release" to="/lancamentos" key={release.title} aria-label={`Abrir lançamentos relacionados a ${release.title}`}><ImageThumb src={release.image} badge="▶"/><div className="pl-card-body"><h3>{release.title}</h3><div className="pl-meta"><span>{release.year}</span></div></div></Link>)}</div></section>
-    <aside className="pl-agenda"><SectionHead title="AGENDA"/>{homeReadModel.agenda.map(item=><Link className="pl-agenda-item" to="/destaques" key={item.title} aria-label={`Abrir destaques relacionados a ${item.title}`}><div><strong>{item.day}</strong><span>{item.month}</span></div><div><b>{item.title}</b><small>{item.place}</small></div></Link>)}<Link className="pl-outline-button" to="/destaques">VER DESTAQUES</Link></aside>
-  </div>
-</div>}
+function MaisLidasSection(){return <section className="pl-most official-mais-lidas" aria-label="Mais Lidas"><SectionHead title="MAIS LIDAS"/>{homeReadModel.mostRead.map((title,index)=><Link className="pl-ranked" to="/noticias" key={title} aria-label={`Abrir notícias relacionadas a ${title}`}><strong>{String(index+1).padStart(2,'0')}</strong><div><h4>{title}</h4><small>Há {index+3} horas</small></div></Link>)}<Link className="pl-outline-button" to="/noticias">VER TODOS</Link></section>}
+
+function UltimasNoticiasSection(){return <section className="pl-section official-ultimas-noticias" aria-label="Últimas Notícias"><SectionHead title="ÚLTIMAS NOTÍCIAS" link="/noticias"/><div className="pl-latest-grid">{homeReadModel.latestStories.map(story=><Card key={story.title} item={story}/>)}</div><div className="pl-center-link"><Link to="/noticias">VER TODAS AS NOTÍCIAS</Link></div></section>}
+
+function EmAltaSection(){return <section className="pl-trending official-em-alta" aria-label="Em Alta"><div className="pl-section-head pl-trending-head"><h2>EM ALTA</h2><Link to="/noticias">VER TODOS</Link></div><div className="pl-trending-list">{homeReadModel.mostRead.slice(0,4).map((title,index)=><Link className="pl-trending-item" to="/noticias" key={title}><span className="pl-trending-rank">{String(index+1).padStart(2,'0')}</span><div><strong>{title}</strong><small>Há {index+3} horas</small></div></Link>)}</div></section>}
+
+function LancamentosSection(){return <section className="pl-section official-lancamentos" aria-label="Lançamentos"><SectionHead title="LANÇAMENTOS"/><div className="pl-release-row">{homeReadModel.releases.map(release=><Link className="pl-release" to="/lancamentos" key={release.title} aria-label={`Abrir lançamentos relacionados a ${release.title}`}><ImageThumb src={release.image} badge="▶"/><div className="pl-card-body"><h3>{release.title}</h3><div className="pl-meta"><span>{release.year}</span></div></div></Link>)}</div></section>}
+
+function AgendaSection(){return <section className="pl-agenda official-agenda" aria-label="Agenda"><SectionHead title="AGENDA"/>{homeReadModel.agenda.map(item=><Link className="pl-agenda-item" to="/destaques" key={item.title} aria-label={`Abrir destaques relacionados a ${item.title}`}><div><strong>{item.day}</strong><span>{item.month}</span></div><div><b>{item.title}</b><small>{item.place}</small></div></Link>)}<Link className="pl-outline-button" to="/destaques">VER DESTAQUES</Link></section>}
+
+function HomeContent(){return <main className="pl-main public-shell official-home-sections" aria-label="Seções da Página Inicial">
+  <EmDestaqueSection/>
+  <MaisLidasSection/>
+  <UltimasNoticiasSection/>
+  <PublicidadeLateralSection/>
+  <EmAltaSection/>
+  <AdvertiseHereSection/>
+  <LancamentosSection/>
+  <AgendaSection/>
+</main>}
 
 export function PublicHome(){return <div className="public-page"><PublicHeader/><HeroSection/><HomeContent/><PublicFooter/></div>}

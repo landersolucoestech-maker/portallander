@@ -185,6 +185,12 @@ export function HeroSection({
     <section className={`portal-hero editorial-hero hero-breakpoint-${breakpoint}`} data-hero-breakpoint={breakpoint} style={rootStyle} aria-label="Destaque principal" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
       <div className="editorial-hero-background" aria-hidden="true" />
       <div className="editorial-hero-overlay" aria-hidden="true" />
+
+      <div className="editorial-hero-media" style={mediaStyle}>
+        {hero.imageVisible !== false && hero.image && <img className="editorial-featured-image" src={hero.image} alt={hero.imageAlt || ''} fetchPriority="high" decoding="async" style={imageStyle} onError={event => { if (defaultHeroSlide.image && event.currentTarget.src !== defaultHeroSlide.image) event.currentTarget.src = defaultHeroSlide.image }} />}
+        {hero.mediaCaptionVisible !== false && hero.mediaCaption && <span className="editorial-media-caption" style={{ color: runtimeAppearance.textColor }}>{hero.mediaCaption}</span>}
+      </div>
+
       <div className="shell editorial-hero-grid" style={shellStyle}>
         <div className="editorial-hero-content" style={contentStyle}>
           {hero.eyebrowVisible !== false && hero.eyebrow && <div className="editorial-eyebrow" style={{ color: runtimeAppearance.eyebrowColor, fontSize: runtimeAppearance.eyebrowSize, fontWeight: runtimeAppearance.eyebrowWeight }}><span aria-hidden="true" />{hero.eyebrow}</div>}
@@ -194,11 +200,6 @@ export function HeroSection({
           })}</h1>
           {hero.descriptionVisible !== false && hero.description && <p style={{ color: runtimeAppearance.textColor, fontSize: runtimeAppearance.descriptionSize, fontWeight: runtimeAppearance.descriptionWeight, maxWidth: runtimeAppearance.descriptionMaxWidth }}>{hero.description}</p>}
           {ctas.length > 0 && <div className="editorial-actions" style={{ gap: runtimeAppearance.ctaGap }}>{ctas.map(cta => <SmartLink key={cta.id} to={cta.url} external={cta.external} className={cta.variant === 'secondary' ? 'editorial-secondary' : 'portal-button'} style={{ minHeight: runtimeAppearance.ctaHeight, paddingLeft: runtimeAppearance.ctaPaddingX, paddingRight: runtimeAppearance.ctaPaddingX, fontSize: runtimeAppearance.ctaSize, fontWeight: runtimeAppearance.ctaWeight, ...(cta.variant === 'primary' ? { background: runtimeAppearance.accentColor } : { borderColor: runtimeAppearance.accentColor, color: runtimeAppearance.textColor }) }}>{cta.label}{cta.variant === 'primary' && <ArrowRight size={20} />}</SmartLink>)}</div>}
-        </div>
-
-        <div className="editorial-hero-media" style={mediaStyle}>
-          {hero.imageVisible !== false && hero.image && <img className="editorial-featured-image" src={hero.image} alt={hero.imageAlt || ''} fetchPriority="high" decoding="async" style={imageStyle} onError={event => { if (defaultHeroSlide.image && event.currentTarget.src !== defaultHeroSlide.image) event.currentTarget.src = defaultHeroSlide.image }} />}
-          {hero.mediaCaptionVisible !== false && hero.mediaCaption && <span className="editorial-media-caption" style={{ color: runtimeAppearance.textColor }}>{hero.mediaCaption}</span>}
         </div>
       </div>
 

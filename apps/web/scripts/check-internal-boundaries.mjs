@@ -79,12 +79,11 @@ if(!adminUi.includes("end={to==='/app/site'}"))failures.push('AdminUi deve mante
 for(const required of ["'contracts'","'finance'","'settings'",'AdminNavGroup','isNavGroup'])if(!adminUi.includes(required))failures.push(`AdminUi deve suportar navegação dos módulos restaurados: ${required}`)
 
 const siteHeaderFiles=[
- 'src/features/site-manager/HeroManagerPage.tsx',
  'src/features/site-manager/pages/SiteManagerDashboardPage.tsx',
- 'src/features/site-manager/pages/HomeManagerPage.tsx',
  'src/features/site-manager/pages/BrandAssetsManagerPage.tsx',
  'src/features/site-manager/pages/HeaderBrandManagerPage.tsx',
- 'src/features/site-manager/pages/HomeAdManagerPage.tsx',
+ 'src/features/site-manager/pages/HeroSectionAppearancePage.tsx',
+ 'src/features/site-manager/pages/SiteSectionsPage.tsx',
  'src/features/site-manager/pages/NewsAdManagerPage.tsx',
  'src/features/site-manager/pages/SiteCategoriesPage.tsx',
  'src/features/site-manager/pages/SiteMediaPage.tsx',
@@ -93,6 +92,7 @@ const siteHeaderFiles=[
  'src/features/site-manager/pages/SiteContentsPage.tsx'
 ]
 for(const path of siteHeaderFiles){const source=await read(path);if(!source.includes('<AdminShell')||!source.includes('header={{'))failures.push(`${path} deve usar o PageHeader compartilhado via AdminShell.header.`);if(source.includes('AdminPageHeader'))failures.push(`${path} não pode usar AdminPageHeader embutido no conteúdo.`)}
+for(const removed of ['src/features/site-manager/HeroManagerPage.tsx','src/features/site-manager/pages/HomeManagerPage.tsx','src/features/site-manager/pages/HomeAdManagerPage.tsx'])if(await exists(removed))failures.push(`${removed} é legado e não pode ser reintroduzido.`)
 const editorialAdmin=await read('src/features/editorial/components/EditorialAdmin.tsx')
 if(editorialAdmin.includes('AdminPageHeader'))failures.push('EditorialAdmin não pode reconstruir cabeçalho dentro do conteúdo.')
 const brandAssets=await read('src/features/site-manager/pages/BrandAssetsManagerPage.tsx')

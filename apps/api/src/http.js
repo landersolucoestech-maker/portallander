@@ -60,7 +60,9 @@ export async function handleRequest(req,res){
     }
 
     if(req.method==='GET'&&path==='/api/editorial/pages'){
-      const pages=await editorialService.listPages({publicOnly:url.searchParams.get('public')==='1'})
+      const publicOnly=url.searchParams.get('public')==='1'
+      if(!publicOnly)requireAdmin(req)
+      const pages=await editorialService.listPages({publicOnly})
       send(res,200,{pages},cors);return
     }
     if(req.method==='POST'&&path==='/api/editorial/pages'){
@@ -69,13 +71,15 @@ export async function handleRequest(req,res){
     const pageMatch=path.match(/^\/api\/editorial\/pages\/([^/]+)$/)
     if(pageMatch){
       const id=decode(pageMatch[1])
-      if(req.method==='GET'){const page=await editorialService.getPage(id);if(!page)throw new HttpError(404,'Página não encontrada.','PAGE_NOT_FOUND');send(res,200,{page},cors);return}
+      if(req.method==='GET'){requireAdmin(req);const page=await editorialService.getPage(id);if(!page)throw new HttpError(404,'Página não encontrada.','PAGE_NOT_FOUND');send(res,200,{page},cors);return}
       if(req.method==='PUT'||req.method==='PATCH'){requireAdmin(req);const page=await editorialService.updatePage(id,await readJson(req));send(res,200,{page},cors);return}
       if(req.method==='DELETE'){requireAdmin(req);await editorialService.deletePage(id);send(res,200,{deleted:true,id},cors);return}
     }
 
     if(req.method==='GET'&&path==='/api/editorial/contents'){
-      const contents=await editorialService.listContents({pageId:url.searchParams.get('pageId')||undefined,publicOnly:url.searchParams.get('public')==='1'})
+      const publicOnly=url.searchParams.get('public')==='1'
+      if(!publicOnly)requireAdmin(req)
+      const contents=await editorialService.listContents({pageId:url.searchParams.get('pageId')||undefined,publicOnly})
       send(res,200,{contents},cors);return
     }
     if(req.method==='POST'&&path==='/api/editorial/contents'){
@@ -84,7 +88,7 @@ export async function handleRequest(req,res){
     const contentMatch=path.match(/^\/api\/editorial\/contents\/([^/]+)$/)
     if(contentMatch){
       const id=decode(contentMatch[1])
-      if(req.method==='GET'){const content=await editorialService.getContent(id);if(!content)throw new HttpError(404,'Conteúdo não encontrado.','CONTENT_NOT_FOUND');send(res,200,{content},cors);return}
+      if(req.method==='GET'){requireAdmin(req);const content=await editorialService.getContent(id);if(!content)throw new HttpError(404,'Conteúdo não encontrado.','CONTENT_NOT_FOUND');send(res,200,{content},cors);return}
       if(req.method==='PUT'||req.method==='PATCH'){requireAdmin(req);const content=await editorialService.updateContent(id,await readJson(req));send(res,200,{content},cors);return}
       if(req.method==='DELETE'){requireAdmin(req);await editorialService.deleteContent(id);send(res,200,{deleted:true,id},cors);return}
     }

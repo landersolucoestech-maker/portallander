@@ -21,6 +21,7 @@ const requiredFiles=[
   'src/features/site-manager/pages/SiteFormsPage.tsx',
   'src/features/site-manager/pages/SiteMediaPage.tsx',
   'src/features/site-manager/pages/MediaKitPage.tsx',
+  'src/features/editorial/adminClient.ts',
   'src/features/editorial/components/EditorialListingPage.tsx',
   'src/features/editorial/components/EditorialContentPage.tsx',
   'src/app/publicSpecialPageRegistry.tsx',
@@ -50,6 +51,9 @@ requireTokens('SiteSectionsPage.tsx',pages,[
   'Excluir página',
   'RESERVED_PAGE_SLUGS',
   'to="/app/settings"',
+  'createAdminEditorialPage',
+  'updateAdminEditorialPage',
+  'deleteAdminEditorialPage',
 ])
 if(pages.includes('CUSTOM_LAYOUT_SLUGS'))failures.push('Páginas não pode duplicar a classificação de layouts especiais; use isSpecialLayoutPage do domínio editorial.')
 if(pages.includes("to=\"/app/site/configuracoes\""))failures.push('Páginas não pode reintroduzir identidade global dentro do módulo Site.')
@@ -78,15 +82,26 @@ const forms=await read('src/features/site-manager/pages/SiteFormsPage.tsx')
 requireTokens('SiteFormsPage.tsx',forms,['Novo formulário','Duplicar','formDraftRepository.create','formDraftRepository.duplicate','formDraftRepository.remove'])
 
 const contents=await read('src/features/site-manager/pages/SiteContentsPage.tsx')
-requireTokens('SiteContentsPage.tsx',contents,['Novo conteúdo','contentDraftRepository.create','contentDraftRepository.remove','Colaborações recebidas'])
+requireTokens('SiteContentsPage.tsx',contents,['Novo conteúdo','contentDraftRepository.create','contentDraftRepository.remove','createAdminEditorialContent','Colaborações recebidas'])
 
 const contentEditor=await read('src/features/site-manager/pages/SiteContentEditorPage.tsx')
-requireTokens('SiteContentEditorPage.tsx',contentEditor,['Salvar rascunho','contentDraftRepository.save','PREVIEW DO RASCUNHO'])
+requireTokens('SiteContentEditorPage.tsx',contentEditor,[
+  'getAdminEditorialContent',
+  'updateAdminEditorialContent',
+  'deleteAdminEditorialContent',
+  'contentDraftRepository.save',
+  'Salvar alterações',
+  'PREVIEW DO CONTEÚDO',
+])
 const contentDraftRepository=await read('src/features/site-manager/contentDraftRepository.ts')
 requireTokens('contentDraftRepository.ts',contentDraftRepository,["status:'draft'",'active:false','noIndex:true'])
+const editorialAdminClient=await read('src/features/editorial/adminClient.ts')
+requireTokens('editorial/adminClient.ts',editorialAdminClient,['getAdminEditorialContent','createAdminEditorialContent','updateAdminEditorialContent','deleteAdminEditorialContent'])
 
 const media=await read('src/features/site-manager/pages/SiteMediaPage.tsx')
-requireTokens('SiteMediaPage.tsx',media,['mediaRepository.list','Biblioteca conectada ao Data Provider','Biblioteca do Site'])
+requireTokens('SiteMediaPage.tsx',media,['mediaRepository.list','mediaRepository.upload','mediaRepository.remove','Biblioteca persistente conectada','Storage persistente'])
+const mediaRepository=await read('src/features/site-manager/mediaRepository.ts')
+requireTokens('mediaRepository.ts',mediaRepository,['adminApiBase','/api/editorial/media','new ApiMediaRepository','new ReadOnlyMediaRepository'])
 const readModel=await read('src/features/site-manager/readModel.ts')
 requireTokens('readModel.ts',readModel,['getRuntimeDataProvider().editorial.media()'])
 
@@ -99,4 +114,4 @@ const editorialModel=await read('src/features/editorial/model.ts')
 requireTokens('editorial/model.ts',editorialModel,['SPECIAL_LAYOUT_PAGE_SLUGS','isPublishedPage','isSpecialLayoutPage','isPublicEditorialPage','export const isPublicPage=isPublicEditorialPage'])
 
 if(failures.length){console.error('Falha na arquitetura do módulo Site:');failures.forEach(item=>console.error(`- ${item}`));process.exit(1)}
-console.log('Site module architecture OK')
+console.log('Site module architecture OK — persistência editorial e biblioteca de mídia validadas')

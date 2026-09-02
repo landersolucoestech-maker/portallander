@@ -1,10 +1,12 @@
 import {createServer} from 'node:http'
 import {handleRequest} from './http.js'
 import {handlePageSectionRequest} from './pageSectionHttp.js'
+import {handleSectionConfigurationRequest} from './sectionConfigurationHttp.js'
 
 const port=Number(process.env.PORT||8787)
 const server=createServer((req,res)=>{
   void (async()=>{
+    if(await handleSectionConfigurationRequest(req,res))return
     if(await handlePageSectionRequest(req,res))return
     await handleRequest(req,res)
   })()

@@ -13,12 +13,19 @@ const requiredFiles=[
   'src/features/site-manager/mediaKitRepository.ts',
   'src/features/site-manager/mediaKitDomain.ts',
   'src/features/site-manager/forms/draftRepository.ts',
+  'src/features/site-manager/forms/SiteFormRenderer.tsx',
+  'src/features/site-manager/forms/runtimeOptions.ts',
   'src/features/site-manager/pages/SiteSectionsPage.tsx',
   'src/features/site-manager/pages/SiteContentEditorPage.tsx',
   'src/features/site-manager/pages/SiteFormEditorPage.tsx',
   'src/features/site-manager/pages/SiteFormsPage.tsx',
   'src/features/site-manager/pages/SiteMediaPage.tsx',
   'src/features/site-manager/pages/MediaKitPage.tsx',
+  'src/features/editorial/components/EditorialListingPage.tsx',
+  'src/features/editorial/components/EditorialContentPage.tsx',
+  'src/app/publicSpecialPageRegistry.tsx',
+  'src/pages/sobre/SobrePage.tsx',
+  'src/pages/contato/ContatoPage.tsx',
 ]
 for(const path of requiredFiles)if(!(await exists(path)))failures.push(`Módulo Site exige ${path}.`)
 
@@ -45,8 +52,23 @@ requireTokens('SiteSectionsPage.tsx',pages,[
 ])
 if(pages.includes("to=\"/app/site/configuracoes\""))failures.push('Páginas não pode reintroduzir identidade global dentro do módulo Site.')
 
+const listingTemplate=await read('src/features/editorial/components/EditorialListingPage.tsx')
+requireTokens('EditorialListingPage.tsx',listingTemplate,['editorialReadModel.listPageContents(page.id)','editorialReadModel.searchPublicContents(searchQuery)','EditorialListingPage'])
+if(listingTemplate.includes("page.slug==='noticias'")||listingTemplate.includes('page.slug === \'noticias\''))failures.push('Template editorial não pode decidir comportamento pelo slug noticias.')
+const contentTemplate=await read('src/features/editorial/components/EditorialContentPage.tsx')
+requireTokens('EditorialContentPage.tsx',contentTemplate,['EditorialContentPage','to={`/${page.slug}`}','content.body.map'])
+
+const portalApp=await read('src/app/PortalApp.tsx')
+requireTokens('PortalApp.tsx',portalApp,['renderPublicSpecialPage','<EditorialListingPage page={page}/>','<EditorialContentPage page={page} content={content}/>'])
+const specialRegistry=await read('src/app/publicSpecialPageRegistry.tsx')
+requireTokens('publicSpecialPageRegistry.tsx',specialRegistry,['sobre:page=><SobrePage page={page}/>','colabore:()=> <ColaborePage/>','contato:page=><ContatoPage page={page}/>'])
+
+const formRenderer=await read('src/features/site-manager/forms/SiteFormRenderer.tsx')
+requireTokens('SiteFormRenderer.tsx',formRenderer,['form.fields','form.consents','onSubmit','mode===\'preview\'','acceptedConsentIds','files:File[]'])
 const formEditor=await read('src/features/site-manager/pages/SiteFormEditorPage.tsx')
-requireTokens('SiteFormEditorPage.tsx',formEditor,['PREVIEW EM TEMPO REAL','formDraftRepository.get','formDraftRepository.save','Salvar rascunho'])
+requireTokens('SiteFormEditorPage.tsx',formEditor,['PREVIEW EM TEMPO REAL','SiteFormRenderer','resolveSiteFormOptionSets','formDraftRepository.get','formDraftRepository.save','Salvar rascunho'])
+const colabore=await read('src/pages/colabore/ColaborePage.tsx')
+requireTokens('ColaborePage.tsx',colabore,['SiteFormRenderer','resolveSiteFormOptionSets','submitSiteForm','mode="public"'])
 const formDraftRepository=await read('src/features/site-manager/forms/draftRepository.ts')
 requireTokens('forms/draftRepository.ts',formDraftRepository,["status:'draft'","source:'custom'"])
 

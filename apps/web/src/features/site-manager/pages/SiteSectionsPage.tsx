@@ -93,7 +93,6 @@ export function SiteSectionsPage(){
   useEffect(()=>{
     if(!persisted||isEditorialLayout)return
     let active=true
-    setLoading(true)
     void listAdminPageSections(selectedPage)
       .then(sections=>{if(active)setStoredSections(current=>({...current,[selectedPage]:sections}))})
       .catch(caught=>{if(active)setError(caught instanceof Error?caught.message:'Não foi possível carregar a composição persistida desta página.')})

@@ -9,8 +9,14 @@ export type HeroResponsiveAppearance = {
   verticalAlign: 'start' | 'center' | 'end'
   eyebrowSize: number
   eyebrowWeight: number
+  eyebrowPaddingX: number
+  eyebrowPaddingY: number
   descriptionSize: number
   descriptionWeight: number
+  descriptionPaddingX: number
+  descriptionPaddingY: number
+  titlePaddingX: number
+  titlePaddingY: number
   ctaSize: number
   ctaWeight: number
   titleLineHeight: number
@@ -68,8 +74,14 @@ export const defaultHeroAppearance: HeroAppearanceConfig = {
   eyebrowColor: '#ff151f',
   eyebrowSize: 13,
   eyebrowWeight: 800,
+  eyebrowPaddingX: 0,
+  eyebrowPaddingY: 0,
   descriptionSize: 16,
   descriptionWeight: 400,
+  descriptionPaddingX: 0,
+  descriptionPaddingY: 0,
+  titlePaddingX: 0,
+  titlePaddingY: 0,
   ctaSize: 14,
   ctaWeight: 800,
   titleLineHeight: .82,
@@ -89,7 +101,9 @@ export const defaultHeroAppearance: HeroAppearanceConfig = {
 
 const responsiveKeys: (keyof HeroResponsiveAppearance)[] = [
   'height', 'paddingX', 'paddingY', 'radius', 'contentAlign', 'verticalAlign',
-  'eyebrowSize', 'eyebrowWeight', 'descriptionSize', 'descriptionWeight', 'ctaSize', 'ctaWeight',
+  'eyebrowSize', 'eyebrowWeight', 'eyebrowPaddingX', 'eyebrowPaddingY',
+  'descriptionSize', 'descriptionWeight', 'descriptionPaddingX', 'descriptionPaddingY',
+  'titlePaddingX', 'titlePaddingY', 'ctaSize', 'ctaWeight',
   'titleLineHeight', 'titleMaxWidth', 'descriptionMaxWidth', 'contentGap', 'contentMediaGap', 'ctaGap', 'ctaHeight',
   'ctaPaddingX', 'contentPaddingTop', 'contentPaddingBottom', 'mediaWidthPercent', 'mediaMinHeight',
 ]
@@ -114,8 +128,14 @@ function automaticResponsive(base: HeroAppearanceConfig, breakpoint: Exclude<Her
     verticalAlign: base.verticalAlign,
     eyebrowSize: clamp(Math.round(base.eyebrowSize * (tablet ? .92 : .82)), 9, 28),
     eyebrowWeight: base.eyebrowWeight,
+    eyebrowPaddingX: base.eyebrowPaddingX,
+    eyebrowPaddingY: base.eyebrowPaddingY,
     descriptionSize: clamp(Math.round(base.descriptionSize * (tablet ? .94 : .88)), 11, 32),
     descriptionWeight: base.descriptionWeight,
+    descriptionPaddingX: base.descriptionPaddingX,
+    descriptionPaddingY: base.descriptionPaddingY,
+    titlePaddingX: base.titlePaddingX,
+    titlePaddingY: base.titlePaddingY,
     ctaSize: clamp(Math.round(base.ctaSize * (tablet ? .95 : .9)), 10, 24),
     ctaWeight: base.ctaWeight,
     titleLineHeight: tablet ? Math.max(.78, base.titleLineHeight) : Math.max(.82, base.titleLineHeight),

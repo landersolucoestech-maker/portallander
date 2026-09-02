@@ -16,7 +16,7 @@ function corsHeaders(req){
   const origin=req.headers.origin
   const configured=(process.env.PORTAL_ALLOWED_ORIGINS||'').split(',').map(value=>value.trim()).filter(Boolean)
   const allowOrigin=!origin?'*':configured.length===0||configured.includes(origin)?origin:''
-  return allowOrigin?{'access-control-allow-origin':allowOrigin,'vary':'Origin','access-control-allow-methods':'GET,POST,PUT,PATCH,DELETE,OPTIONS','access-control-allow-headers':'Content-Type,Authorization'}:{}
+  return allowOrigin?{'access-control-allow-origin':allowOrigin,'vary':'Origin','access-control-allow-methods':'GET,POST,PUT,PATCH,DELETE,OPTIONS','access-control-allow-headers':'Content-Type,Authorization,X-Request-Id'}:{}
 }
 
 function safeEqual(a,b){

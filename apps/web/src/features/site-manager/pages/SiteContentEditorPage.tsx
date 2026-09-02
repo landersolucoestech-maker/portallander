@@ -1,4 +1,4 @@
-import {ArrowLeft,Save,Trash2} from 'lucide-react'
+import {ArrowLeft,Images,Save,Trash2} from 'lucide-react'
 import {useEffect,useMemo,useState} from 'react'
 import {Link,useNavigate,useParams} from 'react-router-dom'
 import {SITE_MANAGER_NAV} from '../../../shared/internal/adminNavigation'
@@ -7,6 +7,7 @@ import {useAdminAuth} from '../../access/adminAuthState'
 import {deleteAdminEditorialContent,getAdminEditorialContent,listAdminEditorialPages,updateAdminEditorialContent} from '../../editorial/adminClient'
 import {normalizeSlug,type EditorialContent,type EditorialPage} from '../../editorial/model'
 import {editorialReadModel} from '../../editorial/repository'
+import {SiteMediaPicker} from '../components/SiteMediaPicker'
 import {contentDraftRepository} from '../contentDraftRepository'
 import {sitePageRepository} from '../pageRepository'
 import './site-forms.css'
@@ -29,6 +30,7 @@ export function SiteContentEditorPage(){
   const [saving,setSaving]=useState(false)
   const [saved,setSaved]=useState(false)
   const [error,setError]=useState('')
+  const [mediaPickerOpen,setMediaPickerOpen]=useState(false)
 
   useEffect(()=>{
     if(!persisted)return
@@ -105,13 +107,17 @@ export function SiteContentEditorPage(){
 
           <section className="site-form-card"><header><div><h2>Autoria e organização</h2></div></header><div className="site-form-grid"><label><span>Autor</span><input value={draft.author} onChange={event=>patch({author:event.target.value})}/></label><label><span>Tags / categorias</span><input value={draft.tags.join(', ')} onChange={event=>patch({tags:event.target.value.split(',').map(value=>value.trim()).filter(Boolean)})}/></label></div></section>
 
-          <section className="site-form-card"><header><div><h2>Capa</h2></div></header><div className="site-form-grid"><label className="site-form-span-2"><span>URL da imagem</span><input value={draft.coverImage??''} onChange={event=>patch({coverImage:event.target.value})} placeholder="Cole uma URL ou use um arquivo da biblioteca de Mídias"/></label><label className="site-form-span-2"><span>Texto alternativo</span><input value={draft.coverImageAlt??''} onChange={event=>patch({coverImageAlt:event.target.value})}/></label></div></section>
+          <section className="site-form-card"><header><div><h2>Capa</h2><p>Use uma imagem da biblioteca persistente ou informe uma URL externa.</p></div><button type="button" className="button outline" onClick={()=>setMediaPickerOpen(true)}><Images size={15}/>Escolher da biblioteca</button></header><div className="site-form-grid">
+            {draft.coverImage&&<div className="site-content-cover-current site-form-span-2"><img src={draft.coverImage} alt={draft.coverImageAlt||''}/><div><span>CAPA SELECIONADA</span><strong>{draft.coverImageAlt||'Imagem sem texto alternativo'}</strong><small>{draft.coverImage}</small><button type="button" className="button outline" onClick={()=>patch({coverImage:'',coverImageAlt:''})}>Remover capa</button></div></div>}
+            <label className="site-form-span-2"><span>URL da imagem</span><input value={draft.coverImage??''} onChange={event=>patch({coverImage:event.target.value})} placeholder="https://..."/></label><label className="site-form-span-2"><span>Texto alternativo</span><input value={draft.coverImageAlt??''} onChange={event=>patch({coverImageAlt:event.target.value})} placeholder="Descreva objetivamente o que aparece na imagem"/></label>
+          </div></section>
 
           <section className="site-form-card"><header><div><h2>SEO</h2><p>A indexação acompanha o estado de publicação definido no CMS.</p></div></header><div className="site-form-grid"><label><span>Meta title</span><input value={draft.seo.metaTitle??''} onChange={event=>patch({seo:{...draft.seo,metaTitle:event.target.value}})}/></label><label><span>Canonical</span><input value={draft.seo.canonical??''} onChange={event=>patch({seo:{...draft.seo,canonical:event.target.value}})}/></label><label className="site-form-span-2"><span>Meta description</span><textarea rows={3} value={draft.seo.metaDescription??''} onChange={event=>patch({seo:{...draft.seo,metaDescription:event.target.value}})}/></label></div></section>
         </div>
 
-        <aside className="site-form-preview-panel" aria-label="Preview do conteúdo"><div className="site-form-preview-sticky"><header><span>PREVIEW DO CONTEÚDO</span><h2>{draft.title||'Conteúdo sem título'}</h2><p>/{selectedPage?.title.replace(' · rascunho','')||'pagina'}/{draft.slug||'slug'}</p></header>{draft.coverImage&&<div style={{padding:20,paddingBottom:0}}><img src={draft.coverImage} alt={draft.coverImageAlt||''} style={{display:'block',width:'100%',aspectRatio:'16/9',objectFit:'cover',borderRadius:10}}/></div>}<article style={{padding:20}}><p style={{fontWeight:700}}>{draft.summary||'O resumo aparecerá aqui.'}</p>{bodyFromText(body).slice(0,6).map((block,index)=><p key={index}>{block.text}</p>)}</article></div></aside>
+        <aside className="site-form-preview-panel" aria-label="Preview do conteúdo"><div className="site-form-preview-sticky"><header><span>PREVIEW DO CONTEÚDO</span><h2>{draft.title||'Conteúdo sem título'}</h2><p>/{selectedPage?.title.replace(' · rascunho','')||'pagina'}/{draft.slug||'slug'}</p></header>{draft.coverImage&&<div className="site-content-preview-cover"><img src={draft.coverImage} alt={draft.coverImageAlt||''}/></div>}<article className="site-content-preview-copy"><p className="site-content-preview-summary">{draft.summary||'O resumo aparecerá aqui.'}</p>{bodyFromText(body).slice(0,6).map((block,index)=><p key={index}>{block.text}</p>)}</article></div></aside>
       </div>
     </div>
+    <SiteMediaPicker open={mediaPickerOpen} selectedUrl={draft.coverImage} onClose={()=>setMediaPickerOpen(false)} onSelect={item=>{patch({coverImage:item.url,coverImageAlt:item.alt||item.name});setMediaPickerOpen(false)}}/>
   </AdminShell>
 }

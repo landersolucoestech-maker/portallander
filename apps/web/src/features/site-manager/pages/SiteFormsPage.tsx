@@ -1,7 +1,7 @@
 import {Copy,FileInput,Pencil,Plus,Trash2,UsersRound} from 'lucide-react'
 import {useCallback,useEffect,useMemo,useState} from 'react'
 import {Link,useNavigate} from 'react-router-dom'
-import {useAdminAuth} from '../../access/AdminAuthContext'
+import {useAdminAuth} from '../../access/adminAuthState'
 import {AdminNotice,AdminShell} from '../../../shared/internal/AdminUi'
 import {SITE_MANAGER_NAV} from '../../../shared/internal/adminNavigation'
 import {createAdminSiteForm,deleteAdminSiteForm,listAdminSiteForms,setAdminSiteFormStatus} from '../forms/adminClient'
@@ -13,19 +13,22 @@ const purposeLabel={lead_capture:'Captação comercial',contact:'Contato',advert
 const destinationLabel={crm:'CRM → Leads',content_collaborations:'Site → Conteúdos → Colaborações recebidas',marketing:'Marketing',internal:'Interno',none:'Sem destino'} as const
 const statusLabel={draft:'Rascunho',active:'Ativo',inactive:'Inativo'} as const
 
-const newFormDefinition=():SiteFormDefinition=>({
-  id:`form-${crypto.randomUUID()}`,
-  name:'Novo formulário',
-  slug:`novo-formulario-${Date.now().toString(36)}`,
-  version:1,
-  purpose:'custom',
-  status:'draft',
-  source:'custom',
-  fields:[],
-  consents:[],
-  routing:{destination:'none'},
-  successMessage:'Recebemos suas informações com sucesso.',
-})
+const newFormDefinition=():SiteFormDefinition=>{
+  const suffix=crypto.randomUUID().slice(0,8)
+  return {
+    id:`form-${crypto.randomUUID()}`,
+    name:'Novo formulário',
+    slug:`novo-formulario-${suffix}`,
+    version:1,
+    purpose:'custom',
+    status:'draft',
+    source:'custom',
+    fields:[],
+    consents:[],
+    routing:{destination:'none'},
+    successMessage:'Recebemos suas informações com sucesso.',
+  }
+}
 
 export function SiteFormsPage(){
   const navigate=useNavigate()
@@ -45,7 +48,16 @@ export function SiteFormsPage(){
     finally{setLoading(false)}
   },[persisted])
 
-  useEffect(()=>{void reload()},[reload])
+  useEffect(()=>{
+    if(!persisted)return
+    let active=true
+    void listAdminSiteForms().then(items=>{
+      if(active){setRemoteForms(items);setError('')}
+    }).catch(caught=>{
+      if(active)setError(caught instanceof Error?caught.message:'Não foi possível carregar os formulários persistidos.')
+    })
+    return()=>{active=false}
+  },[persisted])
 
   const createForm=async()=>{
     setError('')
@@ -57,7 +69,8 @@ export function SiteFormsPage(){
   const duplicateForm=async(form:SiteFormDefinition)=>{
     setError('')
     if(!persisted){const draft=formDraftRepository.duplicate(form);setDrafts(formDraftRepository.list());navigate(`/app/site/formularios/${draft.id}`);return}
-    const copy:SiteFormDefinition={...structuredClone(form),id:`form-${crypto.randomUUID()}`,name:`${form.name} — cópia`,slug:`${form.slug}-copia-${Date.now().toString(36)}`,version:1,status:'draft',source:'custom'}
+    const suffix=crypto.randomUUID().slice(0,8)
+    const copy:SiteFormDefinition={...structuredClone(form),id:`form-${crypto.randomUUID()}`,name:`${form.name} — cópia`,slug:`${form.slug}-copia-${suffix}`,version:1,status:'draft',source:'custom'}
     try{const created=await createAdminSiteForm(copy);navigate(`/app/site/formularios/${created.id}`)}
     catch(caught){setError(caught instanceof Error?caught.message:'Não foi possível duplicar o formulário.')}
   }

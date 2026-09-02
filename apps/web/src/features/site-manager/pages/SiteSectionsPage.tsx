@@ -3,12 +3,13 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { SITE_MANAGER_NAV } from '../../../shared/internal/adminNavigation'
 import { AdminNotice, AdminShell } from '../../../shared/internal/AdminUi'
+import {isPublicPage,RESERVED_PAGE_SLUGS} from '../../editorial/model'
 import { editorialReadModel } from '../../editorial/repository'
 import {normalizeSiteSlug,sitePageRepository,type SitePageDraft,type SitePageSectionDraft,type SitePageSections} from '../pageRepository'
 import '../../../styles/site-sections.css'
 
 type SiteSection={id:string;name:string;summary:string;target?:string;kind:'section';locked?:boolean}
-type CmsPageOption={id:string;title:string;slug:string;source:'system'|'draft'}
+type CmsPageOption={id:string;title:string;slug:string;source:'system'|'draft';public:boolean}
 
 const HOME_SECTIONS:SiteSection[]=[
   {id:'hero',name:'Hero Section',summary:'Hero oficial da Homepage, incluindo o Ticker integrado.',target:'/app/site/paginas/home/hero',kind:'section',locked:true},
@@ -30,8 +31,8 @@ export function SiteSectionsPage(){
   useEffect(()=>{sitePageRepository.purgeLegacy()},[])
 
   const pages=useMemo<CmsPageOption[]>(()=>{
-    const systemPages=editorialReadModel.pages.map(page=>({id:page.id,title:page.title,slug:page.slug,source:'system' as const}))
-    return [{id:'home',title:'Página inicial',slug:'',source:'system' as const},...systemPages,...draftPages.map(page=>({...page,source:'draft' as const}))]
+    const systemPages=editorialReadModel.pages.map(page=>({id:page.id,title:page.title,slug:page.slug,source:'system' as const,public:isPublicPage(page)}))
+    return [{id:'home',title:'Página inicial',slug:'',source:'system' as const,public:true},...systemPages,...draftPages.map(page=>({...page,source:'draft' as const,public:false}))]
   },[draftPages])
 
   const selected=pages.find(page=>page.id===selectedPage)??pages[0]
@@ -42,6 +43,7 @@ export function SiteSectionsPage(){
     const cleanTitle=title.trim(),cleanSlug=normalizeSiteSlug(slug||title)
     if(!cleanTitle){setError('Informe o nome da página.');return}
     if(!cleanSlug){setError('Informe um slug válido.');return}
+    if(RESERVED_PAGE_SLUGS.has(cleanSlug)){setError('Este slug é reservado pelo sistema.');return}
     if(pages.some(page=>page.slug===cleanSlug)){setError('Já existe uma página com este slug.');return}
     const page:SitePageDraft={id:`draft-${crypto.randomUUID()}`,title:cleanTitle,slug:cleanSlug}
     const next=[...draftPages,page]
@@ -65,15 +67,18 @@ export function SiteSectionsPage(){
     setStoredSections(next);sitePageRepository.saveSections(next)
   }
 
+  const publicUrl=selected.slug?`${new URL(import.meta.env.BASE_URL,window.location.origin).toString()}#/${selected.slug}`:new URL(import.meta.env.BASE_URL,window.location.origin).toString()
+
   return <AdminShell area="cms" items={SITE_MANAGER_NAV} header={{title:'Páginas',description:'Crie páginas, selecione-as pelo menu e componha as seções próprias de cada página.'}}>
-    <AdminNotice title="Composição de páginas" description="Cabeçalho e Rodapé são globais. Esta área controla somente páginas e suas seções próprias; a persistência foi isolada em repository para permitir a troca pelo backend do Portal Lander sem acoplar a interface ao armazenamento."/>
+    <AdminNotice title="Composição de páginas" description="Cabeçalho e Rodapé são globais. Esta área controla somente páginas e suas seções próprias; o acesso ao armazenamento está isolado em repository para permitir a troca pelo backend do Portal Lander sem reescrever a interface."/>
+    {selected.source==='draft'&&<AdminNotice title="Página em rascunho" description="Esta página existe apenas no fluxo administrativo atual e ainda não possui uma versão publicada no roteamento público. O preview público será habilitado somente depois da publicação persistente."/>}
     <div className="site-sections-toolbar">
       <div style={{display:'flex',alignItems:'flex-end',gap:10,flexWrap:'wrap'}}>
         <label>Página<select value={selectedPage} onChange={event=>setSelectedPage(event.target.value)}>{pages.map(page=><option key={page.id} value={page.id}>{page.title}{page.source==='draft'?' · rascunho':''}</option>)}</select></label>
         <button type="button" className="site-sections-configure" onClick={()=>{setCreateOpen(true);setError('')}}><Plus size={15}/> Criar página</button>
         <button type="button" className="site-sections-configure" onClick={openCreateSection}><Plus size={15}/> Criar seção</button>
       </div>
-      <a href={selected?.slug?`${new URL(import.meta.env.BASE_URL,window.location.origin).toString()}#/${selected.slug}`:new URL(import.meta.env.BASE_URL,window.location.origin).toString()} target="_blank" rel="noreferrer"><Eye size={15}/> Ver página pública</a>
+      {selected.public?<a href={publicUrl} target="_blank" rel="noreferrer"><Eye size={15}/> Ver página pública</a>:<button type="button" className="site-sections-configure" disabled title="Esta página ainda não possui uma versão pública"><Eye size={15}/> Página não publicada</button>}
     </div>
 
     <div className="section-editor-card" style={{marginBottom:16}}><strong>Estrutura global automática</strong><p style={{margin:'6px 0 0'}}>Todas as páginas usam o mesmo Cabeçalho antes das seções e o mesmo Rodapé após a última seção.</p><Link className="site-sections-configure" style={{marginTop:10,display:'inline-flex'}} to="/app/site/configuracoes"><Settings2 size={15}/> Configurar Identidade do Site</Link></div>
@@ -87,7 +92,7 @@ export function SiteSectionsPage(){
       </div>):<div className="site-sections-row" role="row"><div className="site-sections-name"><strong>—</strong><span><b>Nenhuma seção criada</b><small>Crie a primeira seção desta página. Cabeçalho e Rodapé globais serão aplicados automaticamente.</small></span></div><span className="site-sections-structure">Sem seções próprias</span><span className="site-sections-status">—</span><span/></div>}
     </div>
 
-    {createOpen&&<div role="presentation" style={{position:'fixed',inset:0,zIndex:2000,background:'rgba(0,0,0,.55)',display:'grid',placeItems:'center',padding:20}} onMouseDown={event=>{if(event.currentTarget===event.target)setCreateOpen(false)}}><section role="dialog" aria-modal="true" aria-labelledby="create-page-title" className="section-editor-card" style={{width:'min(560px,100%)',boxShadow:'0 24px 80px rgba(0,0,0,.28)'}}><div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:12}}><div><h2 id="create-page-title" style={{marginBottom:4}}>Criar página</h2><p style={{margin:0}}>A nova página será adicionada ao seletor Página. Cabeçalho e Rodapé globais serão aplicados automaticamente.</p></div><button type="button" onClick={()=>setCreateOpen(false)} aria-label="Fechar"><X size={18}/></button></div><div style={{display:'grid',gap:14,marginTop:20}}><label>Nome da página<input autoFocus value={title} onChange={event=>{const value=event.target.value;setTitle(value);if(!slug)setSlug(normalizeSiteSlug(value));setError('')}} placeholder="Ex.: Cultura"/></label><label>Slug<input value={slug} onChange={event=>{setSlug(normalizeSiteSlug(event.target.value));setError('')}} placeholder="cultura"/></label>{error&&<div style={{color:'#d00',fontWeight:700,fontSize:13}}>{error}</div>}<div style={{display:'flex',justifyContent:'flex-end',gap:10}}><button type="button" className="button outline" onClick={()=>setCreateOpen(false)}>Cancelar</button><button type="button" className="button dark" onClick={createPage}><Plus size={15}/> Criar página</button></div></div></section></div>}
+    {createOpen&&<div role="presentation" style={{position:'fixed',inset:0,zIndex:2000,background:'rgba(0,0,0,.55)',display:'grid',placeItems:'center',padding:20}} onMouseDown={event=>{if(event.currentTarget===event.target)setCreateOpen(false)}}><section role="dialog" aria-modal="true" aria-labelledby="create-page-title" className="section-editor-card" style={{width:'min(560px,100%)',boxShadow:'0 24px 80px rgba(0,0,0,.28)'}}><div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:12}}><div><h2 id="create-page-title" style={{marginBottom:4}}>Criar página</h2><p style={{margin:0}}>A nova página será criada como rascunho e adicionada ao seletor Página. Cabeçalho e Rodapé globais serão aplicados automaticamente.</p></div><button type="button" onClick={()=>setCreateOpen(false)} aria-label="Fechar"><X size={18}/></button></div><div style={{display:'grid',gap:14,marginTop:20}}><label>Nome da página<input autoFocus value={title} onChange={event=>{const value=event.target.value;setTitle(value);if(!slug)setSlug(normalizeSiteSlug(value));setError('')}} placeholder="Ex.: Cultura"/></label><label>Slug<input value={slug} onChange={event=>{setSlug(normalizeSiteSlug(event.target.value));setError('')}} placeholder="cultura"/></label>{error&&<div style={{color:'#d00',fontWeight:700,fontSize:13}}>{error}</div>}<div style={{display:'flex',justifyContent:'flex-end',gap:10}}><button type="button" className="button outline" onClick={()=>setCreateOpen(false)}>Cancelar</button><button type="button" className="button dark" onClick={createPage}><Plus size={15}/> Criar rascunho</button></div></div></section></div>}
 
     {sectionOpen&&<div role="presentation" style={{position:'fixed',inset:0,zIndex:2000,background:'rgba(0,0,0,.55)',display:'grid',placeItems:'center',padding:20}} onMouseDown={event=>{if(event.currentTarget===event.target)setSectionOpen(false)}}><section role="dialog" aria-modal="true" aria-labelledby="section-dialog-title" className="section-editor-card" style={{width:'min(560px,100%)',boxShadow:'0 24px 80px rgba(0,0,0,.28)'}}><div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:12}}><div><h2 id="section-dialog-title" style={{marginBottom:4}}>{editingSectionId?'Editar seção':'Criar seção'}</h2><p style={{margin:0}}>Esta configuração afeta somente a página selecionada. Cabeçalho e Rodapé continuam globais.</p></div><button type="button" onClick={()=>setSectionOpen(false)} aria-label="Fechar"><X size={18}/></button></div><div style={{display:'grid',gap:14,marginTop:20}}><label>Nome da seção<input autoFocus value={sectionName} onChange={event=>{const value=event.target.value;setSectionName(value);if(!sectionSlug)setSectionSlug(normalizeSiteSlug(value));setError('')}} placeholder="Ex.: Conteúdo principal"/></label><label>Identificador<input value={sectionSlug} onChange={event=>{setSectionSlug(normalizeSiteSlug(event.target.value));setError('')}} placeholder="conteudo-principal"/></label>{error&&<div style={{color:'#d00',fontWeight:700,fontSize:13}}>{error}</div>}<div style={{display:'flex',justifyContent:'flex-end',gap:10}}><button type="button" className="button outline" onClick={()=>setSectionOpen(false)}>Cancelar</button><button type="button" className="button dark" onClick={saveSection}><Plus size={15}/> {editingSectionId?'Salvar seção':'Criar seção'}</button></div></div></section></div>}
   </AdminShell>

@@ -34,7 +34,7 @@ const canonical:Record<HomeContentSectionId,Record<SectionHeroViewport,Canonical
     mobile:{columns:1,gap:10,marginY:0,paddingX:0,paddingY:0},
   },
   'ultimas-noticias':{
-    desktop:{columns:2,gap:12,marginY:0,paddingX:0,paddingY:0},
+    desktop:{columns:3,gap:12,marginY:0,paddingX:0,paddingY:0},
     tablet:{columns:2,gap:12,marginY:0,paddingX:0,paddingY:0},
     mobile:{columns:1,gap:10,marginY:0,paddingX:0,paddingY:0},
   },

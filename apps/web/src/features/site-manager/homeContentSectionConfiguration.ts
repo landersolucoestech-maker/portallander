@@ -17,6 +17,9 @@ export type HomeContentSectionLayout={
   homeGapDesktop:number
   homeGapTablet:number
   homeGapMobile:number
+  homeMarginYDesktop:number
+  homeMarginYTablet:number
+  homeMarginYMobile:number
   homePaddingXDesktop:number
   homePaddingXTablet:number
   homePaddingXMobile:number
@@ -24,12 +27,11 @@ export type HomeContentSectionLayout={
   homePaddingYTablet:number
   homePaddingYMobile:number
   homeAgendaWindow:HomeAgendaWindow
-  homeTrendingPeriodDays:number
 }
 
 export type HomeContentSectionConfiguration=SectionConfiguration&HomeContentSectionLayout
 
-const VERSION=1
+const VERSION=2
 export const HOME_CONTENT_MAX_ITEMS:Record<HomeContentSectionId,number>={
   'em-destaque':6,
   'ultimas-noticias':8,
@@ -42,8 +44,8 @@ const sectionDefaults:Record<HomeContentSectionId,Partial<HomeContentSectionLayo
   'em-destaque':{homeColumnsDesktop:3,homeColumnsTablet:2,homeColumnsMobile:1},
   'ultimas-noticias':{homeColumnsDesktop:2,homeColumnsTablet:2,homeColumnsMobile:1},
   'lancamentos':{homeColumnsDesktop:4,homeColumnsTablet:2,homeColumnsMobile:1},
-  'agenda':{homeColumnsDesktop:1,homeColumnsTablet:1,homeColumnsMobile:1,homeAgendaWindow:'future'},
-  'em-alta':{homeColumnsDesktop:1,homeColumnsTablet:1,homeColumnsMobile:1,homeTrendingPeriodDays:7},
+  'agenda':{homeColumnsDesktop:1,homeColumnsTablet:1,homeColumnsMobile:1,homeAgendaWindow:'all'},
+  'em-alta':{homeColumnsDesktop:1,homeColumnsTablet:1,homeColumnsMobile:1},
 }
 
 const base:HomeContentSectionLayout={
@@ -53,10 +55,10 @@ const base:HomeContentSectionLayout={
   homeManualSelection:[],
   homeColumnsDesktop:1,homeColumnsTablet:1,homeColumnsMobile:1,
   homeGapDesktop:12,homeGapTablet:12,homeGapMobile:10,
+  homeMarginYDesktop:0,homeMarginYTablet:0,homeMarginYMobile:0,
   homePaddingXDesktop:0,homePaddingXTablet:0,homePaddingXMobile:0,
   homePaddingYDesktop:0,homePaddingYTablet:0,homePaddingYMobile:0,
   homeAgendaWindow:'all',
-  homeTrendingPeriodDays:7,
 }
 
 export function withHomeContentSectionConfiguration(config:SectionConfiguration,sectionId:HomeContentSectionId):HomeContentSectionConfiguration{
@@ -66,13 +68,12 @@ export function withHomeContentSectionConfiguration(config:SectionConfiguration,
   const merged={...config,...defaults,...raw} as HomeContentSectionConfiguration
   if(!raw.homeLayoutVersion){
     merged.homeColumnsDesktop=legacyColumns
-    merged.homeLayoutVersion=VERSION
   }
+  merged.homeLayoutVersion=VERSION
   merged.itemLimit=Math.max(0,Math.min(HOME_CONTENT_MAX_ITEMS[sectionId],Number(config.itemLimit)||0))
   merged.homeColumnsDesktop=Math.max(1,Math.min(4,Number(merged.homeColumnsDesktop)||1))
   merged.homeColumnsTablet=Math.max(1,Math.min(4,Number(merged.homeColumnsTablet)||1))
   merged.homeColumnsMobile=Math.max(1,Math.min(2,Number(merged.homeColumnsMobile)||1))
-  merged.homeTrendingPeriodDays=Math.max(1,Math.min(365,Number(merged.homeTrendingPeriodDays)||7))
   merged.homeManualSelection=Array.isArray(merged.homeManualSelection)?merged.homeManualSelection.filter(Boolean):[]
   return merged
 }
@@ -83,6 +84,7 @@ export function homeContentViewportLayout(config:HomeContentSectionConfiguration
   return {
     columns:config[`homeColumns${key}` as keyof HomeContentSectionConfiguration] as number,
     gap:config[`homeGap${key}` as keyof HomeContentSectionConfiguration] as number,
+    marginY:config[`homeMarginY${key}` as keyof HomeContentSectionConfiguration] as number,
     paddingX:config[`homePaddingX${key}` as keyof HomeContentSectionConfiguration] as number,
     paddingY:config[`homePaddingY${key}` as keyof HomeContentSectionConfiguration] as number,
   }
@@ -96,6 +98,9 @@ export function homeContentResponsiveCssVariables(config:HomeContentSectionConfi
     '--pl-home-gap-desktop':`${config.homeGapDesktop}px`,
     '--pl-home-gap-tablet':`${config.homeGapTablet}px`,
     '--pl-home-gap-mobile':`${config.homeGapMobile}px`,
+    '--pl-home-margin-y-desktop':`${config.homeMarginYDesktop}px`,
+    '--pl-home-margin-y-tablet':`${config.homeMarginYTablet}px`,
+    '--pl-home-margin-y-mobile':`${config.homeMarginYMobile}px`,
     '--pl-home-padding-x-desktop':`${config.homePaddingXDesktop}px`,
     '--pl-home-padding-x-tablet':`${config.homePaddingXTablet}px`,
     '--pl-home-padding-x-mobile':`${config.homePaddingXMobile}px`,

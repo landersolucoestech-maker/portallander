@@ -33,10 +33,15 @@ export function AdvertiseHereSection({ config, layout }: { config?: HomeAdConfig
   const linkEnabled=Boolean(layout?.adLinkEnabled&&layout.linkUrl)
   const target=layout?.adLinkTarget||'same'
   const imageFit=layout?.adImageFit==='cover'?'cover':'contain'
-  const media=ad.image?<img className="pl-ad-image" src={ad.image} alt={ad.imageAlt} style={{objectFit:imageFit}}/>:null
+
+  if(layout&&ad.image){
+    const creative=<img className="pl-ad-image pl-ad-image-creative" src={ad.image} alt={ad.imageAlt||'Publicidade Anuncie Aqui'}/>
+    return <section className={`pl-ad pl-ad-dynamic official-secao-anuncie-aqui pl-home-configurable-ad ad-fit-${imageFit}`} style={style} aria-label="Seção Anuncie Aqui">
+      {linkEnabled?<SmartAdvertiseHereLink to={layout.linkUrl} target={target} className="pl-ad-area-link">{creative}<span className="sr-only">Abrir publicidade</span></SmartAdvertiseHereLink>:creative}
+    </section>
+  }
 
   return <section className={`pl-ad pl-ad-dynamic official-secao-anuncie-aqui align-${ad.align}${layout?' pl-home-configurable-ad':''}`} style={style} aria-label="Seção Anuncie Aqui">
-    {linkEnabled?<SmartAdvertiseHereLink to={layout!.linkUrl} target={target} className="pl-ad-area-link" >{media}<span className="sr-only">Abrir publicidade</span></SmartAdvertiseHereLink>:media}
     <div className="pl-ad-shade" aria-hidden="true" />
     <div className="pl-ad-content">
       {ad.logo && <img className="pl-ad-logo" src={ad.logo} alt={ad.logoAlt||'Logo do anunciante'} style={{width:`${ad.logoWidth}px`}}/>}

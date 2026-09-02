@@ -7,56 +7,74 @@ import {
 import {
   defaultSectionConfiguration,
   readSectionConfiguration,
-  SECTION_CONFIGURATION_EVENT,
+  writeSectionConfiguration,
   type SectionConfiguration,
 } from './sectionConfiguration'
 
-const STORAGE_KEY='portal-lander:cms:section-configurations:v1'
-const storageId=(sectionId:string)=>`home:${sectionId}`
+export const HOME_CONFIGURABLE_SECTION_IDS=[
+  'em-destaque',
+  'mais-lidas',
+  'ultimas-noticias',
+  'publicidade-lateral',
+  'em-alta',
+  'anuncie-aqui',
+  'lancamentos',
+  'agenda',
+] as const
 
-function readAll():Record<string,SectionConfiguration>{
-  if(typeof window==='undefined')return {}
-  try{return JSON.parse(window.localStorage.getItem(STORAGE_KEY)||'{}') as Record<string,SectionConfiguration>}
-  catch{return {}}
+export type HomeConfigurableSectionId=typeof HOME_CONFIGURABLE_SECTION_IDS[number]
+export type HomeSectionConfigurationMap=Record<HomeConfigurableSectionId,SectionConfiguration>
+
+const names:Record<HomeConfigurableSectionId,string>={
+  'em-destaque':'Em Destaque',
+  'mais-lidas':'Mais Lidas',
+  'ultimas-noticias':'Últimas Notícias',
+  'publicidade-lateral':'Publicidade Lateral',
+  'em-alta':'Em Alta',
+  'anuncie-aqui':'Anuncie Aqui',
+  lancamentos:'Lançamentos',
+  agenda:'Agenda',
 }
 
-function cache(sectionId:string,configuration:SectionConfiguration){
-  if(typeof window==='undefined')return configuration
-  const all=readAll()
-  all[storageId(sectionId)]={...configuration}
-  window.localStorage.setItem(STORAGE_KEY,JSON.stringify(all))
-  window.dispatchEvent(new CustomEvent(SECTION_CONFIGURATION_EVENT,{detail:{pageId:'home',sectionId}}))
-  return configuration
-}
-
-function normalize(sectionId:string,name:string,value:Record<string,unknown>|null|undefined){
+function normalize(sectionId:HomeConfigurableSectionId,name:string,value:Record<string,unknown>|null|undefined):SectionConfiguration{
   return {...defaultSectionConfiguration(sectionId,name),...(value||{})} as SectionConfiguration
 }
 
-export function readCachedHomeSection(sectionId:string,name:string){
-  return readSectionConfiguration('home',sectionId,name)
+function defaults():HomeSectionConfigurationMap{
+  return Object.fromEntries(HOME_CONFIGURABLE_SECTION_IDS.map(sectionId=>[sectionId,defaultSectionConfiguration(sectionId,names[sectionId])])) as HomeSectionConfigurationMap
 }
 
-export async function loadAdminHomeSection(sectionId:string,name:string){
-  if(!isSectionConfigurationApiConfigured())return readCachedHomeSection(sectionId,name)
+function developmentFallback():HomeSectionConfigurationMap{
+  return Object.fromEntries(HOME_CONFIGURABLE_SECTION_IDS.map(sectionId=>[sectionId,readSectionConfiguration('home',sectionId,names[sectionId])])) as HomeSectionConfigurationMap
+}
+
+export function readInitialHomeSections():HomeSectionConfigurationMap{
+  return isSectionConfigurationApiConfigured()?defaults():developmentFallback()
+}
+
+export async function loadAdminHomeSection(sectionId:HomeConfigurableSectionId,name=names[sectionId]){
+  if(!isSectionConfigurationApiConfigured())return readSectionConfiguration('home',sectionId,name)
   const value=await readAdminSectionConfiguration('home',sectionId)
-  if(!value)return readCachedHomeSection(sectionId,name)
-  return cache(sectionId,normalize(sectionId,name,value))
+  return normalize(sectionId,name,value)
 }
 
-export async function saveHomeSection(sectionId:string,name:string,configuration:SectionConfiguration){
+export async function saveHomeSection(sectionId:HomeConfigurableSectionId,name:string,configuration:SectionConfiguration){
   const normalized=normalize(sectionId,name,configuration as unknown as Record<string,unknown>)
-  if(!isSectionConfigurationApiConfigured())return cache(sectionId,normalized)
+  if(!isSectionConfigurationApiConfigured()){
+    writeSectionConfiguration('home',sectionId,normalized)
+    return normalized
+  }
   const persisted=await saveAdminSectionConfiguration('home',sectionId,normalized as unknown as Record<string,unknown>)
-  return cache(sectionId,normalize(sectionId,name,persisted))
+  return normalize(sectionId,name,persisted)
 }
 
-export async function hydratePublicHomeSections(){
-  if(!isSectionConfigurationApiConfigured())return
+export async function loadPublicHomeSections():Promise<HomeSectionConfigurationMap>{
+  if(!isSectionConfigurationApiConfigured())return developmentFallback()
   const configurations=await listPublicSectionConfigurations('home')
-  for(const [sectionId,value] of Object.entries(configurations)){
-    if(sectionId==='hero'||!value||typeof value!=='object'||Array.isArray(value))continue
-    const cached=readCachedHomeSection(sectionId,sectionId)
-    cache(sectionId,{...cached,...value} as SectionConfiguration)
+  const base=defaults()
+  for(const sectionId of HOME_CONFIGURABLE_SECTION_IDS){
+    const value=configurations[sectionId]
+    if(value&&typeof value==='object'&&!Array.isArray(value))base[sectionId]=normalize(sectionId,names[sectionId],value)
   }
+  return base
 }

@@ -1,7 +1,7 @@
 import {expect,test} from '@playwright/test'
 
 const base='http://127.0.0.1:4173/portallander/'
-const widths=[320,360,375,390,430,768,820,1024,1280,1440]
+const widths=[320,360,375,390,430,768,820,1024,1280,1366,1433,1440]
 
 test.describe('Home master responsive viewport matrix',()=>{
   for(const width of widths){

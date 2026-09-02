@@ -7,6 +7,7 @@ import { EditorialContentPage } from '../features/editorial/components/Editorial
 import { EditorialListingPage } from '../features/editorial/components/EditorialListingPage'
 import { editorialReadModel } from '../features/editorial/repository'
 import { PublicHome } from '../pages/home/PublicHome'
+import { HomePreviewPage } from '../pages/home/HomePreviewPage'
 import { PublicFooter, PublicHeader } from '../shared/public/PublicChrome'
 import { PublicNotFound } from '../shared/public/PublicNotFound'
 
@@ -18,6 +19,7 @@ export default function PortalApp(){
   const segments=useMemo(()=>path.split('/').filter(Boolean).map(decodeURIComponent),[path])
 
   if(path==='/')return <PublicHome/>
+  if(path==='/_preview/home')return <HomePreviewPage/>
   if(path==='/anuncie')return <AnunciePage/>
   if(path.startsWith('/app'))return <InternalApp/>
   if(segments[0]==='noticia'&&segments[1])return <Navigate to={`/noticias/${segments[1]}`} replace/>

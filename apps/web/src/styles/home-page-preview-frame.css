@@ -1,0 +1,4 @@
+.home-page-preview-shell{width:100%;min-width:0;background:#f2f2f2;border:1px solid #dedede;overflow:hidden}
+.home-page-preview-scroll{width:100%;overflow:auto;padding:12px;box-sizing:border-box}
+.home-page-preview-iframe{display:block;height:760px;max-width:none;border:0;background:#fff;box-shadow:0 12px 32px rgba(0,0,0,.12);margin:0 auto}
+@media(max-width:900px){.home-page-preview-scroll{padding:8px}.home-page-preview-iframe{height:680px}}

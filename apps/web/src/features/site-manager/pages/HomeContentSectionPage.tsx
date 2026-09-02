@@ -21,7 +21,7 @@ type PreviewViewport=SectionHeroViewport
 type PreviewItem={key:string;title:string;subtitle?:string;image?:string;badge?:string}
 
 const meta:Record<HomeContentSectionId,{name:string;summary:string;criterion:string;responsive:string}>={
-  'em-destaque':{name:'Em Destaque',summary:'Grid principal de matérias em destaque.',criterion:'Destaques definidos pela fonte editorial',responsive:'Desktop 3 colunas · Tablet 2 · Mobile 1'},
+  'em-destaque':{name:'Em Destaque',summary:'Grid principal de matérias em destaque.',criterion:'Destaques definidos pela fonte editorial',responsive:'Desktop 3 colunas · Tablet 2 quando há espaço · Mobile 1'},
   'ultimas-noticias':{name:'Últimas Notícias',summary:'Listagem das publicações mais recentes.',criterion:'Ordem atual da fonte de notícias',responsive:'Desktop 2 colunas · Tablet 2 quando há espaço · Mobile 1'},
   'lancamentos':{name:'Lançamentos',summary:'Grid de lançamentos musicais.',criterion:'Lançamentos disponíveis na fonte editorial',responsive:'Desktop 4 colunas · Tablet 2 · Mobile 1'},
   'agenda':{name:'Agenda',summary:'Eventos e destaques da agenda.',criterion:'Eventos conforme janela temporal configurada',responsive:'Uma lista responsiva; a sidebar migra para baixo em viewports menores'},

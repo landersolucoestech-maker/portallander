@@ -1,4 +1,4 @@
-export type SettingsTab='empresa'|'automacoes'|'seguranca'|'integracoes'|'usuarios'
+export type SettingsTab='empresa'|'identidade_site'|'automacoes'|'seguranca'|'integracoes'|'usuarios'
 export interface SettingsCompany{legalName:string;tradeName:string;cnpj:string;address:string;phone:string;responsible:string;slug:string;logoUrl:string}
 export interface SettingsAutomation{id:string;title:string;description:string;enabled:boolean;email:boolean;push:boolean;sms:boolean;frequency?:string;preferredTime?:string}
 export interface SettingsIntegration{id:string;name:string;category:string;description:string;status:'connected'|'available'|'external'|'unavailable';logo:string;actionLabel:string}

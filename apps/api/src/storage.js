@@ -6,6 +6,7 @@ const DEFAULT_ALLOWED=new Set([
   'application/msword','application/vnd.openxmlformats-officedocument.wordprocessingml.document',
 ])
 const PUBLIC_MEDIA_ALLOWED=new Set(['image/jpeg','image/png','image/webp','image/gif','video/mp4','video/quicktime','application/pdf'])
+const PUBLIC_IMAGE_TYPES=new Set(['image/jpeg','image/png','image/webp','image/gif'])
 
 const baseConfig=()=>({
   url:String(process.env.PORTAL_SUPABASE_URL||'').replace(/\/$/,''),
@@ -17,13 +18,32 @@ const mediaConfig=()=>({...baseConfig(),bucket:String(process.env.PORTAL_MEDIA_B
 const safeName=value=>String(value||'arquivo').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9._-]+/g,'-').replace(/^-+|-+$/g,'').slice(-120)||'arquivo'
 const objectUrl=(base,bucket,key)=>`${base}/storage/v1/object/${encodeURIComponent(bucket)}/${key.split('/').map(encodeURIComponent).join('/')}`
 const publicObjectUrl=(base,bucket,key)=>`${base}/storage/v1/object/public/${encodeURIComponent(bucket)}/${key.split('/').map(encodeURIComponent).join('/')}`
+const startsWith=(buffer,bytes)=>buffer.length>=bytes.length&&bytes.every((value,index)=>buffer[index]===value)
+const ascii=(buffer,start,length)=>buffer.length>=start+length?buffer.subarray(start,start+length).toString('ascii'):''
+
+export function detectImageMime(buffer){
+  if(!Buffer.isBuffer(buffer)||buffer.length<4)return ''
+  if(startsWith(buffer,[0xff,0xd8,0xff]))return 'image/jpeg'
+  if(startsWith(buffer,[0x89,0x50,0x4e,0x47,0x0d,0x0a,0x1a,0x0a]))return 'image/png'
+  if(ascii(buffer,0,4)==='RIFF'&&ascii(buffer,8,4)==='WEBP')return 'image/webp'
+  const gif=ascii(buffer,0,6)
+  if(gif==='GIF87a'||gif==='GIF89a')return 'image/gif'
+  return ''
+}
 
 export function assertAttachmentAllowed(file){
   if(!DEFAULT_ALLOWED.has(file.mimeType))throw new HttpError(415,`Tipo de arquivo não permitido: ${file.mimeType}.`,'FORM_FILE_TYPE_NOT_ALLOWED')
 }
 
 export function assertPublicMediaAllowed(file){
+  if(!file||!Buffer.isBuffer(file.buffer)||file.buffer.length===0)throw new HttpError(400,'O arquivo de mídia está vazio ou inválido.','MEDIA_FILE_INVALID')
   if(!PUBLIC_MEDIA_ALLOWED.has(file.mimeType))throw new HttpError(415,`Tipo de mídia não permitido: ${file.mimeType}.`,'MEDIA_FILE_TYPE_NOT_ALLOWED')
+  if(PUBLIC_IMAGE_TYPES.has(file.mimeType)){
+    const detected=detectImageMime(file.buffer)
+    if(!detected)throw new HttpError(415,'O conteúdo do arquivo não corresponde a um formato de imagem suportado.','MEDIA_FILE_SIGNATURE_INVALID')
+    if(detected!==file.mimeType)throw new HttpError(415,`O MIME declarado (${file.mimeType}) não corresponde ao conteúdo real (${detected}).`,'MEDIA_FILE_MIME_MISMATCH')
+  }
+  if(file.mimeType==='application/pdf'&&ascii(file.buffer,0,5)!=='%PDF-')throw new HttpError(415,'O conteúdo do arquivo não corresponde a um PDF válido.','MEDIA_FILE_SIGNATURE_INVALID')
 }
 
 async function ensurePublicMediaBucket(){

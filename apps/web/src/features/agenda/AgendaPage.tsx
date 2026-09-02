@@ -1,7 +1,7 @@
 import {CalendarClock,CalendarDays,CheckCircle2,ChevronLeft,ChevronRight,Clock,Plus,Search} from 'lucide-react'
 import {useEffect,useMemo,useState} from 'react'
 import {AdminKpi,AdminShell} from '../../shared/internal/AdminUi'
-import {CRM_WORKSPACE_NAV} from '../../shared/internal/adminNavigation'
+import {UNIFIED_ADMIN_NAV} from '../../shared/internal/adminNavigation'
 import AgendaCalendar from './components/AgendaCalendar'
 import AgendaFormModal from './components/AgendaFormModal'
 import AgendaViewModal from './components/AgendaViewModal'
@@ -28,7 +28,7 @@ export default function AgendaPage(){
  const move=(direction:-1|1)=>{if(view==='semana')setReference(date=>addDays(date,7*direction));else if(view==='mes')setReference(date=>addMonths(date,direction));else if(view==='ano')setReference(date=>addYears(date,direction))}
  const save=(draft:AgendaEventDraft)=>{if(form.mode==='edit'&&form.event)agendaRepository.update(form.event.id,draft);else agendaRepository.create(draft);setForm(current=>({...current,open:false}))}
  const retry=()=>{try{setEvents(agendaRepository.list());setLoadError(false)}catch{setLoadError(true)}}
- return <AdminShell area="agenda" items={CRM_WORKSPACE_NAV} header={{title:'Agenda',description:'Gerencie shows, turnês e compromissos com foco operacional'}} headerAction={{label:'Novo Evento',icon:Plus,onClick:()=>setForm({open:true,mode:'create'})}}>
+ return <AdminShell area="agenda" items={UNIFIED_ADMIN_NAV} header={{title:'Agenda',description:'Gerencie shows, turnês e compromissos com foco operacional'}} headerAction={{label:'Novo Evento',icon:Plus,onClick:()=>setForm({open:true,mode:'create'})}}>
   <section className="agenda-page">
    {scenario.name==='loading'?<div className="agenda-loading" role="status" aria-label="Carregando agenda"><span className="agenda-spinner"/></div>:loadError||scenario.name==='error'?<div className="agenda-empty agenda-error" role="alert"><CalendarDays size={42}/><strong>Não foi possível carregar a agenda</strong><button className="button outline" type="button" onClick={retry}>Tentar novamente</button></div>:<>
     <div className="agenda-kpis"><AdminKpi label="Eventos" value={String(metrics.total)} detail="no total" icon={<CalendarDays size={17}/>}/><AdminKpi label="Confirmados" value={String(metrics.confirmed)} detail="eventos confirmados" icon={<CheckCircle2 size={17}/>}/><AdminKpi label="Pendentes" value={String(metrics.pending)} detail="aguardando confirmação" icon={<Clock size={17}/>}/><AdminKpi label="Próximos 7 dias" value={String(metrics.next7)} detail="na próxima semana" icon={<CalendarClock size={17}/>}/></div>

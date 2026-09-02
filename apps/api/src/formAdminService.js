@@ -138,6 +138,19 @@ export const formAdminService={
     })
   },
 
+  async setStatus(key,status){
+    const nextStatus=text(status)
+    ensure(['active','inactive'].includes(nextStatus),400,'Status publicado inválido.','FORM_STATUS_INVALID')
+    return withTransaction(async client=>{
+      const loaded=await loadFormAndLatest(client,key)
+      if(!loaded)throw new HttpError(404,'Formulário não encontrado.','FORM_DEFINITION_NOT_FOUND')
+      const published=loaded.versions.find(version=>version.published_at)
+      ensure(published,409,'Publique uma versão antes de alterar o estado público do formulário.','FORM_NOT_PUBLISHED')
+      const {rows}=await client.query('update site_forms set status=$2,updated_at=now() where id=$1 returning *',[loaded.form.id,nextStatus])
+      return definitionFromRows(rows[0],published)
+    })
+  },
+
   async remove(key){
     return withTransaction(async client=>{
       const loaded=await loadFormAndLatest(client,key)

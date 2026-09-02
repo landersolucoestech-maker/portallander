@@ -7,10 +7,13 @@ const internalRoutes=[
  '/app/marketing/metricas','/app/marketing/briefings','/app/marketing/ia-criativa',
  '/app/reports','/app/settings','/app/finance','/app/finance/invoices','/app/finance/accounting','/app/finance/rules','/app/finance/categories',
  '/app/site','/app/site/home','/app/site/home/hero','/app/site/home/anuncio','/app/site/marca','/app/site/cabecalho',
- '/app/site/conteudos','/app/site/paginas','/app/site/categorias','/app/site/midia','/app/site/noticias/anuncio','/app/site/midia-kit'
+ '/app/site/conteudos','/app/site/paginas','/app/site/categorias','/app/site/midia','/app/site/noticias/anuncio','/app/site/midia-kit',
+ '/app/site/formularios','/app/site/formularios/collaborate'
 ]
 const accessRoutes=['/app/login','/app/workspaces']
-const publicRoutes=['/','/noticias','/colabore','/anuncie']
+const publicRoutes=[
+ '/','/noticias','/cultura','/noticias/mercado-criativo-em-expansao','/cultura/cidade-em-movimento','/sobre','/colabore','/contato','/anuncie'
+]
 const viewports=[
  {name:'desktop-large',width:1680,height:1050},
  {name:'desktop',width:1440,height:900},
@@ -77,6 +80,62 @@ for(const viewport of viewports){
    }
  })
 }
+
+test.describe('site architecture behavior',()=>{
+ test.use({viewport:{width:1440,height:900}})
+
+ test('noticias and cultura share the editorial listing template',async({page})=>{
+   for(const route of ['/noticias','/cultura']){
+     await openRoute(page,route)
+     await expect(page.locator('.news-reference-page')).toBeVisible()
+     await expect(page.locator('.editorial-listing-grid')).toBeVisible()
+   }
+ })
+
+ test('noticias and cultura slugs share the individual content template',async({page})=>{
+   for(const route of ['/noticias/mercado-criativo-em-expansao','/cultura/cidade-em-movimento']){
+     await openRoute(page,route)
+     await expect(page.locator('.article-page')).toBeVisible()
+     await expect(page.locator('.article-layout')).toBeVisible()
+   }
+ })
+
+ test('institutional exceptions do not render as editorial listings',async({page})=>{
+   for(const [route,selector] of [['/sobre','.sobre-page'],['/colabore','.colabore-page'],['/contato','.contato-page']] as const){
+     await openRoute(page,route)
+     await expect(page.locator(selector)).toBeVisible()
+     await expect(page.locator('.news-reference-page')).toHaveCount(0)
+   }
+ })
+
+ test('form editor updates the production renderer preview immediately',async({page})=>{
+   await openRoute(page,'/app/site/formularios/collaborate')
+   const preview=page.locator('.site-form-preview-panel')
+   await expect(preview).toBeVisible()
+   await expect(preview.locator('.site-form-runtime')).toBeVisible()
+   const firstField=page.locator('.site-form-field').first()
+   const labelInput=firstField.locator('label').filter({hasText:'Rótulo'}).locator('input')
+   await labelInput.fill('Nome atualizado em tempo real')
+   await expect(preview).toContainText('Nome atualizado em tempo real')
+   await page.getByRole('button',{name:'Adicionar campo'}).click()
+   await expect(preview).toContainText('Novo campo')
+ })
+
+ test('page draft lifecycle preserves editorial template inheritance',async({page})=>{
+   await openRoute(page,'/app/site/paginas')
+   await page.getByRole('button',{name:'Criar página'}).click()
+   await page.getByLabel('Nome da página').fill('Música E2E')
+   await page.getByRole('button',{name:'Criar rascunho'}).click()
+   await expect(page.getByText('Template editorial de Notícias')).toBeVisible()
+   await expect(page.getByText('Herdada de Notícias')).toBeVisible()
+   await page.reload()
+   await expect(page.getByRole('combobox',{name:'Página'})).toContainText('Música E2E')
+   await page.getByRole('combobox',{name:'Página'}).selectOption({label:/Música E2E/})
+   page.once('dialog',dialog=>dialog.accept())
+   await page.getByRole('button',{name:'Excluir página'}).click()
+   await expect(page.getByRole('combobox',{name:'Página'})).not.toContainText('Música E2E')
+ })
+})
 
 test.describe('modal viewport integrity',()=>{
  test.use({viewport:{width:390,height:844}})

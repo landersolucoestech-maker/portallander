@@ -1,5 +1,5 @@
 import type {FormSubmissionEnvelope,SiteFormDefinition} from './domain'
-import {getSiteFormBySlug} from './registry'
+import {getSystemFormBySlug} from './catalog'
 
 export class FormSubmissionError extends Error{
   code:string
@@ -16,7 +16,7 @@ function buildConsentSnapshot(form:SiteFormDefinition,acceptedConsentIds:readonl
 }
 
 export async function submitSiteForm(slug:string,input:{payload:Record<string,unknown>;acceptedConsentIds:readonly string[];source?:FormSubmissionEnvelope['source'];files?:readonly File[]}):Promise<FormSubmissionEnvelope>{
-  const form=getSiteFormBySlug(slug)
+  const form=getSystemFormBySlug(slug)
   if(!form||form.status!=='active')throw new FormSubmissionError('Este formulário não está disponível para envio.','FORM_INACTIVE')
   for(const field of form.fields){if(!field.required)continue;const value=input.payload[field.key];if(value===undefined||value===null||String(value).trim()==='')throw new FormSubmissionError(`Preencha o campo obrigatório: ${field.label}.`,'FORM_VALIDATION')}
   for(const consent of form.consents){if(consent.required&&!input.acceptedConsentIds.includes(consent.id))throw new FormSubmissionError(`É necessário aceitar: ${consent.label}.`,'FORM_CONSENT_REQUIRED')}

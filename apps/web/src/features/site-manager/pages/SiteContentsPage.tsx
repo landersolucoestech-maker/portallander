@@ -62,7 +62,7 @@ export function SiteContentsPage(){
     return pageOverrides.get(pageId)?.title??editorialReadModel.getPageById(pageId)?.title??newLocalPages.find(page=>page.id===pageId)?.title??pageId
   }
 
-  const contents=useMemo(()=>persisted?remoteContents:contentDraftRepository.listEffective(editorialReadModel.contents),[persisted,remoteContents,localRevision])
+  const contents=useMemo(()=>{void localRevision;return persisted?remoteContents:contentDraftRepository.listEffective(editorialReadModel.contents)},[persisted,remoteContents,localRevision])
 
   const createDraft=async()=>{
     if(!defaultPageId)return

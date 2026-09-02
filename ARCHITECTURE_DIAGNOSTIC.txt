@@ -1,0 +1,45 @@
+===== check-unified-admin.mjs =====
+Unified admin architecture OK — nenhum resíduo de múltiplos workspaces
+exit=0
+===== check-internal-boundaries.mjs =====
+Application boundaries OK — administração unificada sem arquitetura de workspaces
+exit=0
+===== check-data-boundaries.mjs =====
+Data provider boundaries OK
+exit=0
+===== check-ui-system.mjs =====
+UI audit warnings:
+- src/features/agenda/agenda.css: 6 declaração(ões) tipográfica(s) abaixo de 8px; revisar como exceção de alta densidade.
+- src/features/chat/chat.css: 31 declaração(ões) tipográfica(s) abaixo de 8px; revisar como exceção de alta densidade.
+- src/features/chat/components/SupportCenterView.tsx: estilo inline detectado; manter somente se for valor realmente dinâmico.
+- src/features/contracts/components/ContractViewModal.tsx: estilo inline detectado; manter somente se for valor realmente dinâmico.
+- src/features/contracts/components/TemplatesPanel.tsx: estilo inline detectado; manter somente se for valor realmente dinâmico.
+- src/features/crm/ContactViewModal.tsx: estilo inline detectado; manter somente se for valor realmente dinâmico.
+- src/features/crm/CrmPage.tsx: estilo inline detectado; manter somente se for valor realmente dinâmico.
+- src/features/crm/LeadViewModal.tsx: estilo inline detectado; manter somente se for valor realmente dinâmico.
+- src/features/editorial/components/EditorialListingPage.tsx: estilo inline detectado; manter somente se for valor realmente dinâmico.
+- src/features/finance/FinanceAccountingPage.tsx: estilo inline detectado; manter somente se for valor realmente dinâmico.
+- src/features/finance/FinanceInvoicesPage.tsx: estilo inline detectado; manter somente se for valor realmente dinâmico.
+- src/features/finance/FinanceMainPage.tsx: estilo inline detectado; manter somente se for valor realmente dinâmico.
+- src/features/finance/FinanceRegistryPage.tsx: estilo inline detectado; manter somente se for valor realmente dinâmico.
+- src/features/marketing/marketing-reference.css: 1 declaração(ões) tipográfica(s) abaixo de 8px; revisar como exceção de alta densidade.
+- src/features/marketing/pages/MarketingMetrics.tsx: estilo inline detectado; manter somente se for valor realmente dinâmico.
+- src/features/settings/SiteIdentitySettings.tsx: estilo inline detectado; manter somente se for valor realmente dinâmico.
+- src/features/site-manager/forms/SiteFormRenderer.tsx: estilo inline detectado; manter somente se for valor realmente dinâmico.
+- src/features/site-manager/pages/MediaKitPage.tsx: estilo inline detectado; manter somente se for valor realmente dinâmico.
+- src/features/site-manager/pages/SiteContentEditorPage.tsx: estilo inline detectado; manter somente se for valor realmente dinâmico.
+- src/features/site-manager/pages/SiteContentsPage.tsx: estilo inline detectado; manter somente se for valor realmente dinâmico.
+- src/features/site-manager/pages/SiteFormsPage.tsx: estilo inline detectado; manter somente se for valor realmente dinâmico.
+- src/features/site-manager/pages/SiteSectionsPage.tsx: estilo inline detectado; manter somente se for valor realmente dinâmico.
+- src/pages/home/PublicHome.tsx: estilo inline detectado; manter somente se for valor realmente dinâmico.
+- src/pages/home/components/AdvertiseHereSection.tsx: estilo inline detectado; manter somente se for valor realmente dinâmico.
+- src/pages/home/components/HeroEditor.tsx: estilo inline detectado; manter somente se for valor realmente dinâmico.
+- src/pages/home/components/HeroSection.tsx: estilo inline detectado; manter somente se for valor realmente dinâmico.
+- src/shared/branding/components/HeaderBrandEditor.tsx: estilo inline detectado; manter somente se for valor realmente dinâmico.
+- src/styles/admin-dashboard-unified.css: 2 declaração(ões) tipográfica(s) abaixo de 8px; revisar como exceção de alta densidade.
+- src/styles/admin-site-manager-dashboard.css: 1 declaração(ões) tipográfica(s) abaixo de 8px; revisar como exceção de alta densidade.
+UI system invariants OK (324 arquivos inspecionados, 29 avisos não bloqueantes).
+exit=0
+===== check-site-module.mjs =====
+Site module architecture OK
+exit=0

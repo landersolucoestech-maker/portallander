@@ -1,7 +1,7 @@
 import {Plus,Save,Trash2,Zap} from 'lucide-react'
 import {useMemo,useState} from 'react'
 import {AdminShell} from '../../shared/internal/AdminUi'
-import {CRM_WORKSPACE_NAV} from '../../shared/internal/adminNavigation'
+import {UNIFIED_ADMIN_NAV} from '../../shared/internal/adminNavigation'
 import {AUTOMATION_TABS} from './constants'
 import type {ChatAutomationSettings,ChatMenuOption} from './domain'
 import {chatRepository} from './repository'
@@ -15,7 +15,7 @@ export default function ChatAutomationSettingsPage(){
  const previewMenu=useMemo(()=>draft.menuOptions.filter(item=>item.active).sort((a,b)=>a.order-b.order).map(item=>`${item.order}. ${item.label}`).join('\n'),[draft.menuOptions])
  const save=()=>{chatRepository.saveAutomation({...draft,mainMenuMessage:draft.mainMenuMessage||previewMenu});setSaved(true)}
  const addMenu=()=>{const option:ChatMenuOption={id:id('menu'),order:Math.max(0,...draft.menuOptions.map(item=>item.order))+1,label:'Nova opção',responseTemplateId:'',queue:'Atendimento',sector:'Triagem',defaultAssignee:null,tags:[],priority:'media',active:true};patch({menuOptions:[...draft.menuOptions,option]})}
- return <AdminShell area="chat" items={CRM_WORKSPACE_NAV} header={{title:'Automações do Chat',description:'Configure mensagens automáticas, triagem, filas, notificações e escalonamentos.'}} headerActions={[{label:'Testar escalonamento',icon:Zap,variant:'secondary',onClick:()=>setFeedback('Teste executado com as regras ativas.')},{label:'Salvar configuração',icon:Save,onClick:save}]}>
+ return <AdminShell area="chat" items={UNIFIED_ADMIN_NAV} header={{title:'Automações do Chat',description:'Configure mensagens automáticas, triagem, filas, notificações e escalonamentos.'}} headerActions={[{label:'Testar escalonamento',icon:Zap,variant:'secondary',onClick:()=>setFeedback('Teste executado com as regras ativas.')},{label:'Salvar configuração',icon:Save,onClick:save}]}>
   <section className="chat-settings-page">
    {(saved||feedback)&&<div className="chat-settings-feedback">{saved?'Configuração salva localmente.':feedback}</div>}
    <div className="chat-settings-tabs">{AUTOMATION_TABS.map(([value,label])=><button key={value} className={tab===value?'active':''} onClick={()=>setTab(value)}>{label}</button>)}</div>

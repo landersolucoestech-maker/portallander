@@ -59,7 +59,7 @@ function PageHeader({context,header,actions}:{context:string;header?:PageHeaderC
       </div>
       <div className="workspace-popover-wrap" ref={accountRef}>
         <button className="account-button" type="button" aria-label="Abrir menu da conta" aria-haspopup="menu" aria-expanded={accountOpen} onClick={()=>{setAccountOpen(value=>!value);setNotificationsOpen(false)}}><span>{user.initials}</span><div><b>{user.name}</b><small>{user.roleLabel}</small></div><ChevronDown size={14}/></button>
-        {accountOpen&&<div className="workspace-popover account-popover" role="menu" aria-label="Menu da conta"><Link to="/app/profile" role="menuitem" onClick={()=>setAccountOpen(false)}><UserRound size={15}/><span>Perfil</span></Link><Link to="/app/settings" role="menuitem" onClick={()=>setAccountOpen(false)}><Settings size={15}/><span>Configurações</span></Link><Link className="account-popover-logout" to="/app/login" role="menuitem" onClick={()=>setAccountOpen(false)}><LogOut size={15}/><span>Sair / Logout</span></Link></div>}
+        {accountOpen&&<div className="workspace-popover account-popover" role="menu" aria-label="Menu da conta"><Link to="/app/profile" role="menuitem" onClick={()=>setAccountOpen(false)}><UserRound size={15}/><span>Perfil</span></Link><Link to="/app/settings" role="menuitem" onClick={()=>setAccountOpen(false)}><Settings size={15}/><span>Configurações</span></Link><Link className="account-popover-logout" to="/app/login?logout=1" role="menuitem" onClick={()=>setAccountOpen(false)}><LogOut size={15}/><span>Sair / Logout</span></Link></div>}
       </div>
     </div>
   </header>

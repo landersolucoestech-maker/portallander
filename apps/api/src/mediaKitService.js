@@ -19,7 +19,7 @@ const normalizeFormat=(value,index)=>{
     description:text(value.description),
   }
 }
-const normalizePayload=value=>{
+export const normalizePayload=value=>{
   if(!value||typeof value!=='object')throw new HttpError(400,'Mídia Kit inválido.','MEDIA_KIT_INVALID')
   const institutional=value.institutional&&typeof value.institutional==='object'?value.institutional:{}
   const audience=value.audience&&typeof value.audience==='object'?value.audience:{}

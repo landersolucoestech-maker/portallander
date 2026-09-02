@@ -31,7 +31,11 @@ export function SiteMediaPage(){
     finally{setLoading(false)}
   }
 
-  useEffect(()=>{void reload()},[])
+  useEffect(()=>{
+    let active=true
+    mediaRepository.list().then(items=>{if(active){setMedia(items);setLoadError('')}}).catch(error=>{if(active)setLoadError(error instanceof Error?error.message:'Não foi possível carregar a biblioteca de mídias.')}).finally(()=>{if(active)setLoading(false)})
+    return()=>{active=false}
+  },[])
 
   const availableTypes=useMemo(()=>['Todos',...Array.from(new Set(media.map(item=>item.type))).sort((a,b)=>a.localeCompare(b,'pt-BR'))],[media])
   const normalized=query.trim().toLocaleLowerCase('pt-BR')

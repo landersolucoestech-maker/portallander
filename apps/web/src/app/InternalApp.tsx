@@ -4,7 +4,7 @@ import {AdminAuthProvider} from '../features/access/AdminAuthContext'
 import {useAdminAuth} from '../features/access/adminAuthState'
 import {LoginPage} from '../features/access/LoginPage'
 import {ProfilePage} from '../features/access/AccountPages'
-import CrmWorkspace from '../features/access/CrmWorkspace'
+import CrmModuleRoutes from '../features/access/CrmModuleRoutes'
 import DashboardPage from '../features/dashboard/DashboardPage'
 import ContractsPage from '../features/contracts/ContractsPage'
 import AgendaPage from '../features/agenda/AgendaPage'
@@ -20,9 +20,6 @@ import FinanceAccountingPage from '../features/finance/FinanceAccountingPage'
 import FinanceRegistryPage from '../features/finance/FinanceRegistryPage'
 import SiteManagerRoutes from '../features/site-manager/SiteManagerRoutes'
 import '../styles/admin-entry.css'
-
-// Legacy architecture token: from '../features/access/WorkspacePage'.
-// WorkspacePage is no longer mounted; /app/workspaces only redirects to the unified admin dashboard.
 
 function RequireAdmin({children}:{children:ReactNode}){
   const {status}=useAdminAuth()
@@ -43,10 +40,9 @@ const protectedRoute=(element:ReactNode)=><RequireAdmin>{element}</RequireAdmin>
 function InternalRoutes(){return <Routes>
   <Route path="/app" element={<Navigate to="/app/dashboard" replace/>}/>
   <Route path="/app/login" element={<LoginRoute/>}/>
-  <Route path="/app/workspaces" element={<Navigate to="/app/dashboard" replace/>}/>
   <Route path="/app/profile" element={protectedRoute(<ProfilePage/>)}/>
   <Route path="/app/dashboard" element={protectedRoute(<DashboardPage/>)}/>
-  <Route path="/app/crm/*" element={protectedRoute(<CrmWorkspace/>)}/>
+  <Route path="/app/crm/*" element={protectedRoute(<CrmModuleRoutes/>)}/>
   <Route path="/app/contracts" element={protectedRoute(<ContractsPage/>)}/>
   <Route path="/app/agenda" element={protectedRoute(<AgendaPage/>)}/>
   <Route path="/app/chat" element={protectedRoute(<ChatPage/>)}/>

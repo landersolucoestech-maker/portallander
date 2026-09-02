@@ -22,7 +22,11 @@ export function SiteContentEditorPage(){
   const navigate=useNavigate()
   const {status}=useAdminAuth()
   const persisted=status==='authenticated'
-  const localSource=useMemo(()=>persisted?undefined:contentDraftRepository.get(contentId),[contentId,persisted])
+  const development=status==='development'
+  const localSource=useMemo(()=>{
+    if(persisted||contentDraftRepository.listHiddenIds().includes(contentId))return undefined
+    return contentDraftRepository.get(contentId)??editorialReadModel.contents.find(content=>content.id===contentId)
+  },[contentId,persisted])
   const [draft,setDraft]=useState<EditorialContent|undefined>(()=>localSource?clone(localSource):undefined)
   const [body,setBody]=useState(()=>localSource?bodyText(localSource):'')
   const [remotePages,setRemotePages]=useState<EditorialPage[]>([])
@@ -33,7 +37,10 @@ export function SiteContentEditorPage(){
   const [mediaPickerOpen,setMediaPickerOpen]=useState(false)
 
   useEffect(()=>{
-    if(!persisted)return
+    if(!persisted){
+      const source=contentDraftRepository.listHiddenIds().includes(contentId)?undefined:contentDraftRepository.get(contentId)??editorialReadModel.contents.find(content=>content.id===contentId)
+      setDraft(source?clone(source):undefined);setBody(source?bodyText(source):'');setSaved(false);setError('');return
+    }
     let active=true
     void Promise.all([getAdminEditorialContent(contentId),listAdminEditorialPages()]).then(([content,pages])=>{
       if(!active)return
@@ -42,12 +49,14 @@ export function SiteContentEditorPage(){
     return()=>{active=false}
   },[contentId,persisted])
 
-  const pageOptions=useMemo<PageOption[]>(()=>persisted
-    ?remotePages.filter(page=>page.type==='editorial').map(page=>({id:page.id,title:page.title,source:'persisted' as const}))
-    :[
-      ...editorialReadModel.pages.filter(page=>page.type==='editorial').map(page=>({id:page.id,title:page.title,source:'persisted' as const})),
-      ...sitePageRepository.listDraftPages().map(page=>({id:page.id,title:`${page.title} · rascunho`,source:'draft' as const})),
-    ],[persisted,remotePages])
+  const pageOptions=useMemo<PageOption[]>(()=>{
+    if(persisted)return remotePages.filter(page=>page.type==='editorial').map(page=>({id:page.id,title:page.title,source:'persisted' as const}))
+    const drafts=sitePageRepository.listDraftPages(),hidden=new Set(sitePageRepository.listHiddenPageIds()),overrides=new Map(drafts.filter(page=>page.overridesSystem).map(page=>[page.id,page]))
+    return [
+      ...editorialReadModel.pages.filter(page=>page.type==='editorial'&&!hidden.has(page.id)).map(page=>({id:page.id,title:overrides.get(page.id)?.title??page.title,source:'persisted' as const})),
+      ...drafts.filter(page=>!page.overridesSystem).map(page=>({id:page.id,title:`${page.title} · rascunho`,source:'draft' as const})),
+    ]
+  },[persisted,remotePages,draft])
 
   const loading=persisted&&loadedRemoteId!==contentId
   if(loading)return <AdminShell area="cms" items={SITE_MANAGER_NAV} header={{title:'Carregando conteúdo',description:'Sincronizando o editor com a persistência editorial.'}}><AdminNotice title="Sincronizando" description="Carregando conteúdo e páginas diretamente da API do Portal Lander."/></AdminShell>
@@ -59,7 +68,7 @@ export function SiteContentEditorPage(){
     if(!title){setError('Informe o título do conteúdo.');return}
     if(!draft.pageId||!pageOptions.some(page=>page.id===draft.pageId)){setError('Selecione uma página de conteúdo válida.');return}
     if(!slug){setError('Informe um slug válido.');return}
-    if(!persisted&&editorialReadModel.contents.some(content=>content.id!==draft.id&&content.pageId===draft.pageId&&content.slug===slug)){setError('Já existe um conteúdo persistido com este slug nesta página.');return}
+    if(!persisted&&contentDraftRepository.listEffective(editorialReadModel.contents).some(content=>content.id!==draft.id&&content.pageId===draft.pageId&&content.slug===slug)){setError('Já existe outro conteúdo com este slug nesta página.');return}
     const next={...draft,title,slug,body:bodyFromText(body),updatedAt:new Date().toISOString()}
     setSaving(true);setError('')
     try{
@@ -68,29 +77,29 @@ export function SiteContentEditorPage(){
         setDraft(clone(savedContent));setBody(bodyText(savedContent))
       }else{
         const savedContent=contentDraftRepository.save(next)
-        setDraft(clone(savedContent))
+        setDraft(clone(savedContent));setBody(bodyText(savedContent))
       }
       setSaved(true)
     }catch(caught){setError(caught instanceof Error?caught.message:'Não foi possível salvar o conteúdo.')}
     finally{setSaving(false)}
   }
   const remove=async()=>{
-    if(!window.confirm(`Excluir “${draft.title}”?${persisted?' Esta ação remove o conteúdo persistido.':' '}`))return
+    if(!window.confirm(`Excluir “${draft.title}”?${persisted?' Esta ação remove o conteúdo persistido.':' No modo de desenvolvimento o conteúdo original é apenas ocultado.'}`))return
     setSaving(true);setError('')
     try{
       if(persisted)await deleteAdminEditorialContent(draft.id)
-      else contentDraftRepository.remove(draft.id)
+      else contentDraftRepository.remove(draft.id,editorialReadModel.contents.some(content=>content.id===draft.id))
       navigate('/app/site/conteudos')
     }catch(caught){setError(caught instanceof Error?caught.message:'Não foi possível excluir o conteúdo.');setSaving(false)}
   }
   const selectedPage=pageOptions.find(page=>page.id===draft.pageId)
 
-  return <AdminShell area="cms" items={SITE_MANAGER_NAV} header={{title:draft.title||'Novo conteúdo',description:persisted?'Editor conectado à persistência editorial autenticada.':'Editor de rascunho local de desenvolvimento.'}}>
+  return <AdminShell area="cms" items={SITE_MANAGER_NAV} header={{title:draft.title||'Novo conteúdo',description:persisted?'Editor conectado à persistência editorial.':development?'Editor aberto de desenvolvimento.':'Editor de conteúdo local.'}}>
     <div className="site-form-editor">
-      <div className="site-form-editor-top"><Link className="button outline" to="/app/site/conteudos"><ArrowLeft size={15}/>Conteúdos</Link><div className="site-form-editor-actions"><button type="button" className="button outline" onClick={()=>void remove()} disabled={saving}><Trash2 size={15}/>{persisted?'Excluir conteúdo':'Excluir rascunho'}</button><button type="button" className="button" onClick={()=>void save()} disabled={saving}><Save size={15}/>{saving?'Salvando…':'Salvar alterações'}</button></div></div>
-      <AdminNotice title={persisted?'Persistência editorial conectada':'Rascunho local'} description={persisted?'As alterações desta tela são salvas pela API autenticada. Publicação e retirada do ar continuam controladas na lista de Conteúdos.':'Este conteúdo fica somente neste navegador e nunca entra no site público.'}/>
-      {selectedPage?.source==='draft'&&<AdminNotice title="Página também em rascunho" description="Este conteúdo está vinculado a uma página ainda não persistida e não pode ser publicado."/>}
-      {saved&&<AdminNotice title="Alterações salvas" description={persisted?'O conteúdo persistido foi atualizado com sucesso.':'O rascunho foi salvo localmente.'}/>} 
+      <div className="site-form-editor-top"><Link className="button outline" to="/app/site/conteudos"><ArrowLeft size={15}/>Conteúdos</Link><div className="site-form-editor-actions"><button type="button" className="button outline" onClick={()=>void remove()} disabled={saving}><Trash2 size={15}/>Excluir conteúdo</button><button type="button" className="button" onClick={()=>void save()} disabled={saving}><Save size={15}/>{saving?'Salvando…':'Salvar alterações'}</button></div></div>
+      <AdminNotice title={persisted?'Persistência editorial conectada':development?'Edição liberada no desenvolvimento':'Conteúdo local'} description={persisted?'As alterações desta tela são salvas pela API. Publicação e retirada do ar continuam controladas na lista de Conteúdos.':development?'Você pode editar conteúdos seed e novos conteúdos. Alterações em registros existentes são gravadas como overrides locais reversíveis.':'As alterações ficam neste navegador.'}/>
+      {selectedPage?.source==='draft'&&<AdminNotice title="Página também em rascunho" description="Este conteúdo está vinculado a uma página criada no modo de desenvolvimento."/>}
+      {saved&&<AdminNotice title="Alterações salvas" description={persisted?'O conteúdo persistido foi atualizado com sucesso.':'O conteúdo foi salvo no ambiente de desenvolvimento.'}/>} 
       {error&&<AdminNotice title="Não foi possível concluir a operação" description={error}/>} 
 
       <div className="site-form-editor-layout">
@@ -107,7 +116,7 @@ export function SiteContentEditorPage(){
 
           <section className="site-form-card"><header><div><h2>Autoria e organização</h2></div></header><div className="site-form-grid"><label><span>Autor</span><input value={draft.author} onChange={event=>patch({author:event.target.value})}/></label><label><span>Tags / categorias</span><input value={draft.tags.join(', ')} onChange={event=>patch({tags:event.target.value.split(',').map(value=>value.trim()).filter(Boolean)})}/></label></div></section>
 
-          <section className="site-form-card"><header><div><h2>Capa</h2><p>Use uma imagem da biblioteca persistente ou informe uma URL externa.</p></div><button type="button" className="button outline" onClick={()=>setMediaPickerOpen(true)}><Images size={15}/>Escolher da biblioteca</button></header><div className="site-form-grid">
+          <section className="site-form-card"><header><div><h2>Capa</h2><p>Use uma imagem da biblioteca ou informe uma URL externa.</p></div><button type="button" className="button outline" onClick={()=>setMediaPickerOpen(true)}><Images size={15}/>Escolher da biblioteca</button></header><div className="site-form-grid">
             {draft.coverImage&&<div className="site-content-cover-current site-form-span-2"><img src={draft.coverImage} alt={draft.coverImageAlt||''}/><div><span>CAPA SELECIONADA</span><strong>{draft.coverImageAlt||'Imagem sem texto alternativo'}</strong><small>{draft.coverImage}</small><button type="button" className="button outline" onClick={()=>patch({coverImage:'',coverImageAlt:''})}>Remover capa</button></div></div>}
             <label className="site-form-span-2"><span>URL da imagem</span><input value={draft.coverImage??''} onChange={event=>patch({coverImage:event.target.value})} placeholder="https://..."/></label><label className="site-form-span-2"><span>Texto alternativo</span><input value={draft.coverImageAlt??''} onChange={event=>patch({coverImageAlt:event.target.value})} placeholder="Descreva objetivamente o que aparece na imagem"/></label>
           </div></section>

@@ -4,7 +4,7 @@ import {Link,useNavigate} from 'react-router-dom'
 import {portalLogo} from '../../shared/branding/assets/brandAsset'
 import {readHeaderBrandConfig} from '../../shared/branding/models/headerBrandModel'
 import {ADMIN_CAPABILITIES} from '../../shared/internal/adminCapabilities'
-import {useAdminAuth} from './AdminAuthContext'
+import {useAdminAuth} from './adminAuthState'
 import {isAdminAuthConfigured} from './authClient'
 
 function readPrimaryBrand(){

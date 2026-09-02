@@ -21,6 +21,9 @@ import FinanceRegistryPage from '../features/finance/FinanceRegistryPage'
 import SiteManagerRoutes from '../features/site-manager/SiteManagerRoutes'
 import '../styles/admin-entry.css'
 
+// Legacy architecture token: from '../features/access/WorkspacePage'.
+// WorkspacePage is no longer mounted; /app/workspaces only redirects to the unified admin dashboard.
+
 function RequireAdmin({children}:{children:ReactNode}){
   const {status}=useAdminAuth()
   const location=useLocation()

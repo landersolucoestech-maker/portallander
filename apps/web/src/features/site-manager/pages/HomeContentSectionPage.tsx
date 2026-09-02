@@ -1,5 +1,5 @@
 import {ArrowDown,ArrowUp,ExternalLink,Monitor,RotateCcw,Save,Smartphone,Tablet} from 'lucide-react'
-import {useMemo,useState,type CSSProperties,type ReactNode} from 'react'
+import {useState,type CSSProperties,type ReactNode} from 'react'
 import {AdminNotice,AdminShell} from '../../../shared/internal/AdminUi'
 import {SITE_MANAGER_NAV} from '../../../shared/internal/adminNavigation'
 import {homeReadModel,type HomeAgendaItem,type HomeRelease,type HomeStory} from '../../../pages/home/models/homeReadModel'
@@ -76,7 +76,7 @@ export function HomeContentSectionPage({sectionId}:{sectionId:HomeContentSection
   const max=HOME_CONTENT_MAX_ITEMS[sectionId]
   const layout=homeContentViewportLayout(config,previewViewport)
   const deviceSuffix=suffix(previewViewport)
-  const available=useMemo(()=>availableFor(sectionId,config),[sectionId,config.homeAgendaWindow])
+  const available=availableFor(sectionId,config)
   const patch=(next:Partial<HomeContentSectionConfiguration>)=>{setConfig(current=>({...current,...next}));setSaved(false)}
   const patchDevice=(prefix:string,value:number)=>patch({[`${prefix}${deviceSuffix}`]:value} as Partial<HomeContentSectionConfiguration>)
   const save=()=>{writeSectionConfiguration('home',sectionId,{...config,itemLimit:clamp(config.itemLimit,0,max)});setSaved(true)}

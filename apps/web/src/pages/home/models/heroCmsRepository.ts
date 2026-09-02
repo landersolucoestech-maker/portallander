@@ -65,3 +65,14 @@ export async function saveHeroCmsState(state:HeroCmsState):Promise<HeroCmsState>
   writeHeroBackground(state.background)
   return readCachedHeroCmsState()
 }
+
+export async function saveHeroBackgroundCmsState(background:HeroBackgroundConfig):Promise<HeroCmsState>{
+  if(isSectionConfigurationApiConfigured()){
+    const current=await readAdminSectionConfiguration('home','hero')
+    const envelope:Record<string,unknown>={...(current||{}),version:1,background}
+    const persisted=await saveAdminSectionConfiguration('home','hero',envelope)
+    return cacheEnvelope(persisted)
+  }
+  writeHeroBackground(background)
+  return readCachedHeroCmsState()
+}

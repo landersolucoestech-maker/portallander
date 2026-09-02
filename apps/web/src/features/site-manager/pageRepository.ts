@@ -1,5 +1,5 @@
 export type SitePageTemplate='editorial'
-export type SitePageDraft={id:string;title:string;slug:string;template:SitePageTemplate;createdAt:string;updatedAt:string}
+export type SitePageDraft={id:string;title:string;slug:string;template:SitePageTemplate;createdAt?:string;updatedAt?:string}
 export type SitePageSectionDraft={id:string;name:string;slug:string}
 export type SitePageSections=Record<string,SitePageSectionDraft[]>
 
@@ -12,7 +12,6 @@ const LEGACY_SECTION_KEYS=[
 
 const parse=<T>(key:string,fallback:T):T=>{try{const raw=localStorage.getItem(key);if(!raw)return fallback;return JSON.parse(raw) as T}catch{return fallback}}
 const emit=()=>window.dispatchEvent(new CustomEvent('portal-lander:site-pages:changed'))
-const unknownDate='1970-01-01T00:00:00.000Z'
 
 export const normalizeSiteSlug=(value:string)=>value.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'')
 
@@ -20,7 +19,7 @@ const normalizeDraft=(value:unknown):SitePageDraft|null=>{
   if(!value||typeof value!=='object')return null
   const item=value as Partial<SitePageDraft>
   if(typeof item.id!=='string'||typeof item.title!=='string'||typeof item.slug!=='string')return null
-  return {id:item.id,title:item.title,slug:item.slug,template:'editorial',createdAt:typeof item.createdAt==='string'?item.createdAt:unknownDate,updatedAt:typeof item.updatedAt==='string'?item.updatedAt:unknownDate}
+  return {id:item.id,title:item.title,slug:item.slug,template:'editorial',createdAt:typeof item.createdAt==='string'?item.createdAt:undefined,updatedAt:typeof item.updatedAt==='string'?item.updatedAt:undefined}
 }
 const migrate=()=>{
   for(const key of ['portal-lander:cms:pages:local:v3','portal-lander:cms:pages:local:v2','portal-lander:cms:pages:local:v1']){

@@ -12,7 +12,7 @@ describe('admin navigation',()=>{
 
   it('preserva as rotas visíveis obrigatórias do shell unificado',()=>{
     const serialized=JSON.stringify(UNIFIED_ADMIN_NAV)
-    for(const route of ['/app/dashboard','/app/crm','/app/finance','/app/finance/invoices','/app/finance/accounting','/app/agenda','/app/chat','/app/rh','/app/site/conteudos','/app/site/midia','/app/site/paginas','/app/site/midia-kit','/app/marketing','/app/settings'])expect(serialized).toContain(route)
+    for(const route of ['/app/dashboard','/app/crm','/app/finance','/app/finance/invoices','/app/finance/accounting','/app/agenda','/app/chat','/app/rh','/app/site/conteudos','/app/site/midia','/app/site/paginas','/app/site/formularios','/app/site/midia-kit','/app/marketing','/app/settings'])expect(serialized).toContain(route)
     expect(serialized).not.toContain('/app/contracts')
     expect(serialized).not.toContain('/app/reports')
   })
@@ -32,9 +32,9 @@ describe('admin navigation',()=>{
     expect(serialized).not.toContain('/app/finance/automations')
   })
 
-  it('mantém o Site com os quatro submódulos aprovados',()=>{
+  it('mantém o Site com os cinco submódulos aprovados',()=>{
     const site=UNIFIED_ADMIN_NAV.find(item=>isGroup(item)&&item.label==='Site')
-    expect(site&&isGroup(site)?site.children.map(child=>child[0]):[]).toEqual(['Conteúdos','Mídias','Páginas','Mídia Kit'])
+    expect(site&&isGroup(site)?site.children.map(child=>child[0]):[]).toEqual(['Conteúdos','Mídias','Páginas','Formulários','Mídia Kit'])
   })
 
   it('não divide o CRM em itens internos na sidebar',()=>{

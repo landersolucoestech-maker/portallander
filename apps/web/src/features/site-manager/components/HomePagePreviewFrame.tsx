@@ -1,16 +1,10 @@
 import {useCallback,useEffect,useRef} from 'react'
 import type {SectionConfiguration,SectionHeroViewport} from '../sectionConfiguration'
 import type {HomeRenderedSectionId} from '../../../pages/home/HomePageRenderer'
+import {HOME_PREVIEW_MESSAGE,type HomePreviewMessage} from './homePreviewProtocol'
 import '../../../styles/home-page-preview-frame.css'
 
-export const HOME_PREVIEW_WIDTHS:Record<SectionHeroViewport,number>={desktop:1433,tablet:768,mobile:390}
-export const HOME_PREVIEW_MESSAGE='portal-lander:home-page-preview'
-
-export type HomePreviewMessage={
-  type:typeof HOME_PREVIEW_MESSAGE
-  sectionId:HomeRenderedSectionId
-  configuration:SectionConfiguration
-}
+const HOME_PREVIEW_WIDTHS:Record<SectionHeroViewport,number>={desktop:1433,tablet:768,mobile:390}
 
 export function HomePagePreviewFrame({sectionId,configuration,viewport}:{sectionId:HomeRenderedSectionId;configuration:SectionConfiguration;viewport:SectionHeroViewport}){
   const iframeRef=useRef<HTMLIFrameElement>(null)

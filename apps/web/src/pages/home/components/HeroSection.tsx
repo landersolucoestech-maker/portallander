@@ -9,6 +9,12 @@ import {
   type HeroBreakpoint,
 } from '../models/heroAppearanceModel'
 import {
+  HERO_BACKGROUND_EVENT,
+  readHeroBackground,
+  type HeroBackgroundConfig,
+} from '../models/heroBackgroundModel'
+import { loadPublicHeroCmsState } from '../models/heroCmsRepository'
+import {
   defaultHeroConfig,
   defaultHeroSlide,
   getRenderableHeroSlides,
@@ -34,8 +40,8 @@ function subscribeViewport(callback: () => void) {
 
 function getViewportSnapshot(): HeroBreakpoint {
   if (typeof window === 'undefined') return 'desktop'
-  if (window.innerWidth <= 700) return 'mobile'
-  if (window.innerWidth <= 900) return 'tablet'
+  if (window.innerWidth <= 767) return 'mobile'
+  if (window.innerWidth <= 1023) return 'tablet'
   return 'desktop'
 }
 
@@ -50,24 +56,28 @@ function useViewportBreakpoint(): HeroBreakpoint {
 export function HeroSection({
   config,
   appearance,
+  background,
   previewIndex = 0,
   disableAutoplay = false,
   previewViewport,
 }: {
   config?: HeroCarouselConfig
   appearance?: HeroAppearanceConfig
+  background?: HeroBackgroundConfig
   previewIndex?: number
   disableAutoplay?: boolean
   previewViewport?: HeroBreakpoint
 }) {
   const [storedConfig, setStoredConfig] = useState<HeroCarouselConfig>(() => readHeroConfig())
   const [storedAppearance, setStoredAppearance] = useState<HeroAppearanceConfig>(() => readHeroAppearance())
+  const [storedBackground, setStoredBackground] = useState<HeroBackgroundConfig>(() => readHeroBackground())
   const [activeIndex, setActiveIndex] = useState(previewIndex)
   const [paused, setPaused] = useState(false)
   const liveBreakpoint = useViewportBreakpoint()
   const breakpoint: HeroBreakpoint = previewViewport ?? liveBreakpoint
   const runtimeConfig = config ?? storedConfig
   const baseAppearance = appearance ?? storedAppearance
+  const runtimeBackground = background ?? storedBackground
   const runtimeAppearance = resolveHeroAppearance(baseAppearance, breakpoint)
 
   useEffect(() => {
@@ -83,6 +93,27 @@ export function HeroSection({
     window.addEventListener(HERO_APPEARANCE_EVENT, sync)
     return () => window.removeEventListener(HERO_APPEARANCE_EVENT, sync)
   }, [appearance])
+
+  useEffect(() => {
+    if (background) return
+    const sync = () => setStoredBackground(readHeroBackground())
+    window.addEventListener(HERO_BACKGROUND_EVENT, sync)
+    return () => window.removeEventListener(HERO_BACKGROUND_EVENT, sync)
+  }, [background])
+
+  useEffect(() => {
+    if (config || appearance || background) return
+    let active = true
+    void loadPublicHeroCmsState().then(state => {
+      if (!active) return
+      setStoredConfig(state.carousel)
+      setStoredAppearance(state.appearance)
+      setStoredBackground(state.background)
+    }).catch(error => {
+      if (active) console.error('Falha ao sincronizar a configuração pública da Hero.', error)
+    })
+    return () => { active = false }
+  }, [config, appearance, background])
 
   const slides = useMemo(() => getRenderableHeroSlides(runtimeConfig), [runtimeConfig])
   const requestedIndex = previewViewport ? previewIndex : activeIndex
@@ -153,6 +184,11 @@ export function HeroSection({
     '--hero-content-padding-bottom': `${runtimeAppearance.contentPaddingBottom}px`,
   } as CSSProperties
 
+  const backgroundStyle:CSSProperties = {
+    backgroundImage: runtimeBackground.url ? `url(${JSON.stringify(runtimeBackground.url)})` : 'none',
+    backgroundPosition: `${runtimeBackground.positionX}% ${runtimeBackground.positionY}%`,
+  }
+
   const shellStyle: CSSProperties = {
     maxWidth: runtimeAppearance.width <= 100 ? undefined : runtimeAppearance.width,
     paddingLeft: runtimeAppearance.paddingX,
@@ -216,7 +252,7 @@ export function HeroSection({
 
   return <>
     <section className={`portal-hero editorial-hero hero-breakpoint-${breakpoint}`} data-hero-breakpoint={breakpoint} style={rootStyle} aria-label="Destaque principal" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
-      <div className="editorial-hero-background" aria-hidden="true" />
+      <div className="editorial-hero-background" aria-hidden="true" style={backgroundStyle} />
       <div className="editorial-hero-overlay" aria-hidden="true" />
       <div className="shell editorial-hero-grid" style={shellStyle}>
         <div className="editorial-hero-content" style={contentStyle}>
@@ -230,7 +266,7 @@ export function HeroSection({
         </div>
 
         <div className="editorial-hero-media" style={mediaStyle}>
-          {hero.imageVisible !== false && hero.image && <img className="editorial-featured-image" src={hero.image} alt={hero.imageAlt || ''} fetchPriority="high" decoding="async" style={imageStyle} onError={event => { if (defaultHeroSlide.image && event.currentTarget.src !== defaultHeroSlide.image) event.currentTarget.src = defaultHeroSlide.image }} />}
+          {hero.imageVisible !== false && hero.image && <img className="editorial-featured-image" src={hero.image} alt={hero.imageAlt || ''} fetchPriority="high" decoding="async" style={imageStyle} onError={event => { console.error('Falha ao carregar a mídia principal configurada da Hero.', hero.image); event.currentTarget.style.display = 'none' }} />}
           {hero.mediaCaptionVisible !== false && hero.mediaCaption && <span className="editorial-media-caption" style={{ color: runtimeAppearance.textColor }}>{hero.mediaCaption}</span>}
         </div>
       </div>

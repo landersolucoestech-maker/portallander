@@ -8,6 +8,7 @@ export type HeroBackgroundConfig={
 
 export const HERO_BACKGROUND_STORAGE_KEY='portal-lander:home:hero:background:v1'
 export const HERO_BACKGROUND_EVENT='portal-lander:hero-background-updated'
+export const HERO_BACKGROUND_PREVIEW_EVENT='portal-lander:hero-background-preview'
 
 export const defaultHeroBackground:HeroBackgroundConfig={
   url:'',
@@ -43,6 +44,11 @@ export function writeHeroBackground(config:HeroBackgroundConfig){
   if(typeof window==='undefined')return
   window.localStorage.setItem(HERO_BACKGROUND_STORAGE_KEY,JSON.stringify(normalizeHeroBackground(config)))
   window.dispatchEvent(new CustomEvent(HERO_BACKGROUND_EVENT))
+}
+
+export function previewHeroBackground(config:HeroBackgroundConfig){
+  if(typeof window==='undefined')return
+  window.dispatchEvent(new CustomEvent<HeroBackgroundConfig>(HERO_BACKGROUND_PREVIEW_EVENT,{detail:normalizeHeroBackground(config)}))
 }
 
 export function resetHeroBackground(){

@@ -1,7 +1,7 @@
 import {AlertCircle,CalendarDays,ChevronLeft,ChevronRight,DollarSign,FileText,MoreHorizontal,Palmtree,Plus,Search,Trash2,Upload,UserCheck,UserX,Users,X} from 'lucide-react'
 import {useEffect,useMemo,useRef,useState,type ChangeEvent,type FormEvent,type ReactNode} from 'react'
 import {AdminShell} from '../../shared/internal/AdminUi'
-import {CRM_WORKSPACE_NAV} from '../../shared/internal/adminNavigation'
+import {UNIFIED_ADMIN_NAV} from '../../shared/internal/adminNavigation'
 import {dateLabel,money,type ContractType,type Employee,type EmployeeStatus,type LeaveEntry,type LeaveStatus,type PayrollEntry,type PayrollStatus,type RhSeed} from './domain'
 import {rhRepository} from './repository'
 import './rh.css'
@@ -30,7 +30,7 @@ export default function RHPage(){
  const docs=state.documents.filter(x=>x.employeeId===documentEmployee)
  const newAction=tab==='employees'?()=>setEmployeeEditor(null):tab==='payroll'?()=>setPayrollEditor(null):tab==='leaves'?()=>setLeaveEditor(null):undefined
  const newLabel=tab==='employees'?'Novo Funcionário':tab==='payroll'?'Novo Registro':tab==='leaves'?'Nova Férias/Ausência':''
- return <AdminShell area="rh" items={CRM_WORKSPACE_NAV} header={{title:'Recursos Humanos',description:'Gestão de funcionários, folha de pagamento, férias e documentos'}} headerActions={newAction?[{label:newLabel,icon:Plus,onClick:newAction}]:[]}>
+ return <AdminShell area="rh" items={UNIFIED_ADMIN_NAV} header={{title:'Recursos Humanos',description:'Gestão de funcionários, folha de pagamento, férias e documentos'}} headerActions={newAction?[{label:newLabel,icon:Plus,onClick:newAction}]:[]}>
   <section className="rh-page">
    <div className="rh-kpis"><Kpi icon={<Users/>} label="Total de Funcionários" value={counts.total} detail="cadastros da equipe"/><Kpi icon={<UserCheck/>} label="Ativos" value={counts.active} detail="em atividade"/><Kpi icon={<Palmtree/>} label="Em Férias" value={counts.vacation} detail="afastamento por férias"/><Kpi icon={<UserX/>} label="Afastados" value={counts.away} detail="afastamentos ativos"/></div>
    <div className="rh-tabs" role="tablist"><TabButton active={tab==='employees'} onClick={()=>setTab('employees')} icon={<Users/>}>Funcionários</TabButton><TabButton active={tab==='payroll'} onClick={()=>setTab('payroll')} icon={<DollarSign/>}>Folha de Pagamento</TabButton><TabButton active={tab==='leaves'} onClick={()=>setTab('leaves')} icon={<CalendarDays/>}>Férias e Ausências</TabButton><TabButton active={tab==='documents'} onClick={()=>setTab('documents')} icon={<FileText/>}>Documentos</TabButton></div>

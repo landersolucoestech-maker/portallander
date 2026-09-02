@@ -1,7 +1,7 @@
 import {useEffect,useRef,useState,type ReactNode} from 'react'
 import {AlertTriangle,Archive,BellRing,Building2,CalendarDays,Check,ChevronRight,Copy,DollarSign,FileText,Globe2,KeyRound,Mail,Pencil,Plug,Plus,RefreshCw,RotateCcw,Send,Shield,ShieldCheck,Smartphone,Trash2,Upload,Users,X} from 'lucide-react'
 import {AdminShell} from '../../shared/internal/AdminUi'
-import {CRM_WORKSPACE_NAV} from '../../shared/internal/adminNavigation'
+import {UNIFIED_ADMIN_NAV} from '../../shared/internal/adminNavigation'
 import {useModalA11y} from '../../shared/internal/useModalA11y'
 import {settingsRepository} from './repository'
 import {SiteIdentitySettings} from './SiteIdentitySettings'
@@ -21,7 +21,7 @@ export default function SettingsPage(){
  const [state,setState]=useState<SettingsSeed>(()=>settingsRepository.snapshot()),[tab,setTab]=useState<SettingsTab>('empresa')
  useEffect(()=>{const refresh=()=>setState(settingsRepository.snapshot());window.addEventListener(settingsRepository.eventName,refresh);return()=>window.removeEventListener(settingsRepository.eventName,refresh)},[])
  const save=(next:SettingsSeed)=>{setState(next);settingsRepository.save(next)}
- return <AdminShell area="settings" items={CRM_WORKSPACE_NAV} header={{title:'Configurações',description:'Gerencie as configurações do sistema e preferências'}}>
+ return <AdminShell area="settings" items={UNIFIED_ADMIN_NAV} header={{title:'Configurações',description:'Gerencie as configurações do sistema e preferências'}}>
   <div className="settings-page">
    <div className="settings-tabs" role="tablist" aria-label="Seções de configurações">{tabs.map(([id,label,Icon])=><button key={id} type="button" role="tab" aria-selected={tab===id} className={tab===id?'active':''} onClick={()=>setTab(id)}><Icon size={15}/>{label}</button>)}</div>
    {tab==='empresa'?<Company state={state} save={save}/>:tab==='identidade_site'?<SiteIdentitySettings/>:tab==='automacoes'?<Automations state={state} save={save}/>:tab==='seguranca'?<Security/>:tab==='integracoes'?<Integrations state={state}/>:<UsersTab state={state}/>} 

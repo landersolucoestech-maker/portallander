@@ -2,7 +2,7 @@ import {FileText,MoreHorizontal,Plus,Search,Tags,Trash2,TrendingDown,TrendingUp,
 import {useMemo,useRef,useState,type ChangeEvent,type FormEvent,type ReactNode} from 'react'
 import {useNavigate} from 'react-router-dom'
 import {AdminShell} from '../../shared/internal/AdminUi'
-import {CRM_WORKSPACE_NAV} from '../../shared/internal/adminNavigation'
+import {UNIFIED_ADMIN_NAV} from '../../shared/internal/adminNavigation'
 import {financePaymentMethodOptions,financePaymentTypeOptions,financeStatusOptions,money,transactionTypeOptions,uid,type FinancePaymentType,type FinanceStatus,type FinanceTransaction,type FinanceTransactionType} from './domain'
 import {financeRepository} from './repository'
 
@@ -27,7 +27,7 @@ export default function FinanceMainPage(){
  const filtersActive=[search,type!=='all',status!=='all',category!=='all',start,end].filter(Boolean).length
  const allVisible=items.length>0&&items.every(x=>selected.includes(x.id))
  const toggleAllVisible=(checked:boolean)=>setSelected(current=>checked?Array.from(new Set([...current,...items.map(x=>x.id)])):current.filter(id=>!items.some(x=>x.id===id)))
- return <AdminShell area="finance" items={CRM_WORKSPACE_NAV} header={{title:'Financeiro',description:'Controle financeiro e fluxo de caixa'}} headerActions={[{label:'Importar OFX',variant:'secondary',icon:Upload,className:'finance-header-action',onClick:()=>ofxRef.current?.click()},{label:'Regras',variant:'secondary',icon:FileText,className:'finance-header-action',onClick:()=>navigate('/app/finance/rules')},{label:'Categorias Financeiras',variant:'secondary',icon:Tags,className:'finance-header-action',onClick:()=>navigate('/app/finance/categories')},{label:'Nova Transação',icon:Plus,className:'finance-header-action',onClick:()=>setEditing(null)}]}>
+ return <AdminShell area="finance" items={UNIFIED_ADMIN_NAV} header={{title:'Financeiro',description:'Controle financeiro e fluxo de caixa'}} headerActions={[{label:'Importar OFX',variant:'secondary',icon:Upload,className:'finance-header-action',onClick:()=>ofxRef.current?.click()},{label:'Regras',variant:'secondary',icon:FileText,className:'finance-header-action',onClick:()=>navigate('/app/finance/rules')},{label:'Categorias Financeiras',variant:'secondary',icon:Tags,className:'finance-header-action',onClick:()=>navigate('/app/finance/categories')},{label:'Nova Transação',icon:Plus,className:'finance-header-action',onClick:()=>setEditing(null)}]}>
   <input ref={ofxRef} hidden type="file" accept=".ofx" onChange={e=>{if(e.target.files?.[0])alert(`Arquivo ${e.target.files[0].name} selecionado para conciliação.`);e.currentTarget.value=''}}/>
   <section className="finance-page">
    <div className="finance-kpis"><Kpi title="Receita Mensal" value={money(receipts)} detail="receitas pagas" icon={<TrendingUp/>}/><Kpi title="Despesas Mensais" value={money(-expenses)} detail="despesas pagas" icon={<TrendingDown/>}/><Kpi title="Lucro Líquido" value={money(profit)} detail={receipts?`margem ${Math.round(profit/receipts*100)}%`:'margem 0%'} icon={<DollarSign/>}/><Kpi title="Contas a Receber" value={money(receivable)} detail={`${transactions.filter(x=>x.type==='receita'&&x.status==='pendente').length} pendentes`} icon={<TrendingUp/>}/><Kpi title="Contas a Pagar" value={money(-payable)} detail={`${transactions.filter(x=>x.type==='despesa'&&x.status==='pendente').length} pendentes`} icon={<FileText/>}/></div>

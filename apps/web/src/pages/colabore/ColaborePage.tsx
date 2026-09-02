@@ -1,13 +1,16 @@
 import { AlertTriangle, CheckCircle2, Send, ShieldCheck, Upload } from 'lucide-react'
 import { useRef, useState } from 'react'
-import { PublicFooter, PublicHeader } from '../../shared/public/PublicChrome'
+import {submitSiteForm} from '../../features/site-manager/forms/client'
+import {getSiteFormBySlug} from '../../features/site-manager/forms/catalog'
 import {publicSiteReadModel} from '../../shared/data/publicSiteReadModel'
 import type {CollaborationSubmissionType} from '../../shared/data/contracts'
-import {submitSiteForm} from '../../features/site-manager/forms/client'
-import {getSystemFormBySlug} from '../../features/site-manager/forms/catalog'
+import { PublicFooter, PublicHeader } from '../../shared/public/PublicChrome'
 
 type SubmissionType=CollaborationSubmissionType|''
 type SubmitState={kind:'idle'|'sending'|'success'|'error';message:string}
+
+const formDefinition=getSiteFormBySlug('colabore')
+const field=(key:string)=>formDefinition?.fields.find(item=>item.key===key)
 
 export function ColaborePage(){
   const [type,setType]=useState<SubmissionType>('')
@@ -18,7 +21,6 @@ export function ColaborePage(){
   const submissionTypes=publicSiteReadModel.collaborationTypes()
   const guidelines=publicSiteReadModel.collaborationGuidelines()
   const selectedTypeLabel=submissionTypes.find(item=>item.value===type)?.label
-  const formDefinition=getSystemFormBySlug('colabore')
 
   const submit=async(event:React.FormEvent<HTMLFormElement>)=>{
     event.preventDefault()
@@ -26,7 +28,7 @@ export function ColaborePage(){
     const form=event.currentTarget
     const data=new FormData(form)
     const payload:Record<string,unknown>={}
-    for(const [key,value] of data.entries())if(!(value instanceof File))payload[key]=value
+    for(const [key,value] of data.entries())if(!(value instanceof File)&&key!=='consentimento')payload[key]=value
     payload.tipo=type
     const files=fileRef.current?.files?Array.from(fileRef.current.files):[]
     setSubmitState({kind:'sending',message:'Enviando material...'})
@@ -39,21 +41,23 @@ export function ColaborePage(){
     }
   }
 
+  const nameField=field('nome'),emailField=field('email'),whatsappField=field('whatsapp'),locationField=field('local'),titleField=field('titulo'),typeField=field('tipo'),messageField=field('mensagem'),sourceField=field('fonte'),fileField=field('arquivo')
+
   return <div className="public-page colabore-page">
     <PublicHeader/>
     <main>
       <section className="colabore-hero public-standard-page-hero"><div className="public-shell colabore-hero-grid"><div className="colabore-hero-copy"><span className="colabore-eyebrow">PARTICIPE DO PORTAL</span><h1>SUA HISTÓRIA<br/><em>PODE VIRAR NOTÍCIA.</em></h1><p>Tem uma pauta, vídeo, foto, denúncia, lançamento ou história relevante? Prepare seu material para análise editorial do Portal Lander.</p><div className="colabore-hero-points"><span><ShieldCheck size={17}/> Material sujeito à análise da equipe editorial</span><span><CheckCircle2 size={17}/> Envio não garante publicação</span></div></div></div></section>
       <section className="public-shell colabore-content">
-        <div className="colabore-guidelines"><div className="colabore-guidelines-copy"><span>ANTES DE ENVIAR</span><h2>O QUE PROCURAMOS</h2><p>Conteúdo relevante para funk, rap, trap, cultura urbana, entretenimento, bastidores, lançamentos e acontecimentos da cena.</p></div>{guidelines.map(item=><div className="colabore-guideline" key={item.id}><b>{String(item.order).padStart(2,'0')}</b><span>{item.title}</span></div>)}</div>
+        <div className="colabore-guidelines"><div className="colabore-guidelines-copy"><span>ANTES DE ENVIAR</span><h2>O QUE PROCURAMOS</h2><p>Conteúdo relevante para notícias, cultura, entretenimento, comportamento, negócios, tecnologia, eventos, lançamentos e acontecimentos de interesse público.</p></div>{guidelines.map(item=><div className="colabore-guideline" key={item.id}><b>{String(item.order).padStart(2,'0')}</b><span>{item.title}</span></div>)}</div>
         <div className="colabore-layout"><form className="colabore-form" onSubmit={submit}>
           {submitState.kind==='error'&&<div className="colabore-success" role="alert"><AlertTriangle size={18}/><div><b>Não foi possível enviar.</b><span>{submitState.message}</span></div></div>}
           {submitState.kind==='success'&&<div className="colabore-success" role="status"><CheckCircle2 size={18}/><div><b>Material recebido.</b><span>{submitState.message}</span></div></div>}
-          <div className="colabore-field-grid"><label>Seu nome<input required name="nome" placeholder="Nome completo"/></label><label>E-mail<input required type="email" name="email" placeholder="voce@email.com"/></label><label>WhatsApp <small>(opcional)</small><input name="whatsapp" placeholder="(00) 00000-0000"/></label><label>Cidade / Estado<input name="local" placeholder="Ex.: Rio de Janeiro, RJ"/></label></div>
-          <div className="colabore-field-grid colabore-title-type-grid"><label>Título<input required name="titulo" placeholder="Resuma o assunto em uma frase"/></label><label>Assunto / Tipo de conteúdo<div className={`colabore-type-select${typeOpen?' open':''}`}><button type="button" className={`colabore-type-trigger${type?' has-value':''}`} aria-haspopup="listbox" aria-expanded={typeOpen} onClick={()=>setTypeOpen(open=>!open)}><span>{selectedTypeLabel||'Selecione o tipo de conteúdo'}</span><i aria-hidden="true"/></button>{typeOpen&&<div className="colabore-type-menu" role="listbox" aria-label="Assunto / Tipo de conteúdo">{submissionTypes.map(item=><button key={item.value} type="button" role="option" aria-selected={type===item.value} className={type===item.value?'selected':''} onClick={()=>{setType(item.value);setTypeOpen(false)}}>{item.label}</button>)}</div>}<input type="hidden" name="tipo" value={type}/></div></label></div>
-          <label>Conte a história<textarea required name="mensagem" rows={7} placeholder="Explique o que aconteceu, quem está envolvido, quando, onde e por que isso é relevante."/></label>
-          <label>Fonte ou link de referência <small>(opcional)</small><input type="url" name="fonte" placeholder="https://"/></label>
-          <div className="colabore-upload" onClick={()=>fileRef.current?.click()} role="button" tabIndex={0} onKeyDown={event=>{if(event.key==='Enter'||event.key===' ')fileRef.current?.click()}}><Upload size={22}/><div><b>{fileName||'Anexar arquivo'}</b><span>Imagem, vídeo ou documento de apoio.</span></div><button type="button">SELECIONAR</button><input ref={fileRef} hidden type="file" name="arquivo" accept="image/*,video/*,.pdf,.doc,.docx" onChange={event=>setFileName(event.target.files?.[0]?.name||'')}/></div>
-          <label className="colabore-consent"><input required type="checkbox" name="consentimento" value="aceito"/><span>{formDefinition?.consents[0]?.text||'Confirmo que as informações preparadas são verdadeiras e que possuo autorização para compartilhar os materiais anexados quando necessário.'}</span></label>
+          <div className="colabore-field-grid"><label>{nameField?.label||'Seu nome'}<input required={nameField?.required} name="nome" placeholder={nameField?.placeholder||'Nome completo'}/></label><label>{emailField?.label||'E-mail'}<input required={emailField?.required} type="email" name="email" placeholder={emailField?.placeholder||'voce@email.com'}/></label><label>{whatsappField?.label||'WhatsApp'} {!whatsappField?.required&&<small>(opcional)</small>}<input required={whatsappField?.required} name="whatsapp" placeholder={whatsappField?.placeholder||'(00) 00000-0000'}/></label><label>{locationField?.label||'Cidade / Estado'} {!locationField?.required&&<small>(opcional)</small>}<input required={locationField?.required} name="local" placeholder={locationField?.placeholder||'Ex.: Rio de Janeiro, RJ'}/></label></div>
+          <div className="colabore-field-grid colabore-title-type-grid"><label>{titleField?.label||'Título'}<input required={titleField?.required} name="titulo" placeholder={titleField?.placeholder||'Resuma o assunto em uma frase'}/></label><label>{typeField?.label||'Assunto / Tipo de conteúdo'}<div className={`colabore-type-select${typeOpen?' open':''}`}><button type="button" className={`colabore-type-trigger${type?' has-value':''}`} aria-haspopup="listbox" aria-expanded={typeOpen} onClick={()=>setTypeOpen(open=>!open)}><span>{selectedTypeLabel||typeField?.placeholder||'Selecione o tipo de conteúdo'}</span><i aria-hidden="true"/></button>{typeOpen&&<div className="colabore-type-menu" role="listbox" aria-label={typeField?.label||'Assunto / Tipo de conteúdo'}>{submissionTypes.map(item=><button key={item.value} type="button" role="option" aria-selected={type===item.value} className={type===item.value?'selected':''} onClick={()=>{setType(item.value);setTypeOpen(false)}}>{item.label}</button>)}</div>}<input type="hidden" name="tipo" value={type}/></div></label></div>
+          <label>{messageField?.label||'Conte a história'}<textarea required={messageField?.required} name="mensagem" rows={7} placeholder={messageField?.placeholder||'Explique o que aconteceu, quem está envolvido, quando, onde e por que isso é relevante.'}/></label>
+          <label>{sourceField?.label||'Fonte ou link de referência'} {!sourceField?.required&&<small>(opcional)</small>}<input required={sourceField?.required} type="url" name="fonte" placeholder={sourceField?.placeholder||'https://'}/></label>
+          <div className="colabore-upload" onClick={()=>fileRef.current?.click()} role="button" tabIndex={0} onKeyDown={event=>{if(event.key==='Enter'||event.key===' ')fileRef.current?.click()}}><Upload size={22}/><div><b>{fileName||fileField?.label||'Anexar arquivo'}</b><span>{fileField?.helpText||'Imagem, vídeo ou documento de apoio.'}</span></div><button type="button">SELECIONAR</button><input ref={fileRef} hidden required={fileField?.required} type="file" name="arquivo" accept="image/*,video/*,.pdf,.doc,.docx" onChange={event=>setFileName(event.target.files?.[0]?.name||'')}/></div>
+          <label className="colabore-consent"><input required={formDefinition?.consents[0]?.required??true} type="checkbox" name="consentimento" value="aceito"/><span>{formDefinition?.consents[0]?.text||'Confirmo que as informações preparadas são verdadeiras e que possuo autorização para compartilhar os materiais anexados quando necessário.'}</span></label>
           <button className="colabore-submit" type="submit" disabled={submitState.kind==='sending'}><Send size={17}/> {submitState.kind==='sending'?'ENVIANDO...':'ENVIAR MATERIAL'}</button>
           <p className="colabore-note">Os materiais enviados são encaminhados ao fluxo editorial de Colaborações recebidas e não são convertidos automaticamente em Leads do CRM.</p>
         </form></div>

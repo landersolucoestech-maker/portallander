@@ -12,7 +12,11 @@ async function seedSidebarCreative(page:Page){
     current['home:publicidade-lateral']={
       ...(current['home:publicidade-lateral']||{}),
       active:true,
+      title:'ANUNCIE AQUI',
+      eyebrow:'PUBLICIDADE',
+      description:'Sua marca pode aparecer neste espaço.',
       imageUrl:image,
+      linkLabel:'SAIBA MAIS',
       linkUrl:'/anuncie',
       adLayoutVersion:2,
       adWidthDesktop:0,
@@ -31,13 +35,13 @@ async function seedSidebarCreative(page:Page){
   await page.locator('.official-publicidade-lateral').waitFor({state:'visible'})
 }
 
-async function changeSidebarCreative(page:Page,imageUrl:string){
-  await page.evaluate(({key,eventName,image})=>{
+async function patchSidebar(page:Page,patch:Record<string,unknown>){
+  await page.evaluate(({key,eventName,next})=>{
     const current=JSON.parse(localStorage.getItem(key)||'{}')
-    current['home:publicidade-lateral']={...(current['home:publicidade-lateral']||{}),imageUrl:image}
+    current['home:publicidade-lateral']={...(current['home:publicidade-lateral']||{}),...next}
     localStorage.setItem(key,JSON.stringify(current))
     window.dispatchEvent(new CustomEvent(eventName,{detail:{pageId:'home',sectionId:'publicidade-lateral'}}))
-  },{key:storageKey,eventName:sectionEvent,image:imageUrl})
+  },{key:storageKey,eventName:sectionEvent,next:patch})
 }
 
 test.describe('home advertising layout contract',()=>{
@@ -60,14 +64,14 @@ test.describe('home advertising layout contract',()=>{
     }
   })
 
-  test('sidebar creative recalculates on replace and disappears completely on remove',async({page})=>{
+  test('sidebar creative recalculates on replace, keeps text fallback on remove, and hides only when disabled',async({page})=>{
     await seedSidebarCreative(page)
     const ad=page.locator('.official-publicidade-lateral')
     const image=ad.locator('.pl-home-sidebar-ad-image')
     const portraitBox=await image.boundingBox()
     expect(portraitBox).not.toBeNull()
 
-    await changeSidebarCreative(page,landscapeCreative)
+    await patchSidebar(page,{imageUrl:landscapeCreative})
     await expect(image).toHaveAttribute('src',landscapeCreative)
     const landscapeBox=await image.boundingBox()
     expect(landscapeBox).not.toBeNull()
@@ -77,13 +81,17 @@ test.describe('home advertising layout contract',()=>{
       expect(landscapeBox.height).toBeLessThan(portraitBox.height)
     }
 
-    const trendingBefore=await page.locator('.official-em-alta').boundingBox()
-    await changeSidebarCreative(page,'')
+    await patchSidebar(page,{imageUrl:''})
+    await expect(ad).toBeVisible()
+    await expect(ad).toHaveClass(/is-empty/)
+    await expect(ad.locator('.pl-home-sidebar-ad-image')).toHaveCount(0)
+    await expect(ad.locator('.pl-home-sidebar-ad-fallback')).toBeVisible()
+    await expect(ad.getByText('ANUNCIE AQUI',{exact:true})).toBeVisible()
+    await expect(ad.getByText('Sua marca pode aparecer neste espaço.',{exact:true})).toBeVisible()
+    await expect(ad.locator('a[href*="/anuncie"]')).toHaveCount(1)
+
+    await patchSidebar(page,{active:false})
     await expect(ad).toHaveCount(0)
-    const trendingAfter=await page.locator('.official-em-alta').boundingBox()
-    expect(trendingBefore).not.toBeNull()
-    expect(trendingAfter).not.toBeNull()
-    if(trendingBefore&&trendingAfter)expect(trendingAfter.y).toBeLessThan(trendingBefore.y)
   })
 
   test('most read stays at five items and advertising starts immediately below it',async({page})=>{

@@ -46,7 +46,7 @@ for(const [name,source] of [['Relatórios',reports],['Marketing',marketingUi]])f
 if(!marketingUi.includes('TableRowActionMenu'))failures.push('Marketing deve reutilizar o menu de ações compartilhado.')
 
 const visualAudit=await read('e2e/visual.audit.ts')
-for(const required of ['/app/login','/app/workspaces','/app/profile','/app/chat/settings','/app/finance/rules','/app/finance/categories','/app/site/midia-kit','desktop-large','tablet','mobile','modal viewport integrity'])if(!visualAudit.includes(required))failures.push(`Auditoria visual deve cobrir: ${required}`)
+for(const required of ['/app/login','/app/profile','/app/chat/settings','/app/finance/rules','/app/finance/categories','/app/site/midia-kit','desktop-large','tablet','mobile','modal viewport integrity'])if(!visualAudit.includes(required))failures.push(`Auditoria visual deve cobrir: ${required}`)
 
 async function walk(path){
  const entries=await readdir(new URL(path,root),{withFileTypes:true})

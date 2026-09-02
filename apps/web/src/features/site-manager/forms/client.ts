@@ -1,5 +1,6 @@
 import type {FormSubmissionEnvelope} from './domain'
 import {getSiteFormBySlug} from './catalog'
+import type {SiteFormFile} from './SiteFormRenderer'
 
 export class FormSubmissionError extends Error{
   code:string
@@ -9,7 +10,7 @@ export class FormSubmissionError extends Error{
 
 const apiBase=()=>String(import.meta.env.VITE_PORTAL_API_BASE_URL??'').trim().replace(/\/$/,'')
 
-export async function submitSiteForm(slug:string,input:{payload:Record<string,unknown>;acceptedConsentIds:readonly string[];source?:FormSubmissionEnvelope['source'];files?:readonly File[];antiSpam?:{honeypot:string;startedAt:number}}):Promise<FormSubmissionEnvelope>{
+export async function submitSiteForm(slug:string,input:{payload:Record<string,unknown>;acceptedConsentIds:readonly string[];source?:FormSubmissionEnvelope['source'];files?:readonly SiteFormFile[];antiSpam?:{honeypot:string;startedAt:number}}):Promise<FormSubmissionEnvelope>{
   const form=getSiteFormBySlug(slug)
   if(!form||form.status!=='active')throw new FormSubmissionError('Este formulário não está disponível para envio.','FORM_INACTIVE')
   for(const field of form.fields){if(!field.required||field.type==='file')continue;const value=input.payload[field.key];if(value===undefined||value===null||String(value).trim()==='')throw new FormSubmissionError(`Preencha o campo obrigatório: ${field.label}.`,'FORM_VALIDATION')}
@@ -24,9 +25,10 @@ export async function submitSiteForm(slug:string,input:{payload:Record<string,un
   body.set('source',JSON.stringify(input.source??{}))
   body.set('acceptedConsentIds',JSON.stringify(input.acceptedConsentIds))
   body.set('antiSpam',JSON.stringify(input.antiSpam??{}))
-  for(const file of input.files??[])body.append('attachments',file,file.name)
+  for(const attachment of input.files??[])body.append(`file:${attachment.fieldKey}`,attachment.file,attachment.file.name)
 
-  const response=await fetch(`${base}/api/forms/${encodeURIComponent(slug)}/submissions`,{method:'POST',body,headers:{Accept:'application/json'}}).catch(()=>{throw new FormSubmissionError('O serviço de recebimento está indisponível no momento.','FORM_API_UNAVAILABLE')})
+  const requestId=crypto.randomUUID()
+  const response=await fetch(`${base}/api/forms/${encodeURIComponent(slug)}/submissions`,{method:'POST',body,headers:{Accept:'application/json','X-Request-Id':requestId}}).catch(()=>{throw new FormSubmissionError('O serviço de recebimento está indisponível no momento.','FORM_API_UNAVAILABLE')})
   const data=await response.json().catch(()=>null) as FormSubmissionEnvelope|{message?:string;code?:string}|null
   if(!response.ok)throw new FormSubmissionError((data&&'message' in data&&data.message)||'Não foi possível enviar o formulário.',(data&&'code' in data&&data.code)||'FORM_SUBMISSION_FAILED',response.status)
   return data as FormSubmissionEnvelope

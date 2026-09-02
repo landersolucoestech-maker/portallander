@@ -4,7 +4,7 @@ import {Link,useParams} from 'react-router-dom'
 import {AdminNotice,AdminShell} from '../../../shared/internal/AdminUi'
 import {SITE_MANAGER_NAV} from '../../../shared/internal/adminNavigation'
 import {siteFormRegistry} from '../forms/catalog'
-import type {FormConsentDefinition,FormDestination,FormFieldDefinition,FormFieldType,FormPurpose,FormStatus,SiteFormDefinition} from '../forms/domain'
+import type {CollaborationPriority,FormConsentDefinition,FormDestination,FormFieldDefinition,FormFieldType,FormPurpose,FormStatus,SiteFormDefinition} from '../forms/domain'
 import './site-forms.css'
 
 const purposeOptions:readonly [FormPurpose,string][]=[
@@ -40,12 +40,18 @@ export function SiteFormEditorPage(){
     ;[fields[index],fields[target]]=[fields[target],fields[index]]
     return {...current,fields:fields.map((field,order)=>({...field,order:order+1}))}
   })
-  const duplicateField=(field:FormFieldDefinition)=>setDraft(current=>current&&({...current,fields:[...current.fields,{...field,id:uid('field'),key:`${field.key}_copia`,label:`${field.label} (cópia)`,order:current.fields.length+1}]}))
+  const duplicateField=(field:FormFieldDefinition)=>setDraft(current=>current&&({...current,fields:[...current.fields,{...field,id:uid('field'),key:`${field.key}_copia`,label:`${field.label} (cópia)`,order:current.fields.length+1,options:field.options?[...field.options]:undefined}]}))
   const removeField=(id:string)=>setDraft(current=>current&&({...current,fields:current.fields.filter(field=>field.id!==id).map((field,order)=>({...field,order:order+1}))}))
-  const addField=()=>setDraft(current=>current&&({...current,fields:[...current.fields,{id:uid('field'),key:`campo_${current.fields.length+1}`,label:'Novo campo',type:'text',required:false,placeholder:'',order:current.fields.length+1}]}))
+  const addField=()=>setDraft(current=>current&&({...current,fields:[...current.fields,{id:uid('field'),key:`campo_${current.fields.length+1}`,label:'Novo campo',type:'text',required:false,placeholder:'',helpText:'',order:current.fields.length+1}]}))
   const updateConsent=(id:string,patch:Partial<FormConsentDefinition>)=>setDraft(current=>current&&({...current,consents:current.consents.map(consent=>consent.id===id?{...consent,...patch}:consent)}))
   const addConsent=()=>setDraft(current=>current&&({...current,consents:[...current.consents,{id:uid('consent'),kind:'privacy',label:'Novo consentimento',required:false,version:'1.0',text:''}]}))
   const removeConsent=(id:string)=>setDraft(current=>current&&({...current,consents:current.consents.filter(consent=>consent.id!==id)}))
+  const changeDestination=(destination:FormDestination)=>setDraft(current=>{
+    if(!current)return current
+    if(destination==='crm')return {...current,routing:{destination,crm:current.routing.crm??{origin:'formulario_portal',tags:['site','formulario']}}}
+    if(destination==='content_collaborations')return {...current,routing:{destination,collaboration:current.routing.collaboration??{defaultStatus:'received',defaultPriority:'normal'}}}
+    return {...current,routing:{destination}}
+  })
 
   return <AdminShell area="cms" items={SITE_MANAGER_NAV} header={{title:draft.name,description:`Definição e publicação do formulário do Site · versão ${draft.version}.`}}>
     <div className="site-form-editor">
@@ -56,15 +62,21 @@ export function SiteFormEditorPage(){
         <label><span>Nome</span><input value={draft.name} onChange={event=>setDraft({...draft,name:event.target.value})}/></label>
         <label><span>Slug</span><input value={draft.slug} onChange={event=>setDraft({...draft,slug:event.target.value})}/></label>
         <label><span>Finalidade</span><select value={draft.purpose} onChange={event=>setDraft({...draft,purpose:event.target.value as FormPurpose})}>{purposeOptions.map(([value,label])=><option key={value} value={value}>{label}</option>)}</select></label>
-        <label><span>Destino operacional</span><select value={draft.routing.destination} onChange={event=>setDraft({...draft,routing:{destination:event.target.value as FormDestination}})}>{destinationOptions.map(([value,label])=><option key={value} value={value}>{label}</option>)}</select></label>
+        <label><span>Destino operacional</span><select value={draft.routing.destination} onChange={event=>changeDestination(event.target.value as FormDestination)}>{destinationOptions.map(([value,label])=><option key={value} value={value}>{label}</option>)}</select></label>
         <label><span>Status</span><select value={draft.status} onChange={event=>setDraft({...draft,status:event.target.value as FormStatus})}>{statusOptions.map(([value,label])=><option key={value} value={value}>{label}</option>)}</select></label>
         <label><span>Versão atual</span><input value={`v${draft.version}`} disabled/></label>
         <label className="site-form-span-2"><span>Mensagem após envio</span><input value={draft.successMessage} onChange={event=>setDraft({...draft,successMessage:event.target.value})}/></label>
       </div></section>
 
+      <section className="site-form-card"><header><div><h2>Roteamento</h2><p>Defina para onde cada submissão deve ser encaminhada depois da validação.</p></div></header><div className="site-form-grid">
+        {draft.routing.destination==='crm'&&<><label><span>Origem do lead</span><input value={draft.routing.crm?.origin??'formulario_portal'} onChange={event=>setDraft({...draft,routing:{destination:'crm',crm:{...(draft.routing.crm??{origin:'formulario_portal'}),origin:event.target.value}}})}/></label><label><span>Responsável padrão</span><input value={draft.routing.crm?.responsible??''} onChange={event=>setDraft({...draft,routing:{destination:'crm',crm:{...(draft.routing.crm??{origin:'formulario_portal'}),responsible:event.target.value}}})} placeholder="Opcional"/></label><label className="site-form-span-2"><span>Tags automáticas</span><input value={(draft.routing.crm?.tags??[]).join(', ')} onChange={event=>setDraft({...draft,routing:{destination:'crm',crm:{...(draft.routing.crm??{origin:'formulario_portal'}),tags:event.target.value.split(',').map(value=>value.trim()).filter(Boolean)}}})} placeholder="site, formulario, campanha"/></label></>}
+        {draft.routing.destination==='content_collaborations'&&<label><span>Prioridade inicial</span><select value={draft.routing.collaboration?.defaultPriority??'normal'} onChange={event=>setDraft({...draft,routing:{destination:'content_collaborations',collaboration:{defaultStatus:'received',defaultPriority:event.target.value as CollaborationPriority}}})}><option value="low">Baixa</option><option value="normal">Normal</option><option value="high">Alta</option></select></label>}
+        {!['crm','content_collaborations'].includes(draft.routing.destination)&&<div className="site-form-routing-note">Este destino ainda não possui regras adicionais específicas. O formulário continuará registrando sua finalidade e destino no contrato de submissão.</div>}
+      </div></section>
+
       <section className="site-form-card"><header><div><h2>Campos</h2><p>Defina conteúdo, tipo, obrigatoriedade e ordem de exibição.</p></div><button type="button" className="button outline" onClick={addField}><Plus size={15}/>Adicionar campo</button></header><div className="site-form-fields">{draft.fields.map((field,index)=><article className="site-form-field" key={field.id}>
         <div className="site-form-field-order"><strong>{index+1}</strong><button type="button" aria-label="Mover campo para cima" disabled={index===0} onClick={()=>moveField(field.id,-1)}><ArrowUp size={14}/></button><button type="button" aria-label="Mover campo para baixo" disabled={index===draft.fields.length-1} onClick={()=>moveField(field.id,1)}><ArrowDown size={14}/></button></div>
-        <div className="site-form-field-grid"><label><span>Rótulo</span><input value={field.label} onChange={event=>updateField(field.id,{label:event.target.value})}/></label><label><span>Chave</span><input value={field.key} onChange={event=>updateField(field.id,{key:event.target.value})}/></label><label><span>Tipo</span><select value={field.type} onChange={event=>updateField(field.id,{type:event.target.value as FormFieldType})}>{fieldTypeOptions.map(([value,label])=><option key={value} value={value}>{label}</option>)}</select></label><label><span>Placeholder</span><input value={field.placeholder??''} onChange={event=>updateField(field.id,{placeholder:event.target.value})}/></label><label className="site-form-required"><input type="checkbox" checked={field.required} onChange={event=>updateField(field.id,{required:event.target.checked})}/><span>Campo obrigatório</span></label></div>
+        <div className="site-form-field-grid"><label><span>Rótulo</span><input value={field.label} onChange={event=>updateField(field.id,{label:event.target.value})}/></label><label><span>Chave</span><input value={field.key} onChange={event=>updateField(field.id,{key:event.target.value})}/></label><label><span>Tipo</span><select value={field.type} onChange={event=>updateField(field.id,{type:event.target.value as FormFieldType})}>{fieldTypeOptions.map(([value,label])=><option key={value} value={value}>{label}</option>)}</select></label><label><span>Placeholder</span><input value={field.placeholder??''} onChange={event=>updateField(field.id,{placeholder:event.target.value})}/></label><label className="site-form-span-2"><span>Texto de ajuda</span><input value={field.helpText??''} onChange={event=>updateField(field.id,{helpText:event.target.value})} placeholder="Orientação opcional exibida junto ao campo"/></label>{(field.type==='select'||field.type==='radio')&&<label className="site-form-span-2"><span>Opções</span><input value={(field.options??[]).join(', ')} onChange={event=>updateField(field.id,{options:event.target.value.split(',').map(value=>value.trim()).filter(Boolean)})} placeholder="Opção 1, Opção 2, Opção 3"/></label>}<label className="site-form-required"><input type="checkbox" checked={field.required} onChange={event=>updateField(field.id,{required:event.target.checked})}/><span>Campo obrigatório</span></label></div>
         <div className="site-form-field-actions"><button type="button" title="Duplicar campo" onClick={()=>duplicateField(field)}><Copy size={15}/></button><button type="button" title="Excluir campo" onClick={()=>removeField(field.id)}><Trash2 size={15}/></button></div>
       </article>)}</div></section>
 

@@ -1,13 +1,18 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type CSSProperties, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
+import {
+  advertisingResponsiveCssVariables,
+  type AdvertisingSectionConfiguration,
+} from '../../../features/site-manager/advertisingSectionLayout'
 import { defaultHomeAdConfig, readHomeAdConfig, type HomeAdConfig } from '../models/adModel'
 
-function SmartAdvertiseHereLink({ to, children }: { to: string; children: React.ReactNode }) {
-  if (/^https?:\/\//i.test(to)) return <a href={to} target="_blank" rel="noreferrer">{children}</a>
-  return <Link to={to || '/'}>{children}</Link>
+function SmartAdvertiseHereLink({ to, target, children, className }: { to: string; target:'same'|'new'; children: ReactNode; className?:string }) {
+  if (target==='same'&&!/^https?:\/\//i.test(to)) return <Link to={to || '/'} className={className}>{children}</Link>
+  const href=/^https?:\/\//i.test(to)?to:`${window.location.pathname}#${to||'/'}`
+  return <a href={href} target={target==='new'?'_blank':'_self'} rel={target==='new'?'noreferrer':undefined} className={className}>{children}</a>
 }
 
-export function AdvertiseHereSection({ config }: { config?: HomeAdConfig }) {
+export function AdvertiseHereSection({ config, layout }: { config?: HomeAdConfig; layout?: AdvertisingSectionConfiguration }) {
   const [runtime, setRuntime] = useState<HomeAdConfig>(() => readHomeAdConfig())
 
   useEffect(() => {
@@ -23,16 +28,20 @@ export function AdvertiseHereSection({ config }: { config?: HomeAdConfig }) {
   const style = {
     ['--home-ad-height' as string]: `${ad.height}px`,
     ['--home-ad-content-width' as string]: `${ad.contentWidth}px`,
-  }
+    ...(layout?advertisingResponsiveCssVariables(layout):{}),
+  } as CSSProperties
+  const linkEnabled=Boolean(layout?.adLinkEnabled&&layout.linkUrl)
+  const target=layout?.adLinkTarget||'same'
+  const media=ad.image?<img className="pl-ad-image" src={ad.image} alt={ad.imageAlt} style={layout?{objectFit:layout.adImageFit}:undefined}/>:null
 
-  return <section className={`pl-ad pl-ad-dynamic official-secao-anuncie-aqui align-${ad.align}`} style={style} aria-label="Seção Anuncie Aqui">
-    {ad.image && <img className="pl-ad-image" src={ad.image} alt={ad.imageAlt} />}
+  return <section className={`pl-ad pl-ad-dynamic official-secao-anuncie-aqui align-${ad.align}${layout?' pl-home-configurable-ad':''}`} style={style} aria-label="Seção Anuncie Aqui">
+    {linkEnabled?<SmartAdvertiseHereLink to={layout!.linkUrl} target={target} className="pl-ad-area-link" >{media}<span className="sr-only">Abrir publicidade</span></SmartAdvertiseHereLink>:media}
     <div className="pl-ad-shade" aria-hidden="true" />
     <div className="pl-ad-content">
       {ad.logo && <img className="pl-ad-logo" src={ad.logo} alt={ad.logoAlt||'Logo do anunciante'} style={{width:`${ad.logoWidth}px`}}/>}
       {ad.title && <b><em>{ad.title}</em></b>}
       {ad.subtitle && <span>{ad.subtitle}</span>}
-      {ad.buttonLabel && <SmartAdvertiseHereLink to={ad.buttonUrl}>{ad.buttonLabel}</SmartAdvertiseHereLink>}
+      {ad.buttonLabel&&(linkEnabled?<span className="pl-ad-button-static">{ad.buttonLabel}</span>:<SmartAdvertiseHereLink to={ad.buttonUrl} target="same">{ad.buttonLabel}</SmartAdvertiseHereLink>)}
     </div>
   </section>
 }

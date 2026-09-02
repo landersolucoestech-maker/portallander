@@ -1,10 +1,9 @@
-import { CalendarDays, DollarSign, Eye, FileClock, FileText, Newspaper, PencilLine } from 'lucide-react'
+import { CalendarDays, ClipboardList, Eye, FileClock, FileText, Newspaper, PencilLine } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { agendaRepository } from '../../agenda/repository'
-import { dashboardReadModel } from '../../dashboard/dashboardReadModel'
-import { money } from '../../finance/domain'
 import { SITE_MANAGER_NAV } from '../../../shared/internal/adminNavigation'
 import { AdminShell } from '../../../shared/internal/AdminUi'
+import { siteFormRegistry } from '../forms/catalog'
 import { siteManagerReadModel } from '../readModel'
 import '../../../styles/admin-site-manager-dashboard.css'
 
@@ -23,7 +22,7 @@ export function SiteManagerDashboardPage(){
   const totalPublications=contents.length
   const pendingPublications=contents.filter(content=>content.status==='draft').length
   const activePublications=contents.filter(content=>content.status==='published'&&content.active).length
-  const finance=dashboardReadModel.snapshot()
+  const activeForms=siteFormRegistry.filter(form=>form.status==='active').length
   const recentContents=[...contents].sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt)).slice(0,5)
   const recentActivity=[
     ...contents.map(content=>({id:`content-${content.id}`,title:content.title,detail:`Conteúdo · ${statusLabel[content.status]??content.status}`,updatedAt:content.updatedAt})),
@@ -31,14 +30,14 @@ export function SiteManagerDashboardPage(){
   ].sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt)).slice(0,5)
   const agenda=agendaRepository.list().filter(item=>item.status!=='cancelado'&&item.status!=='concluido').sort((a,b)=>a.startsAt.localeCompare(b.startsAt)).slice(0,5)
 
-  return <AdminShell area="cms" items={SITE_MANAGER_NAV} header={{title:'Dashboard',description:'Visão geral do seu site e atividades recentes.'}} headerAction={{label:'Ver Site',variant:'secondary',onClick:()=>window.open(`${window.location.origin}${window.location.pathname}#/`,'_blank','noopener,noreferrer')}}>
+  return <AdminShell area="cms" items={SITE_MANAGER_NAV} header={{title:'Dashboard',description:'Visão geral do site, conteúdo, páginas e captação.'}} headerAction={{label:'Ver Site',variant:'secondary',onClick:()=>window.open(`${window.location.origin}${window.location.pathname}#/`,'_blank','noopener,noreferrer')}}>
     <section className="site-manager-dashboard">
       <div className="site-dashboard-kpis" aria-label="Indicadores do site">
         <Kpi label="Total de Publicações" value={String(totalPublications)} detail="Conteúdos cadastrados" icon={<FileText size={17}/>}/>
         <Kpi label="Publicações Pendentes" value={String(pendingPublications)} detail="Conteúdos em rascunho" icon={<FileClock size={17}/>}/>
         <Kpi label="Publicações Ativas" value={String(activePublications)} detail="Publicadas e visíveis no site" icon={<Newspaper size={17}/>}/>
-        <Kpi label="Visitas nos Últimos 30 Dias" value="—" detail="Analytics de visitas ainda não conectado" icon={<Eye size={17}/>}/>
-        <Kpi label="Faturamento do Mês" value={money(finance.monthRevenue)} detail="Receitas pagas no período" icon={<DollarSign size={17}/>}/>
+        <Kpi label="Páginas" value={String(pages.length)} detail="Páginas editoriais registradas" icon={<Eye size={17}/>}/>
+        <Kpi label="Formulários Ativos" value={String(activeForms)} detail="Pontos de captura publicados" icon={<ClipboardList size={17}/>}/>
       </div>
 
       <div className="site-dashboard-primary-grid">
@@ -60,8 +59,8 @@ export function SiteManagerDashboardPage(){
         </section>
 
         <section className="site-dashboard-panel site-pages-ranking">
-          <header className="site-dashboard-panel-head"><div className="site-dashboard-panel-title"><Eye size={15}/><h2>Páginas mais acessadas</h2></div><Link className="site-dashboard-panel-link" to="/app/reports">VER RELATÓRIO</Link></header>
-          <div className="site-dashboard-empty"><strong>Analytics por página ainda não conectado</strong>Este card está pronto para receber o ranking real de acessos quando a fonte de analytics estiver disponível, sem inventar métricas.</div>
+          <header className="site-dashboard-panel-head"><div className="site-dashboard-panel-title"><Eye size={15}/><h2>Desempenho das páginas</h2></div><Link className="site-dashboard-panel-link" to="/app/site/paginas">GERENCIAR PÁGINAS</Link></header>
+          <div className="site-dashboard-empty"><strong>Analytics por página ainda não conectado</strong>Quando a fonte de analytics estiver disponível, este card exibirá dados reais de desempenho sem criar métricas fictícias.</div>
         </section>
       </div>
     </section>

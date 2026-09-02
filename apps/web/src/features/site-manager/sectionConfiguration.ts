@@ -58,7 +58,12 @@ const defaults:Record<string,Partial<SectionConfiguration>>={
   lancamentos:{title:'LANÇAMENTOS',linkLabel:'VER TODOS',linkUrl:'/lancamentos',itemLimit:4,columns:4},
   agenda:{title:'AGENDA',linkLabel:'VER DESTAQUES',linkUrl:'/destaques',itemLimit:4,columns:1},
   'editorial-hero':{eyebrow:'AGORA NO PORTAL',columns:1,background:'#020202',textColor:'#ffffff',accentColor:'#e50914'},
+  'editorial-summary':{title:'RESUMO DA LISTAGEM',description:'Exibe a quantidade de conteúdos encontrados antes do grid.',itemLimit:1,columns:1,background:'#ffffff',textColor:'#111111',accentColor:'#e50914'},
+  'editorial-ad':{title:'PUBLICIDADE EDITORIAL',eyebrow:'PUBLICIDADE',description:'Espaço publicitário integrado à listagem editorial.',itemLimit:1,columns:1,background:'#090909',textColor:'#ffffff',accentColor:'#e50914'},
   'editorial-template':{title:'Conteúdos / Grid Editorial',description:'Grid compartilhado pelas páginas editoriais.',itemLimit:12,columns:3},
+  'article-hero':{eyebrow:'CONTEÚDO EDITORIAL',title:'HERO DA MATÉRIA',description:'Cabeçalho da slug page com categoria, título, subtítulo, autor e data.',columns:1,background:'#ffffff',textColor:'#111111',accentColor:'#e50914'},
+  'article-content':{title:'CORPO DA MATÉRIA',description:'Imagem de capa e blocos editoriais da publicação.',itemLimit:1,columns:1,background:'#ffffff',textColor:'#111111',accentColor:'#e50914'},
+  'article-tags':{title:'TAGS DA MATÉRIA',description:'Tags exibidas ao final do conteúdo editorial.',itemLimit:8,columns:1,background:'#ffffff',textColor:'#111111',accentColor:'#e50914'},
   'sobre-hero':{eyebrow:'INSTITUCIONAL',title:'SOBRE O PORTAL',description:'Conheça o Portal Lander.',columns:1,background:'#020202',textColor:'#ffffff'},
   'sobre-conteudo':{title:'PORTAL LANDER',description:'Conteúdo institucional do Portal Lander.',columns:1},
   'contato-hero':{eyebrow:'CONTATO',title:'FALE CONOSCO',description:'Entre em contato com o Portal Lander.',columns:1,background:'#020202',textColor:'#ffffff'},
@@ -124,9 +129,16 @@ export const HOME_SECTION_DEFINITIONS:SectionDefinition[]=[
 ]
 
 export const EDITORIAL_PAGE_SECTION_DEFINITIONS:SectionDefinition[]=[
-  {id:'editorial-hero',name:'Hero Editorial',summary:'Hero individual desta página. Usa por padrão o mesmo artwork de fundo aprovado da Hero da Homepage; conteúdo, aparência, altura e espaçamento responsivo continuam configuráveis por página.',kind:'standard-hero',locked:true},
-  {id:'editorial-template',name:'Conteúdos / Grid Editorial',summary:'Estrutura compartilhada de Notícias para listagem, grid e comportamento editorial.',kind:'editorial',locked:true},
+  {id:'editorial-hero',name:'Hero Editorial',summary:'Hero individual da página de listagem. Usa o artwork aprovado da Homepage por padrão e permite configuração própria por página.',kind:'standard-hero',locked:true},
+  {id:'editorial-summary',name:'Resumo da Listagem',summary:'Contador e contexto exibidos antes da grade de conteúdos da página editorial.',kind:'body',locked:true},
+  {id:'editorial-ad',name:'Publicidade Editorial',summary:'Posição publicitária integrada à listagem editorial.',kind:'ad',locked:true},
+  {id:'editorial-template',name:'Conteúdos / Grid Editorial',summary:'Grade canônica herdada de Notícias por Cultura, Música, Lançamentos e futuras páginas editoriais.',kind:'editorial',locked:true},
+  {id:'article-hero',name:'Slug Page · Hero da Matéria',summary:'Cabeçalho das páginas individuais de conteúdo com breadcrumb, categoria, título, subtítulo, autor e data.',kind:'standard-hero',locked:true},
+  {id:'article-content',name:'Slug Page · Corpo da Matéria',summary:'Imagem de capa e corpo editorial compartilhados por todas as páginas individuais de conteúdo.',kind:'body',locked:true},
+  {id:'article-tags',name:'Slug Page · Tags',summary:'Bloco final de tags das páginas individuais de conteúdo.',kind:'body',locked:true},
 ]
+
+export const SHARED_EDITORIAL_SECTION_IDS=new Set(['editorial-summary','editorial-ad','editorial-template','article-hero','article-content','article-tags'])
 
 export const SPECIAL_PAGE_SECTION_DEFINITIONS:Record<string,SectionDefinition[]>={
   sobre:[
@@ -144,4 +156,4 @@ export const SPECIAL_PAGE_SECTION_DEFINITIONS:Record<string,SectionDefinition[]>
   ],
 }
 
-export const EDITORIAL_SECTION_DEFINITION=EDITORIAL_PAGE_SECTION_DEFINITIONS[1]
+export const EDITORIAL_SECTION_DEFINITION=EDITORIAL_PAGE_SECTION_DEFINITIONS[3]

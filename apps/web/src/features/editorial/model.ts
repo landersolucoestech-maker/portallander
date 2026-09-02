@@ -59,9 +59,12 @@ export type EditorialContent = {
   publishedAt?: string
 }
 
+export const SPECIAL_LAYOUT_PAGE_SLUGS = new Set(['sobre','colabore','contato'])
+
 export const RESERVED_PAGE_SLUGS = new Set([
   'app','admin','api','assets','auth','login','logout','home','noticia','noticias-feed',
-  'colabore','sobre','contato','politica','faq','anuncie','regras','parcerias','termos','equipe',
+  ...SPECIAL_LAYOUT_PAGE_SLUGS,
+  'politica','faq','anuncie','regras','parcerias','termos','equipe',
 ])
 
 export function normalizeSlug(input: string) {
@@ -90,8 +93,12 @@ export function isPublishedPage(page: EditorialPage) {
   return page.active && page.status === 'published' && page.visibility === 'public'
 }
 
+export function isSpecialLayoutPage(page:Pick<EditorialPage,'slug'>) {
+  return SPECIAL_LAYOUT_PAGE_SLUGS.has(page.slug)
+}
+
 export function isPublicEditorialPage(page: EditorialPage) {
-  return page.type === 'editorial' && isPublishedPage(page)
+  return page.type === 'editorial' && !isSpecialLayoutPage(page) && isPublishedPage(page)
 }
 
 // Alias legado preservado para consumidores editoriais existentes.

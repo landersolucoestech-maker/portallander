@@ -1,5 +1,5 @@
 import {CheckCircle2,Send,Upload} from 'lucide-react'
-import {useMemo,useState} from 'react'
+import {useMemo,useState,type FormEvent} from 'react'
 import type {FormFieldDefinition,SiteFormDefinition} from './domain'
 
 export type SiteFormOption={value:string;label:string}
@@ -7,6 +7,7 @@ export type SiteFormOptionSets=Record<string,readonly SiteFormOption[]>
 export type SiteFormSubmitPayload={payload:Record<string,unknown>;acceptedConsentIds:string[];files:File[]}
 
 type RendererState={kind:'idle'|'sending'|'success'|'error';message:string}
+type FieldBlock={kind:'compact';fields:FormFieldDefinition[]}|{kind:'expanded';field:FormFieldDefinition}
 
 type SiteFormRendererProps={
   form:SiteFormDefinition
@@ -19,10 +20,22 @@ type SiteFormRendererProps={
 
 const isCompactField=(field:FormFieldDefinition)=>!['hidden','textarea','file','checkbox','radio'].includes(field.type)
 
+function buildFieldBlocks(fields:readonly FormFieldDefinition[]):FieldBlock[]{
+  const blocks:FieldBlock[]=[]
+  for(const field of [...fields].sort((a,b)=>a.order-b.order)){
+    if(field.type==='hidden')continue
+    if(isCompactField(field)){
+      const last=blocks.at(-1)
+      if(last?.kind==='compact')last.fields.push(field)
+      else blocks.push({kind:'compact',fields:[field]})
+    }else blocks.push({kind:'expanded',field})
+  }
+  return blocks
+}
+
 export function SiteFormRenderer({form,mode,optionSets={},onSubmit,submitLabel='Enviar',note}:SiteFormRendererProps){
   const ordered=useMemo(()=>[...form.fields].sort((a,b)=>a.order-b.order),[form.fields])
-  const compact=ordered.filter(isCompactField)
-  const expanded=ordered.filter(field=>!isCompactField(field)&&field.type!=='hidden')
+  const blocks=useMemo(()=>buildFieldBlocks(form.fields),[form.fields])
   const [selectValues,setSelectValues]=useState<Record<string,string>>({})
   const [openSelect,setOpenSelect]=useState<string|null>(null)
   const [fileNames,setFileNames]=useState<Record<string,string>>({})
@@ -31,7 +44,7 @@ export function SiteFormRenderer({form,mode,optionSets={},onSubmit,submitLabel='
   const optionsFor=(field:FormFieldDefinition):readonly SiteFormOption[]=>optionSets[field.key]??(field.options??[]).map(value=>({value,label:value}))
   const selectedLabel=(field:FormFieldDefinition)=>optionsFor(field).find(option=>option.value===selectValues[field.key])?.label
 
-  const submit=async(event:React.FormEvent<HTMLFormElement>)=>{
+  const submit=async(event:FormEvent<HTMLFormElement>)=>{
     event.preventDefault()
     if(mode==='preview'||!onSubmit)return
     const formElement=event.currentTarget
@@ -46,7 +59,6 @@ export function SiteFormRenderer({form,mode,optionSets={},onSubmit,submitLabel='
         continue
       }
       if(field.type==='checkbox')payload[field.key]=data.has(field.key)
-      else if(field.type==='radio')payload[field.key]=String(data.get(field.key)??'')
       else payload[field.key]=String(data.get(field.key)??'')
     }
     for(const consent of form.consents)if(data.has(`consent:${consent.id}`))acceptedConsentIds.push(consent.id)
@@ -80,8 +92,7 @@ export function SiteFormRenderer({form,mode,optionSets={},onSubmit,submitLabel='
   return <form className={`colabore-form site-form-runtime site-form-runtime-${form.purpose}${mode==='preview'?' is-preview':''}`} onSubmit={submit}>
     {state.kind==='error'&&<div className="colabore-success" role="alert"><div><b>Não foi possível enviar.</b><span>{state.message}</span></div></div>}
     {state.kind==='success'&&<div className="colabore-success" role="status"><CheckCircle2 size={18}/><div><b>Formulário enviado.</b><span>{state.message}</span></div></div>}
-    {compact.length>0&&<div className="colabore-field-grid">{compact.map(renderCompact)}</div>}
-    {expanded.map(renderExpanded)}
+    {blocks.map((block,index)=>block.kind==='compact'?<div className="colabore-field-grid" key={`compact-${index}`}>{block.fields.map(renderCompact)}</div>:renderExpanded(block.field))}
     {form.consents.map(consent=><label className="colabore-consent" key={consent.id}><input required={consent.required} type="checkbox" name={`consent:${consent.id}`}/><span>{consent.text||consent.label}</span></label>)}
     <button className="colabore-submit" type="submit" disabled={state.kind==='sending'||mode==='preview'}><Send size={17}/> {mode==='preview'?submitLabel.toUpperCase():state.kind==='sending'?'ENVIANDO...':submitLabel.toUpperCase()}</button>
     {mode==='preview'&&<p className="site-form-preview-success">Após o envio: {form.successMessage||'Nenhuma mensagem configurada.'}</p>}

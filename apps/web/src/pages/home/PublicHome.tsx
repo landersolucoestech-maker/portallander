@@ -11,6 +11,7 @@ import {
   selectConfiguredItems,
   withHomeContentSectionConfiguration,
 } from '../../features/site-manager/homeContentSectionConfiguration'
+import {hydratePublicHomeSections} from '../../features/site-manager/homeSectionConfigRepository'
 import { readSectionConfiguration, SECTION_CONFIGURATION_EVENT, type SectionConfiguration } from '../../features/site-manager/sectionConfiguration'
 import { loadSidebarAdConfig, SIDEBAR_AD_STORAGE_KEY, SIDEBAR_AD_UPDATED_EVENT, type SidebarAdConfig } from '../../shared/persistence/sidebarAdStorage'
 import { PublicFooter, PublicHeader } from '../../shared/public/PublicChrome'
@@ -93,7 +94,7 @@ function LancamentosSection(){
   const config=withHomeContentSectionConfiguration(useHomeSectionConfiguration('lancamentos','Lançamentos'),'lancamentos')
   if(!config.active)return null
   const items=selectConfiguredItems(homeReadModel.releases,config,item=>item.title)
-  return <section className="pl-section official-lancamentos pl-home-responsive-section" aria-label="Lançamentos" style={{...homeContentResponsiveCssVariables(config),background:config.background,color:config.textColor,textAlign:config.textAlign}}><SectionHead title={config.title} link={config.linkUrl||'/lancamentos'} label={config.linkLabel}/><div className="pl-release-row">{items.map(release=><SmartLink className="pl-release" to={config.linkUrl||'/lancamentos'} key={release.title}><ImageThumb src={release.image} badge="▶"/><div className="pl-card-body"><h3>{release.title}</h3><div className="pl-meta"><span>{release.year}</span></div></div></SmartLink>)}</div></section>
+  return <section className="pl-section official-lancamentos pl-home-responsive-section" aria-label="Lançamentos" style={{...homeContentResponsiveCssVariables(config),background:config.background,color:config.textColor,textAlign:config.textAlign}}><SectionHead title={config.title} link={config.linkUrl||'/lancamentos'} label={config.linkLabel}/><div className="pl-release-row">{items.map(release=><SmartLink className="pl-release" to={config.linkUrl||'/lancamentos'} key={release.title}><ImageThumb src={release.image} badge="▶"/><div className="pl-card-body"><h3>{release.title}</h3><div className="pl-meta"><span>{release.year}</span></div></SmartLink>)}</div></section>
 }
 function AgendaSection(){
   const config=withHomeContentSectionConfiguration(useHomeSectionConfiguration('agenda','Agenda'),'agenda')
@@ -104,4 +105,8 @@ function AgendaSection(){
 }
 
 function HomeContent(){return <main className="pl-main public-shell official-home-sections" aria-label="Seções da Página Inicial"><div className="official-home-primary-grid"><div className="official-home-main-stack"><EmDestaqueSection/><UltimasNoticiasSection/></div><aside className="official-home-sidebar-stack" aria-label="Coluna lateral da Página Inicial"><MaisLidasSection/><PublicidadeLateralSection/><EmAltaSection/></aside></div><AnuncieAquiSection/><div className="official-home-bottom-grid"><LancamentosSection/><AgendaSection/></div></main>}
-export function PublicHome(){return <div className="public-page"><PublicHeader/><HeroSection/><HomeContent/><PublicFooter/></div>}
+export function PublicHome(){
+  const [hydrated,setHydrated]=useState(false)
+  useEffect(()=>{let active=true;void hydratePublicHomeSections().catch(error=>console.error('Falha ao sincronizar as configurações públicas da Home.',error)).finally(()=>{if(active)setHydrated(true)});return()=>{active=false}},[])
+  return <div className="public-page" data-home-config-hydrated={hydrated?'true':'false'}><PublicHeader/><HeroSection/><HomeContent/><PublicFooter/></div>
+}

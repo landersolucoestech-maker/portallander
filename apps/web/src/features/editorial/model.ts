@@ -86,9 +86,16 @@ export function validateContentSlug(slug: string, pageId: string, contents: Edit
   return { ok: true, slug: normalized }
 }
 
-export function isPublicPage(page: EditorialPage) {
-  return page.type === 'editorial' && page.active && page.status === 'published' && page.visibility === 'public'
+export function isPublishedPage(page: EditorialPage) {
+  return page.active && page.status === 'published' && page.visibility === 'public'
 }
+
+export function isPublicEditorialPage(page: EditorialPage) {
+  return page.type === 'editorial' && isPublishedPage(page)
+}
+
+// Alias legado preservado para consumidores editoriais existentes.
+export const isPublicPage=isPublicEditorialPage
 
 export function isPublicContent(content: EditorialContent) {
   return content.active && content.status === 'published'

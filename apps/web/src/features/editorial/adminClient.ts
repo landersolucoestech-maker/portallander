@@ -2,6 +2,7 @@ import {adminApiBase,AdminAuthError} from '../access/authClient'
 import type {EditorialContent,EditorialPage} from './model'
 
 type ApiErrorBody={message?:string;code?:string}
+export type AdminPageSection={id:string;name:string;slug:string}
 
 async function request<T>(path:string,init:RequestInit={}):Promise<T>{
   const base=adminApiBase()
@@ -38,6 +39,16 @@ export async function updateAdminEditorialPage(id:string,page:EditorialPage){
 
 export async function deleteAdminEditorialPage(id:string){
   await request<{deleted:true;id:string}>(`/api/editorial/pages/${encodeURIComponent(id)}`,{method:'DELETE'})
+}
+
+export async function listAdminPageSections(pageKey:string){
+  const result=await request<{sections:AdminPageSection[]}>(`/api/editorial/page-sections/${encodeURIComponent(pageKey)}`)
+  return result.sections
+}
+
+export async function saveAdminPageSections(pageKey:string,sections:AdminPageSection[]){
+  const result=await request<{sections:AdminPageSection[]}>(`/api/editorial/page-sections/${encodeURIComponent(pageKey)}`,{method:'PUT',body:JSON.stringify({sections})})
+  return result.sections
 }
 
 export async function listAdminEditorialContents(pageId?:string){

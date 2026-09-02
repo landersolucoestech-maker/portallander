@@ -2,7 +2,7 @@ import {useEffect,useMemo,useState,type ReactNode} from 'react'
 import {BriefcaseBusiness,CheckCircle2,Filter,Flame,MoreHorizontal,Plus,Search,Trash2,UserRound,UsersRound} from 'lucide-react'
 import {useLocation,useNavigate} from 'react-router-dom'
 import {AdminShell} from '../../shared/internal/AdminUi'
-import {CRM_WORKSPACE_NAV} from '../../shared/internal/adminNavigation'
+import {UNIFIED_ADMIN_NAV} from '../../shared/internal/adminNavigation'
 import {contactCategoryOptions,label,leadStatusOptions,leadTypeOptions,originOptions,priorityOptions,serviceOptions,temperatureOptions,type Contact,type ContactFilters,type Lead,type LeadFilters,type LeadStatus} from './domain'
 import {useBulkDeleteContacts,useBulkDeleteLeads,useBulkLeadStatus,useContacts,useCreateContact,useCreateLead,useDeleteContact,useDeleteLead,useLeads,useUpdateContact,useUpdateLead} from './hooks'
 import {LeadFormModal} from './LeadFormModal'
@@ -48,7 +48,7 @@ export default function CrmPage(){
  const contactMetrics={total:contacts.length,clients:contacts.filter(x=>x.category==='cliente').length,advertisers:contacts.filter(x=>x.category==='anunciante').length,partners:contacts.filter(x=>x.category==='parceiro').length,sources:contacts.filter(x=>x.category==='fonte_editorial').length}
  const isLoading=leadsQ.isLoading||contactsQ.isLoading
  const openCreate=()=>view==='leads'?setLeadForm(null):setContactForm(null)
- return <AdminShell area="crm" items={CRM_WORKSPACE_NAV} header={{title:'CRM',description:'Gerencie contatos, leads e relacionamentos comerciais do Portal Lander.'}} headerAction={{label:view==='leads'?'Novo Lead':'Novo Contato',onClick:openCreate}}>
+ return <AdminShell area="crm" items={UNIFIED_ADMIN_NAV} header={{title:'CRM',description:'Gerencie contatos, leads e relacionamentos comerciais do Portal Lander.'}} headerAction={{label:view==='leads'?'Novo Lead':'Novo Contato',onClick:openCreate}}>
   <section className="crm-page">
    {view==='leads'?<div className="crm-kpis"><Kpi label="Total de Leads" value={leadMetrics.total} icon={<UsersRound size={17}/>}/><Kpi label="Novos" value={leadMetrics.new} icon={<Plus size={17}/>}/><Kpi label="Propostas" value={leadMetrics.proposal} icon={<BriefcaseBusiness size={17}/>}/><Kpi label="Em Negociação" value={leadMetrics.negotiation} icon={<Flame size={17}/>}/><Kpi label="Fechados" value={leadMetrics.closed} icon={<CheckCircle2 size={17}/>}/></div>:<div className="crm-kpis"><Kpi label="Total de Contatos" value={contactMetrics.total} icon={<UsersRound size={17}/>}/><Kpi label="Clientes" value={contactMetrics.clients} icon={<UserRound size={17}/>}/><Kpi label="Anunciantes" value={contactMetrics.advertisers} icon={<BriefcaseBusiness size={17}/>}/><Kpi label="Parceiros" value={contactMetrics.partners} icon={<UsersRound size={17}/>}/><Kpi label="Fontes Editoriais" value={contactMetrics.sources} icon={<UserRound size={17}/>}/></div>}
    <div className="crm-tabs" role="tablist" aria-label="Áreas do CRM"><button type="button" role="tab" aria-selected={view==='contacts'} className={view==='contacts'?'active':''} onClick={()=>navigate(crmPathForTab('contacts'))}>Contatos</button><button type="button" role="tab" aria-selected={view==='leads'} className={view==='leads'?'active':''} onClick={()=>navigate(crmPathForTab('leads'))}>Leads</button></div>

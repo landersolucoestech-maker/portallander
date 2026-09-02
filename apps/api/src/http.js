@@ -51,6 +51,14 @@ export async function handleRequest(req,res){
       send(res,200,{status:'ok',service:'@portallander/api',database:'connected'},cors);return
     }
 
+    if(req.method==='GET'&&path==='/api/editorial/snapshot'){
+      const [pages,contents]=await Promise.all([
+        editorialService.listPages({publicOnly:true}),
+        editorialService.listContents({publicOnly:true}),
+      ])
+      send(res,200,{pages,contents},cors);return
+    }
+
     if(req.method==='GET'&&path==='/api/editorial/pages'){
       const pages=await editorialService.listPages({publicOnly:url.searchParams.get('public')==='1'})
       send(res,200,{pages},cors);return

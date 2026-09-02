@@ -24,11 +24,19 @@ requireTokens('SiteManagerRoutes.tsx',routes,[
 
 const pages=await read('src/features/site-manager/pages/SiteSectionsPage.tsx')
 requireTokens('SiteSectionsPage.tsx',pages,[
-  'isSpecialLayoutPage','isPublishedPage','EDITORIAL_PAGE_SECTION_DEFINITIONS','HOME_SECTION_DEFINITIONS','Hero Editorial configurável individualmente por página.','Criar página','Editar página','Excluir página','RESERVED_PAGE_SLUGS','to="/app/settings"','createAdminEditorialPage','updateAdminEditorialPage','deleteAdminEditorialPage','/app/site/paginas/${encodeURIComponent(selected.id)}/secoes/${encodeURIComponent(section.id)}','Configurar',"section.id==='editorial-hero'?`Hero de ${selected.title}`:'Herdada de Notícias'",
+  'isSpecialLayoutPage','isPublishedPage','EDITORIAL_PAGE_SECTION_DEFINITIONS','HOME_SECTION_DEFINITIONS',
+  'Criar página','Editar','Excluir','RESERVED_PAGE_SLUGS','to="/app/settings"',
+  'createAdminEditorialPage','updateAdminEditorialPage','deleteAdminEditorialPage',
+  '/app/site/paginas/${encodeURIComponent(selected.id)}/secoes/${encodeURIComponent(section.id)}','Configurar',
+  'Estrutura de ${selected.title}','Configurações globais do site','pageSections.length',
+  "title={isEditorialLayout?'Estrutura editorial compartilhada':'Estrutura própria da página'}",
+  "description={isEditorialLayout?'Esta página herda a composição editorial de Notícias. A Hero continua configurável individualmente.':'Organize e configure as seções próprias desta página.'}",
 ])
 if(pages.includes('section.target&&'))failures.push('Páginas não pode condicionar Configurar a target manual; toda seção deve ser configurável.')
 if(pages.includes('CUSTOM_LAYOUT_SLUGS'))failures.push('Páginas não pode duplicar a classificação de layouts especiais; use isSpecialLayoutPage do domínio editorial.')
 if(pages.includes('to="/app/site/configuracoes"'))failures.push('Páginas não pode reintroduzir identidade global dentro do módulo Site.')
+if(pages.includes('<span>ESTRUTURA</span>'))failures.push('Páginas não deve reintroduzir a coluna redundante Estrutura na lista de seções.')
+if(pages.includes('Padrão de configuração')||pages.includes('Regra de layout')||pages.includes('Modo de desenvolvimento liberado'))failures.push('Páginas não deve reintroduzir avisos permanentes que competem com a hierarquia principal.')
 
 const sectionModel=await read('src/features/site-manager/sectionConfiguration.ts')
 requireTokens('sectionConfiguration.ts',sectionModel,['HOME_SECTION_DEFINITIONS','EDITORIAL_PAGE_SECTION_DEFINITIONS','EDITORIAL_SECTION_DEFINITION','readSectionConfiguration','writeSectionConfiguration','resetSectionConfiguration',"id:'hero'","id:'em-destaque'","id:'mais-lidas'","id:'ultimas-noticias'","id:'publicidade-lateral'","id:'em-alta'","id:'anuncie-aqui'","id:'lancamentos'","id:'agenda'","id:'editorial-hero'","id:'editorial-template'","kind:'standard-hero'","kind:'editorial'"])
@@ -83,4 +91,4 @@ const editorialModel=await read('src/features/editorial/model.ts')
 requireTokens('editorial/model.ts',editorialModel,['SPECIAL_LAYOUT_PAGE_SLUGS','isPublishedPage','isSpecialLayoutPage','isPublicEditorialPage','export const isPublicPage=isPublicEditorialPage'])
 
 if(failures.length){console.error('Falha na arquitetura do módulo Site:');failures.forEach(item=>console.error(`- ${item}`));process.exit(1)}
-console.log('Site module architecture OK — Hero editorial por página + template compartilhado validados')
+console.log('Site module architecture OK — hierarquia de Páginas + herança editorial validadas')

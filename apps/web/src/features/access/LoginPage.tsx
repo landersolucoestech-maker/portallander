@@ -48,14 +48,14 @@ export function LoginPage(){
       <div className="access-brand-copy">
         <span className="access-kicker">PORTAL LANDER · OPERAÇÃO INTERNA</span>
         <h1>Conteúdo, relacionamento e operação em um único ambiente.</h1>
-        <p>A área interna reúne CRM, Site, Financeiro, Marketing e os demais módulos em um único workspace administrativo, com navegação compartilhada.</p>
+        <p>A área interna reúne CRM, Site, Financeiro, Marketing e os demais módulos em uma única Administração, com navegação e identidade compartilhadas.</p>
       </div>
-      <div className="access-brand-foot"><span>ADMINISTRAÇÃO</span><span>PORTAL LANDER</span><span>WORKSPACE ÚNICO</span></div>
+      <div className="access-brand-foot"><span>ADMINISTRAÇÃO UNIFICADA</span><span>PORTAL LANDER</span></div>
     </section>
 
     <section className="access-form-panel">
       <div className="access-form-wrap">
-        <div className="access-form-heading"><span>ACESSO ADMINISTRATIVO</span><h2>Entrar na área interna</h2><p>Use sua conta administrativa para acessar o workspace unificado do Portal Lander.</p></div>
+        <div className="access-form-heading"><span>ACESSO ADMINISTRATIVO</span><h2>Entrar na área interna</h2><p>Use sua conta administrativa para acessar a Administração unificada do Portal Lander.</p></div>
 
         {!configured&&<div className="access-warning" role="status"><ShieldAlert size={18} aria-hidden="true"/><div><strong>API administrativa não configurada</strong><p>Defina VITE_PORTAL_API_BASE_URL no frontend e execute a migração de autenticação na API. Em produção, o acesso interno permanece bloqueado enquanto essa configuração estiver ausente.</p></div></div>}
         {configured&&status==='unavailable'&&<div className="access-warning" role="alert"><ShieldAlert size={18} aria-hidden="true"/><div><strong>Autenticação indisponível</strong><p>{sessionError||'A API administrativa não pôde validar a sessão. Verifique a configuração e tente novamente.'}</p></div></div>}

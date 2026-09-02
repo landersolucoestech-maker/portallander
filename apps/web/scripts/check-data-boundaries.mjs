@@ -70,7 +70,9 @@ for(const rel of ['features/crm/repository.ts','features/contracts/repository.ts
 }
 
 const main=await readFile(join(root,'main.tsx'),'utf8')
-if(!main.includes('setRuntimeDataProvider(mockDataProvider)'))failures.push('main.tsx deve registrar explicitamente o provider de runtime atual.')
+if(!main.includes('setRuntimeDataProvider('))failures.push('main.tsx deve registrar explicitamente o provider de runtime atual.')
+if(!main.includes('withDevelopmentCmsOverrides(editorialBaseProvider)'))failures.push('main.tsx deve aplicar o overlay de desenvolvimento do CMS sobre o provider editorial atual.')
+if(!main.includes('editorialBaseProvider:ApplicationDataProvider=mockDataProvider'))failures.push('main.tsx deve preservar o MockDataProvider como fallback canônico do runtime.')
 
 const provider=await readFile(join(root,'shared/data/mockDataProvider.ts'),'utf8')
 if(!provider.includes("from '../../mocks'"))failures.push('Somente o MockDataProvider deve agregar a raiz global de mocks no runtime.')

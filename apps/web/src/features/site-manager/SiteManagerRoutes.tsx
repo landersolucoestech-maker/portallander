@@ -3,6 +3,7 @@ import { HeroSectionAppearancePage } from './pages/HeroSectionAppearancePage'
 import { MediaKitPage } from './pages/MediaKitPage'
 import { SiteCollaborationsPage } from './pages/SiteCollaborationsPage'
 import { SiteContentsPage } from './pages/SiteContentsPage'
+import { SiteFormEditorPage } from './pages/SiteFormEditorPage'
 import { SiteFormsPage } from './pages/SiteFormsPage'
 import { SiteManagerDashboardPage } from './pages/SiteManagerDashboardPage'
 import { SiteMediaPage } from './pages/SiteMediaPage'
@@ -29,6 +30,7 @@ export default function SiteManagerRoutes(){
     <Route path="conteudos" element={<SiteContentsPage/>}/>
     <Route path="conteudos/colaboracoes" element={<SiteCollaborationsPage/>}/>
     <Route path="formularios" element={<SiteFormsPage/>}/>
+    <Route path="formularios/:formId" element={<SiteFormEditorPage/>}/>
     <Route path="midia" element={<SiteMediaPage/>}/>
     <Route path="midia-kit" element={<MediaKitPage/>}/>
     <Route path="*" element={<Navigate to="/app/site" replace/>}/>

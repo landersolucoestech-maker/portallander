@@ -2,7 +2,7 @@ import { editorialReadModel } from '../editorial/repository'
 import {getRuntimeDataProvider} from '../../shared/data/runtimeDataProvider'
 
 export type SiteCategorySummary = { name:string; contentCount:number }
-export type SiteMediaItem = { id:string; type:string; name:string; url:string; size:number; createdAt:string }
+export type SiteMediaItem = { id:string; type:string; name:string; url:string; size:number; createdAt:string; alt?:string; caption?:string }
 
 function buildCategories(): SiteCategorySummary[] {
   const tagMap=new Map<string,number>()

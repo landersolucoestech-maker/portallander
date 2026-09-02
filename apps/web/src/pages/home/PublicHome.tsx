@@ -57,7 +57,7 @@ function PublicidadeLateralSection(){
   const imageFit=configured.adImageFit==='cover'?'cover':'contain'
   const description=configured.description.trim()
   const media=imageUrl
-    ?<img className="pl-home-sidebar-ad-image" src={imageUrl} alt={legacy.imageAlt||configured.title||'Publicidade'}/>
+    ?<img className="pl-home-sidebar-ad-image" src={imageUrl} alt={configured.adImageAlt||legacy.imageAlt||configured.title||'Publicidade'}/>
     :<div className="pl-home-sidebar-ad-fallback" role="presentation"><div className="pl-home-sidebar-ad-copy-static">{configured.eyebrow&&<span className="pl-home-sidebar-ad-kicker">{configured.eyebrow}</span>}{configured.title&&<h3>{configured.title}</h3>}{description&&<p>{description}</p>}{configured.linkLabel&&<span className="pl-home-sidebar-ad-link-label">{configured.linkLabel} →</span>}</div></div>
   return <section className={`pl-home-sidebar-ad official-publicidade-lateral pl-home-configurable-ad ${imageUrl?'has-creative':'is-empty'} ad-fit-${imageFit}`} aria-label="Publicidade Lateral" style={{...advertisingResponsiveCssVariables(configured),textAlign:configured.textAlign,background:imageUrl?'transparent':configured.background,color:configured.textColor,borderColor:imageUrl?'transparent':configured.accentColor,borderRadius:legacy.radius}}><div className="pl-home-sidebar-ad-inner"><AdvertisingAreaLink config={configured} className="pl-home-ad-area-link">{media}</AdvertisingAreaLink></div></section>
 }
@@ -83,7 +83,12 @@ function EmAltaSection(){
   const items=selectConfiguredItems(homeReadModel.mostRead,config,title=>title)
   return <section className="pl-trending official-em-alta pl-home-responsive-section" aria-label="Em Alta" style={{...homeContentResponsiveCssVariables(config),background:config.background,color:config.textColor,textAlign:config.textAlign}}><div className="pl-section-head pl-trending-head"><h2>{config.title}</h2>{config.linkLabel&&<SmartLink to={config.linkUrl||'/noticias'}>{config.linkLabel}</SmartLink>}</div><div className="pl-trending-list pl-home-configurable-grid">{items.map((title,index)=><SmartLink className="pl-trending-item" to={config.linkUrl||'/noticias'} key={title}><span className="pl-trending-rank" style={{color:config.accentColor}}>{String(index+1).padStart(2,'0')}</span><div><strong>{title}</strong><small>Ranking atual</small></div></SmartLink>)}</div></section>
 }
-function AnuncieAquiSection(){const config=useHomeSectionConfiguration('anuncie-aqui','Anuncie Aqui');const layout=withAdvertisingSectionLayout(config,'anuncie-aqui');if(!layout.active)return null;return <AdvertiseHereSection layout={layout} config={{...defaultHomeAdConfig,active:true,title:layout.title||defaultHomeAdConfig.title,subtitle:layout.description||layout.eyebrow||defaultHomeAdConfig.subtitle,buttonLabel:layout.linkLabel||defaultHomeAdConfig.buttonLabel,buttonUrl:layout.linkUrl||defaultHomeAdConfig.buttonUrl,image:layout.imageUrl||defaultHomeAdConfig.image,align:layout.textAlign==='center'?'center':layout.textAlign==='right'?'right':'left'}}/>}
+function AnuncieAquiSection(){
+  const config=useHomeSectionConfiguration('anuncie-aqui','Anuncie Aqui')
+  const layout=withAdvertisingSectionLayout(config,'anuncie-aqui')
+  if(!layout.active)return null
+  return <AdvertiseHereSection layout={layout} config={{...defaultHomeAdConfig,active:true,title:layout.title,subtitle:layout.description||layout.eyebrow,buttonLabel:layout.linkLabel,buttonUrl:layout.linkUrl,image:layout.imageUrl,imageAlt:layout.adImageAlt,align:layout.textAlign==='center'?'center':layout.textAlign==='right'?'right':'left'}}/>
+}
 function LancamentosSection(){
   const config=withHomeContentSectionConfiguration(useHomeSectionConfiguration('lancamentos','Lançamentos'),'lancamentos')
   if(!config.active)return null

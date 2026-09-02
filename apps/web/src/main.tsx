@@ -4,9 +4,13 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { HashRouter } from 'react-router-dom'
 import App from './app/PortalApp'
 import {loadPublicEditorialSnapshot} from './features/editorial/apiClient'
+import {withDevelopmentCmsOverrides} from './features/site-manager/developmentCmsOverlay'
+import {contentDraftRepository} from './features/site-manager/contentDraftRepository'
+import {sitePageRepository} from './features/site-manager/pageRepository'
 import {bootstrapPublishedSiteForms} from './features/site-manager/forms/runtimeClient'
 import {mockDataProvider} from './shared/data/mockDataProvider'
 import {withEditorialSnapshot} from './shared/data/editorialOverlayDataProvider'
+import type {ApplicationDataProvider} from './shared/data/dataProvider'
 import {prepareMockSeedStorage} from './shared/data/mockSeedLifecycle'
 import {setRuntimeDataProvider} from './shared/data/runtimeDataProvider'
 import {scenarioController} from './shared/data/scenarioController'
@@ -16,7 +20,9 @@ import {installAutoTablePagination} from './shared/internal/autoTablePagination'
 import './styles/public-styles.css'
 import './styles/admin-hero-editor-layout.css'
 
-setRuntimeDataProvider(mockDataProvider)
+let editorialBaseProvider:ApplicationDataProvider=mockDataProvider
+const applyDevelopmentCmsPreview=()=>setRuntimeDataProvider(withDevelopmentCmsOverrides(editorialBaseProvider))
+applyDevelopmentCmsPreview()
 scenarioController.bootstrapFromLocation()
 prepareMockSeedStorage()
 purgeRemovedModuleStorage()
@@ -36,7 +42,7 @@ async function waitForPublicFonts() {
 async function bootstrapEditorialData(){
   try{
     const snapshot=await loadPublicEditorialSnapshot()
-    if(snapshot)setRuntimeDataProvider(withEditorialSnapshot(mockDataProvider,snapshot))
+    if(snapshot){editorialBaseProvider=withEditorialSnapshot(mockDataProvider,snapshot);applyDevelopmentCmsPreview()}
   }catch(error){
     console.warn('[Portal Lander] API editorial indisponível; mantendo provider atual.',error)
   }
@@ -56,6 +62,9 @@ function mountApp() {
     installAutoTablePagination()
   })
 }
+
+window.addEventListener(sitePageRepository.eventName,applyDevelopmentCmsPreview)
+window.addEventListener(contentDraftRepository.eventName,applyDevelopmentCmsPreview)
 
 void Promise.all([
   waitForPublicFonts().catch(()=>undefined),

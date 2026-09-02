@@ -1,10 +1,10 @@
 import {CheckCircle2,Send,Upload} from 'lucide-react'
-import {useMemo,useState,type FormEvent} from 'react'
+import {useMemo,useRef,useState,type FormEvent} from 'react'
 import type {FormFieldDefinition,SiteFormDefinition} from './domain'
 
 export type SiteFormOption={value:string;label:string}
 export type SiteFormOptionSets=Record<string,readonly SiteFormOption[]>
-export type SiteFormSubmitPayload={payload:Record<string,unknown>;acceptedConsentIds:string[];files:File[]}
+export type SiteFormSubmitPayload={payload:Record<string,unknown>;acceptedConsentIds:string[];files:File[];antiSpam:{honeypot:string;startedAt:number}}
 
 type RendererState={kind:'idle'|'sending'|'success'|'error';message:string}
 type FieldBlock={kind:'compact';fields:FormFieldDefinition[]}|{kind:'expanded';field:FormFieldDefinition}
@@ -36,6 +36,7 @@ function buildFieldBlocks(fields:readonly FormFieldDefinition[]):FieldBlock[]{
 export function SiteFormRenderer({form,mode,optionSets={},onSubmit,submitLabel='Enviar',note}:SiteFormRendererProps){
   const ordered=useMemo(()=>[...form.fields].sort((a,b)=>a.order-b.order),[form.fields])
   const blocks=useMemo(()=>buildFieldBlocks(form.fields),[form.fields])
+  const startedAt=useRef(Date.now())
   const [selectValues,setSelectValues]=useState<Record<string,string>>({})
   const [openSelect,setOpenSelect]=useState<string|null>(null)
   const [fileNames,setFileNames]=useState<Record<string,string>>({})
@@ -68,9 +69,9 @@ export function SiteFormRenderer({form,mode,optionSets={},onSubmit,submitLabel='
 
     setState({kind:'sending',message:'Enviando...'})
     try{
-      const message=await onSubmit({payload,acceptedConsentIds,files})
+      const message=await onSubmit({payload,acceptedConsentIds,files,antiSpam:{honeypot:String(data.get('_portal_hp')??''),startedAt:startedAt.current}})
       setState({kind:'success',message:message||form.successMessage})
-      formElement.reset();setSelectValues({});setFileNames({});setOpenSelect(null)
+      formElement.reset();setSelectValues({});setFileNames({});setOpenSelect(null);startedAt.current=Date.now()
     }catch(error){setState({kind:'error',message:error instanceof Error?error.message:'Não foi possível enviar o formulário.'})}
   }
 
@@ -90,6 +91,7 @@ export function SiteFormRenderer({form,mode,optionSets={},onSubmit,submitLabel='
   }
 
   return <form className={`colabore-form site-form-runtime site-form-runtime-${form.purpose}${mode==='preview'?' is-preview':''}`} onSubmit={submit}>
+    <div aria-hidden="true" style={{position:'absolute',left:'-10000px',width:1,height:1,overflow:'hidden'}}><label>Deixe este campo vazio<input name="_portal_hp" tabIndex={-1} autoComplete="off"/></label></div>
     {state.kind==='error'&&<div className="colabore-success" role="alert"><div><b>Não foi possível enviar.</b><span>{state.message}</span></div></div>}
     {state.kind==='success'&&<div className="colabore-success" role="status"><CheckCircle2 size={18}/><div><b>Formulário enviado.</b><span>{state.message}</span></div></div>}
     {blocks.map((block,index)=>block.kind==='compact'?<div className="colabore-field-grid" key={`compact-${index}`}>{block.fields.map(renderCompact)}</div>:renderExpanded(block.field))}

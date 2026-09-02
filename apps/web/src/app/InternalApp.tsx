@@ -1,6 +1,7 @@
 import {type ReactNode} from 'react'
 import {Navigate,Route,Routes,useLocation} from 'react-router-dom'
-import {AdminAuthProvider,useAdminAuth} from '../features/access/AdminAuthContext'
+import {AdminAuthProvider} from '../features/access/AdminAuthContext'
+import {useAdminAuth} from '../features/access/adminAuthState'
 import {LoginPage} from '../features/access/LoginPage'
 import {WorkspacePage} from '../features/access/WorkspacePage'
 import {ProfilePage} from '../features/access/AccountPages'

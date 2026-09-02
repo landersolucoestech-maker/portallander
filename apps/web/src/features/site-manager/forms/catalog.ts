@@ -33,8 +33,18 @@ export const siteFormRegistry:readonly SiteFormDefinition[]=[
   },
 ]
 
-export const getSiteFormBySlug=(slug:string)=>siteFormRegistry.find(form=>form.slug===slug)
-export const getSiteFormById=(id:string)=>siteFormRegistry.find(form=>form.id===id)
+let runtimeForms:readonly SiteFormDefinition[]=siteFormRegistry
+const clone=<T>(value:T):T=>structuredClone(value)
+
+export function setRuntimeSiteForms(forms:readonly SiteFormDefinition[]){
+  const bySlug=new Map(siteFormRegistry.map(form=>[form.slug,clone(form)]))
+  for(const form of forms)bySlug.set(form.slug,clone(form))
+  runtimeForms=[...bySlug.values()]
+}
+
+export const listRuntimeSiteForms=()=>runtimeForms.map(clone)
+export const getSiteFormBySlug=(slug:string)=>runtimeForms.find(form=>form.slug===slug)
+export const getSiteFormById=(id:string)=>runtimeForms.find(form=>form.id===id)
 
 // Aliases temporários para consumidores legados; não representam uma segunda fonte de dados.
 export const systemForms=siteFormRegistry

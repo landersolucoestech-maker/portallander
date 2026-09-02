@@ -1,18 +1,21 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react'
-import type { LucideIcon } from 'lucide-react'
-import { ArrowLeft, Bell, ChevronDown, FilePlus2, FileStack, LayoutTemplate, LogOut, PanelLeftClose, PanelLeftOpen, Settings, UserPlus, UserRound } from 'lucide-react'
-import { Link, NavLink, useLocation } from 'react-router-dom'
-import { portalLogo } from '../branding/assets/brandAsset'
-import { appReadModel } from '../data/appReadModel'
+import {useEffect,useRef,useState,type ReactNode} from 'react'
+import type {LucideIcon} from 'lucide-react'
+import {ArrowLeft,Bell,ChevronDown,FilePlus2,FileStack,LayoutTemplate,LogOut,PanelLeftClose,PanelLeftOpen,Settings,UserPlus,UserRound} from 'lucide-react'
+import {Link,NavLink,useLocation,useNavigate} from 'react-router-dom'
+import {useAdminAuth} from '../../features/access/adminAuthState'
+import {portalLogo} from '../branding/assets/brandAsset'
+import {appReadModel} from '../data/appReadModel'
 
-export type AdminArea = 'crm' | 'contracts' | 'finance' | 'agenda' | 'chat' | 'rh' | 'marketing' | 'reports' | 'settings' | 'cms'
-export type AdminNavLink = readonly [label: string, icon: LucideIcon, to: string]
-export type AdminNavGroup = {label:string;icon:LucideIcon;to?:string;children:readonly AdminNavLink[]}
-export type AdminNavItem = AdminNavLink | AdminNavGroup
+export type AdminArea='crm'|'contracts'|'finance'|'agenda'|'chat'|'rh'|'marketing'|'reports'|'settings'|'cms'
+export type AdminNavLink=readonly [label:string,icon:LucideIcon,to:string]
+export type AdminNavGroup={label:string;icon:LucideIcon;to?:string;children:readonly AdminNavLink[]}
+export type AdminNavItem=AdminNavLink|AdminNavGroup
 export type PageHeaderConfig={title:string;description:string;backTo?:string;backLabel?:string}
 export type AdminShellAction={label:string;onClick?:()=>void;disabled?:boolean;disabledReason?:string;variant?:'primary'|'secondary';className?:string;icon?:LucideIcon}
 
 const isNavGroup=(item:AdminNavItem):item is AdminNavGroup=>!Array.isArray(item)
+const initials=(name:string)=>name.split(/\s+/).filter(Boolean).slice(0,2).map(part=>part[0]?.toUpperCase()??'').join('')||'PL'
+const adminRoleLabel=(role:'owner'|'admin'|'editor')=>role==='owner'?'Proprietário':role==='admin'?'Administrador':'Editor'
 
 function HeaderActionButton({action}:{action:AdminShellAction}){
   const secondary=action.variant==='secondary'
@@ -22,12 +25,20 @@ function HeaderActionButton({action}:{action:AdminShellAction}){
 }
 
 function PageHeader({context,header,actions}:{context:string;header?:PageHeaderConfig;actions:readonly AdminShellAction[]}){
+  const navigate=useNavigate()
+  const auth=useAdminAuth()
   const [notificationsOpen,setNotificationsOpen]=useState(false)
   const [accountOpen,setAccountOpen]=useState(false)
+  const [loggingOut,setLoggingOut]=useState(false)
   const notificationsRef=useRef<HTMLDivElement>(null)
   const accountRef=useRef<HTMLDivElement>(null)
-  const user=appReadModel.currentUser()
-  const notifications=appReadModel.notificationsForCurrentUser()
+  const fallbackUser=appReadModel.currentUser()
+  const user=auth.status==='authenticated'&&auth.user?{
+    initials:initials(auth.user.displayName),
+    name:auth.user.displayName,
+    roleLabel:adminRoleLabel(auth.user.role),
+  }:fallbackUser
+  const notifications=auth.status==='authenticated'?[]:appReadModel.notificationsForCurrentUser()
 
   useEffect(()=>{
     if(!notificationsOpen&&!accountOpen)return
@@ -49,17 +60,23 @@ function PageHeader({context,header,actions}:{context:string;header?:PageHeaderC
     }
   },[notificationsOpen,accountOpen])
 
+  const signOut=async()=>{
+    if(loggingOut)return
+    setLoggingOut(true)
+    try{await auth.logout()}finally{setAccountOpen(false);setLoggingOut(false);navigate('/app/login',{replace:true})}
+  }
+
   return <header className={`workspace-top${header?' workspace-top-page':''}`}>
     {header?<div className="workspace-page-heading-row">{header.backTo&&<Link className="workspace-header-back" to={header.backTo}><ArrowLeft size={15}/><span>{header.backLabel||'Voltar'}</span></Link>}<div className="workspace-page-heading"><h1>{header.title}</h1><p>{header.description}</p></div></div>:<div className="workspace-identity"><span className="workspace-context">{context}</span></div>}
     <div className="workspace-actions">
       {actions.map(action=><HeaderActionButton key={action.label} action={action}/>)}
       <div className="workspace-popover-wrap" ref={notificationsRef}>
         <button className="icon-button notification-button" type="button" aria-label="Abrir notificações" aria-expanded={notificationsOpen} onClick={()=>{setNotificationsOpen(value=>!value);setAccountOpen(false)}}><Bell size={17}/></button>
-        {notificationsOpen&&<div className="workspace-popover notifications-popover" role="status"><strong>Notificações</strong>{notifications.length===0?<p>Nenhuma notificação no momento.</p>:notifications.slice(0,4).map(item=><p key={item.id}>{item.title}</p>)}</div>}
+        {notificationsOpen&&<div className="workspace-popover notifications-popover" role="status"><strong>Notificações</strong>{notifications.length===0?<p>{auth.status==='authenticated'?'Nenhuma fonte persistente de notificações está conectada.':'Nenhuma notificação no momento.'}</p>:notifications.slice(0,4).map(item=><p key={item.id}>{item.title}</p>)}</div>}
       </div>
       <div className="workspace-popover-wrap" ref={accountRef}>
         <button className="account-button" type="button" aria-label="Abrir menu da conta" aria-haspopup="menu" aria-expanded={accountOpen} onClick={()=>{setAccountOpen(value=>!value);setNotificationsOpen(false)}}><span>{user.initials}</span><div><b>{user.name}</b><small>{user.roleLabel}</small></div><ChevronDown size={14}/></button>
-        {accountOpen&&<div className="workspace-popover account-popover" role="menu" aria-label="Menu da conta"><Link to="/app/profile" role="menuitem" onClick={()=>setAccountOpen(false)}><UserRound size={15}/><span>Perfil</span></Link><Link to="/app/settings" role="menuitem" onClick={()=>setAccountOpen(false)}><Settings size={15}/><span>Configurações</span></Link><Link className="account-popover-logout" to="/app/login?logout=1" role="menuitem" onClick={()=>setAccountOpen(false)}><LogOut size={15}/><span>Sair / Logout</span></Link></div>}
+        {accountOpen&&<div className="workspace-popover account-popover" role="menu" aria-label="Menu da conta"><Link to="/app/profile" role="menuitem" onClick={()=>setAccountOpen(false)}><UserRound size={15}/><span>Perfil</span></Link><Link to="/app/settings" role="menuitem" onClick={()=>setAccountOpen(false)}><Settings size={15}/><span>Configurações</span></Link><button className="account-popover-logout" type="button" role="menuitem" disabled={loggingOut} onClick={()=>void signOut()}><LogOut size={15}/><span>{loggingOut?'Saindo…':'Sair / Logout'}</span></button></div>}
       </div>
     </div>
   </header>

@@ -27,6 +27,12 @@ export function readCachedHeroCmsState():HeroCmsState{
   return {carousel:readHeroConfig(),appearance:readHeroAppearance(),background:readHeroBackground()}
 }
 
+export function restoreCachedHeroCmsState(state:HeroCmsState){
+  writeHeroConfig(state.carousel)
+  writeHeroAppearance(state.appearance)
+  writeHeroBackground(state.background)
+}
+
 function cacheEnvelope(value:Record<string,unknown>|null|undefined):HeroCmsState{
   if(!value)return readCachedHeroCmsState()
   const envelope=value as PersistedHeroEnvelope
@@ -60,9 +66,7 @@ export async function saveHeroCmsState(state:HeroCmsState):Promise<HeroCmsState>
     const persisted=await saveAdminSectionConfiguration('home','hero',envelope)
     return cacheEnvelope(persisted)
   }
-  writeHeroConfig(state.carousel)
-  writeHeroAppearance(state.appearance)
-  writeHeroBackground(state.background)
+  restoreCachedHeroCmsState(state)
   return readCachedHeroCmsState()
 }
 

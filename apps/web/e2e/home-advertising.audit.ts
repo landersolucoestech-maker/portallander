@@ -12,8 +12,8 @@ async function seedSidebarCreative(page:Page){
     current['home:publicidade-lateral']={
       ...(current['home:publicidade-lateral']||{}),
       active:true,
-      title:'ANUNCIE AQUI',
-      eyebrow:'PUBLICIDADE',
+      title:'PUBLICIDADE',
+      eyebrow:'ANUNCIE AQUI',
       description:'Sua marca pode aparecer neste espaço.',
       imageUrl:image,
       linkLabel:'SAIBA MAIS',
@@ -64,7 +64,7 @@ test.describe('home advertising layout contract',()=>{
     }
   })
 
-  test('sidebar creative recalculates on replace, keeps text fallback on remove, and hides only when disabled',async({page})=>{
+  test('sidebar recalculates on replace, keeps configurable sized fallback on remove, and hides only when disabled',async({page})=>{
     await seedSidebarCreative(page)
     const ad=page.locator('.official-publicidade-lateral')
     const image=ad.locator('.pl-home-sidebar-ad-image')
@@ -81,17 +81,31 @@ test.describe('home advertising layout contract',()=>{
       expect(landscapeBox.height).toBeLessThan(portraitBox.height)
     }
 
-    await patchSidebar(page,{imageUrl:''})
+    await patchSidebar(page,{imageUrl:'',adWidthDesktop:220,adHeightDesktop:300})
     await expect(ad).toBeVisible()
     await expect(ad).toHaveClass(/is-empty/)
     await expect(ad.locator('.pl-home-sidebar-ad-image')).toHaveCount(0)
     await expect(ad.locator('.pl-home-sidebar-ad-fallback')).toBeVisible()
     await expect(ad.getByText('ANUNCIE AQUI',{exact:true})).toBeVisible()
+    await expect(ad.getByText('PUBLICIDADE',{exact:true})).toBeVisible()
     await expect(ad.getByText('Sua marca pode aparecer neste espaço.',{exact:true})).toBeVisible()
+    await expect(ad.getByText('SAIBA MAIS →',{exact:true})).toBeVisible()
     await expect(ad.locator('a[href*="/anuncie"]')).toHaveCount(1)
+    const emptyBox=await ad.boundingBox()
+    expect(emptyBox).not.toBeNull()
+    if(emptyBox){expect(Math.abs(emptyBox.width-220)).toBeLessThanOrEqual(2);expect(Math.abs(emptyBox.height-300)).toBeLessThanOrEqual(2)}
 
     await patchSidebar(page,{active:false})
     await expect(ad).toHaveCount(0)
+  })
+
+  test('sidebar editor exposes fallback title, button text and responsive dimensions',async({page})=>{
+    await page.goto(`${base}#/app/site/paginas/home/secoes/publicidade-lateral`,{waitUntil:'domcontentloaded'})
+    await expect(page.getByText('Conteúdo exibido quando não houver imagem',{exact:true})).toBeVisible()
+    await expect(page.getByText('Título principal',{exact:true})).toBeVisible()
+    await expect(page.getByText('Texto do botão',{exact:true})).toBeVisible()
+    await expect(page.getByText(/Largura ·/).first()).toBeVisible()
+    await expect(page.getByText(/Altura ·/).first()).toBeVisible()
   })
 
   test('most read stays at five items and advertising starts immediately below it',async({page})=>{

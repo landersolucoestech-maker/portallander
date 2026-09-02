@@ -1,6 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
-import { HeroSectionAppearancePage } from './pages/HeroSectionAppearancePage'
 import { MediaKitPage } from './pages/MediaKitPage'
+import { SectionConfigurationPage } from './pages/SectionConfigurationPage'
 import { SiteCollaborationsPage } from './pages/SiteCollaborationsPage'
 import { SiteContentEditorPage } from './pages/SiteContentEditorPage'
 import { SiteContentsPage } from './pages/SiteContentsPage'
@@ -14,11 +14,12 @@ export default function SiteManagerRoutes(){
   return <Routes>
     <Route index element={<SiteManagerDashboardPage/>}/>
     <Route path="home" element={<Navigate to="/app/site/paginas" replace/>}/>
-    <Route path="home/hero" element={<Navigate to="/app/site/paginas/home/hero" replace/>}/>
+    <Route path="home/hero" element={<Navigate to="/app/site/paginas/home/secoes/hero" replace/>}/>
     <Route path="paginas" element={<SiteSectionsPage/>}/>
-    <Route path="paginas/home/hero" element={<HeroSectionAppearancePage/>}/>
+    <Route path="paginas/home/hero" element={<Navigate to="/app/site/paginas/home/secoes/hero" replace/>}/>
+    <Route path="paginas/:pageId/secoes/:sectionId" element={<SectionConfigurationPage/>}/>
     <Route path="secoes" element={<Navigate to="/app/site/paginas" replace/>}/>
-    <Route path="secoes/home/hero" element={<Navigate to="/app/site/paginas/home/hero" replace/>}/>
+    <Route path="secoes/home/hero" element={<Navigate to="/app/site/paginas/home/secoes/hero" replace/>}/>
     <Route path="secoes/home/rodape" element={<Navigate to="/app/settings" replace/>}/>
     <Route path="cabecalho" element={<Navigate to="/app/settings" replace/>}/>
     <Route path="rodape" element={<Navigate to="/app/settings" replace/>}/>

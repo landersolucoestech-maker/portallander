@@ -131,11 +131,15 @@ test.describe('site architecture behavior',()=>{
    }
    await expect(page.getByRole('link',{name:'Configurar'}).first()).toBeVisible()
    await page.reload()
-   await expect(page.getByRole('combobox',{name:'Página'})).toContainText('Música E2E')
-   await page.getByRole('combobox',{name:'Página'}).selectOption({label:/Música E2E/})
+   const pageSelect=page.getByRole('combobox',{name:'Página'})
+   await expect(pageSelect).toContainText('Música E2E')
+   const draftOption=pageSelect.locator('option').filter({hasText:'Música E2E'}).first()
+   const draftValue=await draftOption.getAttribute('value')
+   expect(draftValue,'created draft page must expose a selectable option value').toBeTruthy()
+   await pageSelect.selectOption(draftValue!)
    page.once('dialog',dialog=>dialog.accept())
    await page.getByRole('button',{name:'Excluir página'}).click()
-   await expect(page.getByRole('combobox',{name:'Página'})).not.toContainText('Música E2E')
+   await expect(pageSelect).not.toContainText('Música E2E')
  })
 })
 

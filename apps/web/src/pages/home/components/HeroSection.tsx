@@ -168,6 +168,10 @@ export function HeroSection({
     paddingBottom: runtimeAppearance.contentPaddingBottom + runtimeAppearance.paddingY,
   }
 
+  const kickerStyle:CSSProperties={color:runtimeAppearance.eyebrowColor,fontSize:runtimeAppearance.eyebrowSize,fontWeight:runtimeAppearance.eyebrowWeight,padding:`${runtimeAppearance.eyebrowPaddingY}px ${runtimeAppearance.eyebrowPaddingX}px`}
+  const titleStyle:CSSProperties={color:runtimeAppearance.titleColor,lineHeight:runtimeAppearance.titleLineHeight,maxWidth:runtimeAppearance.titleMaxWidth,padding:`${runtimeAppearance.titlePaddingY}px ${runtimeAppearance.titlePaddingX}px`}
+  const descriptionStyle:CSSProperties={color:runtimeAppearance.textColor,fontSize:runtimeAppearance.descriptionSize,fontWeight:runtimeAppearance.descriptionWeight,maxWidth:runtimeAppearance.descriptionMaxWidth,padding:`${runtimeAppearance.descriptionPaddingY}px ${runtimeAppearance.descriptionPaddingX}px`}
+
   const tickerStyle = {
     marginTop: 0,
     background: ticker.background,
@@ -216,12 +220,12 @@ export function HeroSection({
       <div className="editorial-hero-overlay" aria-hidden="true" />
       <div className="shell editorial-hero-grid" style={shellStyle}>
         <div className="editorial-hero-content" style={contentStyle}>
-          {hero.eyebrowVisible !== false && hero.eyebrow && <div className="editorial-eyebrow" style={{ color: runtimeAppearance.eyebrowColor, fontSize: runtimeAppearance.eyebrowSize, fontWeight: runtimeAppearance.eyebrowWeight }}><span aria-hidden="true" />{hero.eyebrow}</div>}
-          <h1 className="editorial-title" style={{ color: runtimeAppearance.titleColor, lineHeight: runtimeAppearance.titleLineHeight, maxWidth: runtimeAppearance.titleMaxWidth }}>{hero.title.filter(segment => segment.visible !== false).map((segment, index) => {
+          {hero.eyebrowVisible !== false && hero.eyebrow && <div className="editorial-eyebrow" style={kickerStyle}><span aria-hidden="true" />{hero.eyebrow}</div>}
+          <h1 className="editorial-title" style={titleStyle}>{hero.title.filter(segment => segment.visible !== false).map((segment, index) => {
             const segmentVisual = resolveTitleSegmentVisual(segment, breakpoint)
             return <span className={segment.emphasis ? 'emphasis' : ''} style={{ color: segment.color || runtimeAppearance.titleColor, fontSize: segmentVisual.fontSize ? `${segmentVisual.fontSize}px` : undefined, fontWeight: segmentVisual.fontWeight || undefined }} key={`${segment.text}-${index}`}>{segment.text}</span>
           })}</h1>
-          {hero.descriptionVisible !== false && hero.description && <p style={{ color: runtimeAppearance.textColor, fontSize: runtimeAppearance.descriptionSize, fontWeight: runtimeAppearance.descriptionWeight, maxWidth: runtimeAppearance.descriptionMaxWidth }}>{hero.description}</p>}
+          {hero.descriptionVisible !== false && hero.description && <p style={descriptionStyle}>{hero.description}</p>}
           {ctas.length > 0 && <div className="editorial-actions" style={{ gap: runtimeAppearance.ctaGap }}>{ctas.map(cta => <SmartLink key={cta.id} to={cta.url} external={cta.external} className={cta.variant === 'secondary' ? 'editorial-secondary' : 'portal-button'} style={{ minHeight: runtimeAppearance.ctaHeight, paddingLeft: runtimeAppearance.ctaPaddingX, paddingRight: runtimeAppearance.ctaPaddingX, fontSize: runtimeAppearance.ctaSize, fontWeight: runtimeAppearance.ctaWeight, ...(cta.variant === 'primary' ? { background: runtimeAppearance.accentColor } : { borderColor: runtimeAppearance.accentColor, color: runtimeAppearance.textColor }) }}>{cta.label}{cta.variant === 'primary' && <ArrowRight size={20} />}</SmartLink>)}</div>}
         </div>
 

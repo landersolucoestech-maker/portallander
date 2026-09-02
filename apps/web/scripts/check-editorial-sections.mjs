@@ -26,11 +26,13 @@ requireTokens('SiteSectionsPage.tsx',pages,[
 const listing=await read('src/features/editorial/components/EditorialListingPage.tsx')
 requireTokens('EditorialListingPage.tsx',listing,[
   "useSectionConfiguration(page.id,'editorial-ad'",
-  'editorial-layout-with-sidebar',
-  'editorial-grid-column',
-  'editorial-ad-rail',
+  "import '../../../styles/editorial-listing-layout.css'",
+  'editorial-content-layout',
+  'has-advertising',
+  'editorial-advertising-sidebar',
+  'editorial-advertising-card',
   'advertising.imageUrl',
-  '<img src={advertising.imageUrl}',
+  '<img className="editorial-advertising-image" src={advertising.imageUrl}',
 ])
 
 const sectionEditor=await read('src/features/site-manager/pages/SectionConfigurationPage.tsx')
@@ -49,12 +51,12 @@ requireTokens('SectionMediaField.tsx',mediaField,[
   'fileToDevelopmentDataUrl',
 ])
 
-const css=await read('src/styles/editorial-layout.css')
-requireTokens('editorial-layout.css',css,[
-  'grid-template-columns:minmax(0,1fr) minmax(260px,320px)',
-  '.editorial-ad-rail',
+const css=await read('src/styles/editorial-listing-layout.css')
+requireTokens('editorial-listing-layout.css',css,[
+  '.editorial-content-layout.has-advertising{grid-template-columns:minmax(0,1fr) minmax(260px,320px)}',
+  '.editorial-advertising-sidebar',
   'position:sticky',
-  '@media(max-width:900px)',
+  '@media(max-width:980px)',
 ])
 
 if(failures.length){console.error('Falha no contrato editorial configurável:');failures.forEach(item=>console.error(`- ${item}`));process.exit(1)}

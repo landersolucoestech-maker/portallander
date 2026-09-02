@@ -116,6 +116,7 @@ export async function handleRequest(req,res){
         payload:parseJsonField(fields,'payload',{}),
         source:parseJsonField(fields,'source',{}),
         acceptedConsentIds:parseJsonField(fields,'acceptedConsentIds',[]),
+        antiSpam:parseJsonField(fields,'antiSpam',{}),
         files,
         ipHash:hashClientIp(clientIp(req)),
         userAgent:String(req.headers['user-agent']||''),

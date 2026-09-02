@@ -1,93 +1,51 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { readSectionConfiguration, SECTION_CONFIGURATION_EVENT, type SectionConfiguration } from '../../features/site-manager/sectionConfiguration'
 import { portalLogo } from '../../shared/branding/assets/brandAsset'
 import { loadSidebarAdConfig, SIDEBAR_AD_STORAGE_KEY, SIDEBAR_AD_UPDATED_EVENT, type SidebarAdConfig } from '../../shared/persistence/sidebarAdStorage'
 import { PublicFooter, PublicHeader } from '../../shared/public/PublicChrome'
 import { HeroSection } from './components/HeroSection'
 import { AdvertiseHereSection } from './components/AdvertiseHereSection'
 import { homeReadModel, type HomeStory } from './models/homeReadModel'
+import { defaultHomeAdConfig } from './models/adModel'
 import './styles/home-official-sections.css'
 
-const DEFAULT_SIDEBAR_AD:SidebarAdConfig={
-  active:true,
-  title:'PUBLICIDADE',
-  subtitle:'ANUNCIE AQUI',
-  linkLabel:'SAIBA MAIS',
-  linkUrl:'/anuncie',
-  source:'HOME_SIDEBAR_01',
-  quantity:1,
-  width:300,
-  height:600,
-  paddingX:24,
-  paddingY:24,
-  radius:0,
-  background:'#090909',
-  textColor:'#ffffff',
-  titleColor:'#ffffff',
-  accentColor:'#e50914',
-  borderColor:'#090909',
-  bodyLines:['SUA MARCA NO RITMO CERTO!'],
-  imageUrl:'',
-  imageAlt:'Publicidade Portal Lander',
-  imageStored:false,
+const DEFAULT_SIDEBAR_AD:SidebarAdConfig={active:true,title:'PUBLICIDADE',subtitle:'ANUNCIE AQUI',linkLabel:'SAIBA MAIS',linkUrl:'/anuncie',source:'HOME_SIDEBAR_01',quantity:1,width:300,height:600,paddingX:24,paddingY:24,radius:0,background:'#090909',textColor:'#ffffff',titleColor:'#ffffff',accentColor:'#e50914',borderColor:'#090909',bodyLines:['SUA MARCA NO RITMO CERTO!'],imageUrl:'',imageAlt:'Publicidade Portal Lander',imageStored:false}
+
+function useHomeSectionConfiguration(sectionId:string,name:string){
+  const [config,setConfig]=useState<SectionConfiguration>(()=>readSectionConfiguration('home',sectionId,name))
+  useEffect(()=>{
+    const sync=(event:Event)=>{const detail=(event as CustomEvent<{pageId?:string;sectionId?:string}>).detail;if(!detail||detail.pageId==='home'&&detail.sectionId===sectionId)setConfig(readSectionConfiguration('home',sectionId,name))}
+    const storage=()=>setConfig(readSectionConfiguration('home',sectionId,name))
+    window.addEventListener(SECTION_CONFIGURATION_EVENT,sync)
+    window.addEventListener('storage',storage)
+    return()=>{window.removeEventListener(SECTION_CONFIGURATION_EVENT,sync);window.removeEventListener('storage',storage)}
+  },[sectionId,name])
+  return config
 }
 
-function SectionHead({title,link}:{title:string;link?:string}){return <div className="pl-section-head"><h2>{title}</h2>{link&&<Link to={link}>VER TODOS</Link>}</div>}
+function SmartLink({to,children,className}:{to:string;children:React.ReactNode;className?:string}){if(/^https?:\/\//i.test(to))return <a href={to} target="_blank" rel="noreferrer" className={className}>{children}</a>;return <Link to={to||'/'} className={className}>{children}</Link>}
+function SectionHead({title,link,label}:{title:string;link?:string;label?:string}){return <div className="pl-section-head"><h2>{title}</h2>{link&&label&&<SmartLink to={link}>{label}</SmartLink>}</div>}
 function ImageThumb({src,badge,className=''}:{src:string;badge?:string;className?:string}){return <div className={`pl-thumb has-image ${className}`} style={{backgroundImage:`linear-gradient(180deg,transparent 55%,rgba(0,0,0,.72)),url(${src})`}}>{badge&&<span className="pl-badge">{badge}</span>}</div>}
-function Card({item}:{item:HomeStory}){return <Link className="pl-card" to="/noticias" aria-label={`Abrir notícias relacionadas a ${item.title}`}><ImageThumb src={item.image} badge={item.category}/><div className="pl-card-body"><h3>{item.title}</h3><div className="pl-meta"><span>{item.meta}</span><span>◉ {item.views}</span></div></div></Link>}
+function Card({item,to='/noticias'}:{item:HomeStory;to?:string}){return <SmartLink className="pl-card" to={to} aria-label={undefined as never}><ImageThumb src={item.image} badge={item.category}/><div className="pl-card-body"><h3>{item.title}</h3><div className="pl-meta"><span>{item.meta}</span><span>◉ {item.views}</span></div></div></SmartLink>}
 
 function PublicidadeLateralSection(){
-  const [config,setConfig]=useState<SidebarAdConfig>(DEFAULT_SIDEBAR_AD)
-  const refresh=useCallback(()=>{loadSidebarAdConfig(DEFAULT_SIDEBAR_AD).then(setConfig)},[])
-
-  useEffect(()=>{
-    refresh()
-    const onStorage=(event:StorageEvent)=>{if(event.key===SIDEBAR_AD_STORAGE_KEY)refresh()}
-    const onUpdated=()=>refresh()
-    window.addEventListener('storage',onStorage)
-    window.addEventListener(SIDEBAR_AD_UPDATED_EVENT,onUpdated)
-    window.addEventListener('focus',refresh)
-    return()=>{
-      window.removeEventListener('storage',onStorage)
-      window.removeEventListener(SIDEBAR_AD_UPDATED_EVENT,onUpdated)
-      window.removeEventListener('focus',refresh)
-    }
-  },[refresh])
-
-  if(!config.active)return null
-  const isExternal=/^https?:\/\//i.test(config.linkUrl)
-  return <section className="pl-home-sidebar-ad official-publicidade-lateral" aria-label="Publicidade Lateral" style={{width:'100%',maxWidth:config.width<=100?300:config.width}}>
-    <div className="pl-home-sidebar-ad-inner" style={{background:config.background,color:config.textColor,minHeight:config.height,border:`1px solid ${config.borderColor}`,borderRadius:config.radius,padding:`${config.paddingY}px ${config.paddingX}px`,overflow:'hidden'}}>
-      {config.imageUrl?<img src={config.imageUrl} alt={config.imageAlt||'Publicidade'} style={{display:'block',width:'100%',height:'auto',maxHeight:'none',objectFit:'contain',margin:'0 auto'}}/>:<img src={portalLogo} alt="Portal Lander"/>}
-      {config.title&&<span className="pl-home-sidebar-ad-kicker" style={{color:config.textColor}}>{config.title}</span>}
-      {config.subtitle&&<h3 style={{color:config.titleColor}}>{config.subtitle}</h3>}
-      {config.bodyLines.filter(Boolean).map((line,index)=><p key={`${line}-${index}`} style={{color:config.accentColor}}>{line}</p>)}
-      {config.linkLabel&&config.linkUrl&&(isExternal?<a href={config.linkUrl} target="_blank" rel="noreferrer" style={{borderColor:config.accentColor,color:config.accentColor}}>{config.linkLabel} →</a>:<Link to={config.linkUrl} style={{borderColor:config.accentColor,color:config.accentColor}}>{config.linkLabel} →</Link>)}
-    </div>
-  </section>
+  const section=useHomeSectionConfiguration('publicidade-lateral','Publicidade Lateral')
+  const [legacy,setLegacy]=useState<SidebarAdConfig>(DEFAULT_SIDEBAR_AD)
+  const refresh=useCallback(()=>{loadSidebarAdConfig(DEFAULT_SIDEBAR_AD).then(setLegacy)},[])
+  useEffect(()=>{refresh();const onStorage=(event:StorageEvent)=>{if(event.key===SIDEBAR_AD_STORAGE_KEY)refresh()};const onUpdated=()=>refresh();window.addEventListener('storage',onStorage);window.addEventListener(SIDEBAR_AD_UPDATED_EVENT,onUpdated);window.addEventListener('focus',refresh);return()=>{window.removeEventListener('storage',onStorage);window.removeEventListener(SIDEBAR_AD_UPDATED_EVENT,onUpdated);window.removeEventListener('focus',refresh)}},[refresh])
+  if(!section.active)return null
+  const imageUrl=section.imageUrl||legacy.imageUrl,description=section.description||legacy.bodyLines.filter(Boolean).join(' ')
+  return <section className="pl-home-sidebar-ad official-publicidade-lateral" aria-label="Publicidade Lateral" style={{width:'100%',maxWidth:legacy.width<=100?300:legacy.width,textAlign:section.textAlign}}><div className="pl-home-sidebar-ad-inner" style={{background:section.background||legacy.background,color:section.textColor||legacy.textColor,minHeight:legacy.height,border:`1px solid ${legacy.borderColor}`,borderRadius:legacy.radius,padding:`${legacy.paddingY}px ${legacy.paddingX}px`,overflow:'hidden'}}>{imageUrl?<img src={imageUrl} alt={legacy.imageAlt||'Publicidade'} style={{display:'block',width:'100%',height:'auto',objectFit:'contain',margin:'0 auto'}}/>:<img src={portalLogo} alt="Portal Lander"/>}{section.title&&<span className="pl-home-sidebar-ad-kicker" style={{color:section.textColor}}>{section.title}</span>}{section.eyebrow&&<h3 style={{color:section.textColor}}>{section.eyebrow}</h3>}{description&&<p style={{color:section.accentColor}}>{description}</p>}{section.linkLabel&&section.linkUrl&&<SmartLink to={section.linkUrl}><span style={{borderColor:section.accentColor,color:section.accentColor}}>{section.linkLabel} →</span></SmartLink>}</div></section>
 }
 
-function EmDestaqueSection(){return <section className="pl-section official-em-destaque" aria-label="Em Destaque"><SectionHead title="EM DESTAQUE"/><div className="pl-card-grid">{homeReadModel.featuredStories.map(story=><Card key={story.title} item={story}/>)}</div><div className="pl-center-link"><Link to="/noticias">EXPLORAR DESTAQUES</Link></div></section>}
+function EmDestaqueSection(){const config=useHomeSectionConfiguration('em-destaque','Em Destaque');if(!config.active)return null;return <section className="pl-section official-em-destaque" aria-label="Em Destaque" style={{background:config.background,color:config.textColor,textAlign:config.textAlign}}><SectionHead title={config.title}/><div className="pl-card-grid" style={{gridTemplateColumns:`repeat(${Math.max(1,Math.min(4,config.columns))},minmax(0,1fr))`}}>{homeReadModel.featuredStories.slice(0,config.itemLimit).map(story=><Card key={story.title} item={story} to={config.linkUrl||'/noticias'}/>)}</div>{config.linkLabel&&<div className="pl-center-link"><SmartLink to={config.linkUrl||'/noticias'}>{config.linkLabel}</SmartLink></div>}</section>}
+function MaisLidasSection(){const config=useHomeSectionConfiguration('mais-lidas','Mais Lidas');if(!config.active)return null;return <section className="pl-most official-mais-lidas" aria-label="Mais Lidas" style={{background:config.background,color:config.textColor,textAlign:config.textAlign}}><SectionHead title={config.title}/>{homeReadModel.mostRead.slice(0,config.itemLimit).map((title,index)=><SmartLink className="pl-ranked" to={config.linkUrl||'/noticias'} key={title}><strong>{String(index+1).padStart(2,'0')}</strong><div><h4>{title}</h4><small>Há {index+3} horas</small></div></SmartLink>)}{config.linkLabel&&<SmartLink className="pl-outline-button" to={config.linkUrl||'/noticias'}>{config.linkLabel}</SmartLink>}</section>}
+function UltimasNoticiasSection(){const config=useHomeSectionConfiguration('ultimas-noticias','Últimas Notícias');if(!config.active)return null;return <section className="pl-section official-ultimas-noticias" aria-label="Últimas Notícias" style={{background:config.background,color:config.textColor,textAlign:config.textAlign}}><SectionHead title={config.title} link={config.linkUrl||'/noticias'} label={config.linkLabel}/><div className="pl-latest-grid" style={{gridTemplateColumns:`repeat(${Math.max(1,Math.min(4,config.columns))},minmax(0,1fr))`}}>{homeReadModel.latestStories.slice(0,config.itemLimit).map(story=><Card key={story.title} item={story} to={config.linkUrl||'/noticias'}/>)}</div></section>}
+function EmAltaSection(){const config=useHomeSectionConfiguration('em-alta','Em Alta');if(!config.active)return null;return <section className="pl-trending official-em-alta" aria-label="Em Alta" style={{background:config.background,color:config.textColor,textAlign:config.textAlign}}><div className="pl-section-head pl-trending-head"><h2>{config.title}</h2>{config.linkLabel&&<SmartLink to={config.linkUrl||'/noticias'}>{config.linkLabel}</SmartLink>}</div><div className="pl-trending-list">{homeReadModel.mostRead.slice(0,config.itemLimit).map((title,index)=><SmartLink className="pl-trending-item" to={config.linkUrl||'/noticias'} key={title}><span className="pl-trending-rank" style={{color:config.accentColor}}>{String(index+1).padStart(2,'0')}</span><div><strong>{title}</strong><small>Há {index+3} horas</small></div></SmartLink>)}</div></section>}
+function AnuncieAquiSection(){const config=useHomeSectionConfiguration('anuncie-aqui','Anuncie Aqui');if(!config.active)return null;return <AdvertiseHereSection config={{...defaultHomeAdConfig,active:true,title:config.title||defaultHomeAdConfig.title,subtitle:config.description||config.eyebrow||defaultHomeAdConfig.subtitle,buttonLabel:config.linkLabel||defaultHomeAdConfig.buttonLabel,buttonUrl:config.linkUrl||defaultHomeAdConfig.buttonUrl,image:config.imageUrl||defaultHomeAdConfig.image,align:config.textAlign==='center'?'center':config.textAlign==='right'?'right':'left'}}/>}
+function LancamentosSection(){const config=useHomeSectionConfiguration('lancamentos','Lançamentos');if(!config.active)return null;return <section className="pl-section official-lancamentos" aria-label="Lançamentos" style={{background:config.background,color:config.textColor,textAlign:config.textAlign}}><SectionHead title={config.title} link={config.linkUrl||'/lancamentos'} label={config.linkLabel}/><div className="pl-release-row">{homeReadModel.releases.slice(0,config.itemLimit).map(release=><SmartLink className="pl-release" to={config.linkUrl||'/lancamentos'} key={release.title}><ImageThumb src={release.image} badge="▶"/><div className="pl-card-body"><h3>{release.title}</h3><div className="pl-meta"><span>{release.year}</span></div></div></SmartLink>)}</div></section>}
+function AgendaSection(){const config=useHomeSectionConfiguration('agenda','Agenda');if(!config.active)return null;return <section className="pl-agenda official-agenda" aria-label="Agenda" style={{background:config.background,color:config.textColor,textAlign:config.textAlign}}><SectionHead title={config.title}/>{homeReadModel.agenda.slice(0,config.itemLimit).map(item=><SmartLink className="pl-agenda-item" to={config.linkUrl||'/destaques'} key={item.title}><div><strong>{item.day}</strong><span>{item.month}</span></div><div><b>{item.title}</b><small>{item.place}</small></div></SmartLink>)}{config.linkLabel&&<SmartLink className="pl-outline-button" to={config.linkUrl||'/destaques'}>{config.linkLabel}</SmartLink>}</section>}
 
-function MaisLidasSection(){return <section className="pl-most official-mais-lidas" aria-label="Mais Lidas"><SectionHead title="MAIS LIDAS"/>{homeReadModel.mostRead.map((title,index)=><Link className="pl-ranked" to="/noticias" key={title} aria-label={`Abrir notícias relacionadas a ${title}`}><strong>{String(index+1).padStart(2,'0')}</strong><div><h4>{title}</h4><small>Há {index+3} horas</small></div></Link>)}<Link className="pl-outline-button" to="/noticias">VER TODOS</Link></section>}
-
-function UltimasNoticiasSection(){return <section className="pl-section official-ultimas-noticias" aria-label="Últimas Notícias"><SectionHead title="ÚLTIMAS NOTÍCIAS" link="/noticias"/><div className="pl-latest-grid">{homeReadModel.latestStories.map(story=><Card key={story.title} item={story}/>)}</div><div className="pl-center-link"><Link to="/noticias">VER TODAS AS NOTÍCIAS</Link></div></section>}
-
-function EmAltaSection(){return <section className="pl-trending official-em-alta" aria-label="Em Alta"><div className="pl-section-head pl-trending-head"><h2>EM ALTA</h2><Link to="/noticias">VER TODOS</Link></div><div className="pl-trending-list">{homeReadModel.mostRead.slice(0,4).map((title,index)=><Link className="pl-trending-item" to="/noticias" key={title}><span className="pl-trending-rank">{String(index+1).padStart(2,'0')}</span><div><strong>{title}</strong><small>Há {index+3} horas</small></div></Link>)}</div></section>}
-
-function LancamentosSection(){return <section className="pl-section official-lancamentos" aria-label="Lançamentos"><SectionHead title="LANÇAMENTOS"/><div className="pl-release-row">{homeReadModel.releases.map(release=><Link className="pl-release" to="/lancamentos" key={release.title} aria-label={`Abrir lançamentos relacionados a ${release.title}`}><ImageThumb src={release.image} badge="▶"/><div className="pl-card-body"><h3>{release.title}</h3><div className="pl-meta"><span>{release.year}</span></div></div></Link>)}</div></section>}
-
-function AgendaSection(){return <section className="pl-agenda official-agenda" aria-label="Agenda"><SectionHead title="AGENDA"/>{homeReadModel.agenda.map(item=><Link className="pl-agenda-item" to="/destaques" key={item.title} aria-label={`Abrir destaques relacionados a ${item.title}`}><div><strong>{item.day}</strong><span>{item.month}</span></div><div><b>{item.title}</b><small>{item.place}</small></div></Link>)}<Link className="pl-outline-button" to="/destaques">VER DESTAQUES</Link></section>}
-
-function HomeContent(){return <main className="pl-main public-shell official-home-sections" aria-label="Seções da Página Inicial">
-  <EmDestaqueSection/>
-  <MaisLidasSection/>
-  <UltimasNoticiasSection/>
-  <PublicidadeLateralSection/>
-  <EmAltaSection/>
-  <AdvertiseHereSection/>
-  <LancamentosSection/>
-  <AgendaSection/>
-</main>}
-
+function HomeContent(){return <main className="pl-main public-shell official-home-sections" aria-label="Seções da Página Inicial"><EmDestaqueSection/><MaisLidasSection/><UltimasNoticiasSection/><PublicidadeLateralSection/><EmAltaSection/><AnuncieAquiSection/><LancamentosSection/><AgendaSection/></main>}
 export function PublicHome(){return <div className="public-page"><PublicHeader/><HeroSection/><HomeContent/><PublicFooter/></div>}

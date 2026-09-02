@@ -1,5 +1,6 @@
 export type SectionTextAlign='left'|'center'|'right'
 export type SectionKind='hero'|'featured'|'ranking'|'latest'|'ad'|'trending'|'cta'|'releases'|'agenda'|'editorial'|'standard-hero'|'body'|'channels'|'guidelines'|'form'|'custom'
+export type SectionHeroViewport='desktop'|'tablet'|'mobile'
 
 export type SectionConfiguration={
   active:boolean
@@ -18,6 +19,24 @@ export type SectionConfiguration={
   heroHeightDesktop:number
   heroHeightTablet:number
   heroHeightMobile:number
+  heroKickerPaddingXDesktop:number
+  heroKickerPaddingYDesktop:number
+  heroKickerPaddingXTablet:number
+  heroKickerPaddingYTablet:number
+  heroKickerPaddingXMobile:number
+  heroKickerPaddingYMobile:number
+  heroTitlePaddingXDesktop:number
+  heroTitlePaddingYDesktop:number
+  heroTitlePaddingXTablet:number
+  heroTitlePaddingYTablet:number
+  heroTitlePaddingXMobile:number
+  heroTitlePaddingYMobile:number
+  heroDescriptionPaddingXDesktop:number
+  heroDescriptionPaddingYDesktop:number
+  heroDescriptionPaddingXTablet:number
+  heroDescriptionPaddingYTablet:number
+  heroDescriptionPaddingXMobile:number
+  heroDescriptionPaddingYMobile:number
 }
 
 export type SectionDefinition={id:string;name:string;summary:string;kind:SectionKind;locked?:boolean}
@@ -49,7 +68,13 @@ const defaults:Record<string,Partial<SectionConfiguration>>={
   'colabore-formulario':{title:'FORMULÁRIO DE ENVIO',description:'Formulário público conectado ao fluxo editorial de colaborações.',columns:1},
 }
 
-export const BASE_SECTION_CONFIGURATION:SectionConfiguration={active:true,title:'Nova seção',eyebrow:'',description:'',linkLabel:'',linkUrl:'',imageUrl:'',itemLimit:6,columns:3,textAlign:'left',background:'#ffffff',textColor:'#111111',accentColor:'#e50914',heroHeightDesktop:420,heroHeightTablet:340,heroHeightMobile:280}
+export const BASE_SECTION_CONFIGURATION:SectionConfiguration={
+  active:true,title:'Nova seção',eyebrow:'',description:'',linkLabel:'',linkUrl:'',imageUrl:'',itemLimit:6,columns:3,textAlign:'left',background:'#ffffff',textColor:'#111111',accentColor:'#e50914',
+  heroHeightDesktop:420,heroHeightTablet:340,heroHeightMobile:280,
+  heroKickerPaddingXDesktop:0,heroKickerPaddingYDesktop:0,heroKickerPaddingXTablet:0,heroKickerPaddingYTablet:0,heroKickerPaddingXMobile:0,heroKickerPaddingYMobile:0,
+  heroTitlePaddingXDesktop:0,heroTitlePaddingYDesktop:0,heroTitlePaddingXTablet:0,heroTitlePaddingYTablet:0,heroTitlePaddingXMobile:0,heroTitlePaddingYMobile:0,
+  heroDescriptionPaddingXDesktop:0,heroDescriptionPaddingYDesktop:0,heroDescriptionPaddingXTablet:0,heroDescriptionPaddingYTablet:0,heroDescriptionPaddingXMobile:0,heroDescriptionPaddingYMobile:0,
+}
 const storageId=(pageId:string,sectionId:string)=>`${pageId}:${sectionId}`
 const readAll=():Record<string,SectionConfiguration>=>{try{return JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}') as Record<string,SectionConfiguration>}catch{return {}}}
 
@@ -68,6 +93,24 @@ export function readSectionConfiguration(pageId:string,sectionId:string,name?:st
 export function writeSectionConfiguration(pageId:string,sectionId:string,config:SectionConfiguration){const all=readAll();all[storageId(pageId,sectionId)]={...config};localStorage.setItem(STORAGE_KEY,JSON.stringify(all));window.dispatchEvent(new CustomEvent(SECTION_CONFIGURATION_EVENT,{detail:{pageId,sectionId}}))}
 export function resetSectionConfiguration(pageId:string,sectionId:string){const all=readAll();delete all[storageId(pageId,sectionId)];localStorage.setItem(STORAGE_KEY,JSON.stringify(all));window.dispatchEvent(new CustomEvent(SECTION_CONFIGURATION_EVENT,{detail:{pageId,sectionId}}))}
 
+const viewportSuffix=(viewport:SectionHeroViewport)=>viewport==='desktop'?'Desktop':viewport==='tablet'?'Tablet':'Mobile'
+export function heroTextPadding(config:SectionConfiguration,viewport:SectionHeroViewport){
+  const suffix=viewportSuffix(viewport)
+  return {
+    kicker:{x:config[`heroKickerPaddingX${suffix}` as keyof SectionConfiguration] as number,y:config[`heroKickerPaddingY${suffix}` as keyof SectionConfiguration] as number},
+    title:{x:config[`heroTitlePaddingX${suffix}` as keyof SectionConfiguration] as number,y:config[`heroTitlePaddingY${suffix}` as keyof SectionConfiguration] as number},
+    description:{x:config[`heroDescriptionPaddingX${suffix}` as keyof SectionConfiguration] as number,y:config[`heroDescriptionPaddingY${suffix}` as keyof SectionConfiguration] as number},
+  }
+}
+export function heroResponsiveCssVariables(config:SectionConfiguration){
+  return {
+    '--pl-hero-height-desktop':`${config.heroHeightDesktop}px`,'--pl-hero-height-tablet':`${config.heroHeightTablet}px`,'--pl-hero-height-mobile':`${config.heroHeightMobile}px`,
+    '--pl-hero-kicker-px-desktop':`${config.heroKickerPaddingXDesktop}px`,'--pl-hero-kicker-py-desktop':`${config.heroKickerPaddingYDesktop}px`,'--pl-hero-kicker-px-tablet':`${config.heroKickerPaddingXTablet}px`,'--pl-hero-kicker-py-tablet':`${config.heroKickerPaddingYTablet}px`,'--pl-hero-kicker-px-mobile':`${config.heroKickerPaddingXMobile}px`,'--pl-hero-kicker-py-mobile':`${config.heroKickerPaddingYMobile}px`,
+    '--pl-hero-title-px-desktop':`${config.heroTitlePaddingXDesktop}px`,'--pl-hero-title-py-desktop':`${config.heroTitlePaddingYDesktop}px`,'--pl-hero-title-px-tablet':`${config.heroTitlePaddingXTablet}px`,'--pl-hero-title-py-tablet':`${config.heroTitlePaddingYTablet}px`,'--pl-hero-title-px-mobile':`${config.heroTitlePaddingXMobile}px`,'--pl-hero-title-py-mobile':`${config.heroTitlePaddingYMobile}px`,
+    '--pl-hero-description-px-desktop':`${config.heroDescriptionPaddingXDesktop}px`,'--pl-hero-description-py-desktop':`${config.heroDescriptionPaddingYDesktop}px`,'--pl-hero-description-px-tablet':`${config.heroDescriptionPaddingXTablet}px`,'--pl-hero-description-py-tablet':`${config.heroDescriptionPaddingYTablet}px`,'--pl-hero-description-px-mobile':`${config.heroDescriptionPaddingXMobile}px`,'--pl-hero-description-py-mobile':`${config.heroDescriptionPaddingYMobile}px`,
+  }
+}
+
 export const HOME_SECTION_DEFINITIONS:SectionDefinition[]=[
   {id:'hero',name:'Hero Section',summary:'Hero oficial da Homepage, incluindo o Ticker integrado.',kind:'hero',locked:true},
   {id:'em-destaque',name:'Em Destaque',summary:'Grid principal de matérias em destaque da Homepage.',kind:'featured',locked:true},
@@ -81,21 +124,21 @@ export const HOME_SECTION_DEFINITIONS:SectionDefinition[]=[
 ]
 
 export const EDITORIAL_PAGE_SECTION_DEFINITIONS:SectionDefinition[]=[
-  {id:'editorial-hero',name:'Hero Editorial',summary:'Hero individual desta página. Usa por padrão o mesmo artwork de fundo aprovado da Hero da Homepage; conteúdo, aparência e altura responsiva continuam configuráveis por página.',kind:'standard-hero',locked:true},
+  {id:'editorial-hero',name:'Hero Editorial',summary:'Hero individual desta página. Usa por padrão o mesmo artwork de fundo aprovado da Hero da Homepage; conteúdo, aparência, altura e espaçamento responsivo continuam configuráveis por página.',kind:'standard-hero',locked:true},
   {id:'editorial-template',name:'Conteúdos / Grid Editorial',summary:'Estrutura compartilhada de Notícias para listagem, grid e comportamento editorial.',kind:'editorial',locked:true},
 ]
 
 export const SPECIAL_PAGE_SECTION_DEFINITIONS:Record<string,SectionDefinition[]>={
   sobre:[
-    {id:'sobre-hero',name:'Hero Institucional',summary:'Cabeçalho visual da página Sobre usando por padrão o background aprovado da Homepage, com altura responsiva configurável.',kind:'standard-hero',locked:true},
+    {id:'sobre-hero',name:'Hero Institucional',summary:'Cabeçalho visual da página Sobre usando por padrão o background aprovado da Homepage, com altura e espaçamento responsivos configuráveis.',kind:'standard-hero',locked:true},
     {id:'sobre-conteudo',name:'Conteúdo Institucional',summary:'Bloco principal de apresentação do Portal Lander.',kind:'body',locked:true},
   ],
   contato:[
-    {id:'contato-hero',name:'Hero de Contato',summary:'Cabeçalho visual da página Contato usando por padrão o background aprovado da Homepage, com altura responsiva configurável.',kind:'standard-hero',locked:true},
+    {id:'contato-hero',name:'Hero de Contato',summary:'Cabeçalho visual da página Contato usando por padrão o background aprovado da Homepage, com altura e espaçamento responsivos configuráveis.',kind:'standard-hero',locked:true},
     {id:'contato-canais',name:'Canais Oficiais',summary:'Grid de canais públicos e redes configuradas.',kind:'channels',locked:true},
   ],
   colabore:[
-    {id:'colabore-hero',name:'Hero Colabore',summary:'Apresentação principal usando por padrão o background aprovado da Homepage, com altura responsiva configurável.',kind:'standard-hero',locked:true},
+    {id:'colabore-hero',name:'Hero Colabore',summary:'Apresentação principal usando por padrão o background aprovado da Homepage, com altura e espaçamento responsivos configuráveis.',kind:'standard-hero',locked:true},
     {id:'colabore-diretrizes',name:'Diretrizes de Envio',summary:'Orientações editoriais exibidas antes do formulário.',kind:'guidelines',locked:true},
     {id:'colabore-formulario',name:'Formulário de Colaboração',summary:'Formulário público de envio de materiais.',kind:'form',locked:true},
   ],

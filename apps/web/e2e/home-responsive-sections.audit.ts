@@ -22,6 +22,26 @@ test.describe('responsive home section administration',()=>{
     }
   })
 
+  test('featured preview uses the real iframe viewport for 3 desktop, 2 tablet and 1 mobile columns',async({page})=>{
+    await seed(page,{'em-destaque':{active:true,itemLimit:6,homeSelectionMode:'automatic'}})
+    await page.goto(`${base}#/app/site/paginas/home/secoes/em-destaque`,{waitUntil:'domcontentloaded'})
+    const iframe=page.locator('iframe.home-page-preview-iframe')
+    const preview=page.frameLocator('iframe.home-page-preview-iframe')
+    const grid=preview.locator('.official-em-destaque .pl-card-grid')
+
+    await expect(iframe).toHaveCSS('width','1433px')
+    await expect(grid).toBeVisible()
+    expect(await grid.evaluate(el=>getComputedStyle(el).gridTemplateColumns.split(' ').filter(Boolean).length)).toBe(3)
+
+    await page.getByRole('button',{name:/Tablet/}).first().click()
+    await expect(iframe).toHaveCSS('width','768px')
+    expect(await grid.evaluate(el=>getComputedStyle(el).gridTemplateColumns.split(' ').filter(Boolean).length)).toBe(2)
+
+    await page.getByRole('button',{name:/Mobile/}).first().click()
+    await expect(iframe).toHaveCSS('width','390px')
+    expect(await grid.evaluate(el=>getComputedStyle(el).gridTemplateColumns.split(' ').filter(Boolean).length)).toBe(1)
+  })
+
   test('featured manual selection and quantity reach frontend while legacy device columns cannot redesign it',async({page})=>{
     await seed(page,{'em-destaque':{
       active:true,itemLimit:2,homeLayoutVersion:2,homeSelectionMode:'manual',homeSortMode:'provider',

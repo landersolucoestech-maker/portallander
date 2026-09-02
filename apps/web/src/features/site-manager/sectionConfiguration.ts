@@ -32,7 +32,8 @@ const defaults:Record<string,Partial<SectionConfiguration>>={
   'anuncie-aqui':{title:'ANUNCIE AQUI',description:'Sua marca no ritmo certo.',linkLabel:'SAIBA MAIS',linkUrl:'/anuncie',itemLimit:1,columns:1},
   lancamentos:{title:'LANÇAMENTOS',linkLabel:'VER TODOS',linkUrl:'/lancamentos',itemLimit:4,columns:4},
   agenda:{title:'AGENDA',linkLabel:'VER DESTAQUES',linkUrl:'/destaques',itemLimit:4,columns:1},
-  'editorial-template':{title:'Template editorial de Notícias',description:'Layout compartilhado pelas páginas editoriais.',itemLimit:12,columns:3},
+  'editorial-hero':{eyebrow:'AGORA NO PORTAL',columns:1,background:'#ffffff',textColor:'#111111',accentColor:'#e50914'},
+  'editorial-template':{title:'Conteúdos / Grid Editorial',description:'Grid compartilhado pelas páginas editoriais.',itemLimit:12,columns:3},
   'sobre-hero':{eyebrow:'INSTITUCIONAL',title:'SOBRE O PORTAL',description:'Conheça o Portal Lander.',columns:1},
   'sobre-conteudo':{title:'PORTAL LANDER',description:'Conteúdo institucional do Portal Lander.',columns:1},
   'contato-hero':{eyebrow:'CONTATO',title:'FALE CONOSCO',description:'Entre em contato com o Portal Lander.',columns:1},
@@ -46,8 +47,14 @@ export const BASE_SECTION_CONFIGURATION:SectionConfiguration={active:true,title:
 const storageId=(pageId:string,sectionId:string)=>`${pageId}:${sectionId}`
 const readAll=():Record<string,SectionConfiguration>=>{try{return JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}') as Record<string,SectionConfiguration>}catch{return {}}}
 
-export function defaultSectionConfiguration(sectionId:string,name?:string):SectionConfiguration{return {...BASE_SECTION_CONFIGURATION,...defaults[sectionId],...(name&&!defaults[sectionId]?{title:name}:{})}}
-export function readSectionConfiguration(pageId:string,sectionId:string,name?:string):SectionConfiguration{const stored=readAll()[storageId(pageId,sectionId)];return {...defaultSectionConfiguration(sectionId,name),...(stored||{})}}
+export function defaultSectionConfiguration(sectionId:string,name?:string,fallback?:Partial<SectionConfiguration>):SectionConfiguration{
+  const sectionDefaults=defaults[sectionId]||{}
+  return {...BASE_SECTION_CONFIGURATION,...sectionDefaults,...fallback,...(name&&!sectionDefaults.title&&!fallback?.title?{title:name}:{})}
+}
+export function readSectionConfiguration(pageId:string,sectionId:string,name?:string,fallback?:Partial<SectionConfiguration>):SectionConfiguration{
+  const stored=readAll()[storageId(pageId,sectionId)]
+  return {...defaultSectionConfiguration(sectionId,name,fallback),...(stored||{})}
+}
 export function writeSectionConfiguration(pageId:string,sectionId:string,config:SectionConfiguration){const all=readAll();all[storageId(pageId,sectionId)]={...config};localStorage.setItem(STORAGE_KEY,JSON.stringify(all));window.dispatchEvent(new CustomEvent(SECTION_CONFIGURATION_EVENT,{detail:{pageId,sectionId}}))}
 export function resetSectionConfiguration(pageId:string,sectionId:string){const all=readAll();delete all[storageId(pageId,sectionId)];localStorage.setItem(STORAGE_KEY,JSON.stringify(all));window.dispatchEvent(new CustomEvent(SECTION_CONFIGURATION_EVENT,{detail:{pageId,sectionId}}))}
 
@@ -61,6 +68,11 @@ export const HOME_SECTION_DEFINITIONS:SectionDefinition[]=[
   {id:'anuncie-aqui',name:'Anuncie Aqui',summary:'Chamada comercial para anunciantes.',kind:'cta',locked:true},
   {id:'lancamentos',name:'Lançamentos',summary:'Carrossel/grid de lançamentos musicais.',kind:'releases',locked:true},
   {id:'agenda',name:'Agenda',summary:'Agenda de eventos e destaques.',kind:'agenda',locked:true},
+]
+
+export const EDITORIAL_PAGE_SECTION_DEFINITIONS:SectionDefinition[]=[
+  {id:'editorial-hero',name:'Hero Editorial',summary:'Hero individual desta página. A estrutura é herdada de Notícias, mas conteúdo e aparência são configurados por página.',kind:'standard-hero',locked:true},
+  {id:'editorial-template',name:'Conteúdos / Grid Editorial',summary:'Estrutura compartilhada de Notícias para listagem, grid e comportamento editorial.',kind:'editorial',locked:true},
 ]
 
 export const SPECIAL_PAGE_SECTION_DEFINITIONS:Record<string,SectionDefinition[]>={
@@ -79,4 +91,4 @@ export const SPECIAL_PAGE_SECTION_DEFINITIONS:Record<string,SectionDefinition[]>
   ],
 }
 
-export const EDITORIAL_SECTION_DEFINITION:SectionDefinition={id:'editorial-template',name:'Template editorial de Notícias',summary:'Layout compartilhado pela listagem e pelas páginas de conteúdo.',kind:'editorial',locked:true}
+export const EDITORIAL_SECTION_DEFINITION=EDITORIAL_PAGE_SECTION_DEFINITIONS[1]

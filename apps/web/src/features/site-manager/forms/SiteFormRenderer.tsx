@@ -1,5 +1,5 @@
 import {CheckCircle2,Send,Upload} from 'lucide-react'
-import {useMemo,useRef,useState,type FormEvent} from 'react'
+import {useEffect,useMemo,useRef,useState,type FormEvent} from 'react'
 import type {FormFieldDefinition,SiteFormDefinition} from './domain'
 
 export type SiteFormOption={value:string;label:string}
@@ -36,11 +36,13 @@ function buildFieldBlocks(fields:readonly FormFieldDefinition[]):FieldBlock[]{
 export function SiteFormRenderer({form,mode,optionSets={},onSubmit,submitLabel='Enviar',note}:SiteFormRendererProps){
   const ordered=useMemo(()=>[...form.fields].sort((a,b)=>a.order-b.order),[form.fields])
   const blocks=useMemo(()=>buildFieldBlocks(form.fields),[form.fields])
-  const startedAt=useRef(Date.now())
+  const startedAt=useRef(0)
   const [selectValues,setSelectValues]=useState<Record<string,string>>({})
   const [openSelect,setOpenSelect]=useState<string|null>(null)
   const [fileNames,setFileNames]=useState<Record<string,string>>({})
   const [state,setState]=useState<RendererState>({kind:'idle',message:''})
+
+  useEffect(()=>{startedAt.current=Date.now()},[])
 
   const optionsFor=(field:FormFieldDefinition):readonly SiteFormOption[]=>optionSets[field.key]??(field.options??[]).map(value=>({value,label:value}))
   const selectedLabel=(field:FormFieldDefinition)=>optionsFor(field).find(option=>option.value===selectValues[field.key])?.label

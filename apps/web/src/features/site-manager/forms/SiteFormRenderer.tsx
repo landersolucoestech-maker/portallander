@@ -4,7 +4,8 @@ import type {FormFieldDefinition,SiteFormDefinition} from './domain'
 
 export type SiteFormOption={value:string;label:string}
 export type SiteFormOptionSets=Record<string,readonly SiteFormOption[]>
-export type SiteFormSubmitPayload={payload:Record<string,unknown>;acceptedConsentIds:string[];files:File[];antiSpam:{honeypot:string;startedAt:number}}
+export type SiteFormFile={fieldKey:string;file:File}
+export type SiteFormSubmitPayload={payload:Record<string,unknown>;acceptedConsentIds:string[];files:SiteFormFile[];antiSpam:{honeypot:string;startedAt:number}}
 
 type RendererState={kind:'idle'|'sending'|'success'|'error';message:string}
 type FieldBlock={kind:'compact';fields:FormFieldDefinition[]}|{kind:'expanded';field:FormFieldDefinition}
@@ -53,12 +54,12 @@ export function SiteFormRenderer({form,mode,optionSets={},onSubmit,submitLabel='
     const formElement=event.currentTarget
     const data=new FormData(formElement)
     const payload:Record<string,unknown>={}
-    const files:File[]=[]
+    const files:SiteFormFile[]=[]
     const acceptedConsentIds:string[]=[]
 
     for(const field of ordered){
       if(field.type==='file'){
-        for(const value of data.getAll(field.key))if(value instanceof File&&value.size>0)files.push(value)
+        for(const value of data.getAll(field.key))if(value instanceof File&&value.size>0)files.push({fieldKey:field.key,file:value})
         continue
       }
       if(field.type==='checkbox')payload[field.key]=data.has(field.key)

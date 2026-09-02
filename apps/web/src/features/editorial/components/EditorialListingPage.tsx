@@ -1,14 +1,12 @@
-import { Link, useLocation } from 'react-router-dom'
+import {Link,useLocation} from 'react-router-dom'
 import {useMemo,type CSSProperties} from 'react'
-import { NewsAdSection } from '../../../pages/noticias/components/NewsAdSection'
-import { useNewsAdRuntime } from '../../../pages/noticias/hooks/useNewsAdRuntime'
-import { isNewsAdValid } from '../../../pages/noticias/models/newsAdModel'
-import { heroResponsiveCssVariables } from '../../site-manager/sectionConfiguration'
-import { useSectionConfiguration } from '../../site-manager/useSectionConfiguration'
-import { PublicFooter, PublicHeader } from '../../../shared/public/PublicChrome'
-import { useEditorialSeo } from '../hooks/useEditorialSeo'
-import type { EditorialPage } from '../model'
-import { editorialReadModel } from '../repository'
+import {heroResponsiveCssVariables} from '../../site-manager/sectionConfiguration'
+import {useSectionConfiguration} from '../../site-manager/useSectionConfiguration'
+import {PublicFooter,PublicHeader} from '../../../shared/public/PublicChrome'
+import {useEditorialSeo} from '../hooks/useEditorialSeo'
+import type {EditorialPage} from '../model'
+import {editorialReadModel} from '../repository'
+import '../../../styles/editorial-listing-layout.css'
 
 export function EditorialListingPage({page}:{page:EditorialPage}){
   const location=useLocation()
@@ -21,25 +19,21 @@ export function EditorialListingPage({page}:{page:EditorialPage}){
   const isSearchMode=Boolean(searchQuery)
   const allContents=isSearchMode?editorialReadModel.searchPublicContents(searchQuery):editorialReadModel.listPageContents(page.id)
   const contents=allContents.slice(0,Math.max(1,template.itemLimit||12))
-  const editorialAd=useNewsAdRuntime(!isSearchMode)
-  const showEditorialAd=advertising.active&&!isSearchMode&&isNewsAdValid(editorialAd)
+  const showAdvertising=advertising.active&&!isSearchMode
   useEditorialSeo(page)
 
   const heroResponsive=heroResponsiveCssVariables(hero) as CSSProperties
-  const heroStyle={
-    ...heroResponsive,
-    background:hero.background,
-    color:hero.imageUrl?'#fff':hero.textColor,
-    textAlign:hero.textAlign,
-    ...(hero.imageUrl?{backgroundImage:`linear-gradient(rgba(0,0,0,.48),rgba(0,0,0,.48)),url(${hero.imageUrl})`,backgroundSize:'cover',backgroundPosition:'center',backgroundRepeat:'no-repeat'}:{}),
-  }
+  const heroStyle={...heroResponsive,background:hero.background,color:hero.imageUrl?'#fff':hero.textColor,textAlign:hero.textAlign,...(hero.imageUrl?{backgroundImage:`linear-gradient(rgba(0,0,0,.48),rgba(0,0,0,.48)),url(${hero.imageUrl})`,backgroundSize:'cover',backgroundPosition:'center',backgroundRepeat:'no-repeat'}:{})}
 
   return <div className="public-page news-reference-page"><PublicHeader/>
     {hero.active&&<section className="public-standard-page-hero editorial-page-hero pl-responsive-hero" style={heroStyle}><div className="public-shell"><div className="news-page-intro-copy"><span style={{color:hero.accentColor}}>Início › {isSearchMode?'BUSCA':hero.eyebrow}</span><h1>{isSearchMode?'RESULTADOS':hero.title}</h1><p>{isSearchMode?`Resultados editoriais para “${searchQuery}”.`:hero.description}</p></div></div></section>}
     <main className="pl-page public-shell" style={{background:template.background,color:template.textColor,textAlign:template.textAlign}}>
       {!template.active&&!isSearchMode?<section className="editorial-empty-state" role="status"><h2>Seção editorial temporariamente oculta</h2><p>O grid editorial está desativado na configuração de Páginas.</p></section>:allContents.length===0?<section className="editorial-empty-state" role="status"><h2>{isSearchMode?'Nenhum resultado encontrado':'Nenhum conteúdo publicado ainda'}</h2><p>{isSearchMode?'Tente outro termo ou navegue pelas páginas editoriais do portal.':'Esta página está publicada, mas ainda não possui conteúdos disponíveis.'}</p>{isSearchMode&&<Link className="button outline" to={`/${page.slug}`}>Voltar para {page.title}</Link>}</section>:<>
         {summary.active&&<div className="editorial-results-summary" role="status" style={{background:summary.background,color:summary.textColor,textAlign:summary.textAlign,borderColor:summary.accentColor}}>{isSearchMode?`${allContents.length} resultado${allContents.length===1?'':'s'} encontrado${allContents.length===1?'':'s'}`:`${allContents.length} conteúdo${allContents.length===1?'':'s'}`}</div>}
-        <div className={`news-reference-grid editorial-listing-grid${showEditorialAd?' has-news-ad':''}`} style={{gridTemplateColumns:`repeat(${Math.max(1,Math.min(4,template.columns||3))},minmax(0,1fr))`}}>{showEditorialAd&&<div style={{background:advertising.background,color:advertising.textColor}}><NewsAdSection config={editorialAd}/></div>} {contents.map(content=>{const contentPage=editorialReadModel.getPageById(content.pageId);const targetPage=contentPage?.slug||page.slug;return <Link className="pl-card news-reference-card" to={`/${targetPage}/${content.slug}`} key={content.id}><div className="pl-thumb has-image" style={{backgroundImage:`linear-gradient(180deg,transparent 55%,rgba(0,0,0,.72)),url(${content.coverImage||''})`}}>{content.tags[0]&&<span className="pl-badge">{content.tags[0]}</span>}</div><div className="pl-card-body news-reference-card-body"><h3>{content.title}</h3><p>{content.summary}</p><div className="pl-meta news-reference-meta"><span>{contentPage?.navigationLabel||'Editorial'}</span><span>{content.publishedAt?new Date(content.publishedAt).toLocaleDateString('pt-BR'):'Sem data'}</span><span>{content.author}</span></div></div></Link>})}</div>
+        <div className={`editorial-content-layout${showAdvertising?' has-advertising':''}`}>
+          <div className="news-reference-grid editorial-listing-grid" style={{gridTemplateColumns:`repeat(${Math.max(1,Math.min(4,template.columns||3))},minmax(0,1fr))`}}>{contents.map(content=>{const contentPage=editorialReadModel.getPageById(content.pageId);const targetPage=contentPage?.slug||page.slug;return <Link className="pl-card news-reference-card" to={`/${targetPage}/${content.slug}`} key={content.id}><div className="pl-thumb has-image" style={{backgroundImage:`linear-gradient(180deg,transparent 55%,rgba(0,0,0,.72)),url(${content.coverImage||''})`}}>{content.tags[0]&&<span className="pl-badge">{content.tags[0]}</span>}</div><div className="pl-card-body news-reference-card-body"><h3>{content.title}</h3><p>{content.summary}</p><div className="pl-meta news-reference-meta"><span>{contentPage?.navigationLabel||'Editorial'}</span><span>{content.publishedAt?new Date(content.publishedAt).toLocaleDateString('pt-BR'):'Sem data'}</span><span>{content.author}</span></div></div></Link>})}</div>
+          {showAdvertising&&<aside className="editorial-advertising-sidebar" aria-label="Publicidade"><div className="editorial-advertising-card" style={{background:advertising.background,color:advertising.textColor}}>{advertising.imageUrl?<img className="editorial-advertising-image" src={advertising.imageUrl} alt={advertising.title||'Publicidade'}/>:<div className="editorial-advertising-placeholder">IMAGEM DA PUBLICIDADE</div>}<div className="editorial-advertising-copy">{advertising.eyebrow&&<small style={{color:advertising.accentColor}}>{advertising.eyebrow}</small>}{advertising.title&&<strong>{advertising.title}</strong>}{advertising.description&&<p>{advertising.description}</p>}{advertising.linkLabel&&(advertising.linkUrl?<Link className="editorial-advertising-link" style={{borderColor:advertising.accentColor,color:advertising.accentColor}} to={advertising.linkUrl}>{advertising.linkLabel}</Link>:<span className="editorial-advertising-link" style={{borderColor:advertising.accentColor,color:advertising.accentColor}}>{advertising.linkLabel}</span>)}</div></div></aside>}
+        </div>
       </>}
     </main><PublicFooter/></div>
 }

@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { SITE_MANAGER_NAV } from '../../../shared/internal/adminNavigation'
 import { AdminNotice, AdminShell } from '../../../shared/internal/AdminUi'
-import {isPublicPage,RESERVED_PAGE_SLUGS} from '../../editorial/model'
+import {isPublishedPage,isSpecialLayoutPage,RESERVED_PAGE_SLUGS} from '../../editorial/model'
 import { editorialReadModel } from '../../editorial/repository'
 import {normalizeSiteSlug,sitePageRepository,type SitePageDraft,type SitePageSectionDraft,type SitePageSections,type SitePageTemplate} from '../pageRepository'
 import '../../../styles/site-sections.css'
@@ -13,7 +13,6 @@ type PageDialogMode='create'|'edit'|null
 type SiteSection={id:string;name:string;summary:string;target?:string;kind:'section';locked?:boolean}
 type CmsPageOption={id:string;title:string;slug:string;source:'system'|'draft';public:boolean;layout:PageLayout}
 
-const CUSTOM_LAYOUT_SLUGS=new Set(['','sobre','colabore','contato'])
 const HOME_SECTIONS:SiteSection[]=[{id:'hero',name:'Hero Section',summary:'Hero oficial da Homepage, incluindo o Ticker integrado.',target:'/app/site/paginas/home/hero',kind:'section',locked:true}]
 const EDITORIAL_TEMPLATE_SECTION:SiteSection={id:'editorial-template',name:'Template editorial de Notícias',summary:'Layout compartilhado pela listagem e pelas páginas de conteúdo. Alterações estruturais são herdadas por todas as páginas editoriais.',kind:'section',locked:true}
 
@@ -33,7 +32,7 @@ export function SiteSectionsPage(){
   useEffect(()=>{sitePageRepository.purgeLegacy()},[])
 
   const pages=useMemo<CmsPageOption[]>(()=>{
-    const systemPages=editorialReadModel.pages.map(page=>({id:page.id,title:page.title,slug:page.slug,source:'system' as const,public:isPublicPage(page),layout:CUSTOM_LAYOUT_SLUGS.has(page.slug)?'custom' as const:'editorial' as const}))
+    const systemPages=editorialReadModel.pages.map(page=>({id:page.id,title:page.title,slug:page.slug,source:'system' as const,public:isPublishedPage(page),layout:isSpecialLayoutPage(page)?'custom' as const:'editorial' as const}))
     return [{id:'home',title:'Página inicial',slug:'',source:'system' as const,public:true,layout:'custom' as const},...systemPages,...draftPages.map(page=>({...page,source:'draft' as const,public:false,layout:'editorial' as const}))]
   },[draftPages])
 

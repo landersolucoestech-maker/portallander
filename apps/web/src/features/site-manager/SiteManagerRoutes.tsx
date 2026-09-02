@@ -3,6 +3,7 @@ import { MediaKitPage } from './pages/MediaKitPage'
 import { GlobalHeroEditorPage } from './pages/GlobalHeroEditorPage'
 import { HomeAdvertisingSectionPage } from './pages/HomeAdvertisingSectionPage'
 import { HomeContentSectionPage } from './pages/HomeContentSectionPage'
+import { HomeHeroSectionPage } from './pages/HomeHeroSectionPage'
 import { HomeMostReadSectionPage } from './pages/HomeMostReadSectionPage'
 import { SectionConfigurationPage } from './pages/SectionConfigurationPage'
 import { SiteCollaborationsPage } from './pages/SiteCollaborationsPage'
@@ -21,6 +22,7 @@ export default function SiteManagerRoutes(){
     <Route path="home/hero" element={<Navigate to="/app/site/paginas/home/secoes/hero" replace/>}/>
     <Route path="paginas" element={<SiteSectionsPage/>}/>
     <Route path="paginas/home/hero" element={<Navigate to="/app/site/paginas/home/secoes/hero" replace/>}/>
+    <Route path="paginas/home/secoes/hero" element={<HomeHeroSectionPage/>}/>
     <Route path="paginas/home/secoes/publicidade-lateral" element={<HomeAdvertisingSectionPage sectionId="publicidade-lateral"/>}/>
     <Route path="paginas/home/secoes/anuncie-aqui" element={<HomeAdvertisingSectionPage sectionId="anuncie-aqui"/>}/>
     <Route path="paginas/home/secoes/mais-lidas" element={<HomeMostReadSectionPage/>}/>

@@ -8,7 +8,7 @@ import {editorialReadModel} from '../../editorial/repository'
 import {AdminNotice,AdminShell} from '../../../shared/internal/AdminUi'
 import {SITE_MANAGER_NAV} from '../../../shared/internal/adminNavigation'
 import {normalizeSiteSlug,sitePageRepository,type SitePageDraft,type SitePageSectionDraft,type SitePageSections,type SitePageTemplate} from '../pageRepository'
-import {EDITORIAL_SECTION_DEFINITION,HOME_SECTION_DEFINITIONS,type SectionDefinition} from '../sectionConfiguration'
+import {EDITORIAL_SECTION_DEFINITION,HOME_SECTION_DEFINITIONS,SPECIAL_PAGE_SECTION_DEFINITIONS,type SectionDefinition} from '../sectionConfiguration'
 import '../../../styles/site-sections.css'
 
 type PageLayout='editorial'|'custom'
@@ -34,7 +34,6 @@ export function SiteSectionsPage(){
   useEffect(()=>{sitePageRepository.purgeLegacy()},[])
   const reloadLocal=useCallback(()=>setDraftPages(sitePageRepository.listDraftPages()),[])
   const reloadRemote=useCallback(async()=>{if(!persisted)return;setLoading(true);setError('');try{setRemotePages(await listAdminEditorialPages())}catch(caught){setError(caught instanceof Error?caught.message:'Não foi possível carregar as páginas persistidas.')}finally{setLoading(false)}},[persisted])
-
   useEffect(()=>{if(!persisted)return;let active=true;void listAdminEditorialPages().then(items=>{if(active)setRemotePages(items)}).catch(caught=>{if(active)setError(caught instanceof Error?caught.message:'Não foi possível carregar as páginas persistidas.')});return()=>{active=false}},[persisted])
 
   const pages=useMemo<CmsPageOption[]>(()=>{
@@ -52,8 +51,9 @@ export function SiteSectionsPage(){
   const selectedSystem=editorialReadModel.pages.find(page=>page.id===selected.id)
   const selectedIsProtected=persisted?(selectedPage==='home'||Boolean(selectedRemote&&isSpecialLayoutPage(selectedRemote))):selectedPage==='home'
   const customSections=storedSections[selectedPage]??[]
+  const automaticSections=selectedPage==='home'?HOME_SECTION_DEFINITIONS:(SPECIAL_PAGE_SECTION_DEFINITIONS[selected.slug]??[])
   const pageSections:SectionDefinition[]=isEditorialLayout?[EDITORIAL_SECTION_DEFINITION]:[
-    ...(selectedPage==='home'?HOME_SECTION_DEFINITIONS:[]),
+    ...automaticSections,
     ...customSections.map(section=>({id:section.id,name:section.name,summary:`Seção própria de ${selected.title}.`,kind:'custom' as const})),
   ]
 
@@ -72,7 +72,6 @@ export function SiteSectionsPage(){
   }
 
   const deletePage=async()=>{if(selectedIsProtected)return;if(!window.confirm(`Excluir “${selected.title}”?${persisted?' A exclusão será recusada se houver conteúdos vinculados.':' No modo de desenvolvimento o item original fica preservado no código e é ocultado neste navegador.'}`))return;if(persisted&&selectedRemote){setSaving(true);setError('');try{await deleteAdminEditorialPage(selectedRemote.id);await reloadRemote();setSelectedPage('home')}catch(caught){setError(caught instanceof Error?caught.message:'Não foi possível excluir a página.')}finally{setSaving(false)}return}if(selectedSystem){sitePageRepository.hideSystemPage(selected.id);sitePageRepository.removeDraftPage(selected.id)}else sitePageRepository.removeDraftPage(selected.id);const nextSections={...storedSections};delete nextSections[selected.id];setStoredSections(nextSections);sitePageRepository.saveSections(nextSections);reloadLocal();setSelectedPage('home')}
-
   const togglePublication=async()=>{if(!persisted||!selectedRemote||selectedIsProtected)return;setSaving(true);setError('');const publishing=!isPublishedPage(selectedRemote);try{const updated=await updateAdminEditorialPage(selectedRemote.id,{...selectedRemote,status:publishing?'published':'draft',active:publishing,visibility:publishing?'public':'private',seo:{...selectedRemote.seo,noIndex:!publishing},publishedAt:publishing?(selectedRemote.publishedAt||nowIso()):undefined});setRemotePages(current=>current.map(page=>page.id===updated.id?updated:page))}catch(caught){setError(caught instanceof Error?caught.message:'Não foi possível alterar a publicação da página.')}finally{setSaving(false)}}
 
   const openCreateSection=()=>{if(isEditorialLayout)return;setEditingSectionId(null);setSectionName('');setSectionSlug('');setError('');setSectionOpen(true)}

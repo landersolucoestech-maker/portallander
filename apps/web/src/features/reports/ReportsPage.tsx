@@ -1,7 +1,7 @@
 import {AlertTriangle,CheckCircle2,Database,Download,Loader2,Upload,X} from 'lucide-react'
 import {useMemo,useRef,useState} from 'react'
 import {AdminShell} from '../../shared/internal/AdminUi'
-import {CRM_WORKSPACE_NAV} from '../../shared/internal/adminNavigation'
+import {UNIFIED_ADMIN_NAV} from '../../shared/internal/adminNavigation'
 import {useModalA11y} from '../../shared/internal/useModalA11y'
 import type {ImportPreview,ReportDefinition,ReportEntity} from './domain'
 import {reportsRepository} from './repository'
@@ -14,7 +14,7 @@ export default function ReportsPage(){
  const definitions=useMemo(()=>new Map(seed.definitions.map(x=>[x.tableName,x])),[seed.definitions])
  const entities=seed.entities.filter(x=>x.reportable)
  const runExport=(entity:ReportEntity)=>{const def=definitions.get(entity.tableName);if(!def?.supportsExport)return;setExporting(entity.tableName);window.setTimeout(()=>{const rows=[def.exportableColumns.join('\t'),def.exportableColumns.map(column=>entity.columns.find(x=>x.name===column)?.label??column).join('\t')].join('\n');const blob=new Blob([rows],{type:XLSX_MIME});const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`${entity.tableName}.xlsx`;document.body.appendChild(a);a.click();a.remove();window.setTimeout(()=>URL.revokeObjectURL(url),1000);setExporting(null);setNotice('Exportação concluída.')},260)}
- return <AdminShell area="reports" items={CRM_WORKSPACE_NAV} header={{title:'Relatórios',description:'Exportação e importação por entidade — dirigido pelo backend'}}><section className="reports-page">
+ return <AdminShell area="reports" items={UNIFIED_ADMIN_NAV} header={{title:'Relatórios',description:'Exportação e importação por entidade — dirigido pelo backend'}}><section className="reports-page">
   {notice&&<div className="reports-notice" role="status"><CheckCircle2 size={14}/><span>{notice}</span><button type="button" onClick={()=>setNotice('')} aria-label="Fechar"><X size={14}/></button></div>}
   {entities.length===0?<div className="reports-empty">Nenhuma entidade reportável disponível.</div>:<div className="reports-entity-list">{entities.map(entity=>{const def=definitions.get(entity.tableName),unavailable=!def;return <article className="reports-entity-row" key={entity.tableName} data-testid={`entity-row-${entity.tableName}`}><div className="reports-entity-icon"><Database size={14}/></div><div className="reports-entity-copy"><strong>{entity.label||entity.tableName}</strong>{unavailable&&<small data-testid={`unavailable-${entity.tableName}`}>Temporariamente indisponível</small>}</div><div className="reports-entity-actions"><button type="button" className="reports-outline" disabled={!def?.supportsImport} onClick={()=>def&&setSelected(def)}><Upload size={13}/>Importar</button><button type="button" className="reports-outline" disabled={!def?.supportsExport||exporting===entity.tableName} onClick={()=>runExport(entity)}>{exporting===entity.tableName?<Loader2 className="reports-spin" size={13}/>:<Download size={13}/>}Exportar</button></div></article>})}</div>}
   {selected&&<ImportDialog definition={selected} previewSeed={seed.importPreview[selected.tableName]} onClose={()=>setSelected(null)} onImported={()=>{setNotice('Importação concluída.');setSelected(null)}}/>}

@@ -54,3 +54,6 @@ export function AdminAuthProvider({children}:{children:ReactNode}){
   const value=useMemo(()=>({status,user,error,login,logout,refresh}),[status,user,error,login,logout,refresh])
   return <AdminAuthContext.Provider value={value}>{children}</AdminAuthContext.Provider>
 }
+
+// eslint-disable-next-line react-refresh/only-export-components
+export {useAdminAuth} from './adminAuthState'

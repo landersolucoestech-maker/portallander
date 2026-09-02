@@ -25,7 +25,7 @@ function normalizePage(input,existing={}){
   const type=value.type??'editorial'
   ensure(PAGE_TYPES.has(type),400,'Tipo de página inválido.','PAGE_TYPE_INVALID')
   if(SPECIAL_SLUGS.has(slug))ensure(type!=='editorial',400,'Este slug pertence a uma página de layout especial.','PAGE_SPECIAL_LAYOUT_REQUIRED')
-  if(type==='editorial')ensure(!SPECIAL_SLUGS.has(slug),400,'Página editorial não pode usar slug reservado de layout especial.','PAGE_SLUG_RESERVED')
+  else ensure(type==='editorial',400,'Somente Sobre, Colabore e Contato podem usar layout não editorial.','PAGE_LAYOUT_CLASSIFICATION_INVALID')
   const status=value.status??'draft',visibility=value.visibility??'private'
   ensure(STATUSES.has(status),400,'Status de página inválido.','PAGE_STATUS_INVALID')
   ensure(VISIBILITIES.has(visibility),400,'Visibilidade inválida.','PAGE_VISIBILITY_INVALID')

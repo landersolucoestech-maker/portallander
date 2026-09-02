@@ -1,8 +1,8 @@
 import { useMemo } from 'react'
 import { Link, Navigate, useLocation } from 'react-router-dom'
 import InternalApp from './InternalApp'
+import { renderPublicSpecialPage } from './publicSpecialPageRegistry'
 import { AnunciePage } from '../pages/anuncie/AnunciePage'
-import { ColaborePage } from '../pages/colabore/ColaborePage'
 import { EditorialContentPage } from '../features/editorial/components/EditorialContentPage'
 import { EditorialListingPage } from '../features/editorial/components/EditorialListingPage'
 import { editorialReadModel } from '../features/editorial/repository'
@@ -19,11 +19,15 @@ export default function PortalApp(){
 
   if(path==='/')return <PublicHome/>
   if(path==='/anuncie')return <AnunciePage/>
-  if(path==='/colabore')return <ColaborePage/>
   if(path.startsWith('/app'))return <InternalApp/>
   if(segments[0]==='noticia'&&segments[1])return <Navigate to={`/noticias/${segments[1]}`} replace/>
 
   if(segments.length===1){
+    const publishedPage=editorialReadModel.getPublishedPageBySlug(segments[0])
+    if(publishedPage){
+      const specialPage=renderPublicSpecialPage(publishedPage)
+      if(specialPage)return specialPage
+    }
     const page=editorialReadModel.getPageBySlug(segments[0])
     if(page)return <EditorialListingPage page={page}/>
   }

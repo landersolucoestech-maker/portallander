@@ -1,7 +1,6 @@
 import {useEffect,useRef,useState} from 'react'
 import {HeroEditor} from '../../../pages/home/components/HeroEditor'
 import {HERO_APPEARANCE_EVENT} from '../../../pages/home/models/heroAppearanceModel'
-import {HERO_BACKGROUND_EVENT} from '../../../pages/home/models/heroBackgroundModel'
 import {
   loadAdminHeroCmsState,
   readCachedHeroCmsState,
@@ -60,12 +59,10 @@ export function HomeHeroSectionPage(){
     }
     window.addEventListener(HERO_CONTENT_EVENT,persist)
     window.addEventListener(HERO_APPEARANCE_EVENT,persist)
-    window.addEventListener(HERO_BACKGROUND_EVENT,persist)
     return()=>{
       if(timerRef.current!==null)window.clearTimeout(timerRef.current)
       window.removeEventListener(HERO_CONTENT_EVENT,persist)
       window.removeEventListener(HERO_APPEARANCE_EVENT,persist)
-      window.removeEventListener(HERO_BACKGROUND_EVENT,persist)
     }
   },[loading])
 

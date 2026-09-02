@@ -6,6 +6,7 @@ import {type MediaKitAdFormat,type MediaKitDraft} from '../mediaKitDomain'
 import {isMediaKitPersistenceConfigured,mediaKitRepository} from '../mediaKitRepository'
 import {siteManagerReadModel} from '../readModel'
 import './site-forms.css'
+import './media-kit.css'
 
 const uid=()=>`format-${crypto.randomUUID()}`
 
@@ -49,10 +50,9 @@ export function MediaKitPage(){
     if(!persistent)return
     setOperation('publish');setError('');setNotice('')
     try{
-      const savedDraft=draft.status==='draft'?await mediaKitRepository.save(draft):await mediaKitRepository.save({...draft,status:'draft'})
+      await mediaKitRepository.save({...draft,status:'draft'})
       const publishedKit=await mediaKitRepository.publish()
       setDraft(publishedKit);setSaved(false);setNotice(`Mídia Kit v${publishedKit.version} publicado com sucesso. A versão anterior foi arquivada automaticamente.`)
-      void savedDraft
     }catch(caught){setError(caught instanceof Error?caught.message:'Não foi possível publicar o Mídia Kit.')}
     finally{setOperation('')}
   }

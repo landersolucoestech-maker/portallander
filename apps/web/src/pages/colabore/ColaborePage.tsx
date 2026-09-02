@@ -11,9 +11,9 @@ const formDefinition=getSiteFormBySlug('colabore')
 export function ColaborePage(){
   const guidelines=publicSiteReadModel.collaborationGuidelines()
 
-  const submit=async({payload,acceptedConsentIds,files}:SiteFormSubmitPayload)=>{
+  const submit=async({payload,acceptedConsentIds,files,antiSpam}:SiteFormSubmitPayload)=>{
     if(!formDefinition)throw new Error('O formulário Colabore não está configurado.')
-    await submitSiteForm(formDefinition.slug,{payload,acceptedConsentIds,files,source:{page:window.location.pathname,referrer:document.referrer||undefined}})
+    await submitSiteForm(formDefinition.slug,{payload,acceptedConsentIds,files,antiSpam,source:{page:window.location.pathname,referrer:document.referrer||undefined}})
     return formDefinition.successMessage
   }
 

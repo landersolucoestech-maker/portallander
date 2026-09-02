@@ -10,7 +10,7 @@ const internalRoutes=[
  '/app/site/conteudos','/app/site/paginas','/app/site/categorias','/app/site/midia','/app/site/noticias/anuncio','/app/site/midia-kit',
  '/app/site/formularios','/app/site/formularios/collaborate'
 ]
-const accessRoutes=['/app/login']
+const developmentEntryRoutes=['/app/login']
 const publicRoutes=[
  '/','/noticias','/cultura','/noticias/mercado-criativo-em-expansao','/cultura/cidade-em-movimento','/sobre','/colabore','/contato','/anuncie'
 ]
@@ -63,12 +63,12 @@ for(const viewport of viewports){
        await page.screenshot({path:`test-results/visual/${viewport.name}-${safeName(route)}.png`,fullPage:true})
      })
    }
-   for(const route of accessRoutes){
-     test(`access ${route}`,async({page})=>{
+   for(const route of developmentEntryRoutes){
+     test(`development entry ${route}`,async({page})=>{
        await openRoute(page,route)
-       await assertViewportIntegrity(page,false)
-       await expect(page.locator('.access-page').first()).toBeVisible()
-       await page.screenshot({path:`test-results/visual/${viewport.name}-access-${safeName(route)}.png`,fullPage:true})
+       await expect.poll(()=>page.evaluate(()=>window.location.hash)).toContain('/app/dashboard')
+       await assertViewportIntegrity(page,true)
+       await page.screenshot({path:`test-results/visual/${viewport.name}-development-entry-${safeName(route)}.png`,fullPage:true})
      })
    }
    for(const route of publicRoutes){
@@ -121,13 +121,15 @@ test.describe('site architecture behavior',()=>{
    await expect(preview).toContainText('Novo campo')
  })
 
- test('page draft lifecycle preserves editorial template inheritance',async({page})=>{
+ test('page draft lifecycle preserves canonical editorial sections',async({page})=>{
    await openRoute(page,'/app/site/paginas')
    await page.getByRole('button',{name:'Criar página'}).click()
    await page.getByLabel('Nome da página').fill('Música E2E')
    await page.getByRole('button',{name:'Criar rascunho'}).click()
-   await expect(page.getByText('Template editorial de Notícias')).toBeVisible()
-   await expect(page.getByText('Herdada de Notícias')).toBeVisible()
+   for(const section of ['Hero Editorial','Resumo da Listagem','Publicidade Editorial','Conteúdos / Grid Editorial','Slug Page · Hero da Matéria','Slug Page · Corpo da Matéria','Slug Page · Tags']){
+     await expect(page.getByText(section,{exact:true})).toBeVisible()
+   }
+   await expect(page.getByRole('link',{name:'Configurar'}).first()).toBeVisible()
    await page.reload()
    await expect(page.getByRole('combobox',{name:'Página'})).toContainText('Música E2E')
    await page.getByRole('combobox',{name:'Página'}).selectOption({label:/Música E2E/})

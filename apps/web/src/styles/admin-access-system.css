@@ -1,7 +1,7 @@
-/* Access/login/workspace pages live outside .app-shell but belong to the same internal product. */
-.access-page,.workspace-selection-page{font-family:'Montserrat',Arial,sans-serif;min-height:100dvh}
-.access-page button,.access-page input,.access-page select,.access-page textarea,.workspace-selection-page button,.workspace-selection-page input,.workspace-selection-page select,.workspace-selection-page textarea{font-family:inherit}
-.access-page a:focus-visible,.access-page button:focus-visible,.access-page input:focus-visible,.access-page select:focus-visible,.access-page textarea:focus-visible,.workspace-selection-page a:focus-visible,.workspace-selection-page button:focus-visible{outline:2px solid #e30613;outline-offset:3px}
-.access-brand-panel,.access-form-panel,.workspace-selection-page{min-height:100dvh}
+/* Access/login pages live outside .app-shell but belong to the same internal product. */
+.access-page{font-family:'Montserrat',Arial,sans-serif;min-height:100dvh}
+.access-page button,.access-page input,.access-page select,.access-page textarea{font-family:inherit}
+.access-page a:focus-visible,.access-page button:focus-visible,.access-page input:focus-visible,.access-page select:focus-visible,.access-page textarea:focus-visible{outline:2px solid #e30613;outline-offset:3px}
+.access-brand-panel,.access-form-panel{min-height:100dvh}
 @media(max-width:900px){.access-brand-panel,.access-form-panel{min-height:auto}.access-login-page{min-height:100dvh}}
-@media(prefers-reduced-motion:reduce){.access-page *,.workspace-selection-page *{transition-duration:.01ms!important;animation-duration:.01ms!important;animation-iteration-count:1!important}}
+@media(prefers-reduced-motion:reduce){.access-page *{transition-duration:.01ms!important;animation-duration:.01ms!important;animation-iteration-count:1!important}}

@@ -3,6 +3,7 @@ import {useMemo,type CSSProperties} from 'react'
 import { NewsAdSection } from '../../../pages/noticias/components/NewsAdSection'
 import { useNewsAdRuntime } from '../../../pages/noticias/hooks/useNewsAdRuntime'
 import { isNewsAdValid } from '../../../pages/noticias/models/newsAdModel'
+import { heroResponsiveCssVariables } from '../../site-manager/sectionConfiguration'
 import { useSectionConfiguration } from '../../site-manager/useSectionConfiguration'
 import { PublicFooter, PublicHeader } from '../../../shared/public/PublicChrome'
 import { useEditorialSeo } from '../hooks/useEditorialSeo'
@@ -22,9 +23,9 @@ export function EditorialListingPage({page}:{page:EditorialPage}){
   const showEditorialAd=!isSearchMode&&isNewsAdValid(editorialAd)
   useEditorialSeo(page)
 
-  const heroHeights={'--pl-hero-height-desktop':`${hero.heroHeightDesktop}px`,'--pl-hero-height-tablet':`${hero.heroHeightTablet}px`,'--pl-hero-height-mobile':`${hero.heroHeightMobile}px`} as CSSProperties
+  const heroResponsive=heroResponsiveCssVariables(hero) as CSSProperties
   const heroStyle={
-    ...heroHeights,
+    ...heroResponsive,
     background:hero.background,
     color:hero.imageUrl?'#fff':hero.textColor,
     textAlign:hero.textAlign,

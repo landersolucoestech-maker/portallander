@@ -25,22 +25,18 @@ export function SiteContentEditorPage(){
   const [draft,setDraft]=useState<EditorialContent|undefined>(()=>localSource?clone(localSource):undefined)
   const [body,setBody]=useState(()=>localSource?bodyText(localSource):'')
   const [remotePages,setRemotePages]=useState<EditorialPage[]>([])
-  const [loading,setLoading]=useState(persisted)
+  const [loadedRemoteId,setLoadedRemoteId]=useState<string|null>(null)
   const [saving,setSaving]=useState(false)
   const [saved,setSaved]=useState(false)
   const [error,setError]=useState('')
 
   useEffect(()=>{
-    if(!persisted){
-      const source=contentDraftRepository.get(contentId)
-      setDraft(source?clone(source):undefined);setBody(source?bodyText(source):'');setLoading(false);return
-    }
+    if(!persisted)return
     let active=true
-    setLoading(true);setError('')
     void Promise.all([getAdminEditorialContent(contentId),listAdminEditorialPages()]).then(([content,pages])=>{
       if(!active)return
-      setDraft(clone(content));setBody(bodyText(content));setRemotePages(pages);setSaved(false)
-    }).catch(caught=>{if(active)setError(caught instanceof Error?caught.message:'Não foi possível carregar o conteúdo persistido.')}).finally(()=>{if(active)setLoading(false)})
+      setDraft(clone(content));setBody(bodyText(content));setRemotePages(pages);setSaved(false);setError('')
+    }).catch(caught=>{if(active){setDraft(undefined);setError(caught instanceof Error?caught.message:'Não foi possível carregar o conteúdo persistido.')}}).finally(()=>{if(active)setLoadedRemoteId(contentId)})
     return()=>{active=false}
   },[contentId,persisted])
 
@@ -51,6 +47,7 @@ export function SiteContentEditorPage(){
       ...sitePageRepository.listDraftPages().map(page=>({id:page.id,title:`${page.title} · rascunho`,source:'draft' as const})),
     ],[persisted,remotePages])
 
+  const loading=persisted&&loadedRemoteId!==contentId
   if(loading)return <AdminShell area="cms" items={SITE_MANAGER_NAV} header={{title:'Carregando conteúdo',description:'Sincronizando o editor com a persistência editorial.'}}><AdminNotice title="Sincronizando" description="Carregando conteúdo e páginas diretamente da API do Portal Lander."/></AdminShell>
   if(!draft)return <AdminShell area="cms" items={SITE_MANAGER_NAV} header={{title:'Conteúdo não encontrado',description:'O conteúdo solicitado não está disponível neste ambiente.'}}>{error&&<AdminNotice title="Falha ao abrir conteúdo" description={error}/>}<Link className="button outline" to="/app/site/conteudos"><ArrowLeft size={15}/>Voltar para Conteúdos</Link></AdminShell>
 

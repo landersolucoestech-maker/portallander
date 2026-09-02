@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import { MediaKitPage } from './pages/MediaKitPage'
 import { GlobalHeroEditorPage } from './pages/GlobalHeroEditorPage'
 import { HomeAdvertisingSectionPage } from './pages/HomeAdvertisingSectionPage'
+import { HomeContentSectionPage } from './pages/HomeContentSectionPage'
 import { HomeMostReadSectionPage } from './pages/HomeMostReadSectionPage'
 import { SectionConfigurationPage } from './pages/SectionConfigurationPage'
 import { SiteCollaborationsPage } from './pages/SiteCollaborationsPage'
@@ -23,6 +24,11 @@ export default function SiteManagerRoutes(){
     <Route path="paginas/home/secoes/publicidade-lateral" element={<HomeAdvertisingSectionPage sectionId="publicidade-lateral"/>}/>
     <Route path="paginas/home/secoes/anuncie-aqui" element={<HomeAdvertisingSectionPage sectionId="anuncie-aqui"/>}/>
     <Route path="paginas/home/secoes/mais-lidas" element={<HomeMostReadSectionPage/>}/>
+    <Route path="paginas/home/secoes/em-destaque" element={<HomeContentSectionPage sectionId="em-destaque"/>}/>
+    <Route path="paginas/home/secoes/ultimas-noticias" element={<HomeContentSectionPage sectionId="ultimas-noticias"/>}/>
+    <Route path="paginas/home/secoes/lancamentos" element={<HomeContentSectionPage sectionId="lancamentos"/>}/>
+    <Route path="paginas/home/secoes/agenda" element={<HomeContentSectionPage sectionId="agenda"/>}/>
+    <Route path="paginas/home/secoes/em-alta" element={<HomeContentSectionPage sectionId="em-alta"/>}/>
     <Route path="paginas/:pageId/secoes/editorial-hero" element={<GlobalHeroEditorPage sectionId="editorial-hero"/>}/>
     <Route path="paginas/:pageId/secoes/sobre-hero" element={<GlobalHeroEditorPage sectionId="sobre-hero"/>}/>
     <Route path="paginas/:pageId/secoes/contato-hero" element={<GlobalHeroEditorPage sectionId="contato-hero"/>}/>

@@ -2,7 +2,7 @@ import {ArrowDownLeft,ArrowLeftRight,ArrowUpRight,Download,FileText,MoreHorizont
 import {useMemo,useState,type FormEvent,type ReactNode} from 'react'
 import {useNavigate} from 'react-router-dom'
 import {AdminShell} from '../../shared/internal/AdminUi'
-import {CRM_WORKSPACE_NAV} from '../../shared/internal/adminNavigation'
+import {UNIFIED_ADMIN_NAV} from '../../shared/internal/adminNavigation'
 import {invoiceStatusOptions,invoiceTypeOptions,money,uid,type FinanceInvoice,type InvoiceStatus,type InvoiceType} from './domain'
 import {financeRepository} from './repository'
 
@@ -27,7 +27,7 @@ export default function FinanceInvoicesPage(){
  const outputs=invoices.filter(x=>x.type==='saida'),inputs=invoices.filter(x=>x.type==='entrada'),outValue=outputs.reduce((s,x)=>s+x.amount,0),inValue=inputs.reduce((s,x)=>s+x.amount,0),balance=outValue-inValue
  const allVisible=items.length>0&&items.every(x=>selected.includes(x.id))
  const toggleAllVisible=(checked:boolean)=>setSelected(current=>checked?Array.from(new Set([...current,...items.map(x=>x.id)])):current.filter(id=>!items.some(x=>x.id===id)))
- return <AdminShell area="finance" items={CRM_WORKSPACE_NAV} header={{title:'Notas Fiscais',description:'Registro e controle de notas fiscais de entrada e saída'}} headerActions={[{label:'Financeiro',variant:'secondary',icon:ArrowLeftRight,onClick:()=>navigate('/app/finance')},{label:'Registrar Nota',icon:Plus,onClick:()=>setInvoiceModal(null)}]}>
+ return <AdminShell area="finance" items={UNIFIED_ADMIN_NAV} header={{title:'Notas Fiscais',description:'Registro e controle de notas fiscais de entrada e saída'}} headerActions={[{label:'Financeiro',variant:'secondary',icon:ArrowLeftRight,onClick:()=>navigate('/app/finance')},{label:'Registrar Nota',icon:Plus,onClick:()=>setInvoiceModal(null)}]}>
   <section className="finance-page">
    <div className="finance-kpis finance-invoice-six"><Kpi title="Total" value={String(invoices.length)} icon={<FileText/>}/><Kpi title="Saídas" value={String(outputs.length)} icon={<ArrowUpRight/>}/><Kpi title="Entradas" value={String(inputs.length)} icon={<ArrowDownLeft/>}/><Kpi title="Valor Saídas" value={money(outValue)} icon={<ArrowUpRight/>}/><Kpi title="Valor Entradas" value={money(-inValue)} icon={<ArrowDownLeft/>}/><Kpi title="Saldo" value={`${balance>=0?'+':''}${money(balance)}`} icon={<Scale/>}/></div>
    <div className="finance-filters" style={filterLayout}><input type="date" value={start} onChange={e=>{setStart(e.target.value);setPage(1)}}/><input type="date" value={end} onChange={e=>{setEnd(e.target.value);setPage(1)}}/><label className="finance-search" style={searchStyle}><Search size={15}/><input value={search} onChange={e=>{setSearch(e.target.value);setPage(1)}} placeholder="Buscar por número, série, cliente, fornecedor, CPF/CNPJ, chave de acesso, natureza ou CFOP…"/></label><select value={type} onChange={e=>{setType(e.target.value);setPage(1)}}><option value="all">Todas</option>{invoiceTypeOptions.map(([key,label])=><option key={key} value={key}>{label}</option>)}</select><select value={status} onChange={e=>{setStatus(e.target.value);setPage(1)}}><option value="all">Todos</option>{invoiceStatusOptions.map(([key,label])=><option key={key} value={key}>{label}</option>)}</select></div>

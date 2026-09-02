@@ -30,6 +30,4 @@ export const UNIFIED_ADMIN_NAV:readonly AdminNavItem[]=[
   ['Configurações',Settings,'/app/settings'],
 ]
 
-// Aliases temporários preservam os consumidores atuais durante a migração módulo a módulo.
-export const CRM_WORKSPACE_NAV=UNIFIED_ADMIN_NAV
 export const SITE_MANAGER_NAV=UNIFIED_ADMIN_NAV

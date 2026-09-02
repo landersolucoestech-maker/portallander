@@ -57,7 +57,7 @@ const bannerDefaults:AdvertisingSectionLayout={
   ...sidebarDefaults,
   adWidthDesktop:0,adWidthTablet:0,adWidthMobile:0,
   adHeightDesktop:360,adHeightTablet:320,adHeightMobile:280,
-  adImageFit:'cover',
+  adImageFit:'contain',
 }
 
 export function defaultAdvertisingSectionLayout(sectionId:string):AdvertisingSectionLayout{

@@ -1,14 +1,16 @@
 import {useEffect,useRef,useState,type ReactNode} from 'react'
-import {AlertTriangle,Archive,BellRing,Building2,CalendarDays,Check,ChevronRight,Copy,DollarSign,FileText,KeyRound,Mail,Pencil,Plug,Plus,RefreshCw,RotateCcw,Send,Shield,ShieldCheck,Smartphone,Trash2,Upload,Users,X} from 'lucide-react'
+import {AlertTriangle,Archive,BellRing,Building2,CalendarDays,Check,ChevronRight,Copy,DollarSign,FileText,Globe2,KeyRound,Mail,Pencil,Plug,Plus,RefreshCw,RotateCcw,Send,Shield,ShieldCheck,Smartphone,Trash2,Upload,Users,X} from 'lucide-react'
 import {AdminShell} from '../../shared/internal/AdminUi'
 import {CRM_WORKSPACE_NAV} from '../../shared/internal/adminNavigation'
 import {useModalA11y} from '../../shared/internal/useModalA11y'
 import {settingsRepository} from './repository'
+import {SiteIdentitySettings} from './SiteIdentitySettings'
 import type {SettingsRole,SettingsSeed,SettingsTab} from './domain'
 import './settings.css'
 
 const tabs:[SettingsTab,string,typeof Building2][]=[
  ['empresa','Empresa',Building2],
+ ['identidade_site','Identidade do Site',Globe2],
  ['automacoes','Automações',BellRing],
  ['seguranca','Segurança',ShieldCheck],
  ['integracoes','Integrações',Plug],
@@ -22,7 +24,7 @@ export default function SettingsPage(){
  return <AdminShell area="settings" items={CRM_WORKSPACE_NAV} header={{title:'Configurações',description:'Gerencie as configurações do sistema e preferências'}}>
   <div className="settings-page">
    <div className="settings-tabs" role="tablist" aria-label="Seções de configurações">{tabs.map(([id,label,Icon])=><button key={id} type="button" role="tab" aria-selected={tab===id} className={tab===id?'active':''} onClick={()=>setTab(id)}><Icon size={15}/>{label}</button>)}</div>
-   {tab==='empresa'?<Company state={state} save={save}/>:tab==='automacoes'?<Automations state={state} save={save}/>:tab==='seguranca'?<Security/>:tab==='integracoes'?<Integrations state={state}/>:<UsersTab state={state}/>} 
+   {tab==='empresa'?<Company state={state} save={save}/>:tab==='identidade_site'?<SiteIdentitySettings/>:tab==='automacoes'?<Automations state={state} save={save}/>:tab==='seguranca'?<Security/>:tab==='integracoes'?<Integrations state={state}/>:<UsersTab state={state}/>} 
   </div>
  </AdminShell>
 }
@@ -36,7 +38,7 @@ function Company({state,save}:{state:SettingsSeed;save:(s:SettingsSeed)=>void}){
  const changeLogo=(file?:File)=>{if(!file)return;const reader=new FileReader();reader.onload=()=>{if(typeof reader.result!=='string')return;const company={...state.company,logoUrl:reader.result};setForm(company);save({...state,company})};reader.readAsDataURL(file)}
  return <div className="settings-company-grid">
   <Card title="Identidade Visual" description="Logo exibida nas áreas públicas e internas"><div className="settings-identity"><div className="settings-logo-preview">{form.logoUrl?<img src={form.logoUrl} alt="Logo da empresa"/>:<Building2 size={30}/>}</div><input ref={logoInputRef} className="settings-logo-input" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" aria-label="Selecionar nova logo" onChange={e=>{changeLogo(e.target.files?.[0]);e.currentTarget.value=''}}/><button type="button" className="settings-outline" onClick={()=>logoInputRef.current?.click()}><Upload size={14}/>Alterar logo</button><h3>{form.tradeName||'Sua empresa'}</h3><div className="settings-company-summary"><p><span>CNPJ</span><strong>{form.cnpj||'—'}</strong></p><p><span>Telefone</span><strong>{form.phone||'—'}</strong></p><p><span>Responsável</span><strong>{form.responsible||'—'}</strong></p></div></div></Card>
-  <Card title="Dados da Empresa" description="Informações da empresa para contratos e documentos" actions={!editing?<button type="button" className="settings-outline" onClick={startEdit}><Pencil size={14}/>Editar Dados</button>:undefined}><div className="settings-grid"><Field label="Razão Social" value={form.legalName} onChange={v=>setForm({...form,legalName:v})} disabled={!editing}/><Field label="Nome Fantasia" value={form.tradeName} onChange={v=>setForm({...form,tradeName:v})} disabled={!editing}/><Field label="CNPJ" value={form.cnpj} onChange={v=>setForm({...form,cnpj:v})} disabled={!editing}/><label className="settings-field"><span>Endereço Completo</span><input value={form.address} onChange={e=>setForm({...form,address:e.target.value})} disabled={!editing}/></label><Field label="Telefone/WhatsApp" value={form.phone} onChange={v=>setForm({...form,phone:v})} disabled={!editing}/><Field label="Responsável" value={form.responsible} onChange={v=>setForm({...form,responsible:v})} disabled={!editing}/></div>{editing&&<div className="settings-actions"><button type="button" className="settings-primary" onClick={()=>{save({...state,company:form});setEditing(false)}}>Salvar Configurações</button><button type="button" className="settings-outline" onClick={cancel}>Cancelar</button></div>}</Card>
+  <Card title="Dados da Empresa" description="Informações da empresa para contratos e documentos" actions={!editing?<button type="button" className="settings-outline" onClick={startEdit}><Pencil size={14}/>Editar Dados</button>:undefined}><div className="settings-grid"><Field label="Razão Social" value={form.legalName} onChange={v=>setForm({...form,legalName:v})} disabled={!editing}/><Field label="Nome Fantasia" value={form.tradeName} onChange={v=>setForm({...form,tradeName:v})} disabled={!editing}/><Field label="CNPJ" value={form.cnpj} onChange={v=>setForm({...form,cnpj:v})} disabled={!editing}/><label className="settings-field"><span>Endereço Completo</span><input value={form.address} onChange={e=>setForm({...form,address:e.target.value)} disabled={!editing}/></label><Field label="Telefone/WhatsApp" value={form.phone} onChange={v=>setForm({...form,phone:v})} disabled={!editing}/><Field label="Responsável" value={form.responsible} onChange={v=>setForm({...form,responsible:v})} disabled={!editing}/></div>{editing&&<div className="settings-actions"><button type="button" className="settings-primary" onClick={()=>{save({...state,company:form});setEditing(false)}}>Salvar Configurações</button><button type="button" className="settings-outline" onClick={cancel}>Cancelar</button></div>}</Card>
  </div>
 }
 

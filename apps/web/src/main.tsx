@@ -3,7 +3,9 @@ import ReactDOM from 'react-dom/client'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { HashRouter } from 'react-router-dom'
 import App from './app/PortalApp'
+import {loadPublicEditorialSnapshot} from './features/editorial/apiClient'
 import {mockDataProvider} from './shared/data/mockDataProvider'
+import {withEditorialSnapshot} from './shared/data/editorialOverlayDataProvider'
 import {prepareMockSeedStorage} from './shared/data/mockSeedLifecycle'
 import {setRuntimeDataProvider} from './shared/data/runtimeDataProvider'
 import {scenarioController} from './shared/data/scenarioController'
@@ -30,6 +32,15 @@ async function waitForPublicFonts() {
   await document.fonts.ready
 }
 
+async function bootstrapEditorialData(){
+  try{
+    const snapshot=await loadPublicEditorialSnapshot()
+    if(snapshot)setRuntimeDataProvider(withEditorialSnapshot(mockDataProvider,snapshot))
+  }catch(error){
+    console.warn('[Portal Lander] API editorial indisponível; mantendo provider atual.',error)
+  }
+}
+
 function mountApp() {
   ReactDOM.createRoot(document.getElementById('root')!).render(
     <React.StrictMode><QueryClientProvider client={queryClient}><HashRouter><App/></HashRouter></QueryClientProvider></React.StrictMode>,
@@ -40,7 +51,10 @@ function mountApp() {
   })
 }
 
-void waitForPublicFonts().catch(() => undefined).finally(() => {
+void Promise.all([
+  waitForPublicFonts().catch(()=>undefined),
+  bootstrapEditorialData(),
+]).finally(() => {
   document.documentElement.classList.remove('pl-fonts-loading')
   document.documentElement.classList.add('pl-fonts-ready')
   mountApp()

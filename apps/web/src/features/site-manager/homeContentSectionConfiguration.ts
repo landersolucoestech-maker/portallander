@@ -11,27 +11,13 @@ export type HomeContentSectionLayout={
   homeSelectionMode:HomeSelectionMode
   homeSortMode:HomeSortMode
   homeManualSelection:string[]
-  homeColumnsDesktop:number
-  homeColumnsTablet:number
-  homeColumnsMobile:number
-  homeGapDesktop:number
-  homeGapTablet:number
-  homeGapMobile:number
-  homeMarginYDesktop:number
-  homeMarginYTablet:number
-  homeMarginYMobile:number
-  homePaddingXDesktop:number
-  homePaddingXTablet:number
-  homePaddingXMobile:number
-  homePaddingYDesktop:number
-  homePaddingYTablet:number
-  homePaddingYMobile:number
+  homeResponsiveProfile:HomeContentSectionId
   homeAgendaWindow:HomeAgendaWindow
 }
 
 export type HomeContentSectionConfiguration=SectionConfiguration&HomeContentSectionLayout
 
-const VERSION=2
+const VERSION=3
 export const HOME_CONTENT_MAX_ITEMS:Record<HomeContentSectionId,number>={
   'em-destaque':6,
   'ultimas-noticias':8,
@@ -40,73 +26,73 @@ export const HOME_CONTENT_MAX_ITEMS:Record<HomeContentSectionId,number>={
   'em-alta':5,
 }
 
-const sectionDefaults:Record<HomeContentSectionId,Partial<HomeContentSectionLayout>>={
-  'em-destaque':{homeColumnsDesktop:3,homeColumnsTablet:2,homeColumnsMobile:1},
-  'ultimas-noticias':{homeColumnsDesktop:2,homeColumnsTablet:2,homeColumnsMobile:1},
-  'lancamentos':{homeColumnsDesktop:4,homeColumnsTablet:2,homeColumnsMobile:1},
-  'agenda':{homeColumnsDesktop:1,homeColumnsTablet:1,homeColumnsMobile:1,homeAgendaWindow:'all'},
-  'em-alta':{homeColumnsDesktop:1,homeColumnsTablet:1,homeColumnsMobile:1},
-}
-
-const base:HomeContentSectionLayout={
-  homeLayoutVersion:VERSION,
-  homeSelectionMode:'automatic',
-  homeSortMode:'provider',
-  homeManualSelection:[],
-  homeColumnsDesktop:1,homeColumnsTablet:1,homeColumnsMobile:1,
-  homeGapDesktop:12,homeGapTablet:12,homeGapMobile:10,
-  homeMarginYDesktop:0,homeMarginYTablet:0,homeMarginYMobile:0,
-  homePaddingXDesktop:0,homePaddingXTablet:0,homePaddingXMobile:0,
-  homePaddingYDesktop:0,homePaddingYTablet:0,homePaddingYMobile:0,
-  homeAgendaWindow:'all',
+type CanonicalLayout={columns:number;gap:number;marginY:number;paddingX:number;paddingY:number}
+const canonical:Record<HomeContentSectionId,Record<SectionHeroViewport,CanonicalLayout>>={
+  'em-destaque':{
+    desktop:{columns:3,gap:12,marginY:0,paddingX:0,paddingY:0},
+    tablet:{columns:2,gap:12,marginY:0,paddingX:0,paddingY:0},
+    mobile:{columns:1,gap:10,marginY:0,paddingX:0,paddingY:0},
+  },
+  'ultimas-noticias':{
+    desktop:{columns:2,gap:12,marginY:0,paddingX:0,paddingY:0},
+    tablet:{columns:2,gap:12,marginY:0,paddingX:0,paddingY:0},
+    mobile:{columns:1,gap:10,marginY:0,paddingX:0,paddingY:0},
+  },
+  lancamentos:{
+    desktop:{columns:4,gap:12,marginY:0,paddingX:0,paddingY:0},
+    tablet:{columns:2,gap:12,marginY:0,paddingX:0,paddingY:0},
+    mobile:{columns:1,gap:10,marginY:0,paddingX:0,paddingY:0},
+  },
+  agenda:{
+    desktop:{columns:1,gap:12,marginY:0,paddingX:0,paddingY:0},
+    tablet:{columns:1,gap:12,marginY:0,paddingX:0,paddingY:0},
+    mobile:{columns:1,gap:10,marginY:0,paddingX:0,paddingY:0},
+  },
+  'em-alta':{
+    desktop:{columns:1,gap:12,marginY:0,paddingX:0,paddingY:0},
+    tablet:{columns:1,gap:12,marginY:0,paddingX:0,paddingY:0},
+    mobile:{columns:1,gap:10,marginY:0,paddingX:0,paddingY:0},
+  },
 }
 
 export function withHomeContentSectionConfiguration(config:SectionConfiguration,sectionId:HomeContentSectionId):HomeContentSectionConfiguration{
   const raw=config as SectionConfiguration&Partial<HomeContentSectionLayout>
-  const defaults={...base,...sectionDefaults[sectionId]}
-  const legacyColumns=Math.max(1,Math.min(4,config.columns||defaults.homeColumnsDesktop||1))
-  const merged={...config,...defaults,...raw} as HomeContentSectionConfiguration
-  if(!raw.homeLayoutVersion){
-    merged.homeColumnsDesktop=legacyColumns
+  return {
+    ...config,
+    homeLayoutVersion:VERSION,
+    homeSelectionMode:raw.homeSelectionMode==='manual'?'manual':'automatic',
+    homeSortMode:['provider','reverse','title-asc','title-desc'].includes(raw.homeSortMode||'')?raw.homeSortMode as HomeSortMode:'provider',
+    homeManualSelection:Array.isArray(raw.homeManualSelection)?raw.homeManualSelection.filter(Boolean):[],
+    homeResponsiveProfile:sectionId,
+    homeAgendaWindow:['all','future','past'].includes(raw.homeAgendaWindow||'')?raw.homeAgendaWindow as HomeAgendaWindow:'all',
+    itemLimit:Math.max(0,Math.min(HOME_CONTENT_MAX_ITEMS[sectionId],Number(config.itemLimit)||0)),
   }
-  merged.homeLayoutVersion=VERSION
-  merged.itemLimit=Math.max(0,Math.min(HOME_CONTENT_MAX_ITEMS[sectionId],Number(config.itemLimit)||0))
-  merged.homeColumnsDesktop=Math.max(1,Math.min(4,Number(merged.homeColumnsDesktop)||1))
-  merged.homeColumnsTablet=Math.max(1,Math.min(4,Number(merged.homeColumnsTablet)||1))
-  merged.homeColumnsMobile=Math.max(1,Math.min(2,Number(merged.homeColumnsMobile)||1))
-  merged.homeManualSelection=Array.isArray(merged.homeManualSelection)?merged.homeManualSelection.filter(Boolean):[]
-  return merged
 }
 
-const suffix=(viewport:SectionHeroViewport)=>viewport==='desktop'?'Desktop':viewport==='tablet'?'Tablet':'Mobile'
 export function homeContentViewportLayout(config:HomeContentSectionConfiguration,viewport:SectionHeroViewport){
-  const key=suffix(viewport)
-  return {
-    columns:config[`homeColumns${key}` as keyof HomeContentSectionConfiguration] as number,
-    gap:config[`homeGap${key}` as keyof HomeContentSectionConfiguration] as number,
-    marginY:config[`homeMarginY${key}` as keyof HomeContentSectionConfiguration] as number,
-    paddingX:config[`homePaddingX${key}` as keyof HomeContentSectionConfiguration] as number,
-    paddingY:config[`homePaddingY${key}` as keyof HomeContentSectionConfiguration] as number,
-  }
+  return canonical[config.homeResponsiveProfile]?.[viewport]||canonical['em-destaque'][viewport]
 }
 
 export function homeContentResponsiveCssVariables(config:HomeContentSectionConfiguration):CSSProperties{
+  const desktop=homeContentViewportLayout(config,'desktop')
+  const tablet=homeContentViewportLayout(config,'tablet')
+  const mobile=homeContentViewportLayout(config,'mobile')
   return {
-    '--pl-home-columns-desktop':String(config.homeColumnsDesktop),
-    '--pl-home-columns-tablet':String(config.homeColumnsTablet),
-    '--pl-home-columns-mobile':String(config.homeColumnsMobile),
-    '--pl-home-gap-desktop':`${config.homeGapDesktop}px`,
-    '--pl-home-gap-tablet':`${config.homeGapTablet}px`,
-    '--pl-home-gap-mobile':`${config.homeGapMobile}px`,
-    '--pl-home-margin-y-desktop':`${config.homeMarginYDesktop}px`,
-    '--pl-home-margin-y-tablet':`${config.homeMarginYTablet}px`,
-    '--pl-home-margin-y-mobile':`${config.homeMarginYMobile}px`,
-    '--pl-home-padding-x-desktop':`${config.homePaddingXDesktop}px`,
-    '--pl-home-padding-x-tablet':`${config.homePaddingXTablet}px`,
-    '--pl-home-padding-x-mobile':`${config.homePaddingXMobile}px`,
-    '--pl-home-padding-y-desktop':`${config.homePaddingYDesktop}px`,
-    '--pl-home-padding-y-tablet':`${config.homePaddingYTablet}px`,
-    '--pl-home-padding-y-mobile':`${config.homePaddingYMobile}px`,
+    '--pl-home-columns-desktop':String(desktop.columns),
+    '--pl-home-columns-tablet':String(tablet.columns),
+    '--pl-home-columns-mobile':String(mobile.columns),
+    '--pl-home-gap-desktop':`${desktop.gap}px`,
+    '--pl-home-gap-tablet':`${tablet.gap}px`,
+    '--pl-home-gap-mobile':`${mobile.gap}px`,
+    '--pl-home-margin-y-desktop':`${desktop.marginY}px`,
+    '--pl-home-margin-y-tablet':`${tablet.marginY}px`,
+    '--pl-home-margin-y-mobile':`${mobile.marginY}px`,
+    '--pl-home-padding-x-desktop':`${desktop.paddingX}px`,
+    '--pl-home-padding-x-tablet':`${tablet.paddingX}px`,
+    '--pl-home-padding-x-mobile':`${mobile.paddingX}px`,
+    '--pl-home-padding-y-desktop':`${desktop.paddingY}px`,
+    '--pl-home-padding-y-tablet':`${tablet.paddingY}px`,
+    '--pl-home-padding-y-mobile':`${mobile.paddingY}px`,
   } as CSSProperties
 }
 

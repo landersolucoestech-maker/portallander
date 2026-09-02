@@ -66,7 +66,7 @@ const specialRegistry=await read('src/app/publicSpecialPageRegistry.tsx')
 requireTokens('publicSpecialPageRegistry.tsx',specialRegistry,['SPECIAL_LAYOUT_PAGE_SLUGS','sobre:page=><SobrePage page={page}/>','colabore:()=> <ColaborePage/>','contato:page=><ContatoPage page={page}/>'])
 
 const formRenderer=await read('src/features/site-manager/forms/SiteFormRenderer.tsx')
-requireTokens('SiteFormRenderer.tsx',formRenderer,['form.fields','form.consents','onSubmit','mode===\'preview\'','acceptedConsentIds','files:File[]'])
+requireTokens('SiteFormRenderer.tsx',formRenderer,['form.fields','form.consents','onSubmit','mode===\'preview\'','acceptedConsentIds','fieldKey:string;file:File','files:SiteFormFile[]'])
 const formEditor=await read('src/features/site-manager/pages/SiteFormEditorPage.tsx')
 requireTokens('SiteFormEditorPage.tsx',formEditor,['PREVIEW EM TEMPO REAL','SiteFormRenderer','resolveSiteFormOptionSets','formDraftRepository.get','formDraftRepository.save','Salvar rascunho'])
 const colabore=await read('src/pages/colabore/ColaborePage.tsx')

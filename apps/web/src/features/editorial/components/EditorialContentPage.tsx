@@ -7,9 +7,9 @@ import { useEditorialSeo } from '../hooks/useEditorialSeo'
 
 export function EditorialContentPage({page,content}:{page:EditorialPage;content:EditorialContent}){
   useEditorialSeo(content)
-  const articleHero=useSectionConfiguration('editorial-template','article-hero','Slug Page · Hero da Matéria')
-  const articleContent=useSectionConfiguration('editorial-template','article-content','Slug Page · Corpo da Matéria')
-  const articleTags=useSectionConfiguration('editorial-template','article-tags','Slug Page · Tags')
+  const articleHero=useSectionConfiguration(page.id,'article-hero','Slug Page · Hero da Matéria')
+  const articleContent=useSectionConfiguration(page.id,'article-content','Slug Page · Corpo da Matéria')
+  const articleTags=useSectionConfiguration(page.id,'article-tags','Slug Page · Tags')
   const heroHeights={'--pl-hero-height-desktop':`${articleHero.heroHeightDesktop}px`,'--pl-hero-height-tablet':`${articleHero.heroHeightTablet}px`,'--pl-hero-height-mobile':`${articleHero.heroHeightMobile}px`} as CSSProperties
   return <div className="article-page" style={{background:articleContent.background,color:articleContent.textColor}}><PublicHeader/>
     {articleHero.active&&<section className="article-hero pl-responsive-hero" style={{...heroHeights,background:articleHero.background,color:articleHero.textColor,textAlign:articleHero.textAlign}}><div className="article-hero-inner"><div className="article-breadcrumb"><Link to="/">Início</Link><span>›</span><Link to={`/${page.slug}`}>{page.title}</Link><span>›</span><span>{content.title}</span></div><div className="article-category" style={{color:articleHero.accentColor}}>{content.tags[0]||page.title}</div><h1>{content.title}</h1>{content.subtitle&&<p className="article-dek">{content.subtitle}</p>}<div className="article-author-row"><div className="article-author"><span className="article-author-avatar" style={{background:articleHero.accentColor}}>PL</span><span>Por {content.author}</span>{content.publishedAt&&<><i/><span>{new Date(content.publishedAt).toLocaleDateString('pt-BR')}</span></>}</div></div></div></section>}

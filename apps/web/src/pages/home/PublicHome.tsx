@@ -94,7 +94,7 @@ function LancamentosSection(){
   const config=withHomeContentSectionConfiguration(useHomeSectionConfiguration('lancamentos','Lançamentos'),'lancamentos')
   if(!config.active)return null
   const items=selectConfiguredItems(homeReadModel.releases,config,item=>item.title)
-  return <section className="pl-section official-lancamentos pl-home-responsive-section" aria-label="Lançamentos" style={{...homeContentResponsiveCssVariables(config),background:config.background,color:config.textColor,textAlign:config.textAlign}}><SectionHead title={config.title} link={config.linkUrl||'/lancamentos'} label={config.linkLabel}/><div className="pl-release-row">{items.map(release=><SmartLink className="pl-release" to={config.linkUrl||'/lancamentos'} key={release.title}><ImageThumb src={release.image} badge="▶"/><div className="pl-card-body"><h3>{release.title}</h3><div className="pl-meta"><span>{release.year}</span></div></SmartLink>)}</div></section>
+  return <section className="pl-section official-lancamentos pl-home-responsive-section" aria-label="Lançamentos" style={{...homeContentResponsiveCssVariables(config),background:config.background,color:config.textColor,textAlign:config.textAlign}}><SectionHead title={config.title} link={config.linkUrl||'/lancamentos'} label={config.linkLabel}/><div className="pl-release-row">{items.map(release=><SmartLink className="pl-release" to={config.linkUrl||'/lancamentos'} key={release.title}><ImageThumb src={release.image} badge="▶"/><div className="pl-card-body"><h3>{release.title}</h3><div className="pl-meta"><span>{release.year}</span></div></div></SmartLink>)}</div></section>
 }
 function AgendaSection(){
   const config=withHomeContentSectionConfiguration(useHomeSectionConfiguration('agenda','Agenda'),'agenda')

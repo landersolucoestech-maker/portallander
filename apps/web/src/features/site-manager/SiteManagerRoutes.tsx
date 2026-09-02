@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import { HeroSectionAppearancePage } from './pages/HeroSectionAppearancePage'
 import { MediaKitPage } from './pages/MediaKitPage'
 import { SiteCollaborationsPage } from './pages/SiteCollaborationsPage'
+import { SiteContentEditorPage } from './pages/SiteContentEditorPage'
 import { SiteContentsPage } from './pages/SiteContentsPage'
 import { SiteFormEditorPage } from './pages/SiteFormEditorPage'
 import { SiteFormsPage } from './pages/SiteFormsPage'
@@ -24,6 +25,7 @@ export default function SiteManagerRoutes(){
     <Route path="configuracoes" element={<Navigate to="/app/settings" replace/>}/>
     <Route path="conteudos" element={<SiteContentsPage/>}/>
     <Route path="conteudos/colaboracoes" element={<SiteCollaborationsPage/>}/>
+    <Route path="conteudos/:contentId" element={<SiteContentEditorPage/>}/>
     <Route path="formularios" element={<SiteFormsPage/>}/>
     <Route path="formularios/:formId" element={<SiteFormEditorPage/>}/>
     <Route path="midia" element={<SiteMediaPage/>}/>

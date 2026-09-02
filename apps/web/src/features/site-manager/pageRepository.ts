@@ -21,6 +21,7 @@ const normalizeDraft=(value:unknown):SitePageDraft|null=>{
   if(typeof item.id!=='string'||typeof item.title!=='string'||typeof item.slug!=='string')return null
   return {id:item.id,title:item.title,slug:item.slug,template:'editorial',createdAt:typeof item.createdAt==='string'?item.createdAt:undefined,updatedAt:typeof item.updatedAt==='string'?item.updatedAt:undefined}
 }
+const currentPages=()=>parse<unknown[]>(PAGES_KEY,[]).map(normalizeDraft).filter((page):page is SitePageDraft=>Boolean(page))
 const migrate=()=>{
   for(const key of ['portal-lander:cms:pages:local:v3','portal-lander:cms:pages:local:v2','portal-lander:cms:pages:local:v1']){
     const legacy=parse<unknown[]>(key,[]).map(normalizeDraft).filter((page):page is SitePageDraft=>Boolean(page))
@@ -31,12 +32,17 @@ const migrate=()=>{
 
 export const sitePageRepository={
   eventName:'portal-lander:site-pages:changed',
-  listDraftPages:():SitePageDraft[]=>{
-    const current=parse<unknown[]>(PAGES_KEY,[]).map(normalizeDraft).filter((page):page is SitePageDraft=>Boolean(page))
-    return current.length?current:migrate()
-  },
+  listDraftPages:():SitePageDraft[]=>{const current=currentPages();return current.length?current:migrate()},
   listSections:():SitePageSections=>parse<SitePageSections>(SECTIONS_KEY,{}),
-  saveDraftPages(pages:SitePageDraft[]){localStorage.setItem(PAGES_KEY,JSON.stringify(pages));emit()},
+  saveDraftPages(pages:SitePageDraft[]){
+    const previous=currentPages(),now=new Date().toISOString()
+    const next=pages.map(page=>{
+      const old=previous.find(item=>item.id===page.id)
+      const changed=!old||old.title!==page.title||old.slug!==page.slug||old.template!==page.template
+      return {...page,createdAt:page.createdAt??old?.createdAt??now,updatedAt:changed?now:(page.updatedAt??old?.updatedAt??now)}
+    })
+    localStorage.setItem(PAGES_KEY,JSON.stringify(next));emit()
+  },
   saveSections(sections:SitePageSections){localStorage.setItem(SECTIONS_KEY,JSON.stringify(sections));emit()},
   purgeLegacy(){for(const key of [...LEGACY_PAGE_KEYS,...LEGACY_SECTION_KEYS])if(key!==PAGES_KEY&&key!==SECTIONS_KEY)localStorage.removeItem(key)},
 }

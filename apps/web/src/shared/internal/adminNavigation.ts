@@ -16,6 +16,7 @@ export const UNIFIED_ADMIN_NAV:readonly AdminNavItem[]=[
     ['Conteúdos',FileText,'/app/site/conteudos'],
     ['Mídias',Images,'/app/site/midia'],
     ['Páginas',Layers3,'/app/site/paginas'],
+    ['Formulários',ClipboardList,'/app/site/formularios'],
     ['Mídia Kit',Newspaper,'/app/site/midia-kit'],
   ]},
   {label:'Marketing',icon:Megaphone,to:'/app/marketing',children:[

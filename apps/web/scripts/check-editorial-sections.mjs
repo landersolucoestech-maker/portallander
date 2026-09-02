@@ -39,7 +39,9 @@ const sectionEditor=await read('src/features/site-manager/pages/SectionConfigura
 requireTokens('SectionConfigurationPage.tsx',sectionEditor,[
   "import {SectionMediaField} from '../components/SectionMediaField'",
   'imageKind&&<SectionMediaField',
-  "label={definition.kind==='ad'?'Imagem da publicidade':'Imagem da seção'}",
+  'value={config.imageUrl}',
+  'onChange={imageUrl=>patch({imageUrl})}',
+  "label={definition.kind==='ad'?'Arte da publicidade':'Imagem / mídia'}",
 ])
 
 const mediaField=await read('src/features/site-manager/components/SectionMediaField.tsx')

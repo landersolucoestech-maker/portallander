@@ -28,7 +28,7 @@ const meta:Record<HomeContentSectionId,{name:string;summary:string;criterion:str
   'ultimas-noticias':{name:'Últimas Notícias',summary:'Listagem das publicações mais recentes.',criterion:'Ordem atual da fonte de notícias'},
   'lancamentos':{name:'Lançamentos',summary:'Grid de lançamentos musicais.',criterion:'Lançamentos disponíveis na fonte editorial'},
   'agenda':{name:'Agenda',summary:'Eventos e destaques da agenda.',criterion:'Eventos conforme janela temporal configurada'},
-  'em-alta':{name:'Em Alta',summary:'Conteúdos e assuntos em alta.',criterion:'Ranking de popularidade da fonte de dados'},
+  'em-alta':{name:'Em Alta',summary:'Conteúdos e assuntos em alta.',criterion:'Ranking de popularidade fornecido pela fonte de dados atual'},
 }
 
 function clamp(value:number,min:number,max:number){return Math.min(max,Math.max(min,value))}
@@ -36,10 +36,10 @@ function suffix(viewport:PreviewViewport){return viewport==='desktop'?'Desktop':
 function viewportLabel(viewport:PreviewViewport){return viewport==='desktop'?'Desktop':viewport==='tablet'?'Tablet':'Mobile'}
 function Field({label,children}:{label:string;children:ReactNode}){return <label className="section-config-field"><span>{label}</span>{children}</label>}
 
-function availableFor(sectionId:HomeContentSectionId):PreviewItem[]{
+function availableFor(sectionId:HomeContentSectionId,config?:HomeContentSectionConfiguration):PreviewItem[]{
   if(sectionId==='em-destaque'||sectionId==='ultimas-noticias')return homeReadModel.stories.map((item:HomeStory)=>({key:item.title,title:item.title,subtitle:item.meta,image:item.image,badge:item.category}))
   if(sectionId==='lancamentos')return homeReadModel.releases.map((item:HomeRelease)=>({key:item.title,title:item.title,subtitle:item.year,image:item.image,badge:'▶'}))
-  if(sectionId==='agenda')return homeReadModel.agenda.map((item:HomeAgendaItem)=>({key:item.title,title:item.title,subtitle:`${item.day} ${item.month} · ${item.place}`}))
+  if(sectionId==='agenda')return filterAgendaByWindow(homeReadModel.agenda,config?.homeAgendaWindow||'all').map((item:HomeAgendaItem)=>({key:item.title,title:item.title,subtitle:`${item.day} ${item.month} · ${item.place}`}))
   return homeReadModel.mostRead.map(title=>({key:title,title}))
 }
 
@@ -47,12 +47,12 @@ function automaticFor(sectionId:HomeContentSectionId,config:HomeContentSectionCo
   if(sectionId==='em-destaque')return homeReadModel.featuredStories.map(item=>({key:item.title,title:item.title,subtitle:item.meta,image:item.image,badge:item.category}))
   if(sectionId==='ultimas-noticias')return homeReadModel.latestStories.map(item=>({key:item.title,title:item.title,subtitle:item.meta,image:item.image,badge:item.category}))
   if(sectionId==='lancamentos')return homeReadModel.releases.map(item=>({key:item.title,title:item.title,subtitle:item.year,image:item.image,badge:'▶'}))
-  if(sectionId==='agenda')return filterAgendaByWindow(homeReadModel.agenda,config.homeAgendaWindow).map(item=>({key:item.title,title:item.title,subtitle:`${item.day} ${item.month} · ${item.place}`}))
-  return homeReadModel.mostRead.map(title=>({key:title,title,subtitle:`Período considerado: ${config.homeTrendingPeriodDays} dias`}))
+  if(sectionId==='agenda')return availableFor('agenda',config)
+  return homeReadModel.mostRead.map(title=>({key:title,title}))
 }
 
 function resolvedItems(sectionId:HomeContentSectionId,config:HomeContentSectionConfiguration){
-  const source=config.homeSelectionMode==='manual'?availableFor(sectionId):automaticFor(sectionId,config)
+  const source=config.homeSelectionMode==='manual'?availableFor(sectionId,config):automaticFor(sectionId,config)
   return selectConfiguredItems(source,config,item=>item.key)
 }
 
@@ -60,10 +60,10 @@ function Preview({sectionId,config,viewport}:{sectionId:HomeContentSectionId;con
   if(!config.active)return <div className="section-preview-disabled">Esta seção está desativada. O frontend não reserva espaço para ela.</div>
   const layout=homeContentViewportLayout(config,viewport)
   const items=resolvedItems(sectionId,config)
-  const sectionStyle={...homeContentResponsiveCssVariables(config),background:config.background,color:config.textColor,textAlign:config.textAlign,padding:`${layout.paddingY}px ${layout.paddingX}px`} as CSSProperties
+  const sectionStyle={...homeContentResponsiveCssVariables(config),background:config.background,color:config.textColor,textAlign:config.textAlign,marginBlock:`${layout.marginY}px`,padding:`${layout.paddingY}px ${layout.paddingX}px`} as CSSProperties
   const gridStyle={gridTemplateColumns:`repeat(${layout.columns},minmax(0,1fr))`,gap:`${layout.gap}px`} as CSSProperties
   if(sectionId==='agenda')return <section className="pl-agenda pl-home-responsive-section section-preview-real" style={sectionStyle}><div className="pl-section-head"><h2>{config.title}</h2></div><div className="pl-home-configurable-grid" style={gridStyle}>{items.map(item=><div className="pl-agenda-item" key={item.key}><div><strong>{item.subtitle?.split(' ')[0]||'--'}</strong></div><div><b>{item.title}</b><small>{item.subtitle}</small></div></div>)}</div></section>
-  if(sectionId==='em-alta')return <section className="pl-trending pl-home-responsive-section section-preview-real" style={sectionStyle}><div className="pl-section-head"><h2>{config.title}</h2></div><div className="pl-trending-list pl-home-configurable-grid" style={gridStyle}>{items.map((item,index)=><div className="pl-trending-item" key={item.key}><span className="pl-trending-rank">{String(index+1).padStart(2,'0')}</span><div><strong>{item.title}</strong>{item.subtitle&&<small>{item.subtitle}</small>}</div></div>)}</div></section>
+  if(sectionId==='em-alta')return <section className="pl-trending pl-home-responsive-section section-preview-real" style={sectionStyle}><div className="pl-section-head"><h2>{config.title}</h2></div><div className="pl-trending-list pl-home-configurable-grid" style={gridStyle}>{items.map((item,index)=><div className="pl-trending-item" key={item.key}><span className="pl-trending-rank">{String(index+1).padStart(2,'0')}</span><div><strong>{item.title}</strong></div></div>)}</div></section>
   return <section className="pl-section pl-home-responsive-section section-preview-real" style={sectionStyle}><div className="pl-section-head"><h2>{config.title}</h2>{config.linkLabel&&<span>{config.linkLabel}</span>}</div><div className="pl-home-configurable-grid" style={gridStyle}>{items.map(item=><article className="pl-card" key={item.key}>{item.image&&<div className="pl-thumb has-image" style={{backgroundImage:`linear-gradient(180deg,transparent 55%,rgba(0,0,0,.72)),url(${item.image})`}}>{item.badge&&<span className="pl-badge">{item.badge}</span>}</div>}<div className="pl-card-body"><h3>{item.title}</h3>{item.subtitle&&<div className="pl-meta"><span>{item.subtitle}</span></div>}</div></article>)}</div></section>
 }
 
@@ -76,7 +76,7 @@ export function HomeContentSectionPage({sectionId}:{sectionId:HomeContentSection
   const max=HOME_CONTENT_MAX_ITEMS[sectionId]
   const layout=homeContentViewportLayout(config,previewViewport)
   const deviceSuffix=suffix(previewViewport)
-  const available=useMemo(()=>availableFor(sectionId),[sectionId])
+  const available=useMemo(()=>availableFor(sectionId,config),[sectionId,config.homeAgendaWindow])
   const patch=(next:Partial<HomeContentSectionConfiguration>)=>{setConfig(current=>({...current,...next}));setSaved(false)}
   const patchDevice=(prefix:string,value:number)=>patch({[`${prefix}${deviceSuffix}`]:value} as Partial<HomeContentSectionConfiguration>)
   const save=()=>{writeSectionConfiguration('home',sectionId,{...config,itemLimit:clamp(config.itemLimit,0,max)});setSaved(true)}
@@ -86,7 +86,7 @@ export function HomeContentSectionPage({sectionId}:{sectionId:HomeContentSection
   const publicUrl=`${window.location.origin}${window.location.pathname}#/`
 
   return <AdminShell area="cms" items={SITE_MANAGER_NAV} header={{title:`Configurar seção: ${info.name}`,description:'Configuração independente, responsiva e persistida desta seção da Página Inicial.',backTo:'/app/site/paginas',backLabel:'Páginas'}} headerAction={{label:'Ver no site',icon:ExternalLink,variant:'secondary',onClick:()=>window.open(publicUrl,'_blank','noopener,noreferrer')}}>
-    <AdminNotice title="Preview responsivo real" description="Desktop, Tablet e Mobile usam o mesmo contrato de quantidade, seleção, ordem, colunas, gaps e paddings consumido pelo frontend."/>
+    <AdminNotice title="Preview responsivo real" description="Desktop, Tablet e Mobile usam o mesmo contrato de quantidade, seleção, ordem, colunas, gaps, margens e paddings consumido pelo frontend."/>
     <div className="section-config-workbench">
       <aside className="section-config-panel">
         <div className="section-config-panel-head"><div><small>SEÇÃO</small><h2>{info.name}</h2><p>{info.summary}</p></div><label className="section-config-switch"><input type="checkbox" checked={config.active} onChange={event=>patch({active:event.target.checked})}/><span>Ativa</span></label></div>
@@ -95,9 +95,8 @@ export function HomeContentSectionPage({sectionId}:{sectionId:HomeContentSection
           <div className="section-config-two"><Field label={`Quantidade exibida · máximo ${max}`}><input type="number" min="0" max={max} value={config.itemLimit} onChange={event=>patch({itemLimit:clamp(Number(event.target.value)||0,0,max)})}/></Field><Field label="Modo de seleção"><select value={config.homeSelectionMode} onChange={event=>patch({homeSelectionMode:event.target.value as HomeSelectionMode})}><option value="automatic">Automático</option><option value="manual">Manual</option></select></Field></div>
           <div className="section-config-two"><Field label="Ordenação"><select value={config.homeSortMode} onChange={event=>patch({homeSortMode:event.target.value as HomeSortMode})}><option value="provider">Ordem da fonte</option><option value="reverse">Ordem inversa</option><option value="title-asc">Título A–Z</option><option value="title-desc">Título Z–A</option></select></Field><Field label="Critério automático"><input value={info.criterion} disabled/></Field></div>
           {sectionId==='agenda'&&<Field label="Eventos considerados"><select value={config.homeAgendaWindow} onChange={event=>patch({homeAgendaWindow:event.target.value as HomeContentSectionConfiguration['homeAgendaWindow']})}><option value="all">Todos</option><option value="future">Futuros</option><option value="past">Passados</option></select></Field>}
-          {sectionId==='em-alta'&&<Field label="Período considerado (dias)"><input type="number" min="1" max="365" value={config.homeTrendingPeriodDays} onChange={event=>patch({homeTrendingPeriodDays:clamp(Number(event.target.value)||7,1,365)})}/></Field>}
           {config.homeSelectionMode==='manual'&&<div className="section-config-responsive-padding"><strong>Seleção manual e prioridade</strong><p>Marque os conteúdos e use as setas para definir a ordem exata.</p><div className="home-manual-selection-list">{available.map(item=>{const selectedIndex=config.homeManualSelection.indexOf(item.key);const selected=selectedIndex>=0;return <div className={`home-manual-selection-item${selected?' selected':''}`} key={item.key}><label><input type="checkbox" checked={selected} onChange={()=>toggleManual(item.key)}/><span>{item.title}</span></label>{selected&&<div><button type="button" onClick={()=>moveManual(selectedIndex,-1)} disabled={selectedIndex===0} aria-label={`Subir ${item.title}`}><ArrowUp size={14}/></button><button type="button" onClick={()=>moveManual(selectedIndex,1)} disabled={selectedIndex===config.homeManualSelection.length-1} aria-label={`Descer ${item.title}`}><ArrowDown size={14}/></button></div>}</div>})}</div></div>}
-          <div className="home-advertising-device-card"><div className="home-advertising-device-card-head"><strong>Layout · {viewportLabel(previewViewport)}</strong><span>Configuração independente por dispositivo</span></div><div className="section-config-two"><Field label={`Colunas · ${layout.columns}`}><select value={layout.columns} onChange={event=>patchDevice('homeColumns',Number(event.target.value))}><option value="1">1 coluna</option><option value="2">2 colunas</option><option value="3">3 colunas</option><option value="4">4 colunas</option></select></Field><Field label={`Gap · ${layout.gap}px`}><input type="number" min="0" max="80" value={layout.gap} onChange={event=>patchDevice('homeGap',clamp(Number(event.target.value)||0,0,80))}/></Field></div><div className="section-config-two"><Field label={`Padding horizontal · ${layout.paddingX}px`}><input type="number" min="0" max="160" value={layout.paddingX} onChange={event=>patchDevice('homePaddingX',clamp(Number(event.target.value)||0,0,160))}/></Field><Field label={`Padding vertical · ${layout.paddingY}px`}><input type="number" min="0" max="160" value={layout.paddingY} onChange={event=>patchDevice('homePaddingY',clamp(Number(event.target.value)||0,0,160))}/></Field></div></div>
+          <div className="home-advertising-device-card"><div className="home-advertising-device-card-head"><strong>Layout · {viewportLabel(previewViewport)}</strong><span>Configuração independente por dispositivo</span></div><div className="section-config-two"><Field label={`Colunas · ${layout.columns}`}><select value={layout.columns} onChange={event=>patchDevice('homeColumns',Number(event.target.value))}><option value="1">1 coluna</option><option value="2">2 colunas</option><option value="3">3 colunas</option><option value="4">4 colunas</option></select></Field><Field label={`Gap · ${layout.gap}px`}><input type="number" min="0" max="80" value={layout.gap} onChange={event=>patchDevice('homeGap',clamp(Number(event.target.value)||0,0,80))}/></Field></div><div className="section-config-two"><Field label={`Margem vertical · ${layout.marginY}px`}><input type="number" min="0" max="160" value={layout.marginY} onChange={event=>patchDevice('homeMarginY',clamp(Number(event.target.value)||0,0,160))}/></Field><Field label={`Padding horizontal · ${layout.paddingX}px`}><input type="number" min="0" max="160" value={layout.paddingX} onChange={event=>patchDevice('homePaddingX',clamp(Number(event.target.value)||0,0,160))}/></Field></div><Field label={`Padding vertical · ${layout.paddingY}px`}><input type="number" min="0" max="160" value={layout.paddingY} onChange={event=>patchDevice('homePaddingY',clamp(Number(event.target.value)||0,0,160))}/></Field></div>
           <div className="section-config-two"><Field label="Texto do botão / link"><input value={config.linkLabel} onChange={event=>patch({linkLabel:event.target.value})}/></Field><Field label="Destino"><input value={config.linkUrl} onChange={event=>patch({linkUrl:event.target.value})}/></Field></div>
           <Field label="Alinhamento"><select value={config.textAlign} onChange={event=>patch({textAlign:event.target.value as HomeContentSectionConfiguration['textAlign']})}><option value="left">Esquerda</option><option value="center">Centro</option><option value="right">Direita</option></select></Field>
           <div className="section-config-colors"><Field label="Fundo"><input type="color" value={config.background} onChange={event=>patch({background:event.target.value})}/></Field><Field label="Texto"><input type="color" value={config.textColor} onChange={event=>patch({textColor:event.target.value})}/></Field><Field label="Destaque"><input type="color" value={config.accentColor} onChange={event=>patch({accentColor:event.target.value})}/></Field></div>

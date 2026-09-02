@@ -41,7 +41,8 @@ requireTokens('SiteManagerRoutes.tsx',routes,[
 
 const pages=await read('src/features/site-manager/pages/SiteSectionsPage.tsx')
 requireTokens('SiteSectionsPage.tsx',pages,[
-  "CUSTOM_LAYOUT_SLUGS=new Set(['','sobre','colabore','contato'])",
+  'isSpecialLayoutPage',
+  'isPublishedPage',
   "name:'Template editorial de Notícias'",
   'Páginas de conteúdo herdam o template de Notícias.',
   'Criar página',
@@ -50,6 +51,7 @@ requireTokens('SiteSectionsPage.tsx',pages,[
   'RESERVED_PAGE_SLUGS',
   'to="/app/settings"',
 ])
+if(pages.includes('CUSTOM_LAYOUT_SLUGS'))failures.push('Páginas não pode duplicar a classificação de layouts especiais; use isSpecialLayoutPage do domínio editorial.')
 if(pages.includes("to=\"/app/site/configuracoes\""))failures.push('Páginas não pode reintroduzir identidade global dentro do módulo Site.')
 
 const listingTemplate=await read('src/features/editorial/components/EditorialListingPage.tsx')
@@ -61,7 +63,7 @@ requireTokens('EditorialContentPage.tsx',contentTemplate,['EditorialContentPage'
 const portalApp=await read('src/app/PortalApp.tsx')
 requireTokens('PortalApp.tsx',portalApp,['renderPublicSpecialPage','<EditorialListingPage page={page}/>','<EditorialContentPage page={page} content={content}/>'])
 const specialRegistry=await read('src/app/publicSpecialPageRegistry.tsx')
-requireTokens('publicSpecialPageRegistry.tsx',specialRegistry,['sobre:page=><SobrePage page={page}/>','colabore:()=> <ColaborePage/>','contato:page=><ContatoPage page={page}/>'])
+requireTokens('publicSpecialPageRegistry.tsx',specialRegistry,['SPECIAL_LAYOUT_PAGE_SLUGS','sobre:page=><SobrePage page={page}/>','colabore:()=> <ColaborePage/>','contato:page=><ContatoPage page={page}/>'])
 
 const formRenderer=await read('src/features/site-manager/forms/SiteFormRenderer.tsx')
 requireTokens('SiteFormRenderer.tsx',formRenderer,['form.fields','form.consents','onSubmit','mode===\'preview\'','acceptedConsentIds','files:File[]'])
@@ -94,7 +96,7 @@ const mediaKitRepository=await read('src/features/site-manager/mediaKitRepositor
 requireTokens('mediaKitRepository.ts',mediaKitRepository,["status:'draft'"])
 
 const editorialModel=await read('src/features/editorial/model.ts')
-requireTokens('editorial/model.ts',editorialModel,['isPublishedPage','isPublicEditorialPage','export const isPublicPage=isPublicEditorialPage'])
+requireTokens('editorial/model.ts',editorialModel,['SPECIAL_LAYOUT_PAGE_SLUGS','isPublishedPage','isSpecialLayoutPage','isPublicEditorialPage','export const isPublicPage=isPublicEditorialPage'])
 
 if(failures.length){console.error('Falha na arquitetura do módulo Site:');failures.forEach(item=>console.error(`- ${item}`));process.exit(1)}
 console.log('Site module architecture OK')

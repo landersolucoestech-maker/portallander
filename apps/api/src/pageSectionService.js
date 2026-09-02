@@ -1,3 +1,4 @@
+import {randomUUID} from 'node:crypto'
 import {getPool} from './db.js'
 import {HttpError} from './editorialService.js'
 
@@ -15,7 +16,7 @@ export function normalizePageSections(input){
     if(!cleanSlug)throw new HttpError(400,`Informe um identificador válido para a seção na posição ${index+1}.`,'PAGE_SECTION_SLUG_REQUIRED')
     if(seen.has(cleanSlug))throw new HttpError(409,`A seção “${cleanSlug}” está duplicada.`,'PAGE_SECTION_SLUG_DUPLICATE')
     seen.add(cleanSlug)
-    return {id:text(value.id)||`section-${crypto.randomUUID?.()||`${Date.now()}-${index}`}`,name,slug:cleanSlug,order:index}
+    return {id:text(value.id)||`section-${randomUUID()}`,name,slug:cleanSlug,order:index}
   })
 }
 

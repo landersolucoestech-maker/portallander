@@ -5,6 +5,7 @@ import {editorialService,HttpError} from './editorialService.js'
 import {formAdminService} from './formAdminService.js'
 import {formPublicService} from './formPublicService.js'
 import {formService,hashClientIp} from './formService.js'
+import {mediaService} from './mediaService.js'
 import {parseMultipart} from './multipart.js'
 
 const MAX_JSON_BYTES=1024*1024
@@ -170,6 +171,20 @@ export async function handleRequest(req,res){
       if(req.method==='GET'){await requireAdmin(req);const content=await editorialService.getContent(id);if(!content)throw new HttpError(404,'Conteúdo não encontrado.','CONTENT_NOT_FOUND');send(res,200,{content},cors);return}
       if(req.method==='PUT'||req.method==='PATCH'){await requireAdmin(req);const content=await editorialService.updateContent(id,await readJson(req));send(res,200,{content},cors);return}
       if(req.method==='DELETE'){await requireAdmin(req);await editorialService.deleteContent(id);send(res,200,{deleted:true,id},cors);return}
+    }
+
+    if(req.method==='GET'&&path==='/api/editorial/media'){
+      await requireAdmin(req);const media=await mediaService.list();send(res,200,{media},cors);return
+    }
+    if(req.method==='POST'&&path==='/api/editorial/media'){
+      const admin=await requireAdmin(req)
+      const {fields,files}=await parseMultipart(req,{maxFiles:1,maxFileBytes:Number(process.env.PORTAL_MEDIA_MAX_FILE_BYTES||25*1024*1024)})
+      const media=await mediaService.upload({file:files[0],alt:fields.alt,caption:fields.caption,createdBy:admin.user?.id||null})
+      send(res,201,{media},cors);return
+    }
+    const mediaMatch=path.match(/^\/api\/editorial\/media\/([^/]+)$/)
+    if(mediaMatch&&req.method==='DELETE'){
+      await requireAdmin(req);const id=decode(mediaMatch[1]);await mediaService.remove(id);send(res,200,{deleted:true,id},cors);return
     }
 
     if(req.method==='GET'&&path==='/api/forms/definitions/public'){

@@ -4,7 +4,7 @@ import { ADMIN_CAPABILITIES } from '../../../shared/internal/adminCapabilities'
 import { SITE_MANAGER_NAV } from '../../../shared/internal/adminNavigation'
 import { AdminEmpty, AdminNotice, AdminShell } from '../../../shared/internal/AdminUi'
 import { TableViewPagination, type TablePageSize } from '../../../shared/internal/TableViewPagination'
-import {mediaRepository,type MediaRepository} from '../mediaRepository'
+import {mediaRepository} from '../mediaRepository'
 import type {SiteMediaItem} from '../readModel'
 
 type MediaTypeFilter='Todos'|'Capa'|'image'|'video'|'embed'
@@ -20,7 +20,7 @@ export function SiteMediaPage(){
   const [loading,setLoading]=useState(true)
   const [loadError,setLoadError]=useState('')
 
-  useEffect(()=>{let active=true;setLoading(true);mediaRepository.list().then(items=>{if(active){setMedia(items);setLoadError('')}}).catch(error=>{if(active)setLoadError(error instanceof Error?error.message:'Não foi possível carregar a biblioteca de mídias.')}).finally(()=>{if(active)setLoading(false)});return()=>{active=false}},[])
+  useEffect(()=>{let active=true;mediaRepository.list().then(items=>{if(active){setMedia(items);setLoadError('')}}).catch(error=>{if(active)setLoadError(error instanceof Error?error.message:'Não foi possível carregar a biblioteca de mídias.')}).finally(()=>{if(active)setLoading(false)});return()=>{active=false}},[])
 
   const normalized=query.trim().toLocaleLowerCase('pt-BR')
   const items=useMemo(()=>media.filter(item=>{
@@ -37,5 +37,3 @@ export function SiteMediaPage(){
     {loading?<AdminEmpty title="Carregando mídias" description="Consultando a biblioteca do Site."/>:items.length?<div className="tableview-surface cms-tableview-surface"><section className="table-card"><table><thead><tr><th>Mídia</th><th>Conteúdo</th><th>Tipo</th><th>Legenda</th><th>Origem</th></tr></thead><tbody>{visibleItems.map(item=><tr key={item.id}><td><div className="table-primary"><span className="table-avatar"><Images size={14} aria-hidden="true"/></span><div><b>{item.url.split('/').pop()||item.url}</b><small>{item.url}</small></div></div></td><td>{item.content}</td><td><span className="status">{item.type}</span></td><td>{item.caption}</td><td>Conteúdo do Site</td></tr>)}</tbody></table></section><TableViewPagination page={safePage} totalPages={totalPages} totalRecords={items.length} pageSize={pageSize} onPageChange={setPage} onPageSizeChange={size=>{setPageSize(size);setPage(1)}}/></div>:<AdminEmpty title="Nenhuma mídia encontrada" description={query||type!=='Todos'?'Nenhuma referência corresponde aos filtros atuais.':'Ainda não existem mídias associadas aos conteúdos do Site.'}/>} 
   </AdminShell>
 }
-
-export type {MediaRepository}

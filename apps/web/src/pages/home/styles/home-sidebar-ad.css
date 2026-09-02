@@ -1,10 +1,10 @@
-.pl-home-sidebar-ad{width:100%;max-width:100%;box-sizing:border-box;margin-top:14px;border:1px solid #272727;border-radius:5px;background:radial-gradient(circle at 50% 22%,rgba(190,0,0,.18),transparent 32%),linear-gradient(180deg,#090909 0%,#030303 100%);min-height:285px;overflow:hidden;position:relative}
-.pl-home-sidebar-ad:before{content:'PL';position:absolute;right:-20px;bottom:-48px;font-family:Impact,'Arial Narrow',sans-serif;font-size:150px;font-style:italic;color:rgba(255,255,255,.025);transform:rotate(-10deg);pointer-events:none}
-.pl-home-sidebar-ad-inner{min-height:285px;padding:28px 24px;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;position:relative;z-index:1}
-.pl-home-sidebar-ad img{width:118px;max-height:48px;object-fit:contain;object-position:left center;margin-bottom:22px}
+.pl-home-sidebar-ad{width:100%;max-width:100%;box-sizing:border-box;border:1px solid #272727;border-radius:5px;background:#050505;overflow:hidden;position:relative}
+.pl-home-sidebar-ad:before{display:none}
+.pl-home-sidebar-ad-inner{width:100%;min-height:0;padding:0;display:block;position:relative;z-index:1;box-sizing:border-box}
+.pl-home-sidebar-ad .pl-home-sidebar-ad-image{display:block;width:100%;max-width:100%;height:auto;max-height:none;object-fit:contain;object-position:center;margin:0;padding:0}
+.pl-home-sidebar-ad .pl-home-sidebar-ad-fallback{min-height:220px;padding:28px;box-sizing:border-box}
 .pl-home-sidebar-ad-kicker{font:700 9px/1 Arial,sans-serif;letter-spacing:1.6px;color:#777;margin-bottom:10px}
 .pl-home-sidebar-ad h3{margin:0 0 8px;font-family:Impact,'Arial Narrow',sans-serif;font-size:32px;line-height:.95;letter-spacing:.5px;color:#fff}
 .pl-home-sidebar-ad p{margin:0 0 22px;font:800 16px/1.1 Arial,sans-serif;color:#f11}
-.pl-home-sidebar-ad a{display:inline-flex;align-items:center;justify-content:center;min-height:38px;padding:0 16px;border:1px solid #e31313;border-radius:3px;color:#fff;text-decoration:none;font:800 11px/1 Arial,sans-serif;transition:background .18s ease,border-color .18s ease}
-.pl-home-sidebar-ad a:hover{background:#e31313}
-@media(max-width:980px){.pl-home-sidebar-ad{margin-top:14px}.pl-home-sidebar-ad-inner{min-height:220px}}
+.pl-home-sidebar-ad a{color:inherit;text-decoration:none}
+@media(max-width:980px){.pl-home-sidebar-ad{width:100%;max-width:none}}

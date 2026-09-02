@@ -1,7 +1,8 @@
 import { editorialReadModel } from '../editorial/repository'
+import {getRuntimeDataProvider} from '../../shared/data/runtimeDataProvider'
 
 export type SiteCategorySummary = { name:string; contentCount:number }
-export type SiteMediaItem = { id:string; content:string; type:'Capa'|'image'|'video'|'embed'; url:string; caption:string }
+export type SiteMediaItem = { id:string; type:string; name:string; url:string; size:number; createdAt:string }
 
 function buildCategories(): SiteCategorySummary[] {
   const tagMap=new Map<string,number>()
@@ -9,11 +10,9 @@ function buildCategories(): SiteCategorySummary[] {
   return [...tagMap.entries()].map(([name,contentCount])=>({name,contentCount})).sort((a,b)=>b.contentCount-a.contentCount||a.name.localeCompare(b.name,'pt-BR'))
 }
 
-function buildMedia(): SiteMediaItem[] {
-  return editorialReadModel.contents.flatMap(content=>[
-    ...(content.coverImage?[{id:`cover-${content.id}`,content:content.title,type:'Capa' as const,url:content.coverImage,caption:content.coverImageAlt||'Imagem de capa'}]:[]),
-    ...content.media.map((media,index)=>({id:`media-${content.id}-${index}`,content:content.title,type:media.type,url:media.url,caption:media.caption||'—'})),
-  ])
+function buildMedia():SiteMediaItem[]{
+  return getRuntimeDataProvider().editorial.media().map(item=>({...item}))
+    .sort((a,b)=>b.createdAt.localeCompare(a.createdAt))
 }
 
 export const siteManagerReadModel = {

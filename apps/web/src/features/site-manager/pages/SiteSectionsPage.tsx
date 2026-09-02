@@ -2,7 +2,7 @@ import {Eye,Pencil,Plus,Settings2,Trash2,X} from 'lucide-react'
 import {useCallback,useEffect,useMemo,useState} from 'react'
 import {Link} from 'react-router-dom'
 import {useAdminAuth} from '../../access/adminAuthState'
-import {createAdminEditorialPage,deleteAdminEditorialPage,listAdminEditorialPages,updateAdminEditorialPage} from '../../editorial/adminClient'
+import {createAdminEditorialPage,deleteAdminEditorialPage,listAdminEditorialPages,listAdminPageSections,saveAdminPageSections,updateAdminEditorialPage} from '../../editorial/adminClient'
 import {isPublishedPage,isSpecialLayoutPage,RESERVED_PAGE_SLUGS,type EditorialPage} from '../../editorial/model'
 import {editorialReadModel} from '../../editorial/repository'
 import {AdminNotice,AdminShell} from '../../../shared/internal/AdminUi'
@@ -90,6 +90,17 @@ export function SiteSectionsPage(){
   const customSections=storedSections[selectedPage]??[]
   const pageSections:SiteSection[]=isEditorialLayout?[EDITORIAL_TEMPLATE_SECTION]:[...(selectedPage==='home'?HOME_SECTIONS:[]),...customSections.map(section=>({id:section.id,name:section.name,summary:`Seção própria de ${selected.title}.`,kind:'section' as const}))]
 
+  useEffect(()=>{
+    if(!persisted||isEditorialLayout)return
+    let active=true
+    setLoading(true)
+    void listAdminPageSections(selectedPage)
+      .then(sections=>{if(active)setStoredSections(current=>({...current,[selectedPage]:sections}))})
+      .catch(caught=>{if(active)setError(caught instanceof Error?caught.message:'Não foi possível carregar a composição persistida desta página.')})
+      .finally(()=>{if(active)setLoading(false)})
+    return()=>{active=false}
+  },[persisted,selectedPage,isEditorialLayout])
+
   const openCreatePage=()=>{setTitle('');setSlug('');setError('');setPageDialog('create')}
   const openEditPage=()=>{
     if(selectedPage==='home'||selected.source==='system')return
@@ -165,7 +176,7 @@ export function SiteSectionsPage(){
 
   const openCreateSection=()=>{if(isEditorialLayout)return;setEditingSectionId(null);setSectionName('');setSectionSlug('');setError('');setSectionOpen(true)}
   const openEditSection=(section:SitePageSectionDraft)=>{setEditingSectionId(section.id);setSectionName(section.name);setSectionSlug(section.slug);setError('');setSectionOpen(true)}
-  const saveSection=()=>{
+  const saveSection=async()=>{
     if(isEditorialLayout){setSectionOpen(false);return}
     const cleanName=sectionName.trim(),cleanSlug=normalizeSiteSlug(sectionSlug||sectionName)
     if(!cleanName){setError('Informe o nome da seção.');return}
@@ -173,10 +184,28 @@ export function SiteSectionsPage(){
     const current=storedSections[selectedPage]??[]
     if(current.some(section=>section.slug===cleanSlug&&section.id!==editingSectionId)){setError('Já existe uma seção com este identificador nesta página.');return}
     const nextSections=editingSectionId?current.map(section=>section.id===editingSectionId?{...section,name:cleanName,slug:cleanSlug}:section):[...current,{id:`section-${crypto.randomUUID()}`,name:cleanName,slug:cleanSlug}]
-    const next={...storedSections,[selectedPage]:nextSections}
-    setStoredSections(next);sitePageRepository.saveSections(next);setSectionOpen(false);setEditingSectionId(null);setSectionName('');setSectionSlug('');setError('')
+    setSaving(true);setError('')
+    try{
+      const saved=persisted?await saveAdminPageSections(selectedPage,nextSections):nextSections
+      const next={...storedSections,[selectedPage]:saved}
+      setStoredSections(next)
+      if(!persisted)sitePageRepository.saveSections(next)
+      setSectionOpen(false);setEditingSectionId(null);setSectionName('');setSectionSlug('')
+    }catch(caught){setError(caught instanceof Error?caught.message:'Não foi possível salvar a seção.')}
+    finally{setSaving(false)}
   }
-  const removeSection=(id:string)=>{if(isEditorialLayout)return;const next={...storedSections,[selectedPage]:(storedSections[selectedPage]??[]).filter(section=>section.id!==id)};setStoredSections(next);sitePageRepository.saveSections(next)}
+  const removeSection=async(id:string)=>{
+    if(isEditorialLayout)return
+    const nextSections=(storedSections[selectedPage]??[]).filter(section=>section.id!==id)
+    setSaving(true);setError('')
+    try{
+      const saved=persisted?await saveAdminPageSections(selectedPage,nextSections):nextSections
+      const next={...storedSections,[selectedPage]:saved}
+      setStoredSections(next)
+      if(!persisted)sitePageRepository.saveSections(next)
+    }catch(caught){setError(caught instanceof Error?caught.message:'Não foi possível excluir a seção.')}
+    finally{setSaving(false)}
+  }
 
   const publicUrl=selected.slug?`${new URL(import.meta.env.BASE_URL,window.location.origin).toString()}#/${selected.slug}`:new URL(import.meta.env.BASE_URL,window.location.origin).toString()
   const canEdit=selectedPage!=='home'&&(persisted?selected.source==='remote':selected.source==='draft')
@@ -184,8 +213,8 @@ export function SiteSectionsPage(){
 
   return <AdminShell area="cms" items={SITE_MANAGER_NAV} header={{title:'Páginas',description:'Gerencie páginas próprias e páginas editoriais sem quebrar a herança visual do site.'}}>
     <AdminNotice title="Regra de layout" description="Home, Sobre, Colabore e Contato possuem layout próprio. Notícias e todas as demais páginas de conteúdo usam o mesmo template editorial, inclusive as páginas de conteúdo por slug."/>
-    <AdminNotice title={persisted?'Persistência editorial conectada':'Modo local de desenvolvimento'} description={persisted?'Criação, edição, publicação e exclusão de páginas usam a sessão administrativa e a API do Portal Lander.':'Sem uma sessão real da API, novos rascunhos continuam isolados neste navegador e nunca são publicados por engano.'}/>
-    {loading&&<AdminNotice title="Sincronizando páginas" description="Carregando o catálogo editorial diretamente da API."/>}
+    <AdminNotice title={persisted?'Persistência editorial conectada':'Modo local de desenvolvimento'} description={persisted?'Criação, edição, publicação, exclusão e composição própria de páginas especiais usam a sessão administrativa e a API do Portal Lander.':'Sem uma sessão real da API, novos rascunhos e seções continuam isolados neste navegador e nunca são publicados por engano.'}/>
+    {loading&&<AdminNotice title="Sincronizando páginas" description="Carregando páginas e composição diretamente da API."/>}
     {error&&<AdminNotice title="Falha na operação" description={error}/>} 
     {isEditorialLayout&&<AdminNotice title="Template compartilhado" description="A estrutura desta página não é editada isoladamente. Ela herda o template editorial de Notícias para manter listagem e página de conteúdo consistentes em todas as categorias presentes e futuras."/>}
 
@@ -196,7 +225,7 @@ export function SiteSectionsPage(){
         <button type="button" className="site-sections-configure" onClick={openEditPage} disabled={!canEdit||saving}><Pencil size={15}/> Editar página</button>
         <button type="button" className="site-sections-configure" onClick={()=>void deletePage()} disabled={!canDelete||saving}><Trash2 size={15}/> Excluir página</button>
         {persisted&&selectedRemote&&!selectedIsProtected&&<button type="button" className="site-sections-configure" onClick={()=>void togglePublication()} disabled={saving}>{isPublishedPage(selectedRemote)?'Retirar do ar':'Publicar'}</button>}
-        <button type="button" className="site-sections-configure" onClick={openCreateSection} disabled={isEditorialLayout} title={isEditorialLayout?'Páginas de conteúdo herdam o template de Notícias.':'Criar seção própria'}><Plus size={15}/> Criar seção</button>
+        <button type="button" className="site-sections-configure" onClick={openCreateSection} disabled={isEditorialLayout||saving} title={isEditorialLayout?'Páginas de conteúdo herdam o template de Notícias.':'Criar seção própria'}><Plus size={15}/> Criar seção</button>
       </div>
       {selected.public?<a href={publicUrl} target="_blank" rel="noreferrer"><Eye size={15}/> Ver página pública</a>:<button type="button" className="site-sections-configure" disabled><Eye size={15}/> Página não publicada</button>}
     </div>
@@ -208,12 +237,12 @@ export function SiteSectionsPage(){
       {pageSections.length?pageSections.map((section,index)=><div className="site-sections-row" role="row" key={`${selected.id}-${section.id}`}>
         <div className="site-sections-name"><strong>{String(index+1).padStart(2,'0')}</strong><span><b>{section.name}</b><small>{section.summary}</small></span></div>
         <span className="site-sections-structure">{isEditorialLayout?'Herdada de Notícias':`Seção de ${selected.title}`}</span><span className="site-sections-status"><i/> Ativo</span>
-        <div style={{display:'flex',gap:8,justifyContent:'flex-end',alignItems:'center'}}>{section.target&&<Link className="site-sections-configure" to={section.target}><Settings2 size={15}/> Configurar</Link>}{!section.locked&&<><button type="button" className="site-sections-configure" onClick={()=>{const current=(storedSections[selected.id]??[]).find(item=>item.id===section.id);if(current)openEditSection(current)}}><Pencil size={15}/> Editar</button><button type="button" className="site-sections-configure" onClick={()=>removeSection(section.id)}><Trash2 size={15}/> Excluir</button></>}</div>
+        <div style={{display:'flex',gap:8,justifyContent:'flex-end',alignItems:'center'}}>{section.target&&<Link className="site-sections-configure" to={section.target}><Settings2 size={15}/> Configurar</Link>}{!section.locked&&<><button type="button" className="site-sections-configure" disabled={saving} onClick={()=>{const current=(storedSections[selected.id]??[]).find(item=>item.id===section.id);if(current)openEditSection(current)}}><Pencil size={15}/> Editar</button><button type="button" className="site-sections-configure" disabled={saving} onClick={()=>void removeSection(section.id)}><Trash2 size={15}/> Excluir</button></>}</div>
       </div>):<div className="site-sections-row" role="row"><div className="site-sections-name"><strong>—</strong><span><b>Nenhuma seção própria criada</b><small>Crie a primeira seção desta página especial. Cabeçalho e Rodapé globais serão aplicados automaticamente.</small></span></div><span className="site-sections-structure">Sem seções próprias</span><span className="site-sections-status">—</span><span/></div>}
     </div>
 
     {pageDialog&&<div role="presentation" style={{position:'fixed',inset:0,zIndex:2000,background:'rgba(0,0,0,.55)',display:'grid',placeItems:'center',padding:20}} onMouseDown={event=>{if(event.currentTarget===event.target)setPageDialog(null)}}><section role="dialog" aria-modal="true" aria-labelledby="page-dialog-title" className="section-editor-card" style={{width:'min(560px,100%)',boxShadow:'0 24px 80px rgba(0,0,0,.28)'}}><div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:12}}><div><h2 id="page-dialog-title" style={{marginBottom:4}}>{pageDialog==='edit'?'Editar página':'Criar página de conteúdo'}</h2><p style={{margin:0}}>{pageDialog==='edit'?'Altere nome e slug. O template editorial permanece herdado de Notícias.':'Toda nova página criada aqui herda automaticamente o layout de Notícias e o mesmo template da página de conteúdo por slug.'}</p></div><button type="button" onClick={()=>setPageDialog(null)} aria-label="Fechar"><X size={18}/></button></div><div style={{display:'grid',gap:14,marginTop:20}}><label>Nome da página<input autoFocus value={title} onChange={event=>{const value=event.target.value;setTitle(value);if(pageDialog==='create'&&!slug)setSlug(normalizeSiteSlug(value));setError('')}} placeholder="Ex.: Música"/></label><label>Slug<input value={slug} onChange={event=>{setSlug(normalizeSiteSlug(event.target.value));setError('')}} placeholder="musica"/></label><label>Modelo<input value="Conteúdo · herda Notícias" readOnly aria-readonly="true"/></label>{error&&<div style={{color:'#d00',fontWeight:700,fontSize:13}}>{error}</div>}<div style={{display:'flex',justifyContent:'flex-end',gap:10}}><button type="button" className="button outline" onClick={()=>setPageDialog(null)}>Cancelar</button><button type="button" className="button dark" onClick={()=>void savePage()} disabled={saving}>{pageDialog==='edit'?<Pencil size={15}/>:<Plus size={15}/>} {saving?'Salvando…':pageDialog==='edit'?'Salvar':'Criar rascunho'}</button></div></div></section></div>}
 
-    {sectionOpen&&!isEditorialLayout&&<div role="presentation" style={{position:'fixed',inset:0,zIndex:2000,background:'rgba(0,0,0,.55)',display:'grid',placeItems:'center',padding:20}} onMouseDown={event=>{if(event.currentTarget===event.target)setSectionOpen(false)}}><section role="dialog" aria-modal="true" aria-labelledby="section-dialog-title" className="section-editor-card" style={{width:'min(560px,100%)',boxShadow:'0 24px 80px rgba(0,0,0,.28)'}}><div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:12}}><div><h2 id="section-dialog-title" style={{marginBottom:4}}>{editingSectionId?'Editar seção':'Criar seção'}</h2><p style={{margin:0}}>Esta seção pertence somente à página especial selecionada.</p></div><button type="button" onClick={()=>setSectionOpen(false)} aria-label="Fechar"><X size={18}/></button></div><div style={{display:'grid',gap:14,marginTop:20}}><label>Nome da seção<input autoFocus value={sectionName} onChange={event=>{const value=event.target.value;setSectionName(value);if(!sectionSlug)setSectionSlug(normalizeSiteSlug(value));setError('')}} placeholder="Ex.: Conteúdo principal"/></label><label>Identificador<input value={sectionSlug} onChange={event=>{setSectionSlug(normalizeSiteSlug(event.target.value));setError('')}} placeholder="conteudo-principal"/></label>{error&&<div style={{color:'#d00',fontWeight:700,fontSize:13}}>{error}</div>}<div style={{display:'flex',justifyContent:'flex-end',gap:10}}><button type="button" className="button outline" onClick={()=>setSectionOpen(false)}>Cancelar</button><button type="button" className="button dark" onClick={saveSection}><Pencil size={15}/> Salvar seção</button></div></div></section></div>}
+    {sectionOpen&&!isEditorialLayout&&<div role="presentation" style={{position:'fixed',inset:0,zIndex:2000,background:'rgba(0,0,0,.55)',display:'grid',placeItems:'center',padding:20}} onMouseDown={event=>{if(event.currentTarget===event.target)setSectionOpen(false)}}><section role="dialog" aria-modal="true" aria-labelledby="section-dialog-title" className="section-editor-card" style={{width:'min(560px,100%)',boxShadow:'0 24px 80px rgba(0,0,0,.28)'}}><div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:12}}><div><h2 id="section-dialog-title" style={{marginBottom:4}}>{editingSectionId?'Editar seção':'Criar seção'}</h2><p style={{margin:0}}>Esta seção pertence somente à página especial selecionada.</p></div><button type="button" onClick={()=>setSectionOpen(false)} aria-label="Fechar"><X size={18}/></button></div><div style={{display:'grid',gap:14,marginTop:20}}><label>Nome da seção<input autoFocus value={sectionName} onChange={event=>{const value=event.target.value;setSectionName(value);if(!sectionSlug)setSectionSlug(normalizeSiteSlug(value));setError('')}} placeholder="Ex.: Conteúdo principal"/></label><label>Identificador<input value={sectionSlug} onChange={event=>{setSectionSlug(normalizeSiteSlug(event.target.value));setError('')}} placeholder="conteudo-principal"/></label>{error&&<div style={{color:'#d00',fontWeight:700,fontSize:13}}>{error}</div>}<div style={{display:'flex',justifyContent:'flex-end',gap:10}}><button type="button" className="button outline" onClick={()=>setSectionOpen(false)}>Cancelar</button><button type="button" className="button dark" onClick={()=>void saveSection()} disabled={saving}><Pencil size={15}/> {saving?'Salvando…':'Salvar seção'}</button></div></div></section></div>}
   </AdminShell>
 }

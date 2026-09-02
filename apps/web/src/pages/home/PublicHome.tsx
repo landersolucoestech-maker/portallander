@@ -45,11 +45,14 @@ function PublicidadeLateralSection(){
   const [legacy,setLegacy]=useState<SidebarAdConfig>(DEFAULT_SIDEBAR_AD)
   const refresh=useCallback(()=>{loadSidebarAdConfig(DEFAULT_SIDEBAR_AD).then(setLegacy)},[])
   useEffect(()=>{refresh();const onStorage=(event:StorageEvent)=>{if(event.key===SIDEBAR_AD_STORAGE_KEY)refresh()};const onUpdated=()=>refresh();window.addEventListener('storage',onStorage);window.addEventListener(SIDEBAR_AD_UPDATED_EVENT,onUpdated);window.addEventListener('focus',refresh);return()=>{window.removeEventListener('storage',onStorage);window.removeEventListener(SIDEBAR_AD_UPDATED_EVENT,onUpdated);window.removeEventListener('focus',refresh)}},[refresh])
+  if(!configured.active)return null
   const imageUrl=configured.imageUrl.trim()
-  if(!configured.active||!imageUrl)return null
   const imageFit=configured.adImageFit==='cover'?'cover':'contain'
-  const media=<img className="pl-home-sidebar-ad-image" src={imageUrl} alt={legacy.imageAlt||'Publicidade'}/>
-  return <section className={`pl-home-sidebar-ad official-publicidade-lateral pl-home-configurable-ad ad-fit-${imageFit}`} aria-label="Publicidade Lateral" style={{...advertisingResponsiveCssVariables(configured),textAlign:configured.textAlign,borderRadius:legacy.radius}}><div className="pl-home-sidebar-ad-inner"><AdvertisingAreaLink config={configured} className="pl-home-ad-area-link">{media}</AdvertisingAreaLink></div></section>
+  const description=configured.description.trim()
+  const media=imageUrl
+    ?<img className="pl-home-sidebar-ad-image" src={imageUrl} alt={legacy.imageAlt||configured.title||'Publicidade'}/>
+    :<div className="pl-home-sidebar-ad-fallback" role="presentation"><div className="pl-home-sidebar-ad-copy-static">{configured.eyebrow&&<span className="pl-home-sidebar-ad-kicker">{configured.eyebrow}</span>}{configured.title&&<h3>{configured.title}</h3>}{description&&<p>{description}</p>}{configured.linkLabel&&<span className="pl-home-sidebar-ad-link-label">{configured.linkLabel} →</span>}</div></div>
+  return <section className={`pl-home-sidebar-ad official-publicidade-lateral pl-home-configurable-ad ${imageUrl?'has-creative':'is-empty'} ad-fit-${imageFit}`} aria-label="Publicidade Lateral" style={{...advertisingResponsiveCssVariables(configured),textAlign:configured.textAlign,background:imageUrl?'transparent':configured.background,color:configured.textColor,borderColor:imageUrl?'transparent':configured.accentColor,borderRadius:legacy.radius}}><div className="pl-home-sidebar-ad-inner"><AdvertisingAreaLink config={configured} className="pl-home-ad-area-link">{media}</AdvertisingAreaLink></div></section>
 }
 
 function EmDestaqueSection(){const config=useHomeSectionConfiguration('em-destaque','Em Destaque');if(!config.active)return null;return <section className="pl-section official-em-destaque" aria-label="Em Destaque" style={{background:config.background,color:config.textColor,textAlign:config.textAlign}}><SectionHead title={config.title}/><div className="pl-card-grid" style={{gridTemplateColumns:`repeat(${Math.max(1,Math.min(4,config.columns))},minmax(0,1fr))`}}>{homeReadModel.featuredStories.slice(0,config.itemLimit).map(story=><Card key={story.title} item={story} to={config.linkUrl||'/noticias'}/>)}</div>{config.linkLabel&&<div className="pl-center-link"><SmartLink to={config.linkUrl||'/noticias'}>{config.linkLabel}</SmartLink></div>}</section>}

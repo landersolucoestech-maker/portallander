@@ -1,8 +1,8 @@
 import type {SiteFormDefinition} from './domain'
 
-export const systemForms:readonly SiteFormDefinition[]=[
+export const siteFormRegistry:readonly SiteFormDefinition[]=[
   {
-    id:'lead-capture',name:'Captação de Leads',slug:'captacao-leads',purpose:'lead_capture',status:'draft',source:'system',
+    id:'lead-capture',name:'Captação de Leads',slug:'captacao-leads',version:1,purpose:'lead_capture',status:'draft',source:'system',
     fields:[
       {id:'lead-name',key:'name',label:'Nome',type:'text',required:true,placeholder:'Nome completo',order:1},
       {id:'lead-email',key:'email',label:'E-mail',type:'email',required:true,placeholder:'voce@empresa.com',order:2},
@@ -15,7 +15,7 @@ export const systemForms:readonly SiteFormDefinition[]=[
     successMessage:'Recebemos seus dados. Nossa equipe entrará em contato.',
   },
   {
-    id:'collaborate',name:'Colabore',slug:'colabore',purpose:'editorial_submission',status:'active',source:'system',
+    id:'collaborate',name:'Colabore',slug:'colabore',version:1,purpose:'editorial_submission',status:'active',source:'system',
     fields:[
       {id:'collab-name',key:'nome',label:'Seu nome',type:'text',required:true,placeholder:'Nome completo',order:1},
       {id:'collab-email',key:'email',label:'E-mail',type:'email',required:true,order:2},
@@ -33,4 +33,9 @@ export const systemForms:readonly SiteFormDefinition[]=[
   },
 ]
 
-export const getSystemFormBySlug=(slug:string)=>systemForms.find(form=>form.slug===slug)
+export const getSiteFormBySlug=(slug:string)=>siteFormRegistry.find(form=>form.slug===slug)
+export const getSiteFormById=(id:string)=>siteFormRegistry.find(form=>form.id===id)
+
+// Aliases temporários para consumidores legados; não representam uma segunda fonte de dados.
+export const systemForms=siteFormRegistry
+export const getSystemFormBySlug=getSiteFormBySlug

@@ -2,10 +2,11 @@ import type {CSSProperties} from 'react'
 import type {SectionConfiguration,SectionHeroViewport} from './sectionConfiguration'
 
 export type AdvertisingAlignment='left'|'center'|'right'
-export type AdvertisingImageFit='cover'|'contain'|'fill'
+export type AdvertisingImageFit='cover'|'contain'
 export type AdvertisingLinkTarget='same'|'new'
 
 export type AdvertisingSectionLayout={
+  adLayoutVersion:number
   adWidthDesktop:number
   adWidthTablet:number
   adWidthMobile:number
@@ -40,9 +41,12 @@ export type AdvertisingSectionLayout={
 
 export type AdvertisingSectionConfiguration=SectionConfiguration&AdvertisingSectionLayout
 
-const sidebarDefaults:AdvertisingSectionLayout={
-  adWidthDesktop:300,adWidthTablet:0,adWidthMobile:0,
-  adHeightDesktop:600,adHeightTablet:420,adHeightMobile:360,
+const CURRENT_AD_LAYOUT_VERSION=2
+
+const sharedDefaults:AdvertisingSectionLayout={
+  adLayoutVersion:CURRENT_AD_LAYOUT_VERSION,
+  adWidthDesktop:0,adWidthTablet:0,adWidthMobile:0,
+  adHeightDesktop:0,adHeightTablet:0,adHeightMobile:0,
   adAlignDesktop:'center',adAlignTablet:'center',adAlignMobile:'center',
   adMarginXDesktop:0,adMarginXTablet:0,adMarginXMobile:0,
   adMarginYDesktop:0,adMarginYTablet:0,adMarginYMobile:0,
@@ -53,19 +57,36 @@ const sidebarDefaults:AdvertisingSectionLayout={
   adImageFit:'contain',adLinkEnabled:true,adLinkTarget:'same',
 }
 
-const bannerDefaults:AdvertisingSectionLayout={
-  ...sidebarDefaults,
-  adWidthDesktop:0,adWidthTablet:0,adWidthMobile:0,
-  adHeightDesktop:360,adHeightTablet:320,adHeightMobile:280,
-  adImageFit:'contain',
-}
+const sidebarDefaults:AdvertisingSectionLayout={...sharedDefaults}
+const bannerDefaults:AdvertisingSectionLayout={...sharedDefaults}
 
 export function defaultAdvertisingSectionLayout(sectionId:string):AdvertisingSectionLayout{
   return structuredClone(sectionId==='publicidade-lateral'?sidebarDefaults:bannerDefaults)
 }
 
+function migrateLegacyLayout(config:SectionConfiguration,sectionId:string):Partial<AdvertisingSectionLayout>{
+  const raw=config as SectionConfiguration&Partial<AdvertisingSectionLayout>&{adImageFit?:string}
+  if((raw.adLayoutVersion||0)>=CURRENT_AD_LAYOUT_VERSION){
+    return {
+      ...(raw as Partial<AdvertisingSectionLayout>),
+      adLayoutVersion:CURRENT_AD_LAYOUT_VERSION,
+      adImageFit:raw.adImageFit==='cover'?'cover':'contain',
+    }
+  }
+
+  const migrated={...(raw as Partial<AdvertisingSectionLayout>),adLayoutVersion:CURRENT_AD_LAYOUT_VERSION,adImageFit:raw.adImageFit==='cover'?'cover':'contain'} as Partial<AdvertisingSectionLayout>
+  if(sectionId==='publicidade-lateral'){
+    const matchesOldPreset=(raw.adWidthDesktop===300||raw.adWidthDesktop==null)&&(raw.adHeightDesktop===600||raw.adHeightDesktop==null)&&(raw.adHeightTablet===420||raw.adHeightTablet==null)&&(raw.adHeightMobile===360||raw.adHeightMobile==null)
+    if(matchesOldPreset){migrated.adWidthDesktop=0;migrated.adWidthTablet=0;migrated.adWidthMobile=0;migrated.adHeightDesktop=0;migrated.adHeightTablet=0;migrated.adHeightMobile=0}
+  }else{
+    const matchesOldPreset=(raw.adHeightDesktop===360||raw.adHeightDesktop==null)&&(raw.adHeightTablet===320||raw.adHeightTablet==null)&&(raw.adHeightMobile===280||raw.adHeightMobile==null)
+    if(matchesOldPreset){migrated.adWidthDesktop=0;migrated.adWidthTablet=0;migrated.adWidthMobile=0;migrated.adHeightDesktop=0;migrated.adHeightTablet=0;migrated.adHeightMobile=0}
+  }
+  return migrated
+}
+
 export function withAdvertisingSectionLayout(config:SectionConfiguration,sectionId:string):AdvertisingSectionConfiguration{
-  return {...defaultAdvertisingSectionLayout(sectionId),...(config as AdvertisingSectionConfiguration)}
+  return {...config,...defaultAdvertisingSectionLayout(sectionId),...migrateLegacyLayout(config,sectionId)} as AdvertisingSectionConfiguration
 }
 
 const suffix=(viewport:SectionHeroViewport)=>viewport==='desktop'?'Desktop':viewport==='tablet'?'Tablet':'Mobile'

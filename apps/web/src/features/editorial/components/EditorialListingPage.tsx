@@ -14,8 +14,8 @@ export function EditorialListingPage({page}:{page:EditorialPage}){
   const location=useLocation()
   const heroFallback=useMemo(()=>({title:page.title.toUpperCase(),description:page.description,eyebrow:'AGORA NO PORTAL'}),[page.title,page.description])
   const hero=useSectionConfiguration(page.id,'editorial-hero',page.title,heroFallback)
-  const summary=useSectionConfiguration('editorial-template','editorial-summary','Resumo da Listagem')
-  const advertising=useSectionConfiguration('editorial-template','editorial-ad','Publicidade Editorial')
+  const summary=useSectionConfiguration(page.id,'editorial-summary','Resumo da Listagem')
+  const advertising=useSectionConfiguration(page.id,'editorial-ad','Publicidade Editorial')
   const template=useSectionConfiguration('editorial-template','editorial-template','Conteúdos / Grid Editorial')
   const searchQuery=new URLSearchParams(location.search).get('busca')?.trim()||''
   const isSearchMode=Boolean(searchQuery)

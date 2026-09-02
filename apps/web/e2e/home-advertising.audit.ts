@@ -48,20 +48,28 @@ test.describe('home advertising layout contract',()=>{
     }
   })
 
-  test('most read stays at five items and sidebar flows directly from ad to trending',async({page})=>{
+  test('most read stays at five items and advertising starts immediately below it',async({page})=>{
     await seedSidebarCreative(page)
-    await expect(page.locator('.official-mais-lidas .pl-ranked')).toHaveCount(5)
     const stack=page.locator('.official-home-sidebar-stack')
-    await expect(stack.locator('.official-publicidade-lateral')).toBeVisible()
-    await expect(stack.locator('.official-em-alta')).toBeVisible()
-    const adBox=await stack.locator('.official-publicidade-lateral').boundingBox()
-    const trendingBox=await stack.locator('.official-em-alta').boundingBox()
+    const mostRead=stack.locator('.official-mais-lidas')
+    const ad=stack.locator('.official-publicidade-lateral')
+    const trending=stack.locator('.official-em-alta')
+    await expect(mostRead.locator('.pl-ranked')).toHaveCount(5)
+    await expect(ad).toBeVisible()
+    await expect(trending).toBeVisible()
+    const mostReadBox=await mostRead.boundingBox()
+    const adBox=await ad.boundingBox()
+    const trendingBox=await trending.boundingBox()
+    expect(mostReadBox).not.toBeNull()
     expect(adBox).not.toBeNull()
     expect(trendingBox).not.toBeNull()
-    if(adBox&&trendingBox){
-      const gap=trendingBox.y-(adBox.y+adBox.height)
-      expect(gap).toBeGreaterThanOrEqual(0)
-      expect(gap).toBeLessThanOrEqual(40)
+    if(mostReadBox&&adBox&&trendingBox){
+      const gapAfterMostRead=adBox.y-(mostReadBox.y+mostReadBox.height)
+      const gapAfterAd=trendingBox.y-(adBox.y+adBox.height)
+      expect(gapAfterMostRead).toBeGreaterThanOrEqual(0)
+      expect(gapAfterMostRead).toBeLessThanOrEqual(40)
+      expect(gapAfterAd).toBeGreaterThanOrEqual(0)
+      expect(gapAfterAd).toBeLessThanOrEqual(40)
     }
   })
 })

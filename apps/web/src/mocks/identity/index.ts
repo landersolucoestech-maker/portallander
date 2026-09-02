@@ -1,4 +1,4 @@
-import type {AppUser,WorkspaceDescriptor} from '../../shared/data/contracts'
+import type {AppUser} from '../../shared/data/contracts'
 import {mockIds} from '../shared'
 
 export const mockUsers:AppUser[]=[
@@ -10,8 +10,3 @@ export const mockUsers:AppUser[]=[
 ]
 
 export const mockCurrentUserId=mockIds.users.admin
-export const mockWorkspaces:WorkspaceDescriptor[]=[
- {id:'workspace_admin',name:'CRM',slug:'crm',description:'Workspace administrativo para relacionamento comercial, contratos e operação financeira.',eyebrow:'WORKSPACE ADMINISTRATIVO',route:'/app/crm',capabilities:['CRM e relacionamento','Contratos','Financeiro'],active:true},
- {id:'workspace_site',name:'Gerenciador do Site',slug:'site-manager',description:'Páginas, conteúdos, categorias, mídia, identidade visual, Home e publicidade do Portal Lander.',eyebrow:'CONTEÚDO E PUBLICAÇÃO',route:'/app/site',capabilities:['Conteúdo editorial','Home e publicidade','Marca e estrutura do portal'],active:true},
- {id:'workspace_archive',name:'Arquivo Institucional',slug:'arquivo-institucional',description:'Workspace histórico em modo leitura para materiais arquivados.',eyebrow:'ARQUIVO',route:'/app/workspaces',capabilities:['Consulta histórica'],active:false},
-]

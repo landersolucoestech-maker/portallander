@@ -44,6 +44,15 @@ async function patchSidebar(page:Page,patch:Record<string,unknown>){
   },{key:storageKey,eventName:sectionEvent,next:patch})
 }
 
+async function patchMostRead(page:Page,patch:Record<string,unknown>){
+  await page.evaluate(({key,eventName,next})=>{
+    const current=JSON.parse(localStorage.getItem(key)||'{}')
+    current['home:mais-lidas']={...(current['home:mais-lidas']||{}),...next}
+    localStorage.setItem(key,JSON.stringify(current))
+    window.dispatchEvent(new CustomEvent(eventName,{detail:{pageId:'home',sectionId:'mais-lidas'}}))
+  },{key:storageKey,eventName:sectionEvent,next:patch})
+}
+
 test.describe('home advertising layout contract',()=>{
   test.use({viewport:{width:1440,height:900}})
 
@@ -108,7 +117,30 @@ test.describe('home advertising layout contract',()=>{
     await expect(page.getByText(/Altura ·/).first()).toBeVisible()
   })
 
-  test('most read stays at five items and advertising starts immediately below it',async({page})=>{
+  test('Mais Lidas supports 1 to 5 items and can be disabled',async({page})=>{
+    await seedSidebarCreative(page)
+    const mostRead=page.locator('.official-mais-lidas')
+    await patchMostRead(page,{active:true,itemLimit:3})
+    await expect(mostRead.locator('.pl-ranked')).toHaveCount(3)
+    await patchMostRead(page,{itemLimit:99})
+    await expect(mostRead.locator('.pl-ranked')).toHaveCount(5)
+    await patchMostRead(page,{itemLimit:1})
+    await expect(mostRead.locator('.pl-ranked')).toHaveCount(1)
+    await patchMostRead(page,{active:false})
+    await expect(mostRead).toHaveCount(0)
+  })
+
+  test('Mais Lidas editor exposes a 1 to 5 quantity selector and visibility toggle',async({page})=>{
+    await page.goto(`${base}#/app/site/paginas/home/secoes/mais-lidas`,{waitUntil:'domcontentloaded'})
+    const quantity=page.getByLabel('Quantidade máxima de conteúdos')
+    await expect(quantity).toBeVisible()
+    await expect(quantity.locator('option')).toHaveCount(5)
+    await quantity.selectOption('3')
+    await expect(page.locator('.official-mais-lidas .pl-ranked')).toHaveCount(3)
+    await expect(page.locator('.section-config-switch input[type="checkbox"]')).toBeVisible()
+  })
+
+  test('most read defaults to five items and advertising starts immediately below it',async({page})=>{
     await seedSidebarCreative(page)
     const stack=page.locator('.official-home-sidebar-stack')
     const mostRead=stack.locator('.official-mais-lidas')

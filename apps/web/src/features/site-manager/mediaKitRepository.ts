@@ -67,7 +67,7 @@ class LocalMediaKitRepository implements MediaKitRepository{
     window.dispatchEvent(new CustomEvent(EVENT_NAME))
     return clone(defaultMediaKitDraft)
   }
-  async publish(){throw new Error('A publicação do Mídia Kit exige uma sessão administrativa conectada à API.')}
+  async publish():Promise<MediaKitDraft>{throw new Error('A publicação do Mídia Kit exige uma sessão administrativa conectada à API.')}
 }
 
 export const mediaKitRepository:MediaKitRepository=adminApiBase()?new ApiMediaKitRepository():new LocalMediaKitRepository()

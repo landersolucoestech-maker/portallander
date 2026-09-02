@@ -3,7 +3,6 @@ import {Navigate,Route,Routes,useLocation} from 'react-router-dom'
 import {AdminAuthProvider} from '../features/access/AdminAuthContext'
 import {useAdminAuth} from '../features/access/adminAuthState'
 import {LoginPage} from '../features/access/LoginPage'
-import {WorkspacePage} from '../features/access/WorkspacePage'
 import {ProfilePage} from '../features/access/AccountPages'
 import CrmWorkspace from '../features/access/CrmWorkspace'
 import DashboardPage from '../features/dashboard/DashboardPage'
@@ -32,16 +31,16 @@ function RequireAdmin({children}:{children:ReactNode}){
 
 function LoginRoute(){
   const {status}=useAdminAuth()
-  if(status==='authenticated')return <Navigate to="/app/workspaces" replace/>
+  if(status==='authenticated')return <Navigate to="/app/dashboard" replace/>
   return <LoginPage/>
 }
 
 const protectedRoute=(element:ReactNode)=><RequireAdmin>{element}</RequireAdmin>
 
 function InternalRoutes(){return <Routes>
-  <Route path="/app" element={<Navigate to="/app/login" replace/>}/>
+  <Route path="/app" element={<Navigate to="/app/dashboard" replace/>}/>
   <Route path="/app/login" element={<LoginRoute/>}/>
-  <Route path="/app/workspaces" element={protectedRoute(<WorkspacePage/>)}/>
+  <Route path="/app/workspaces" element={<Navigate to="/app/dashboard" replace/>}/>
   <Route path="/app/profile" element={protectedRoute(<ProfilePage/>)}/>
   <Route path="/app/dashboard" element={protectedRoute(<DashboardPage/>)}/>
   <Route path="/app/crm/*" element={protectedRoute(<CrmWorkspace/>)}/>

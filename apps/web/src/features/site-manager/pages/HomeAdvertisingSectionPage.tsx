@@ -5,7 +5,6 @@ import {SITE_MANAGER_NAV} from '../../../shared/internal/adminNavigation'
 import {SectionMediaField} from '../components/SectionMediaField'
 import {
   advertisingViewportLayout,
-  defaultAdvertisingSectionLayout,
   withAdvertisingSectionLayout,
   type AdvertisingAlignment,
   type AdvertisingSectionConfiguration,

@@ -44,13 +44,27 @@ async function getPublishedForm(slug,requestedVersion){
   return {...row,fields:asArray(row.fields),consents:asArray(row.consents),routing:asObject(row.routing)}
 }
 
+export function normalizeSubmissionFiles(form,files){
+  const configured=new Map(form.fields.filter(field=>field.type==='file').map(field=>[String(field.key),field]))
+  const normalized=[]
+  for(const file of files){
+    const rawField=text(file.fieldName)
+    ensure(rawField.startsWith('file:'),400,'Anexo sem campo de formulário válido.','FORM_FILE_FIELD_INVALID')
+    const fieldKey=rawField.slice(5)
+    ensure(configured.has(fieldKey),400,'Anexo enviado para um campo que não existe na versão publicada.','FORM_FILE_FIELD_UNKNOWN',{field:fieldKey})
+    normalized.push({...file,fieldKey})
+  }
+  for(const [fieldKey,field] of configured)if(field.required)ensure(normalized.some(file=>file.fieldKey===fieldKey),400,`Envie o campo obrigatório: ${field.label}.`,'FORM_FILE_REQUIRED',{field:fieldKey})
+  return normalized
+}
+
 function validateSubmission(form,payload,acceptedConsentIds,files){
   const accepted=new Set(acceptedConsentIds.map(String))
   const normalized={}
   for(const field of form.fields){
     const key=text(field.key),type=text(field.type),value=payload[key]
     if(type==='file'){
-      if(field.required)ensure(files.length>0,400,`Envie o campo obrigatório: ${field.label}.`,'FORM_FILE_REQUIRED',{field:key})
+      if(field.required)ensure(files.some(file=>file.fieldKey===key),400,`Envie o campo obrigatório: ${field.label}.`,'FORM_FILE_REQUIRED',{field:key})
       continue
     }
     const stringValue=text(value)
@@ -105,10 +119,11 @@ export const formService={
     validateAntiSpamSignal(antiSpam)
     const form=await getPublishedForm(slug,version)
     await enforceRateLimit(ipHash)
-    const validated=validateSubmission(form,asObject(payload),asArray(acceptedConsentIds),files)
+    const normalizedFiles=normalizeSubmissionFiles(form,files)
+    const validated=validateSubmission(form,asObject(payload),asArray(acceptedConsentIds),normalizedFiles)
     const submissionId=randomUUID(),uploaded=[]
     try{
-      for(const file of files)uploaded.push(await storePrivateAttachment(submissionId,file))
+      for(const file of normalizedFiles)uploaded.push({...await storePrivateAttachment(submissionId,file),fieldKey:file.fieldKey})
       return await withTransaction(async client=>{
         await client.query(`insert into form_submissions(id,form_id,form_version_id,payload,source,processing_status,routing_results,request_id,spam_score,ip_hash,user_agent) values($1,$2,$3,$4,$5,'validating','{}'::jsonb,$6,0,$7,$8)`,[
           submissionId,form.form_id,form.form_version_id,JSON.stringify(validated.payload),JSON.stringify(asObject(source)),requestId||null,ipHash,userAgent||'',
@@ -123,8 +138,8 @@ export const formService={
         }
         const attachmentIds=[]
         for(const attachment of uploaded){
-          const {rows}=await client.query(`insert into form_submission_attachments(submission_id,storage_key,original_name,mime_type,size_bytes,checksum,scan_status) values($1,$2,$3,$4,$5,$6,'pending') returning id`,[
-            submissionId,attachment.storageKey,attachment.originalName,attachment.mimeType,attachment.sizeBytes,attachment.checksum,
+          const {rows}=await client.query(`insert into form_submission_attachments(submission_id,field_key,storage_key,original_name,mime_type,size_bytes,checksum,scan_status) values($1,$2,$3,$4,$5,$6,$7,'pending') returning id`,[
+            submissionId,attachment.fieldKey,attachment.storageKey,attachment.originalName,attachment.mimeType,attachment.sizeBytes,attachment.checksum,
           ])
           attachmentIds.push(rows[0].id)
         }

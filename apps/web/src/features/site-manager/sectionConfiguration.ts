@@ -15,6 +15,9 @@ export type SectionConfiguration={
   background:string
   textColor:string
   accentColor:string
+  heroHeightDesktop:number
+  heroHeightTablet:number
+  heroHeightMobile:number
 }
 
 export type SectionDefinition={id:string;name:string;summary:string;kind:SectionKind;locked?:boolean}
@@ -46,7 +49,7 @@ const defaults:Record<string,Partial<SectionConfiguration>>={
   'colabore-formulario':{title:'FORMULÁRIO DE ENVIO',description:'Formulário público conectado ao fluxo editorial de colaborações.',columns:1},
 }
 
-export const BASE_SECTION_CONFIGURATION:SectionConfiguration={active:true,title:'Nova seção',eyebrow:'',description:'',linkLabel:'',linkUrl:'',imageUrl:'',itemLimit:6,columns:3,textAlign:'left',background:'#ffffff',textColor:'#111111',accentColor:'#e50914'}
+export const BASE_SECTION_CONFIGURATION:SectionConfiguration={active:true,title:'Nova seção',eyebrow:'',description:'',linkLabel:'',linkUrl:'',imageUrl:'',itemLimit:6,columns:3,textAlign:'left',background:'#ffffff',textColor:'#111111',accentColor:'#e50914',heroHeightDesktop:420,heroHeightTablet:340,heroHeightMobile:280}
 const storageId=(pageId:string,sectionId:string)=>`${pageId}:${sectionId}`
 const readAll=():Record<string,SectionConfiguration>=>{try{return JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}') as Record<string,SectionConfiguration>}catch{return {}}}
 
@@ -78,21 +81,21 @@ export const HOME_SECTION_DEFINITIONS:SectionDefinition[]=[
 ]
 
 export const EDITORIAL_PAGE_SECTION_DEFINITIONS:SectionDefinition[]=[
-  {id:'editorial-hero',name:'Hero Editorial',summary:'Hero individual desta página. Usa por padrão o mesmo artwork de fundo aprovado da Hero da Homepage; conteúdo e aparência continuam configuráveis por página.',kind:'standard-hero',locked:true},
+  {id:'editorial-hero',name:'Hero Editorial',summary:'Hero individual desta página. Usa por padrão o mesmo artwork de fundo aprovado da Hero da Homepage; conteúdo, aparência e altura responsiva continuam configuráveis por página.',kind:'standard-hero',locked:true},
   {id:'editorial-template',name:'Conteúdos / Grid Editorial',summary:'Estrutura compartilhada de Notícias para listagem, grid e comportamento editorial.',kind:'editorial',locked:true},
 ]
 
 export const SPECIAL_PAGE_SECTION_DEFINITIONS:Record<string,SectionDefinition[]>={
   sobre:[
-    {id:'sobre-hero',name:'Hero Institucional',summary:'Cabeçalho visual da página Sobre usando por padrão o background aprovado da Homepage.',kind:'standard-hero',locked:true},
+    {id:'sobre-hero',name:'Hero Institucional',summary:'Cabeçalho visual da página Sobre usando por padrão o background aprovado da Homepage, com altura responsiva configurável.',kind:'standard-hero',locked:true},
     {id:'sobre-conteudo',name:'Conteúdo Institucional',summary:'Bloco principal de apresentação do Portal Lander.',kind:'body',locked:true},
   ],
   contato:[
-    {id:'contato-hero',name:'Hero de Contato',summary:'Cabeçalho visual da página Contato usando por padrão o background aprovado da Homepage.',kind:'standard-hero',locked:true},
+    {id:'contato-hero',name:'Hero de Contato',summary:'Cabeçalho visual da página Contato usando por padrão o background aprovado da Homepage, com altura responsiva configurável.',kind:'standard-hero',locked:true},
     {id:'contato-canais',name:'Canais Oficiais',summary:'Grid de canais públicos e redes configuradas.',kind:'channels',locked:true},
   ],
   colabore:[
-    {id:'colabore-hero',name:'Hero Colabore',summary:'Apresentação principal usando por padrão o background aprovado da Homepage.',kind:'standard-hero',locked:true},
+    {id:'colabore-hero',name:'Hero Colabore',summary:'Apresentação principal usando por padrão o background aprovado da Homepage, com altura responsiva configurável.',kind:'standard-hero',locked:true},
     {id:'colabore-diretrizes',name:'Diretrizes de Envio',summary:'Orientações editoriais exibidas antes do formulário.',kind:'guidelines',locked:true},
     {id:'colabore-formulario',name:'Formulário de Colaboração',summary:'Formulário público de envio de materiais.',kind:'form',locked:true},
   ],

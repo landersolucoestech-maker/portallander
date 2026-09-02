@@ -43,9 +43,9 @@ export const ADMIN_CAPABILITIES = {
     description:'A configuração da marca do rodapé salva somente no armazenamento local deste navegador.',
   },
   adminAuth: {
-    state:'unavailable',
+    state:'available',
     label:'Autenticação administrativa',
-    description:'Não existe autenticação/autorização server-side para proteger a área administrativa.',
+    description:'A área administrativa usa sessão server-side revogável em cookie HttpOnly; a chave persistente da API não é exposta ao navegador.',
   },
   analytics: {
     state:'unavailable',

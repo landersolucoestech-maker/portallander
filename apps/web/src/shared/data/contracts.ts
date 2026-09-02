@@ -13,17 +13,6 @@ export interface AppUser{
  avatarUrl:string
 }
 
-export interface WorkspaceDescriptor{
- id:EntityId
- name:string
- slug:string
- description:string
- eyebrow:string
- route:string
- capabilities:readonly string[]
- active:boolean
-}
-
 export type NotificationSeverity='info'|'success'|'warning'|'error'
 export type NotificationStatus='unread'|'read'|'archived'
 export interface AppNotification{

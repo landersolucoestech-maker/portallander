@@ -6,6 +6,7 @@ import {formAdminService} from './formAdminService.js'
 import {formPublicService} from './formPublicService.js'
 import {formService,hashClientIp} from './formService.js'
 import {mediaService} from './mediaService.js'
+import {mediaKitService} from './mediaKitService.js'
 import {parseMultipart} from './multipart.js'
 
 const MAX_JSON_BYTES=1024*1024
@@ -185,6 +186,22 @@ export async function handleRequest(req,res){
     const mediaMatch=path.match(/^\/api\/editorial\/media\/([^/]+)$/)
     if(mediaMatch&&req.method==='DELETE'){
       await requireAdmin(req);const id=decode(mediaMatch[1]);await mediaService.remove(id);send(res,200,{deleted:true,id},cors);return
+    }
+
+    if(req.method==='GET'&&path==='/api/media-kit/public'){
+      const mediaKit=await mediaKitService.readPublished();send(res,200,{mediaKit},cors);return
+    }
+    if(req.method==='GET'&&path==='/api/media-kit'){
+      await requireAdmin(req);const mediaKit=await mediaKitService.readAdmin();send(res,200,{mediaKit},cors);return
+    }
+    if((req.method==='PUT'||req.method==='PATCH')&&path==='/api/media-kit'){
+      const admin=await requireAdmin(req);const mediaKit=await mediaKitService.saveDraft(await readJson(req),admin.user?.id||null);send(res,200,{mediaKit},cors);return
+    }
+    if(req.method==='POST'&&path==='/api/media-kit/publish'){
+      const admin=await requireAdmin(req);const mediaKit=await mediaKitService.publish(admin.user?.id||null);send(res,200,{mediaKit},cors);return
+    }
+    if(req.method==='DELETE'&&path==='/api/media-kit/draft'){
+      await requireAdmin(req);const mediaKit=await mediaKitService.discardDraft();send(res,200,{mediaKit},cors);return
     }
 
     if(req.method==='GET'&&path==='/api/forms/definitions/public'){

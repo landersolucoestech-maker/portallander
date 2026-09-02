@@ -186,6 +186,10 @@ export async function handleRequest(req,res){
     if(req.method==='POST'&&publishFormMatch){
       await requireAdmin(req);const form=await formAdminService.publish(decode(publishFormMatch[1]));send(res,200,{form},cors);return
     }
+    const statusFormMatch=path.match(/^\/api\/forms\/definitions\/([^/]+)\/status$/)
+    if((req.method==='PUT'||req.method==='PATCH')&&statusFormMatch){
+      await requireAdmin(req);const body=await readJson(req);const form=await formAdminService.setStatus(decode(statusFormMatch[1]),body.status);send(res,200,{form},cors);return
+    }
     const formDefinitionMatch=path.match(/^\/api\/forms\/definitions\/([^/]+)$/)
     if(formDefinitionMatch){
       const key=decode(formDefinitionMatch[1])

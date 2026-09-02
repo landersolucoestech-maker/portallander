@@ -44,6 +44,7 @@ const draftEditorialPage=(title:string,slug:string):EditorialPage=>{
 export function SiteSectionsPage(){
   const {status}=useAdminAuth()
   const persisted=status==='authenticated'
+  const development=status==='development'
   const [draftPages,setDraftPages]=useState<SitePageDraft[]>(()=>sitePageRepository.listDraftPages())
   const [remotePages,setRemotePages]=useState<EditorialPage[]>([])
   const [storedSections,setStoredSections]=useState<SitePageSections>(()=>sitePageRepository.listSections())
@@ -61,6 +62,7 @@ export function SiteSectionsPage(){
 
   useEffect(()=>{sitePageRepository.purgeLegacy()},[])
 
+  const reloadLocal=useCallback(()=>setDraftPages(sitePageRepository.listDraftPages()),[])
   const reloadRemote=useCallback(async()=>{
     if(!persisted)return
     setLoading(true);setError('')
@@ -78,15 +80,21 @@ export function SiteSectionsPage(){
 
   const pages=useMemo<CmsPageOption[]>(()=>{
     const sourcePages=persisted?remotePages:editorialReadModel.pages
-    const systemPages=sourcePages.map(page=>({id:page.id,title:page.title,slug:page.slug,source:(persisted?'remote':'system') as 'remote'|'system',public:isPublishedPage(page),layout:isSpecialLayoutPage(page)?'custom' as const:'editorial' as const,page}))
-    const local=persisted?[]:draftPages.map(page=>({...page,source:'draft' as const,public:false,layout:'editorial' as const}))
+    const hidden=new Set(persisted?[]:sitePageRepository.listHiddenPageIds())
+    const overrides=new Map(draftPages.filter(page=>page.overridesSystem).map(page=>[page.id,page]))
+    const systemPages=sourcePages.filter(page=>!hidden.has(page.id)).map(page=>{
+      const override=overrides.get(page.id)
+      return {id:page.id,title:override?.title??page.title,slug:override?.slug??page.slug,source:(persisted?'remote':override?'draft':'system') as 'remote'|'draft'|'system',public:isPublishedPage(page),layout:isSpecialLayoutPage(page)?'custom' as const:'editorial' as const,page}
+    })
+    const local=persisted?[]:draftPages.filter(page=>!page.overridesSystem).map(page=>({...page,source:'draft' as const,public:false,layout:'editorial' as const}))
     return [{id:'home',title:'Página inicial',slug:'',source:'system' as const,public:true,layout:'custom' as const},...systemPages,...local]
   },[persisted,remotePages,draftPages])
 
   const selected=pages.find(page=>page.id===selectedPage)??pages[0]
   const isEditorialLayout=selected.layout==='editorial'
   const selectedRemote=selected.source==='remote'?remotePages.find(page=>page.id===selected.id):undefined
-  const selectedIsProtected=selectedPage==='home'||Boolean(selectedRemote&&isSpecialLayoutPage(selectedRemote))
+  const selectedSystem=editorialReadModel.pages.find(page=>page.id===selected.id)
+  const selectedIsProtected=persisted?(selectedPage==='home'||Boolean(selectedRemote&&isSpecialLayoutPage(selectedRemote))):selectedPage==='home'
   const customSections=storedSections[selectedPage]??[]
   const pageSections:SiteSection[]=isEditorialLayout?[EDITORIAL_TEMPLATE_SECTION]:[...(selectedPage==='home'?HOME_SECTIONS:[]),...customSections.map(section=>({id:section.id,name:section.name,summary:`Seção própria de ${selected.title}.`,kind:'section' as const}))]
 
@@ -102,7 +110,7 @@ export function SiteSectionsPage(){
 
   const openCreatePage=()=>{setTitle('');setSlug('');setError('');setPageDialog('create')}
   const openEditPage=()=>{
-    if(selectedPage==='home'||selected.source==='system')return
+    if(selectedPage==='home')return
     setTitle(selected.title);setSlug(selected.slug);setError('');setPageDialog('edit')
   }
 
@@ -129,19 +137,23 @@ export function SiteSectionsPage(){
       return
     }
 
-    if(pageDialog==='edit'&&selected.source==='draft'){
-      const next=draftPages.map(page=>page.id===selected.id?{...page,title:cleanTitle,slug:cleanSlug}:page)
-      setDraftPages(next);sitePageRepository.saveDraftPages(next);setPageDialog(null);setError('');return
+    if(pageDialog==='edit'){
+      if(selectedSystem){sitePageRepository.upsertSystemOverride({id:selected.id,title:cleanTitle,slug:cleanSlug})}
+      else{
+        const next=draftPages.map(page=>page.id===selected.id?{...page,title:cleanTitle,slug:cleanSlug}:page)
+        sitePageRepository.saveDraftPages(next)
+      }
+      reloadLocal();setPageDialog(null);setError('');return
     }
     const template:SitePageTemplate='editorial'
     const page:SitePageDraft={id:`draft-${crypto.randomUUID()}`,title:cleanTitle,slug:cleanSlug,template}
     const next=[...draftPages,page]
-    setDraftPages(next);sitePageRepository.saveDraftPages(next);setSelectedPage(page.id);setPageDialog(null);setError('')
+    sitePageRepository.saveDraftPages(next);reloadLocal();setSelectedPage(page.id);setPageDialog(null);setError('')
   }
 
   const deletePage=async()=>{
     if(selectedIsProtected)return
-    if(!window.confirm(`Excluir “${selected.title}”? A exclusão será recusada se houver conteúdos vinculados.`))return
+    if(!window.confirm(`Excluir “${selected.title}”?${persisted?' A exclusão será recusada se houver conteúdos vinculados.':' No modo de desenvolvimento o item original fica preservado no código e é ocultado neste navegador.'}`))return
     if(persisted&&selectedRemote){
       setSaving(true);setError('')
       try{await deleteAdminEditorialPage(selectedRemote.id);await reloadRemote();setSelectedPage('home')}
@@ -149,10 +161,10 @@ export function SiteSectionsPage(){
       finally{setSaving(false)}
       return
     }
-    if(selected.source!=='draft')return
-    const nextPages=draftPages.filter(page=>page.id!==selected.id)
+    if(selectedSystem){sitePageRepository.hideSystemPage(selected.id);sitePageRepository.removeDraftPage(selected.id)}
+    else sitePageRepository.removeDraftPage(selected.id)
     const nextSections={...storedSections};delete nextSections[selected.id]
-    setDraftPages(nextPages);sitePageRepository.saveDraftPages(nextPages);setStoredSections(nextSections);sitePageRepository.saveSections(nextSections);setSelectedPage('home')
+    setStoredSections(nextSections);sitePageRepository.saveSections(nextSections);reloadLocal();setSelectedPage('home')
   }
 
   const togglePublication=async()=>{
@@ -207,19 +219,19 @@ export function SiteSectionsPage(){
   }
 
   const publicUrl=selected.slug?`${new URL(import.meta.env.BASE_URL,window.location.origin).toString()}#/${selected.slug}`:new URL(import.meta.env.BASE_URL,window.location.origin).toString()
-  const canEdit=selectedPage!=='home'&&(persisted?selected.source==='remote':selected.source==='draft')
+  const canEdit=selectedPage!=='home'&&(persisted?selected.source==='remote':true)
   const canDelete=canEdit&&!selectedIsProtected
 
   return <AdminShell area="cms" items={SITE_MANAGER_NAV} header={{title:'Páginas',description:'Gerencie páginas próprias e páginas editoriais sem quebrar a herança visual do site.'}}>
     <AdminNotice title="Regra de layout" description="Home, Sobre, Colabore e Contato possuem layout próprio. Notícias e todas as demais páginas de conteúdo usam o mesmo template editorial, inclusive as páginas de conteúdo por slug."/>
-    <AdminNotice title={persisted?'Persistência editorial conectada':'Modo local de desenvolvimento'} description={persisted?'Criação, edição, publicação, exclusão e composição própria de páginas especiais usam a sessão administrativa e a API do Portal Lander.':'Sem uma sessão real da API, novos rascunhos e seções continuam isolados neste navegador e nunca são publicados por engano.'}/>
+    <AdminNotice title={persisted?'Persistência editorial conectada':development?'Modo de desenvolvimento liberado':'Modo local de desenvolvimento'} description={persisted?'Criação, edição, publicação, exclusão e composição própria de páginas especiais usam a sessão administrativa e a API do Portal Lander.':development?'Você pode criar, editar e excluir páginas e seções livremente. Páginas existentes recebem overrides locais reversíveis e os seeds originais permanecem preservados no código.':'Sem uma sessão real da API, alterações ficam isoladas neste navegador.'}/>
     {loading&&<AdminNotice title="Sincronizando páginas" description="Carregando páginas e composição diretamente da API."/>}
     {error&&<AdminNotice title="Falha na operação" description={error}/>} 
     {isEditorialLayout&&<AdminNotice title="Template compartilhado" description="A estrutura desta página não é editada isoladamente. Ela herda o template editorial de Notícias para manter listagem e página de conteúdo consistentes em todas as categorias presentes e futuras."/>}
 
     <div className="site-sections-toolbar">
       <div style={{display:'flex',alignItems:'flex-end',gap:10,flexWrap:'wrap'}}>
-        <label>Página<select value={selected.id} onChange={event=>setSelectedPage(event.target.value)}>{pages.map(page=><option key={page.id} value={page.id}>{page.title}{page.source==='draft'?' · rascunho local':''}{page.layout==='editorial'?' · conteúdo':''}{page.public?' · publicada':''}</option>)}</select></label>
+        <label>Página<select value={selected.id} onChange={event=>setSelectedPage(event.target.value)}>{pages.map(page=><option key={page.id} value={page.id}>{page.title}{page.source==='draft'?' · editável':''}{page.layout==='editorial'?' · conteúdo':''}{page.public?' · publicada':''}</option>)}</select></label>
         <button type="button" className="site-sections-configure" onClick={openCreatePage} disabled={saving}><Plus size={15}/> Criar página</button>
         <button type="button" className="site-sections-configure" onClick={openEditPage} disabled={!canEdit||saving}><Pencil size={15}/> Editar página</button>
         <button type="button" className="site-sections-configure" onClick={()=>void deletePage()} disabled={!canDelete||saving}><Trash2 size={15}/> Excluir página</button>

@@ -35,7 +35,7 @@ export function AdvertiseHereSection({ config, layout }: { config?: HomeAdConfig
   const imageFit=layout?.adImageFit==='cover'?'cover':'contain'
 
   if(layout&&ad.image){
-    const creative=<img className="pl-ad-image pl-ad-image-creative" src={ad.image} alt={ad.imageAlt||'Publicidade Anuncie Aqui'}/>
+    const creative=<img className="pl-ad-image pl-ad-image-creative" src={ad.image} alt={layout.adImageAlt||ad.imageAlt||'Publicidade Anuncie Aqui'}/>
     return <section className={`pl-ad pl-ad-dynamic official-secao-anuncie-aqui pl-home-configurable-ad ad-fit-${imageFit}`} style={style} aria-label="Seção Anuncie Aqui">
       {linkEnabled?<SmartAdvertiseHereLink to={layout.linkUrl} target={target} className="pl-ad-area-link">{creative}<span className="sr-only">Abrir publicidade</span></SmartAdvertiseHereLink>:creative}
     </section>

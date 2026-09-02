@@ -1,0 +1,75 @@
+import {ArrowDown,ArrowLeft,ArrowUp,Copy,Plus,Save,Trash2} from 'lucide-react'
+import {useMemo,useState} from 'react'
+import {Link,useParams} from 'react-router-dom'
+import {AdminNotice,AdminShell} from '../../../shared/internal/AdminUi'
+import {SITE_MANAGER_NAV} from '../../../shared/internal/adminNavigation'
+import type {FormConsentDefinition,FormDestination,FormFieldDefinition,FormFieldType,FormPurpose,FormStatus,SiteFormDefinition} from '../forms/domain'
+import {siteFormRegistry} from '../forms/registry'
+import './site-forms.css'
+
+const purposeOptions:readonly [FormPurpose,string][]=[
+  ['lead_capture','Captação comercial'],['contact','Contato'],['advertising','Publicidade'],['editorial_submission','Submissão editorial'],['newsletter','Newsletter'],['survey','Pesquisa'],['event_registration','Inscrição'],['custom','Personalizado'],
+]
+const destinationOptions:readonly [FormDestination,string][]=[
+  ['crm','CRM → Leads'],['content_collaborations','Site → Conteúdos → Colaborações recebidas'],['marketing','Marketing'],['internal','Interno'],['none','Sem destino'],
+]
+const fieldTypeOptions:readonly [FormFieldType,string][]=[
+  ['text','Texto'],['email','E-mail'],['tel','Telefone'],['textarea','Texto longo'],['select','Seleção'],['radio','Opções'],['checkbox','Checkbox'],['url','URL'],['file','Arquivo'],['date','Data'],['number','Número'],['hidden','Oculto'],
+]
+const statusOptions:readonly [FormStatus,string][]=[['draft','Rascunho'],['active','Ativo'],['inactive','Inativo']]
+
+const cloneForm=(form:SiteFormDefinition):SiteFormDefinition=>({
+  ...form,
+  fields:form.fields.map(field=>({...field,options:field.options?[...field.options]:undefined})),
+  consents:form.consents.map(consent=>({...consent})),
+  routing:{...form.routing,crm:form.routing.crm?{...form.routing.crm,tags:form.routing.crm.tags?[...form.routing.crm.tags]:undefined}:undefined,collaboration:form.routing.collaboration?{...form.routing.collaboration}:undefined},
+})
+const uid=(prefix:string)=>`${prefix}-${crypto.randomUUID()}`
+
+export function SiteFormEditorPage(){
+  const {formId=''}=useParams()
+  const source=useMemo(()=>siteFormRegistry.find(form=>form.id===formId||form.slug===formId),[formId])
+  const [draft,setDraft]=useState<SiteFormDefinition|undefined>(()=>source?cloneForm(source):undefined)
+  if(!source||!draft)return <AdminShell area="cms" items={SITE_MANAGER_NAV} header={{title:'Formulário não encontrado',description:'O formulário solicitado não existe no registro do Site.'}}><Link className="button outline" to="/app/site/formularios"><ArrowLeft size={15}/>Voltar para Formulários</Link></AdminShell>
+
+  const updateField=(id:string,patch:Partial<FormFieldDefinition>)=>setDraft(current=>current&&({...current,fields:current.fields.map(field=>field.id===id?{...field,...patch}:field)}))
+  const moveField=(id:string,direction:-1|1)=>setDraft(current=>{
+    if(!current)return current
+    const fields=[...current.fields],index=fields.findIndex(field=>field.id===id),target=index+direction
+    if(index<0||target<0||target>=fields.length)return current
+    ;[fields[index],fields[target]]=[fields[target],fields[index]]
+    return {...current,fields:fields.map((field,order)=>({...field,order:order+1}))}
+  })
+  const duplicateField=(field:FormFieldDefinition)=>setDraft(current=>current&&({...current,fields:[...current.fields,{...field,id:uid('field'),key:`${field.key}_copia`,label:`${field.label} (cópia)`,order:current.fields.length+1}]}))
+  const removeField=(id:string)=>setDraft(current=>current&&({...current,fields:current.fields.filter(field=>field.id!==id).map((field,order)=>({...field,order:order+1}))}))
+  const addField=()=>setDraft(current=>current&&({...current,fields:[...current.fields,{id:uid('field'),key:`campo_${current.fields.length+1}`,label:'Novo campo',type:'text',required:false,placeholder:'',order:current.fields.length+1}]}))
+  const updateConsent=(id:string,patch:Partial<FormConsentDefinition>)=>setDraft(current=>current&&({...current,consents:current.consents.map(consent=>consent.id===id?{...consent,...patch}:consent)}))
+  const addConsent=()=>setDraft(current=>current&&({...current,consents:[...current.consents,{id:uid('consent'),kind:'privacy',label:'Novo consentimento',required:false,version:'1.0',text:''}]}))
+  const removeConsent=(id:string)=>setDraft(current=>current&&({...current,consents:current.consents.filter(consent=>consent.id!==id)}))
+
+  return <AdminShell area="cms" items={SITE_MANAGER_NAV} header={{title:draft.name,description:'Definição e publicação do formulário do Site.'}}>
+    <div className="site-form-editor">
+      <div className="site-form-editor-top"><Link className="button outline" to="/app/site/formularios"><ArrowLeft size={15}/>Formulários</Link><div className="site-form-editor-actions"><button type="button" className="button outline" onClick={()=>setDraft(cloneForm(source))}>Descartar alterações</button><button type="button" className="button" disabled title="A persistência do Portal Lander ainda não está conectada"><Save size={15}/>Salvar alterações</button></div></div>
+      <AdminNotice title="Rascunho administrativo" description="Você já pode estruturar o formulário e validar a configuração nesta tela. Salvar/publicar permanece bloqueado até a persistência do Portal Lander estar conectada, evitando simular sucesso."/>
+
+      <section className="site-form-card"><header><div><h2>Configurações gerais</h2><p>Identidade, finalidade, destino e estado do formulário.</p></div></header><div className="site-form-grid">
+        <label><span>Nome</span><input value={draft.name} onChange={event=>setDraft({...draft,name:event.target.value})}/></label>
+        <label><span>Slug</span><input value={draft.slug} onChange={event=>setDraft({...draft,slug:event.target.value})}/></label>
+        <label><span>Finalidade</span><select value={draft.purpose} onChange={event=>setDraft({...draft,purpose:event.target.value as FormPurpose})}>{purposeOptions.map(([value,label])=><option key={value} value={value}>{label}</option>)}</select></label>
+        <label><span>Destino operacional</span><select value={draft.routing.destination} onChange={event=>setDraft({...draft,routing:{destination:event.target.value as FormDestination}})}>{destinationOptions.map(([value,label])=><option key={value} value={value}>{label}</option>)}</select></label>
+        <label><span>Status</span><select value={draft.status} onChange={event=>setDraft({...draft,status:event.target.value as FormStatus})}>{statusOptions.map(([value,label])=><option key={value} value={value}>{label}</option>)}</select></label>
+        <label className="site-form-span-2"><span>Mensagem após envio</span><input value={draft.successMessage} onChange={event=>setDraft({...draft,successMessage:event.target.value})}/></label>
+      </div></section>
+
+      <section className="site-form-card"><header><div><h2>Campos</h2><p>Defina conteúdo, tipo, obrigatoriedade e ordem de exibição.</p></div><button type="button" className="button outline" onClick={addField}><Plus size={15}/>Adicionar campo</button></header><div className="site-form-fields">{draft.fields.map((field,index)=><article className="site-form-field" key={field.id}>
+        <div className="site-form-field-order"><strong>{index+1}</strong><button type="button" aria-label="Mover campo para cima" disabled={index===0} onClick={()=>moveField(field.id,-1)}><ArrowUp size={14}/></button><button type="button" aria-label="Mover campo para baixo" disabled={index===draft.fields.length-1} onClick={()=>moveField(field.id,1)}><ArrowDown size={14}/></button></div>
+        <div className="site-form-field-grid"><label><span>Rótulo</span><input value={field.label} onChange={event=>updateField(field.id,{label:event.target.value})}/></label><label><span>Chave</span><input value={field.key} onChange={event=>updateField(field.id,{key:event.target.value})}/></label><label><span>Tipo</span><select value={field.type} onChange={event=>updateField(field.id,{type:event.target.value as FormFieldType})}>{fieldTypeOptions.map(([value,label])=><option key={value} value={value}>{label}</option>)}</select></label><label><span>Placeholder</span><input value={field.placeholder??''} onChange={event=>updateField(field.id,{placeholder:event.target.value})}/></label><label className="site-form-required"><input type="checkbox" checked={field.required} onChange={event=>updateField(field.id,{required:event.target.checked})}/><span>Campo obrigatório</span></label></div>
+        <div className="site-form-field-actions"><button type="button" title="Duplicar campo" onClick={()=>duplicateField(field)}><Copy size={15}/></button><button type="button" title="Excluir campo" onClick={()=>removeField(field.id)}><Trash2 size={15}/></button></div>
+      </article>)}</div></section>
+
+      <section className="site-form-card"><header><div><h2>Consentimentos</h2><p>Registre textos que precisam ser aceitos e versionados.</p></div><button type="button" className="button outline" onClick={addConsent}><Plus size={15}/>Adicionar consentimento</button></header><div className="site-form-consents">{draft.consents.map(consent=><article key={consent.id} className="site-form-consent"><div className="site-form-field-grid"><label><span>Nome</span><input value={consent.label} onChange={event=>updateConsent(consent.id,{label:event.target.value})}/></label><label><span>Tipo</span><select value={consent.kind} onChange={event=>updateConsent(consent.id,{kind:event.target.value as FormConsentDefinition['kind']})}><option value="privacy">Privacidade</option><option value="marketing">Marketing</option><option value="terms">Termos</option><option value="content_rights">Direitos sobre conteúdo</option></select></label><label><span>Versão</span><input value={consent.version} onChange={event=>updateConsent(consent.id,{version:event.target.value})}/></label><label className="site-form-span-2"><span>Texto apresentado ao usuário</span><textarea rows={3} value={consent.text} onChange={event=>updateConsent(consent.id,{text:event.target.value})}/></label><label className="site-form-required"><input type="checkbox" checked={consent.required} onChange={event=>updateConsent(consent.id,{required:event.target.checked})}/><span>Aceite obrigatório</span></label></div><button type="button" className="site-form-delete" title="Excluir consentimento" onClick={()=>removeConsent(consent.id)}><Trash2 size={15}/></button></article>)}</div></section>
+
+      <section className="site-form-card"><header><div><h2>Resumo de publicação</h2><p>Validação estrutural do rascunho atual.</p></div></header><div className="site-form-summary"><span><b>{draft.fields.length}</b> campos</span><span><b>{draft.fields.filter(field=>field.required).length}</b> obrigatórios</span><span><b>{draft.consents.length}</b> consentimentos</span><span><b>{draft.routing.destination}</b> destino</span></div></section>
+    </div>
+  </AdminShell>
+}

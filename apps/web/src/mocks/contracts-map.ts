@@ -1,5 +1,5 @@
 export const mockContractSources={
- identity:'src/shared/data/contracts.ts#AppUser|WorkspaceDescriptor',
+ identity:'src/shared/data/contracts.ts#AppUser',
  notifications:'src/shared/data/contracts.ts#AppNotification',
  crm:'src/features/crm/domain.ts#Lead|Contact|CrmState',
  contracts:'src/features/contracts/domain.ts#Contract|ContractTemplate|ContractCategory|ContractVariable',

@@ -20,6 +20,14 @@ export function hashClientIp(ip){
   return createHmac('sha256',secret).update(String(ip||'unknown')).digest('hex')
 }
 
+export function validateAntiSpamSignal(value,now=Date.now()){
+  const antiSpam=asObject(value)
+  ensure(!text(antiSpam.honeypot),400,'Envio rejeitado pela proteção anti-spam.','FORM_SPAM_DETECTED')
+  const startedAt=Number(antiSpam.startedAt),minimum=Math.max(250,Number(process.env.PORTAL_FORM_MIN_FILL_MS||1200))
+  ensure(Number.isFinite(startedAt)&&startedAt>0,400,'Sinal anti-spam ausente. Atualize a página e tente novamente.','FORM_SPAM_SIGNAL_REQUIRED')
+  ensure(now-startedAt>=minimum,429,'Envio rápido demais. Aguarde um instante e tente novamente.','FORM_SPAM_TOO_FAST')
+}
+
 async function getPublishedForm(slug,requestedVersion){
   const values=[slug],versionClause=requestedVersion?`and v.version=$2`:''
   if(requestedVersion)values.push(Number(requestedVersion))
@@ -93,7 +101,8 @@ async function routeToCrm(client,submissionId,payload,source,routing){
 }
 
 export const formService={
-  async submit({slug,version,payload,source,acceptedConsentIds,files,ipHash,userAgent,requestId}){
+  async submit({slug,version,payload,source,acceptedConsentIds,files,ipHash,userAgent,requestId,antiSpam}){
+    validateAntiSpamSignal(antiSpam)
     const form=await getPublishedForm(slug,version)
     await enforceRateLimit(ipHash)
     const validated=validateSubmission(form,asObject(payload),asArray(acceptedConsentIds),files)

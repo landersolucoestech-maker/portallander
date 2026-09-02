@@ -29,7 +29,6 @@ for(const path of visualFiles){
 }
 
 const featureMockFacades=[
- 'features/access/mocks/index.ts',
  'features/crm/mocks/index.ts',
  'features/contracts/mocks/index.ts',
  'features/finance/mocks/index.ts',
@@ -75,6 +74,7 @@ if(!main.includes('setRuntimeDataProvider(mockDataProvider)'))failures.push('mai
 
 const provider=await readFile(join(root,'shared/data/mockDataProvider.ts'),'utf8')
 if(!provider.includes("from '../../mocks'"))failures.push('Somente o MockDataProvider deve agregar a raiz global de mocks no runtime.')
+for(const removedWorkspaceToken of ['mockWorkspaces','workspaces:','WorkspaceDescriptor'])if(provider.includes(removedWorkspaceToken))failures.push(`MockDataProvider não pode reintroduzir arquitetura de workspaces: ${removedWorkspaceToken}`)
 
 if(failures.length){
  console.error('Falha nos boundaries de dados:')

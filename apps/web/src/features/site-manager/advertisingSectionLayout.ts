@@ -35,13 +35,14 @@ export type AdvertisingSectionLayout={
   adOffsetYTablet:number
   adOffsetYMobile:number
   adImageFit:AdvertisingImageFit
+  adImageAlt:string
   adLinkEnabled:boolean
   adLinkTarget:AdvertisingLinkTarget
 }
 
 export type AdvertisingSectionConfiguration=SectionConfiguration&AdvertisingSectionLayout
 
-const CURRENT_AD_LAYOUT_VERSION=2
+const CURRENT_AD_LAYOUT_VERSION=3
 
 const sharedDefaults:AdvertisingSectionLayout={
   adLayoutVersion:CURRENT_AD_LAYOUT_VERSION,
@@ -54,11 +55,11 @@ const sharedDefaults:AdvertisingSectionLayout={
   adPaddingYDesktop:0,adPaddingYTablet:0,adPaddingYMobile:0,
   adOffsetXDesktop:0,adOffsetXTablet:0,adOffsetXMobile:0,
   adOffsetYDesktop:0,adOffsetYTablet:0,adOffsetYMobile:0,
-  adImageFit:'contain',adLinkEnabled:true,adLinkTarget:'same',
+  adImageFit:'contain',adImageAlt:'Publicidade Portal Lander',adLinkEnabled:true,adLinkTarget:'same',
 }
 
-const sidebarDefaults:AdvertisingSectionLayout={...sharedDefaults}
-const bannerDefaults:AdvertisingSectionLayout={...sharedDefaults}
+const sidebarDefaults:AdvertisingSectionLayout={...sharedDefaults,adImageAlt:'Publicidade lateral Portal Lander'}
+const bannerDefaults:AdvertisingSectionLayout={...sharedDefaults,adImageAlt:'Publicidade Anuncie Aqui'}
 
 export function defaultAdvertisingSectionLayout(sectionId:string):AdvertisingSectionLayout{
   return structuredClone(sectionId==='publicidade-lateral'?sidebarDefaults:bannerDefaults)
@@ -66,15 +67,8 @@ export function defaultAdvertisingSectionLayout(sectionId:string):AdvertisingSec
 
 function migrateLegacyLayout(config:SectionConfiguration,sectionId:string):Partial<AdvertisingSectionLayout>{
   const raw=config as SectionConfiguration&Partial<AdvertisingSectionLayout>&{adImageFit?:string}
-  if((raw.adLayoutVersion||0)>=CURRENT_AD_LAYOUT_VERSION){
-    return {
-      ...(raw as Partial<AdvertisingSectionLayout>),
-      adLayoutVersion:CURRENT_AD_LAYOUT_VERSION,
-      adImageFit:raw.adImageFit==='cover'?'cover':'contain',
-    }
-  }
-
-  const migrated={...(raw as Partial<AdvertisingSectionLayout>),adLayoutVersion:CURRENT_AD_LAYOUT_VERSION,adImageFit:raw.adImageFit==='cover'?'cover':'contain'} as Partial<AdvertisingSectionLayout>
+  const migrated={...(raw as Partial<AdvertisingSectionLayout>),adLayoutVersion:CURRENT_AD_LAYOUT_VERSION,adImageFit:raw.adImageFit==='cover'?'cover':'contain',adImageAlt:raw.adImageAlt||defaultAdvertisingSectionLayout(sectionId).adImageAlt} as Partial<AdvertisingSectionLayout>
+  if((raw.adLayoutVersion||0)>=2)return migrated
   if(sectionId==='publicidade-lateral'){
     const matchesOldPreset=(raw.adWidthDesktop===300||raw.adWidthDesktop==null)&&(raw.adHeightDesktop===600||raw.adHeightDesktop==null)&&(raw.adHeightTablet===420||raw.adHeightTablet==null)&&(raw.adHeightMobile===360||raw.adHeightMobile==null)
     if(matchesOldPreset){migrated.adWidthDesktop=0;migrated.adWidthTablet=0;migrated.adWidthMobile=0;migrated.adHeightDesktop=0;migrated.adHeightTablet=0;migrated.adHeightMobile=0}

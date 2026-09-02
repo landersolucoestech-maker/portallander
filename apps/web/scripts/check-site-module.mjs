@@ -12,6 +12,7 @@ const requiredFiles=[
   'src/features/site-manager/mediaRepository.ts',
   'src/features/site-manager/mediaKitRepository.ts',
   'src/features/site-manager/mediaKitDomain.ts',
+  'src/features/site-manager/components/SiteMediaPicker.tsx',
   'src/features/site-manager/forms/draftRepository.ts',
   'src/features/site-manager/forms/SiteFormRenderer.tsx',
   'src/features/site-manager/forms/runtimeOptions.ts',
@@ -72,14 +73,14 @@ requireTokens('publicSpecialPageRegistry.tsx',specialRegistry,['SPECIAL_LAYOUT_P
 const formRenderer=await read('src/features/site-manager/forms/SiteFormRenderer.tsx')
 requireTokens('SiteFormRenderer.tsx',formRenderer,['form.fields','form.consents','onSubmit','mode===\'preview\'','acceptedConsentIds','fieldKey:string;file:File','files:SiteFormFile[]'])
 const formEditor=await read('src/features/site-manager/pages/SiteFormEditorPage.tsx')
-requireTokens('SiteFormEditorPage.tsx',formEditor,['PREVIEW EM TEMPO REAL','SiteFormRenderer','resolveSiteFormOptionSets','formDraftRepository.get','formDraftRepository.save','Salvar rascunho'])
+requireTokens('SiteFormEditorPage.tsx',formEditor,['PREVIEW EM TEMPO REAL','SiteFormRenderer','resolveSiteFormOptionSets','formDraftRepository.get','formDraftRepository.save','Salvar rascunho','getAdminSiteForm','saveAdminSiteForm','publishAdminSiteForm'])
 const colabore=await read('src/pages/colabore/ColaborePage.tsx')
 requireTokens('ColaborePage.tsx',colabore,['SiteFormRenderer','resolveSiteFormOptionSets','submitSiteForm','mode="public"'])
 const formDraftRepository=await read('src/features/site-manager/forms/draftRepository.ts')
 requireTokens('forms/draftRepository.ts',formDraftRepository,["status:'draft'","source:'custom'"])
 
 const forms=await read('src/features/site-manager/pages/SiteFormsPage.tsx')
-requireTokens('SiteFormsPage.tsx',forms,['Novo formulário','Duplicar','formDraftRepository.create','formDraftRepository.duplicate','formDraftRepository.remove'])
+requireTokens('SiteFormsPage.tsx',forms,['Novo formulário','Duplicar','formDraftRepository.create','formDraftRepository.duplicate','formDraftRepository.remove','createAdminSiteForm','deleteAdminSiteForm'])
 
 const contents=await read('src/features/site-manager/pages/SiteContentsPage.tsx')
 requireTokens('SiteContentsPage.tsx',contents,['Novo conteúdo','contentDraftRepository.create','contentDraftRepository.remove','createAdminEditorialContent','Colaborações recebidas'])
@@ -92,7 +93,11 @@ requireTokens('SiteContentEditorPage.tsx',contentEditor,[
   'contentDraftRepository.save',
   'Salvar alterações',
   'PREVIEW DO CONTEÚDO',
+  'SiteMediaPicker',
+  'Escolher da biblioteca',
 ])
+const mediaPicker=await read('src/features/site-manager/components/SiteMediaPicker.tsx')
+requireTokens('SiteMediaPicker.tsx',mediaPicker,['mediaRepository.list','Selecionar imagem de capa','item.type.startsWith(\'image/\')','onSelect(item)'])
 const contentDraftRepository=await read('src/features/site-manager/contentDraftRepository.ts')
 requireTokens('contentDraftRepository.ts',contentDraftRepository,["status:'draft'",'active:false','noIndex:true'])
 const editorialAdminClient=await read('src/features/editorial/adminClient.ts')
@@ -106,12 +111,12 @@ const readModel=await read('src/features/site-manager/readModel.ts')
 requireTokens('readModel.ts',readModel,['getRuntimeDataProvider().editorial.media()'])
 
 const mediaKit=await read('src/features/site-manager/pages/MediaKitPage.tsx')
-requireTokens('MediaKitPage.tsx',mediaKit,['mediaKitRepository.read','mediaKitRepository.save','Salvar rascunho','Publicar'])
+requireTokens('MediaKitPage.tsx',mediaKit,['mediaKitRepository.read','mediaKitRepository.save','mediaKitRepository.reset','mediaKitRepository.publish','isMediaKitPersistenceConfigured','Salvar rascunho','Publicar','Mídia Kit versionado e persistente'])
 const mediaKitRepository=await read('src/features/site-manager/mediaKitRepository.ts')
-requireTokens('mediaKitRepository.ts',mediaKitRepository,["status:'draft'"])
+requireTokens('mediaKitRepository.ts',mediaKitRepository,['adminApiBase','/api/media-kit','new ApiMediaKitRepository','new LocalMediaKitRepository',"status:'draft'"])
 
 const editorialModel=await read('src/features/editorial/model.ts')
 requireTokens('editorial/model.ts',editorialModel,['SPECIAL_LAYOUT_PAGE_SLUGS','isPublishedPage','isSpecialLayoutPage','isPublicEditorialPage','export const isPublicPage=isPublicEditorialPage'])
 
 if(failures.length){console.error('Falha na arquitetura do módulo Site:');failures.forEach(item=>console.error(`- ${item}`));process.exit(1)}
-console.log('Site module architecture OK — persistência editorial e biblioteca de mídia validadas')
+console.log('Site module architecture OK — persistência editorial, mídia, formulários e Mídia Kit validadas')

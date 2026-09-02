@@ -21,6 +21,9 @@ export type SectionDefinition={id:string;name:string;summary:string;kind:Section
 
 const STORAGE_KEY='portal-lander:cms:section-configurations:v1'
 export const SECTION_CONFIGURATION_EVENT='portal-lander:section-configurations:changed'
+export const HOME_HERO_BACKGROUND_URL=new URL('../../pages/home/styles/hero-approved-background-fixed.png',import.meta.url).href
+const HOME_BACKGROUND_HERO_SECTION_IDS=new Set(['editorial-hero','sobre-hero','contato-hero','colabore-hero'])
+const shouldUseHomeHeroBackground=(sectionId:string)=>HOME_BACKGROUND_HERO_SECTION_IDS.has(sectionId)
 
 const defaults:Record<string,Partial<SectionConfiguration>>={
   hero:{title:'Hero Section',itemLimit:5,columns:1},
@@ -32,13 +35,13 @@ const defaults:Record<string,Partial<SectionConfiguration>>={
   'anuncie-aqui':{title:'ANUNCIE AQUI',description:'Sua marca no ritmo certo.',linkLabel:'SAIBA MAIS',linkUrl:'/anuncie',itemLimit:1,columns:1},
   lancamentos:{title:'LANÇAMENTOS',linkLabel:'VER TODOS',linkUrl:'/lancamentos',itemLimit:4,columns:4},
   agenda:{title:'AGENDA',linkLabel:'VER DESTAQUES',linkUrl:'/destaques',itemLimit:4,columns:1},
-  'editorial-hero':{eyebrow:'AGORA NO PORTAL',columns:1,background:'#ffffff',textColor:'#111111',accentColor:'#e50914'},
+  'editorial-hero':{eyebrow:'AGORA NO PORTAL',columns:1,background:'#020202',textColor:'#ffffff',accentColor:'#e50914'},
   'editorial-template':{title:'Conteúdos / Grid Editorial',description:'Grid compartilhado pelas páginas editoriais.',itemLimit:12,columns:3},
-  'sobre-hero':{eyebrow:'INSTITUCIONAL',title:'SOBRE O PORTAL',description:'Conheça o Portal Lander.',columns:1},
+  'sobre-hero':{eyebrow:'INSTITUCIONAL',title:'SOBRE O PORTAL',description:'Conheça o Portal Lander.',columns:1,background:'#020202',textColor:'#ffffff'},
   'sobre-conteudo':{title:'PORTAL LANDER',description:'Conteúdo institucional do Portal Lander.',columns:1},
-  'contato-hero':{eyebrow:'CONTATO',title:'FALE CONOSCO',description:'Entre em contato com o Portal Lander.',columns:1},
+  'contato-hero':{eyebrow:'CONTATO',title:'FALE CONOSCO',description:'Entre em contato com o Portal Lander.',columns:1,background:'#020202',textColor:'#ffffff'},
   'contato-canais':{title:'CANAIS OFICIAIS',description:'Escolha um dos canais públicos configurados pelo Portal Lander.',columns:3,itemLimit:6},
-  'colabore-hero':{eyebrow:'PARTICIPE DO PORTAL',title:'SUA HISTÓRIA PODE VIRAR NOTÍCIA.',description:'Envie pautas, vídeos, fotos, lançamentos e histórias relevantes.',columns:1},
+  'colabore-hero':{eyebrow:'PARTICIPE DO PORTAL',title:'SUA HISTÓRIA PODE VIRAR NOTÍCIA.',description:'Envie pautas, vídeos, fotos, lançamentos e histórias relevantes.',columns:1,background:'#020202',textColor:'#ffffff'},
   'colabore-diretrizes':{eyebrow:'ANTES DE ENVIAR',title:'O QUE PROCURAMOS',description:'Critérios e orientações editoriais para colaboração.',columns:1,itemLimit:6},
   'colabore-formulario':{title:'FORMULÁRIO DE ENVIO',description:'Formulário público conectado ao fluxo editorial de colaborações.',columns:1},
 }
@@ -49,11 +52,15 @@ const readAll=():Record<string,SectionConfiguration>=>{try{return JSON.parse(loc
 
 export function defaultSectionConfiguration(sectionId:string,name?:string,fallback?:Partial<SectionConfiguration>):SectionConfiguration{
   const sectionDefaults=defaults[sectionId]||{}
-  return {...BASE_SECTION_CONFIGURATION,...sectionDefaults,...fallback,...(name&&!sectionDefaults.title&&!fallback?.title?{title:name}:{})}
+  const config={...BASE_SECTION_CONFIGURATION,...sectionDefaults,...fallback,...(name&&!sectionDefaults.title&&!fallback?.title?{title:name}:{})}
+  if(shouldUseHomeHeroBackground(sectionId)&&!config.imageUrl.trim())config.imageUrl=HOME_HERO_BACKGROUND_URL
+  return config
 }
 export function readSectionConfiguration(pageId:string,sectionId:string,name?:string,fallback?:Partial<SectionConfiguration>):SectionConfiguration{
   const stored=readAll()[storageId(pageId,sectionId)]
-  return {...defaultSectionConfiguration(sectionId,name,fallback),...(stored||{})}
+  const config={...defaultSectionConfiguration(sectionId,name,fallback),...(stored||{})}
+  if(shouldUseHomeHeroBackground(sectionId)&&!config.imageUrl.trim())config.imageUrl=HOME_HERO_BACKGROUND_URL
+  return config
 }
 export function writeSectionConfiguration(pageId:string,sectionId:string,config:SectionConfiguration){const all=readAll();all[storageId(pageId,sectionId)]={...config};localStorage.setItem(STORAGE_KEY,JSON.stringify(all));window.dispatchEvent(new CustomEvent(SECTION_CONFIGURATION_EVENT,{detail:{pageId,sectionId}}))}
 export function resetSectionConfiguration(pageId:string,sectionId:string){const all=readAll();delete all[storageId(pageId,sectionId)];localStorage.setItem(STORAGE_KEY,JSON.stringify(all));window.dispatchEvent(new CustomEvent(SECTION_CONFIGURATION_EVENT,{detail:{pageId,sectionId}}))}
@@ -71,21 +78,21 @@ export const HOME_SECTION_DEFINITIONS:SectionDefinition[]=[
 ]
 
 export const EDITORIAL_PAGE_SECTION_DEFINITIONS:SectionDefinition[]=[
-  {id:'editorial-hero',name:'Hero Editorial',summary:'Hero individual desta página. A estrutura é herdada de Notícias, mas conteúdo e aparência são configurados por página.',kind:'standard-hero',locked:true},
+  {id:'editorial-hero',name:'Hero Editorial',summary:'Hero individual desta página. Usa por padrão o mesmo artwork de fundo aprovado da Hero da Homepage; conteúdo e aparência continuam configuráveis por página.',kind:'standard-hero',locked:true},
   {id:'editorial-template',name:'Conteúdos / Grid Editorial',summary:'Estrutura compartilhada de Notícias para listagem, grid e comportamento editorial.',kind:'editorial',locked:true},
 ]
 
 export const SPECIAL_PAGE_SECTION_DEFINITIONS:Record<string,SectionDefinition[]>={
   sobre:[
-    {id:'sobre-hero',name:'Hero Institucional',summary:'Cabeçalho visual da página Sobre.',kind:'standard-hero',locked:true},
+    {id:'sobre-hero',name:'Hero Institucional',summary:'Cabeçalho visual da página Sobre usando por padrão o background aprovado da Homepage.',kind:'standard-hero',locked:true},
     {id:'sobre-conteudo',name:'Conteúdo Institucional',summary:'Bloco principal de apresentação do Portal Lander.',kind:'body',locked:true},
   ],
   contato:[
-    {id:'contato-hero',name:'Hero de Contato',summary:'Cabeçalho visual da página Contato.',kind:'standard-hero',locked:true},
+    {id:'contato-hero',name:'Hero de Contato',summary:'Cabeçalho visual da página Contato usando por padrão o background aprovado da Homepage.',kind:'standard-hero',locked:true},
     {id:'contato-canais',name:'Canais Oficiais',summary:'Grid de canais públicos e redes configuradas.',kind:'channels',locked:true},
   ],
   colabore:[
-    {id:'colabore-hero',name:'Hero Colabore',summary:'Apresentação principal e chamada editorial da página Colabore.',kind:'standard-hero',locked:true},
+    {id:'colabore-hero',name:'Hero Colabore',summary:'Apresentação principal usando por padrão o background aprovado da Homepage.',kind:'standard-hero',locked:true},
     {id:'colabore-diretrizes',name:'Diretrizes de Envio',summary:'Orientações editoriais exibidas antes do formulário.',kind:'guidelines',locked:true},
     {id:'colabore-formulario',name:'Formulário de Colaboração',summary:'Formulário público de envio de materiais.',kind:'form',locked:true},
   ],

@@ -1,4 +1,4 @@
-import { isPublicContent, isPublicPage, type EditorialContent, type EditorialPage } from './model'
+import { isPublicContent, isPublicEditorialPage, isPublishedPage, type EditorialContent, type EditorialPage } from './model'
 import {getRuntimeDataProvider} from '../../shared/data/runtimeDataProvider'
 
 export class EditorialPersistenceUnavailableError extends Error {
@@ -40,7 +40,10 @@ export const editorialReadModel = {
   get pages(){return pages()},
   get contents(){return contents()},
   getPageBySlug(slug: string) {
-    return pages().find(page => page.slug === slug && isPublicPage(page)) || null
+    return pages().find(page => page.slug === slug && isPublicEditorialPage(page)) || null
+  },
+  getPublishedPageBySlug(slug:string){
+    return pages().find(page=>page.slug===slug&&isPublishedPage(page))||null
   },
   getPageById(id: string) {
     return pages().find(page => page.id === id) || null
@@ -58,14 +61,14 @@ export const editorialReadModel = {
     const allPages=pages()
     return contents().filter(content=>{
       if(!isPublicContent(content))return false
-      const page=allPages.find(item=>item.id===content.pageId&&isPublicPage(item))
+      const page=allPages.find(item=>item.id===content.pageId&&isPublicEditorialPage(item))
       if(!page)return false
       const haystack=normalizeSearch([content.title,content.subtitle,content.summary,content.author,...content.tags,page.title,page.navigationLabel].join(' '))
       return haystack.includes(normalized)
     }).sort((a,b)=>(b.publishedAt||b.updatedAt).localeCompare(a.publishedAt||a.updatedAt))
   },
   listMenuPages() {
-    return pages().filter(page => isPublicPage(page) && page.showInMainMenu)
+    return pages().filter(page => isPublicEditorialPage(page) && page.showInMainMenu)
       .sort((a,b) => a.menuOrder - b.menuOrder)
   },
   countContents(pageId: string) {

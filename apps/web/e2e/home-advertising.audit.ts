@@ -5,8 +5,7 @@ const storageKey='portal-lander:cms:section-configurations:v1'
 const portraitCreative='data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22300%22%20height%3D%22600%22%20viewBox%3D%220%200%20300%20600%22%3E%3Crect%20width%3D%22300%22%20height%3D%22600%22%20fill%3D%22%23111111%22%2F%3E%3Crect%20x%3D%2220%22%20y%3D%2220%22%20width%3D%22260%22%20height%3D%22560%22%20fill%3D%22%23e50914%22%2F%3E%3C%2Fsvg%3E'
 
 async function seedSidebarCreative(page:Page){
-  await page.goto(base,{waitUntil:'domcontentloaded'})
-  await page.evaluate(({key,image})=>{
+  await page.addInitScript(({key,image})=>{
     const current=JSON.parse(localStorage.getItem(key)||'{}')
     current['home:publicidade-lateral']={
       ...(current['home:publicidade-lateral']||{}),

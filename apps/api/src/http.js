@@ -1,6 +1,8 @@
-import {timingSafeEqual} from 'node:crypto'
+import {randomUUID,timingSafeEqual} from 'node:crypto'
 import {getPool} from './db.js'
 import {editorialService,HttpError} from './editorialService.js'
+import {formService,hashClientIp} from './formService.js'
+import {parseMultipart} from './multipart.js'
 
 const MAX_JSON_BYTES=1024*1024
 
@@ -35,6 +37,17 @@ async function readJson(req){
   for await(const chunk of req){total+=chunk.length;if(total>MAX_JSON_BYTES)throw new HttpError(413,'Payload excede o limite permitido.','PAYLOAD_TOO_LARGE');raw+=chunk}
   if(!raw)return {}
   try{return JSON.parse(raw)}catch{throw new HttpError(400,'JSON inválido.','INVALID_JSON')}
+}
+
+function parseJsonField(fields,key,fallback){
+  const raw=fields[key]
+  if(raw===undefined||raw==='')return fallback
+  try{return JSON.parse(raw)}catch{throw new HttpError(400,`Campo ${key} contém JSON inválido.`,'FORM_FIELD_JSON_INVALID',{field:key})}
+}
+
+function clientIp(req){
+  const forwarded=String(req.headers['x-forwarded-for']||'').split(',')[0].trim()
+  return forwarded||req.socket?.remoteAddress||'unknown'
 }
 
 const decode=value=>decodeURIComponent(value)
@@ -91,6 +104,30 @@ export async function handleRequest(req,res){
       if(req.method==='GET'){requireAdmin(req);const content=await editorialService.getContent(id);if(!content)throw new HttpError(404,'Conteúdo não encontrado.','CONTENT_NOT_FOUND');send(res,200,{content},cors);return}
       if(req.method==='PUT'||req.method==='PATCH'){requireAdmin(req);const content=await editorialService.updateContent(id,await readJson(req));send(res,200,{content},cors);return}
       if(req.method==='DELETE'){requireAdmin(req);await editorialService.deleteContent(id);send(res,200,{deleted:true,id},cors);return}
+    }
+
+    const submissionMatch=path.match(/^\/api\/forms\/([^/]+)\/submissions$/)
+    if(req.method==='POST'&&submissionMatch){
+      const slug=decode(submissionMatch[1])
+      const {fields,files}=await parseMultipart(req)
+      const submission=await formService.submit({
+        slug,
+        version:Number(fields.formVersion||0)||undefined,
+        payload:parseJsonField(fields,'payload',{}),
+        source:parseJsonField(fields,'source',{}),
+        acceptedConsentIds:parseJsonField(fields,'acceptedConsentIds',[]),
+        files,
+        ipHash:hashClientIp(clientIp(req)),
+        userAgent:String(req.headers['user-agent']||''),
+        requestId:String(req.headers['x-request-id']||randomUUID()),
+      })
+      send(res,201,submission,cors);return
+    }
+
+    if(req.method==='GET'&&path==='/api/forms/editorial/collaborations'){
+      requireAdmin(req)
+      const items=await formService.listCollaborations()
+      send(res,200,{items},cors);return
     }
 
     throw new HttpError(404,'Rota não encontrada.','ROUTE_NOT_FOUND')

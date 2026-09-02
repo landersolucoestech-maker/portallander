@@ -1,7 +1,7 @@
 import {BookOpen,DollarSign,Search,TrendingDown,TrendingUp} from 'lucide-react'
 import {useMemo,useState,type ReactNode} from 'react'
 import {AdminShell} from '../../shared/internal/AdminUi'
-import {CRM_WORKSPACE_NAV} from '../../shared/internal/adminNavigation'
+import {UNIFIED_ADMIN_NAV} from '../../shared/internal/adminNavigation'
 import {money,type FinanceTransaction} from './domain'
 import {financeRepository} from './repository'
 
@@ -20,7 +20,7 @@ export default function FinanceAccountingPage(){
  const paid=useMemo(()=>transactions.filter(x=>x.status==='pago'&&(!start||x.date>=start)&&(!end||x.date<=end)&&(!search||[x.description,x.category,x.counterparty,x.contractRef].some(v=>v.toLowerCase().includes(search.toLowerCase())))&&(filter==='all'||filter==='revenue'&&x.type==='receita'||filter==='expenses'&&x.type==='despesa'||filter==='profit')),[transactions,start,end,search,filter])
  const revenues=paid.filter(x=>x.type==='receita'),expenses=paid.filter(x=>x.type==='despesa'),rev=revenues.reduce((s,x)=>s+x.amount,0),exp=expenses.reduce((s,x)=>s+x.amount,0),profit=rev-exp,margin=rev?profit/rev*100:0
  const categoryRows=group(paid,x=>x.category)
- return <AdminShell area="finance" items={CRM_WORKSPACE_NAV} header={{title:'Contabilidade',description:'Demonstrativos e visão contábil gerencial'}}>
+ return <AdminShell area="finance" items={UNIFIED_ADMIN_NAV} header={{title:'Contabilidade',description:'Demonstrativos e visão contábil gerencial'}}>
   <section className="finance-page">
    <div className="finance-kpis accounting-original-kpis"><Kpi title="Receita Total" value={money(rev)} icon={<TrendingUp/>}/><Kpi title="Despesa Total" value={money(-exp)} icon={<TrendingDown/>}/><Kpi title="Lucro Líquido" value={money(profit)} icon={<DollarSign/>}/><Kpi title="Margem Líquida" value={`${margin.toFixed(1)}%`} icon={<BookOpen/>}/></div>
    <div className="finance-filters accounting-filters"><input style={filterControlStyle} type="date" value={start} onChange={e=>setStart(e.target.value)}/><input style={filterControlStyle} type="date" value={end} onChange={e=>setEnd(e.target.value)}/><label className="finance-search" style={searchStyle}><Search size={15}/><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Buscar por descrição ou categoria…"/></label><select style={filterControlStyle} value={filter} onChange={e=>setFilter(e.target.value)}><option value="all">Todos</option><option value="revenue">Receitas</option><option value="expenses">Despesas</option><option value="profit">Lucro</option></select></div>

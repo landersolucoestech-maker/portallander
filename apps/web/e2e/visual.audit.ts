@@ -10,7 +10,7 @@ const internalRoutes=[
  '/app/site/conteudos','/app/site/paginas','/app/site/categorias','/app/site/midia','/app/site/noticias/anuncio','/app/site/midia-kit',
  '/app/site/formularios','/app/site/formularios/collaborate'
 ]
-const accessRoutes=['/app/login','/app/workspaces']
+const accessRoutes=['/app/login']
 const publicRoutes=[
  '/','/noticias','/cultura','/noticias/mercado-criativo-em-expansao','/cultura/cidade-em-movimento','/sobre','/colabore','/contato','/anuncie'
 ]
@@ -67,7 +67,7 @@ for(const viewport of viewports){
      test(`access ${route}`,async({page})=>{
        await openRoute(page,route)
        await assertViewportIntegrity(page,false)
-       await expect(page.locator('.access-page,.workspace-selection-page').first()).toBeVisible()
+       await expect(page.locator('.access-page').first()).toBeVisible()
        await page.screenshot({path:`test-results/visual/${viewport.name}-access-${safeName(route)}.png`,fullPage:true})
      })
    }

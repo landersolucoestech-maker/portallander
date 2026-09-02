@@ -1,6 +1,8 @@
 import {randomUUID,timingSafeEqual} from 'node:crypto'
 import {getPool} from './db.js'
 import {editorialService,HttpError} from './editorialService.js'
+import {formAdminService} from './formAdminService.js'
+import {formPublicService} from './formPublicService.js'
 import {formService,hashClientIp} from './formService.js'
 import {parseMultipart} from './multipart.js'
 
@@ -104,6 +106,28 @@ export async function handleRequest(req,res){
       if(req.method==='GET'){requireAdmin(req);const content=await editorialService.getContent(id);if(!content)throw new HttpError(404,'Conteúdo não encontrado.','CONTENT_NOT_FOUND');send(res,200,{content},cors);return}
       if(req.method==='PUT'||req.method==='PATCH'){requireAdmin(req);const content=await editorialService.updateContent(id,await readJson(req));send(res,200,{content},cors);return}
       if(req.method==='DELETE'){requireAdmin(req);await editorialService.deleteContent(id);send(res,200,{deleted:true,id},cors);return}
+    }
+
+    if(req.method==='GET'&&path==='/api/forms/definitions/public'){
+      const forms=await formPublicService.listPublished()
+      send(res,200,{forms},cors);return
+    }
+    if(req.method==='GET'&&path==='/api/forms/definitions'){
+      requireAdmin(req);const forms=await formAdminService.list();send(res,200,{forms},cors);return
+    }
+    if(req.method==='POST'&&path==='/api/forms/definitions'){
+      requireAdmin(req);const form=await formAdminService.create(await readJson(req));send(res,201,{form},cors);return
+    }
+    const publishFormMatch=path.match(/^\/api\/forms\/definitions\/([^/]+)\/publish$/)
+    if(req.method==='POST'&&publishFormMatch){
+      requireAdmin(req);const form=await formAdminService.publish(decode(publishFormMatch[1]));send(res,200,{form},cors);return
+    }
+    const formDefinitionMatch=path.match(/^\/api\/forms\/definitions\/([^/]+)$/)
+    if(formDefinitionMatch){
+      const key=decode(formDefinitionMatch[1])
+      if(req.method==='GET'){requireAdmin(req);const form=await formAdminService.get(key);send(res,200,{form},cors);return}
+      if(req.method==='PUT'||req.method==='PATCH'){requireAdmin(req);const form=await formAdminService.save(key,await readJson(req));send(res,200,{form},cors);return}
+      if(req.method==='DELETE'){requireAdmin(req);const result=await formAdminService.remove(key);send(res,200,result,cors);return}
     }
 
     const submissionMatch=path.match(/^\/api\/forms\/([^/]+)\/submissions$/)

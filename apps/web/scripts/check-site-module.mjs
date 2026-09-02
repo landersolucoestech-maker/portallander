@@ -25,12 +25,13 @@ requireTokens('SiteManagerRoutes.tsx',routes,[
 const pages=await read('src/features/site-manager/pages/SiteSectionsPage.tsx')
 requireTokens('SiteSectionsPage.tsx',pages,[
   'isSpecialLayoutPage','isPublishedPage','EDITORIAL_PAGE_SECTION_DEFINITIONS','HOME_SECTION_DEFINITIONS',
-  'Criar página','Editar','Excluir','RESERVED_PAGE_SLUGS','to="/app/settings"',
+  'openCreatePage','openEditPage','deletePage','openCreateSection','RESERVED_PAGE_SLUGS','to="/app/settings"',
   'createAdminEditorialPage','updateAdminEditorialPage','deleteAdminEditorialPage',
   '/app/site/paginas/${encodeURIComponent(selected.id)}/secoes/${encodeURIComponent(section.id)}','Configurar',
+  'site-pages-management','site-pages-management-actions','site-pages-structure','site-pages-structure-header',
+  'site-pages-context','site-pages-global-settings','site-sections-list','site-sections-actions',
+  'Estrutura editorial herdada de Notícias','Páginas de conteúdo herdam a estrutura canônica de Notícias.',
   'Estrutura de ${selected.title}','Configurações globais do site','pageSections.length',
-  "title={isEditorialLayout?'Estrutura editorial compartilhada':'Estrutura própria da página'}",
-  "description={isEditorialLayout?'Esta página herda a composição editorial de Notícias. A Hero continua configurável individualmente.':'Organize e configure as seções próprias desta página.'}",
 ])
 if(pages.includes('section.target&&'))failures.push('Páginas não pode condicionar Configurar a target manual; toda seção deve ser configurável.')
 if(pages.includes('CUSTOM_LAYOUT_SLUGS'))failures.push('Páginas não pode duplicar a classificação de layouts especiais; use isSpecialLayoutPage do domínio editorial.')

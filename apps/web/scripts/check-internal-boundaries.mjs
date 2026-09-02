@@ -48,6 +48,7 @@ for(const required of [
  "['Conteúdos',FileText,'/app/site/conteudos']",
  "['Mídias',Images,'/app/site/midia']",
  "['Páginas',Layers3,'/app/site/paginas']",
+ "['Formulários',ClipboardList,'/app/site/formularios']",
  "['Mídia Kit',Newspaper,'/app/site/midia-kit']",
  "label:'Marketing'",
  "['Visão Geral',LayoutDashboard,'/app/marketing']",
@@ -70,6 +71,7 @@ const requiredFiles=[
  'src/features/finance/FinanceAccountingPage.tsx',
  'src/features/finance/FinanceRegistryPage.tsx',
  'src/features/settings/SettingsPage.tsx',
+ 'src/features/settings/SiteIdentitySettings.tsx',
  'src/features/settings/domain.ts',
  'src/features/settings/repository.ts',
  'src/styles/admin-contracts.css',
@@ -101,12 +103,18 @@ const siteHeaderFiles=[
  'src/features/site-manager/pages/SiteManagerDashboardPage.tsx',
  'src/features/site-manager/pages/HeroSectionAppearancePage.tsx',
  'src/features/site-manager/pages/SiteSectionsPage.tsx',
- 'src/features/site-manager/pages/SiteSettingsPage.tsx',
  'src/features/site-manager/pages/SiteMediaPage.tsx',
  'src/features/site-manager/pages/MediaKitPage.tsx',
- 'src/features/site-manager/pages/SiteContentsPage.tsx'
+ 'src/features/site-manager/pages/SiteContentsPage.tsx',
+ 'src/features/site-manager/pages/SiteCollaborationsPage.tsx',
+ 'src/features/site-manager/pages/SiteFormsPage.tsx',
+ 'src/features/site-manager/pages/SiteFormEditorPage.tsx'
 ]
 for(const path of siteHeaderFiles){const source=await read(path);if(!source.includes('<AdminShell')||!source.includes('header={{'))failures.push(`${path} deve usar o PageHeader compartilhado via AdminShell.header.`);if(source.includes('AdminPageHeader'))failures.push(`${path} não pode usar AdminPageHeader embutido no conteúdo.`)}
+const settingsPage=await read('src/features/settings/SettingsPage.tsx')
+const siteIdentity=await read('src/features/settings/SiteIdentitySettings.tsx')
+for(const required of ["'identidade_site'",'Identidade do Site','<SiteIdentitySettings/>'])if(!settingsPage.includes(required))failures.push(`Configurações deve possuir Identidade do Site global: ${required}`)
+for(const required of ['Cabeçalho global','Rodapé global','HeaderBrandEditor'])if(!siteIdentity.includes(required))failures.push(`Identidade do Site deve preservar configuração global: ${required}`)
 for(const removed of [
  'src/features/site-manager/HeroManagerPage.tsx',
  'src/features/site-manager/pages/HomeManagerPage.tsx',
@@ -117,7 +125,8 @@ for(const removed of [
  'src/features/site-manager/pages/FooterSectionManagerPage.tsx',
  'src/features/site-manager/pages/SitePagesPage.tsx',
  'src/features/site-manager/pages/SiteCategoriesPage.tsx',
- 'src/features/site-manager/pages/NewsAdManagerPage.tsx'
+ 'src/features/site-manager/pages/NewsAdManagerPage.tsx',
+ 'src/features/site-manager/pages/SiteSettingsPage.tsx'
 ])if(await exists(removed))failures.push(`${removed} foi removido e não pode ser reintroduzido.`)
 const editorialAdmin=await read('src/features/editorial/components/EditorialAdmin.tsx')
 if(editorialAdmin.includes('AdminPageHeader'))failures.push('EditorialAdmin não pode reconstruir cabeçalho dentro do conteúdo.')

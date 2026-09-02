@@ -42,8 +42,7 @@ export type AdvertisingSectionLayout={
 
 export type AdvertisingSectionConfiguration=SectionConfiguration&AdvertisingSectionLayout
 
-const CURRENT_AD_LAYOUT_VERSION=3
-
+const CURRENT_AD_LAYOUT_VERSION=4
 const sharedDefaults:AdvertisingSectionLayout={
   adLayoutVersion:CURRENT_AD_LAYOUT_VERSION,
   adWidthDesktop:0,adWidthTablet:0,adWidthMobile:0,
@@ -57,7 +56,6 @@ const sharedDefaults:AdvertisingSectionLayout={
   adOffsetYDesktop:0,adOffsetYTablet:0,adOffsetYMobile:0,
   adImageFit:'contain',adImageAlt:'Publicidade Portal Lander',adLinkEnabled:true,adLinkTarget:'same',
 }
-
 const sidebarDefaults:AdvertisingSectionLayout={...sharedDefaults,adImageAlt:'Publicidade lateral Portal Lander'}
 const bannerDefaults:AdvertisingSectionLayout={...sharedDefaults,adImageAlt:'Publicidade Anuncie Aqui'}
 
@@ -67,70 +65,58 @@ export function defaultAdvertisingSectionLayout(sectionId:string):AdvertisingSec
 
 function migrateLegacyLayout(config:SectionConfiguration,sectionId:string):Partial<AdvertisingSectionLayout>{
   const raw=config as SectionConfiguration&Partial<AdvertisingSectionLayout>&{adImageFit?:string}
-  const migrated={...(raw as Partial<AdvertisingSectionLayout>),adLayoutVersion:CURRENT_AD_LAYOUT_VERSION,adImageFit:raw.adImageFit==='cover'?'cover':'contain',adImageAlt:raw.adImageAlt||defaultAdvertisingSectionLayout(sectionId).adImageAlt} as Partial<AdvertisingSectionLayout>
-  if((raw.adLayoutVersion||0)>=2)return migrated
-  if(sectionId==='publicidade-lateral'){
-    const matchesOldPreset=(raw.adWidthDesktop===300||raw.adWidthDesktop==null)&&(raw.adHeightDesktop===600||raw.adHeightDesktop==null)&&(raw.adHeightTablet===420||raw.adHeightTablet==null)&&(raw.adHeightMobile===360||raw.adHeightMobile==null)
-    if(matchesOldPreset){migrated.adWidthDesktop=0;migrated.adWidthTablet=0;migrated.adWidthMobile=0;migrated.adHeightDesktop=0;migrated.adHeightTablet=0;migrated.adHeightMobile=0}
-  }else{
-    const matchesOldPreset=(raw.adHeightDesktop===360||raw.adHeightDesktop==null)&&(raw.adHeightTablet===320||raw.adHeightTablet==null)&&(raw.adHeightMobile===280||raw.adHeightMobile==null)
-    if(matchesOldPreset){migrated.adWidthDesktop=0;migrated.adWidthTablet=0;migrated.adWidthMobile=0;migrated.adHeightDesktop=0;migrated.adHeightTablet=0;migrated.adHeightMobile=0}
+  const defaults=defaultAdvertisingSectionLayout(sectionId)
+  return {
+    ...defaults,
+    ...raw,
+    adLayoutVersion:CURRENT_AD_LAYOUT_VERSION,
+    adImageFit:raw.adImageFit==='cover'?'cover':'contain',
+    adImageAlt:raw.adImageAlt||defaults.adImageAlt,
+    adWidthTablet:0,adWidthMobile:0,adHeightTablet:0,adHeightMobile:0,
+    adAlignTablet:'center',adAlignMobile:'center',
+    adMarginXTablet:0,adMarginXMobile:0,adMarginYTablet:0,adMarginYMobile:0,
+    adPaddingXTablet:0,adPaddingXMobile:0,adPaddingYTablet:0,adPaddingYMobile:0,
+    adOffsetXTablet:0,adOffsetXMobile:0,adOffsetYTablet:0,adOffsetYMobile:0,
   }
-  return migrated
 }
 
 export function withAdvertisingSectionLayout(config:SectionConfiguration,sectionId:string):AdvertisingSectionConfiguration{
-  return {...config,...defaultAdvertisingSectionLayout(sectionId),...migrateLegacyLayout(config,sectionId)} as AdvertisingSectionConfiguration
+  return {...config,...migrateLegacyLayout(config,sectionId)} as AdvertisingSectionConfiguration
 }
 
-const suffix=(viewport:SectionHeroViewport)=>viewport==='desktop'?'Desktop':viewport==='tablet'?'Tablet':'Mobile'
 const alignmentValue=(value:AdvertisingAlignment)=>value==='left'?'start':value==='right'?'end':'center'
 const sizeValue=(value:number,kind:'width'|'height')=>value>0?`${value}px`:kind==='width'?'100%':'auto'
 
 export function advertisingViewportLayout(config:AdvertisingSectionConfiguration,viewport:SectionHeroViewport){
-  const key=suffix(viewport)
-  const read=(prefix:string)=>config[`${prefix}${key}` as keyof AdvertisingSectionConfiguration] as number|AdvertisingAlignment
+  if(viewport!=='desktop')return {width:0,height:0,align:'center' as AdvertisingAlignment,marginX:0,marginY:0,paddingX:0,paddingY:0,offsetX:0,offsetY:0}
   return {
-    width:read('adWidth') as number,
-    height:read('adHeight') as number,
-    align:read('adAlign') as AdvertisingAlignment,
-    marginX:read('adMarginX') as number,
-    marginY:read('adMarginY') as number,
-    paddingX:read('adPaddingX') as number,
-    paddingY:read('adPaddingY') as number,
-    offsetX:read('adOffsetX') as number,
-    offsetY:read('adOffsetY') as number,
+    width:config.adWidthDesktop,
+    height:config.adHeightDesktop,
+    align:config.adAlignDesktop,
+    marginX:config.adMarginXDesktop,
+    marginY:config.adMarginYDesktop,
+    paddingX:config.adPaddingXDesktop,
+    paddingY:config.adPaddingYDesktop,
+    offsetX:config.adOffsetXDesktop,
+    offsetY:config.adOffsetYDesktop,
   }
 }
 
 export function advertisingResponsiveCssVariables(config:AdvertisingSectionConfiguration):CSSProperties{
   return {
     '--pl-ad-width-desktop':sizeValue(config.adWidthDesktop,'width'),
-    '--pl-ad-width-tablet':sizeValue(config.adWidthTablet,'width'),
-    '--pl-ad-width-mobile':sizeValue(config.adWidthMobile,'width'),
+    '--pl-ad-width-tablet':'100%',
+    '--pl-ad-width-mobile':'100%',
     '--pl-ad-height-desktop':sizeValue(config.adHeightDesktop,'height'),
-    '--pl-ad-height-tablet':sizeValue(config.adHeightTablet,'height'),
-    '--pl-ad-height-mobile':sizeValue(config.adHeightMobile,'height'),
+    '--pl-ad-height-tablet':'auto',
+    '--pl-ad-height-mobile':'auto',
     '--pl-ad-align-desktop':alignmentValue(config.adAlignDesktop),
-    '--pl-ad-align-tablet':alignmentValue(config.adAlignTablet),
-    '--pl-ad-align-mobile':alignmentValue(config.adAlignMobile),
-    '--pl-ad-margin-x-desktop':`${config.adMarginXDesktop}px`,
-    '--pl-ad-margin-x-tablet':`${config.adMarginXTablet}px`,
-    '--pl-ad-margin-x-mobile':`${config.adMarginXMobile}px`,
-    '--pl-ad-margin-y-desktop':`${config.adMarginYDesktop}px`,
-    '--pl-ad-margin-y-tablet':`${config.adMarginYTablet}px`,
-    '--pl-ad-margin-y-mobile':`${config.adMarginYMobile}px`,
-    '--pl-ad-padding-x-desktop':`${config.adPaddingXDesktop}px`,
-    '--pl-ad-padding-x-tablet':`${config.adPaddingXTablet}px`,
-    '--pl-ad-padding-x-mobile':`${config.adPaddingXMobile}px`,
-    '--pl-ad-padding-y-desktop':`${config.adPaddingYDesktop}px`,
-    '--pl-ad-padding-y-tablet':`${config.adPaddingYTablet}px`,
-    '--pl-ad-padding-y-mobile':`${config.adPaddingYMobile}px`,
-    '--pl-ad-offset-x-desktop':`${config.adOffsetXDesktop}px`,
-    '--pl-ad-offset-x-tablet':`${config.adOffsetXTablet}px`,
-    '--pl-ad-offset-x-mobile':`${config.adOffsetXMobile}px`,
-    '--pl-ad-offset-y-desktop':`${config.adOffsetYDesktop}px`,
-    '--pl-ad-offset-y-tablet':`${config.adOffsetYTablet}px`,
-    '--pl-ad-offset-y-mobile':`${config.adOffsetYMobile}px`,
+    '--pl-ad-align-tablet':'center','--pl-ad-align-mobile':'center',
+    '--pl-ad-margin-x-desktop':`${config.adMarginXDesktop}px`,'--pl-ad-margin-x-tablet':'0px','--pl-ad-margin-x-mobile':'0px',
+    '--pl-ad-margin-y-desktop':`${config.adMarginYDesktop}px`,'--pl-ad-margin-y-tablet':'0px','--pl-ad-margin-y-mobile':'0px',
+    '--pl-ad-padding-x-desktop':`${config.adPaddingXDesktop}px`,'--pl-ad-padding-x-tablet':'0px','--pl-ad-padding-x-mobile':'0px',
+    '--pl-ad-padding-y-desktop':`${config.adPaddingYDesktop}px`,'--pl-ad-padding-y-tablet':'0px','--pl-ad-padding-y-mobile':'0px',
+    '--pl-ad-offset-x-desktop':`${config.adOffsetXDesktop}px`,'--pl-ad-offset-x-tablet':'0px','--pl-ad-offset-x-mobile':'0px',
+    '--pl-ad-offset-y-desktop':`${config.adOffsetYDesktop}px`,'--pl-ad-offset-y-tablet':'0px','--pl-ad-offset-y-mobile':'0px',
   } as CSSProperties
 }

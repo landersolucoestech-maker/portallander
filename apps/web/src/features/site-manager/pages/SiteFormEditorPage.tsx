@@ -4,6 +4,7 @@ import {Link,useParams} from 'react-router-dom'
 import {AdminNotice,AdminShell} from '../../../shared/internal/AdminUi'
 import {SITE_MANAGER_NAV} from '../../../shared/internal/adminNavigation'
 import {siteFormRegistry} from '../forms/catalog'
+import {formDraftRepository} from '../forms/draftRepository'
 import type {CollaborationPriority,FormConsentDefinition,FormDestination,FormFieldDefinition,FormFieldType,FormPurpose,FormStatus,SiteFormDefinition} from '../forms/domain'
 import './site-forms.css'
 
@@ -55,51 +56,57 @@ function FormPreview({form}:{form:SiteFormDefinition}){
 
 export function SiteFormEditorPage(){
   const {formId=''}=useParams()
-  const source=useMemo(()=>siteFormRegistry.find(form=>form.id===formId||form.slug===formId),[formId])
+  const source=useMemo(()=>siteFormRegistry.find(form=>form.id===formId||form.slug===formId)??formDraftRepository.get(formId),[formId])
   const [draft,setDraft]=useState<SiteFormDefinition|undefined>(()=>source?cloneForm(source):undefined)
-  if(!source||!draft)return <AdminShell area="cms" items={SITE_MANAGER_NAV} header={{title:'Formulário não encontrado',description:'O formulário solicitado não existe no registro do Site.'}}><Link className="button outline" to="/app/site/formularios"><ArrowLeft size={15}/>Voltar para Formulários</Link></AdminShell>
+  const [saved,setSaved]=useState(false)
+  if(!source||!draft)return <AdminShell area="cms" items={SITE_MANAGER_NAV} header={{title:'Formulário não encontrado',description:'O formulário solicitado não existe no registro do Site nem nos rascunhos locais.'}}><Link className="button outline" to="/app/site/formularios"><ArrowLeft size={15}/>Voltar para Formulários</Link></AdminShell>
 
-  const updateField=(id:string,patch:Partial<FormFieldDefinition>)=>setDraft(current=>current&&({...current,fields:current.fields.map(field=>field.id===id?{...field,...patch}:field)}))
-  const moveField=(id:string,direction:-1|1)=>setDraft(current=>{
+  const isLocalDraft=source.source==='custom'
+  const resetDraft=()=>{const latest=isLocalDraft?formDraftRepository.get(source.id):source;if(latest)setDraft(cloneForm(latest));setSaved(false)}
+  const saveLocalDraft=()=>{if(!isLocalDraft)return;const next=formDraftRepository.save({...draft,status:'draft',source:'custom'});setDraft(cloneForm(next));setSaved(true)}
+  const updateField=(id:string,patch:Partial<FormFieldDefinition>)=>{setSaved(false);setDraft(current=>current&&({...current,fields:current.fields.map(field=>field.id===id?{...field,...patch}:field)}))}
+  const moveField=(id:string,direction:-1|1)=>{setSaved(false);setDraft(current=>{
     if(!current)return current
     const fields=[...current.fields],index=fields.findIndex(field=>field.id===id),target=index+direction
     if(index<0||target<0||target>=fields.length)return current
     ;[fields[index],fields[target]]=[fields[target],fields[index]]
     return {...current,fields:fields.map((field,order)=>({...field,order:order+1}))}
-  })
-  const duplicateField=(field:FormFieldDefinition)=>setDraft(current=>current&&({...current,fields:[...current.fields,{...field,id:uid('field'),key:`${field.key}_copia`,label:`${field.label} (cópia)`,order:current.fields.length+1,options:field.options?[...field.options]:undefined}]}))
-  const removeField=(id:string)=>setDraft(current=>current&&({...current,fields:current.fields.filter(field=>field.id!==id).map((field,order)=>({...field,order:order+1}))}))
-  const addField=()=>setDraft(current=>current&&({...current,fields:[...current.fields,{id:uid('field'),key:`campo_${current.fields.length+1}`,label:'Novo campo',type:'text',required:false,placeholder:'',helpText:'',order:current.fields.length+1}]}))
-  const updateConsent=(id:string,patch:Partial<FormConsentDefinition>)=>setDraft(current=>current&&({...current,consents:current.consents.map(consent=>consent.id===id?{...consent,...patch}:consent)}))
-  const addConsent=()=>setDraft(current=>current&&({...current,consents:[...current.consents,{id:uid('consent'),kind:'privacy',label:'Novo consentimento',required:false,version:'1.0',text:''}]}))
-  const removeConsent=(id:string)=>setDraft(current=>current&&({...current,consents:current.consents.filter(consent=>consent.id!==id)}))
-  const changeDestination=(destination:FormDestination)=>setDraft(current=>{
+  })}
+  const duplicateField=(field:FormFieldDefinition)=>{setSaved(false);setDraft(current=>current&&({...current,fields:[...current.fields,{...field,id:uid('field'),key:`${field.key}_copia`,label:`${field.label} (cópia)`,order:current.fields.length+1,options:field.options?[...field.options]:undefined}]}))}
+  const removeField=(id:string)=>{setSaved(false);setDraft(current=>current&&({...current,fields:current.fields.filter(field=>field.id!==id).map((field,order)=>({...field,order:order+1}))}))}
+  const addField=()=>{setSaved(false);setDraft(current=>current&&({...current,fields:[...current.fields,{id:uid('field'),key:`campo_${current.fields.length+1}`,label:'Novo campo',type:'text',required:false,placeholder:'',helpText:'',order:current.fields.length+1}]}))}
+  const updateConsent=(id:string,patch:Partial<FormConsentDefinition>)=>{setSaved(false);setDraft(current=>current&&({...current,consents:current.consents.map(consent=>consent.id===id?{...consent,...patch}:consent)}))}
+  const addConsent=()=>{setSaved(false);setDraft(current=>current&&({...current,consents:[...current.consents,{id:uid('consent'),kind:'privacy',label:'Novo consentimento',required:false,version:'1.0',text:''}]}))}
+  const removeConsent=(id:string)=>{setSaved(false);setDraft(current=>current&&({...current,consents:current.consents.filter(consent=>consent.id!==id)}))}
+  const changeDestination=(destination:FormDestination)=>{setSaved(false);setDraft(current=>{
     if(!current)return current
     if(destination==='crm')return {...current,routing:{destination,crm:current.routing.crm??{origin:'formulario_portal',tags:['site','formulario']}}}
     if(destination==='content_collaborations')return {...current,routing:{destination,collaboration:current.routing.collaboration??{defaultStatus:'received',defaultPriority:'normal'}}}
     return {...current,routing:{destination}}
-  })
+  })}
+  const patchDraft=(patch:Partial<SiteFormDefinition>)=>{setSaved(false);setDraft(current=>current&&({...current,...patch}))}
 
-  return <AdminShell area="cms" items={SITE_MANAGER_NAV} header={{title:draft.name,description:`Definição e publicação do formulário do Site · versão ${draft.version}.`}}>
+  return <AdminShell area="cms" items={SITE_MANAGER_NAV} header={{title:draft.name,description:`Definição do formulário do Site · versão ${draft.version}.`}}>
     <div className="site-form-editor">
-      <div className="site-form-editor-top"><Link className="button outline" to="/app/site/formularios"><ArrowLeft size={15}/>Formulários</Link><div className="site-form-editor-actions"><button type="button" className="button outline" onClick={()=>setDraft(cloneForm(source))}>Descartar alterações</button><button type="button" className="button" disabled title="A persistência do Portal Lander ainda não está conectada"><Save size={15}/>Salvar alterações</button></div></div>
-      <AdminNotice title="Rascunho administrativo" description="Você já pode estruturar o formulário e validar a experiência no preview em tempo real. Salvar/publicar permanece bloqueado até a persistência do Portal Lander estar conectada, evitando simular sucesso."/>
+      <div className="site-form-editor-top"><Link className="button outline" to="/app/site/formularios"><ArrowLeft size={15}/>Formulários</Link><div className="site-form-editor-actions"><button type="button" className="button outline" onClick={resetDraft}>Descartar alterações</button>{isLocalDraft?<button type="button" className="button" onClick={saveLocalDraft}><Save size={15}/>Salvar rascunho</button>:<button type="button" className="button" disabled title="Formulários do sistema dependem da persistência compartilhada do Portal Lander"><Save size={15}/>Salvar alterações</button>}</div></div>
+      {isLocalDraft?<AdminNotice title="Rascunho local editável" description="Este formulário pode ser salvo como rascunho neste navegador e validado no preview em tempo real. Ele não entra no site público nem no endpoint de submissão até existir publicação persistente no backend."/>:<AdminNotice title="Formulário do sistema" description="Você pode testar alterações no preview, mas a gravação deste formulário permanece bloqueada até existir persistência compartilhada. Para criar uma versão editável sem afetar produção, duplique-o na lista de Formulários."/>}
+      {saved&&<AdminNotice title="Rascunho salvo" description="As alterações administrativas deste rascunho foram salvas localmente. Nenhuma publicação pública foi realizada."/>}
 
       <div className="site-form-editor-layout">
         <div className="site-form-editor-main">
           <section className="site-form-card"><header><div><h2>Configurações gerais</h2><p>Identidade, finalidade, destino e estado do formulário.</p></div></header><div className="site-form-grid">
-            <label><span>Nome</span><input value={draft.name} onChange={event=>setDraft({...draft,name:event.target.value})}/></label>
-            <label><span>Slug</span><input value={draft.slug} onChange={event=>setDraft({...draft,slug:event.target.value})}/></label>
-            <label><span>Finalidade</span><select value={draft.purpose} onChange={event=>setDraft({...draft,purpose:event.target.value as FormPurpose})}>{purposeOptions.map(([value,label])=><option key={value} value={value}>{label}</option>)}</select></label>
+            <label><span>Nome</span><input value={draft.name} onChange={event=>patchDraft({name:event.target.value})}/></label>
+            <label><span>Slug</span><input value={draft.slug} onChange={event=>patchDraft({slug:event.target.value})}/></label>
+            <label><span>Finalidade</span><select value={draft.purpose} onChange={event=>patchDraft({purpose:event.target.value as FormPurpose})}>{purposeOptions.map(([value,label])=><option key={value} value={value}>{label}</option>)}</select></label>
             <label><span>Destino operacional</span><select value={draft.routing.destination} onChange={event=>changeDestination(event.target.value as FormDestination)}>{destinationOptions.map(([value,label])=><option key={value} value={value}>{label}</option>)}</select></label>
-            <label><span>Status</span><select value={draft.status} onChange={event=>setDraft({...draft,status:event.target.value as FormStatus})}>{statusOptions.map(([value,label])=><option key={value} value={value}>{label}</option>)}</select></label>
+            <label><span>Status</span><select value={isLocalDraft?'draft':draft.status} disabled={isLocalDraft} onChange={event=>patchDraft({status:event.target.value as FormStatus})}>{statusOptions.map(([value,label])=><option key={value} value={value}>{label}</option>)}</select></label>
             <label><span>Versão atual</span><input value={`v${draft.version}`} disabled/></label>
-            <label className="site-form-span-2"><span>Mensagem após envio</span><input value={draft.successMessage} onChange={event=>setDraft({...draft,successMessage:event.target.value})}/></label>
+            <label className="site-form-span-2"><span>Mensagem após envio</span><input value={draft.successMessage} onChange={event=>patchDraft({successMessage:event.target.value})}/></label>
           </div></section>
 
           <section className="site-form-card"><header><div><h2>Roteamento</h2><p>Defina para onde cada submissão deve ser encaminhada depois da validação.</p></div></header><div className="site-form-grid">
-            {draft.routing.destination==='crm'&&<><label><span>Origem do lead</span><input value={draft.routing.crm?.origin??'formulario_portal'} onChange={event=>setDraft({...draft,routing:{destination:'crm',crm:{...(draft.routing.crm??{origin:'formulario_portal'}),origin:event.target.value}}})}/></label><label><span>Responsável padrão</span><input value={draft.routing.crm?.responsible??''} onChange={event=>setDraft({...draft,routing:{destination:'crm',crm:{...(draft.routing.crm??{origin:'formulario_portal'}),responsible:event.target.value}}})} placeholder="Opcional"/></label><label className="site-form-span-2"><span>Tags automáticas</span><input value={(draft.routing.crm?.tags??[]).join(', ')} onChange={event=>setDraft({...draft,routing:{destination:'crm',crm:{...(draft.routing.crm??{origin:'formulario_portal'}),tags:event.target.value.split(',').map(value=>value.trim()).filter(Boolean)}}})} placeholder="site, formulario, campanha"/></label></>}
-            {draft.routing.destination==='content_collaborations'&&<label><span>Prioridade inicial</span><select value={draft.routing.collaboration?.defaultPriority??'normal'} onChange={event=>setDraft({...draft,routing:{destination:'content_collaborations',collaboration:{defaultStatus:'received',defaultPriority:event.target.value as CollaborationPriority}}})}><option value="low">Baixa</option><option value="normal">Normal</option><option value="high">Alta</option></select></label>}
+            {draft.routing.destination==='crm'&&<><label><span>Origem do lead</span><input value={draft.routing.crm?.origin??'formulario_portal'} onChange={event=>{setSaved(false);setDraft({...draft,routing:{destination:'crm',crm:{...(draft.routing.crm??{origin:'formulario_portal'}),origin:event.target.value}}})}}/></label><label><span>Responsável padrão</span><input value={draft.routing.crm?.responsible??''} onChange={event=>{setSaved(false);setDraft({...draft,routing:{destination:'crm',crm:{...(draft.routing.crm??{origin:'formulario_portal'}),responsible:event.target.value}}})}} placeholder="Opcional"/></label><label className="site-form-span-2"><span>Tags automáticas</span><input value={(draft.routing.crm?.tags??[]).join(', ')} onChange={event=>{setSaved(false);setDraft({...draft,routing:{destination:'crm',crm:{...(draft.routing.crm??{origin:'formulario_portal'}),tags:event.target.value.split(',').map(value=>value.trim()).filter(Boolean)}}})}} placeholder="site, formulario, campanha"/></label></>}
+            {draft.routing.destination==='content_collaborations'&&<label><span>Prioridade inicial</span><select value={draft.routing.collaboration?.defaultPriority??'normal'} onChange={event=>{setSaved(false);setDraft({...draft,routing:{destination:'content_collaborations',collaboration:{defaultStatus:'received',defaultPriority:event.target.value as CollaborationPriority}}})}}><option value="low">Baixa</option><option value="normal">Normal</option><option value="high">Alta</option></select></label>}
             {!['crm','content_collaborations'].includes(draft.routing.destination)&&<div className="site-form-routing-note">Este destino ainda não possui regras adicionais específicas. O formulário continuará registrando sua finalidade e destino no contrato de submissão.</div>}
           </div></section>
 
@@ -113,7 +120,7 @@ export function SiteFormEditorPage(){
 
           <section className="site-form-card"><header><div><h2>Resumo de publicação</h2><p>Validação estrutural do rascunho atual.</p></div></header><div className="site-form-summary"><span><b>v{draft.version}</b> versão</span><span><b>{draft.fields.length}</b> campos</span><span><b>{draft.fields.filter(field=>field.required).length}</b> obrigatórios</span><span><b>{draft.consents.length}</b> consentimentos</span><span><b>{draft.routing.destination}</b> destino</span></div></section>
         </div>
-        <FormPreview form={draft}/>
+        <FormPreview form={isLocalDraft?{...draft,status:'draft'}:draft}/>
       </div>
     </div>
   </AdminShell>

@@ -38,8 +38,11 @@ export function SiteContentEditorPage(){
 
   useEffect(()=>{
     if(!persisted){
-      const source=contentDraftRepository.listHiddenIds().includes(contentId)?undefined:contentDraftRepository.get(contentId)??editorialReadModel.contents.find(content=>content.id===contentId)
-      setDraft(source?clone(source):undefined);setBody(source?bodyText(source):'');setSaved(false);setError('');return
+      queueMicrotask(()=>{
+        const source=contentDraftRepository.listHiddenIds().includes(contentId)?undefined:contentDraftRepository.get(contentId)??editorialReadModel.contents.find(content=>content.id===contentId)
+        setDraft(source?clone(source):undefined);setBody(source?bodyText(source):'');setSaved(false);setError('')
+      })
+      return
     }
     let active=true
     void Promise.all([getAdminEditorialContent(contentId),listAdminEditorialPages()]).then(([content,pages])=>{
@@ -56,7 +59,7 @@ export function SiteContentEditorPage(){
       ...editorialReadModel.pages.filter(page=>page.type==='editorial'&&!hidden.has(page.id)).map(page=>({id:page.id,title:overrides.get(page.id)?.title??page.title,source:'persisted' as const})),
       ...drafts.filter(page=>!page.overridesSystem).map(page=>({id:page.id,title:`${page.title} · rascunho`,source:'draft' as const})),
     ]
-  },[persisted,remotePages,draft])
+  },[persisted,remotePages])
 
   const loading=persisted&&loadedRemoteId!==contentId
   if(loading)return <AdminShell area="cms" items={SITE_MANAGER_NAV} header={{title:'Carregando conteúdo',description:'Sincronizando o editor com a persistência editorial.'}}><AdminNotice title="Sincronizando" description="Carregando conteúdo e páginas diretamente da API do Portal Lander."/></AdminShell>

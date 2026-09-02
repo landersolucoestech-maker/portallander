@@ -37,7 +37,7 @@ export function LoginPage(){
     event.preventDefault()
     if(!configured||submitting)return
     setSubmitting(true);setError('')
-    try{await login({email,password,remember});navigate('/app/workspaces',{replace:true})}
+    try{await login({email,password,remember});navigate('/app/dashboard',{replace:true})}
     catch(caught){setError(caught instanceof Error?caught.message:'Não foi possível entrar na área administrativa.')}
     finally{setSubmitting(false)}
   }
@@ -48,14 +48,14 @@ export function LoginPage(){
       <div className="access-brand-copy">
         <span className="access-kicker">PORTAL LANDER · OPERAÇÃO INTERNA</span>
         <h1>Conteúdo, relacionamento e operação em um único ambiente.</h1>
-        <p>A área interna concentra o CRM e o Gerenciador do Site em workspaces independentes, com uma base visual e operacional compartilhada.</p>
+        <p>A área interna reúne CRM, Site, Financeiro, Marketing e os demais módulos em um único workspace administrativo, com navegação compartilhada.</p>
       </div>
-      <div className="access-brand-foot"><span>CRM</span><span>GERENCIADOR DO SITE</span><span>PORTAL LANDER</span></div>
+      <div className="access-brand-foot"><span>ADMINISTRAÇÃO</span><span>PORTAL LANDER</span><span>WORKSPACE ÚNICO</span></div>
     </section>
 
     <section className="access-form-panel">
       <div className="access-form-wrap">
-        <div className="access-form-heading"><span>ACESSO ADMINISTRATIVO</span><h2>Entrar na área interna</h2><p>Use sua conta administrativa para acessar os workspaces protegidos do Portal Lander.</p></div>
+        <div className="access-form-heading"><span>ACESSO ADMINISTRATIVO</span><h2>Entrar na área interna</h2><p>Use sua conta administrativa para acessar o workspace unificado do Portal Lander.</p></div>
 
         {!configured&&<div className="access-warning" role="status"><ShieldAlert size={18} aria-hidden="true"/><div><strong>API administrativa não configurada</strong><p>Defina VITE_PORTAL_API_BASE_URL no frontend e execute a migração de autenticação na API. Em produção, o acesso interno permanece bloqueado enquanto essa configuração estiver ausente.</p></div></div>}
         {configured&&status==='unavailable'&&<div className="access-warning" role="alert"><ShieldAlert size={18} aria-hidden="true"/><div><strong>Autenticação indisponível</strong><p>{sessionError||'A API administrativa não pôde validar a sessão. Verifique a configuração e tente novamente.'}</p></div></div>}
@@ -68,7 +68,7 @@ export function LoginPage(){
           <button type="submit" className="access-primary" disabled={!configured||submitting}><LockKeyhole size={17} aria-hidden="true"/> {submitting?'Entrando…':'Entrar'}</button>
         </form>
 
-        {developmentMode&&<div className="access-demo-entry"><span>DESENVOLVIMENTO LOCAL</span><p>A API não está configurada neste build de desenvolvimento. O bypass abaixo existe somente em modo DEV e não é liberado em produção.</p><Link to="/app/workspaces">Continuar para os workspaces <ArrowRight size={16} aria-hidden="true"/></Link></div>}
+        {developmentMode&&<div className="access-demo-entry"><span>DESENVOLVIMENTO LOCAL</span><p>A API não está configurada neste build de desenvolvimento. O bypass abaixo existe somente em modo DEV e não é liberado em produção.</p><Link to="/app/dashboard">Continuar para a Administração <ArrowRight size={16} aria-hidden="true"/></Link></div>}
         {configured&&<div className="access-demo-entry"><span>SESSÃO PROTEGIDA</span><p>{ADMIN_CAPABILITIES.adminAuth.description} A credencial persistente da API não é enviada ao navegador.</p></div>}
 
         <Link className="access-back" to="/">← Voltar ao site público</Link>

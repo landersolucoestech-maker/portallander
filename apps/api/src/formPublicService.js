@@ -15,7 +15,6 @@ export const formPublicService={
         order by x.version desc
         limit 1
       ) v on true
-      where f.status='active'
       order by f.name asc`)
     return rows.map(row=>{
       const meta=asObject(row.definition_meta)
@@ -25,7 +24,7 @@ export const formPublicService={
         slug:String(meta.slug||row.slug),
         version:Number(row.version),
         purpose:String(meta.purpose||row.purpose),
-        status:'active',
+        status:String(row.status),
         source:String(meta.source||row.source),
         fields:asArray(row.fields),
         consents:asArray(row.consents),

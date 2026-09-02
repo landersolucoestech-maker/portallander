@@ -6,6 +6,8 @@ import {SITE_MANAGER_NAV} from '../../../shared/internal/adminNavigation'
 import {siteFormRegistry} from '../forms/catalog'
 import {formDraftRepository} from '../forms/draftRepository'
 import type {CollaborationPriority,FormConsentDefinition,FormDestination,FormFieldDefinition,FormFieldType,FormPurpose,FormStatus,SiteFormDefinition} from '../forms/domain'
+import {resolveSiteFormOptionSets} from '../forms/runtimeOptions'
+import {SiteFormRenderer} from '../forms/SiteFormRenderer'
 import './site-forms.css'
 
 const purposeOptions:readonly [FormPurpose,string][]=[
@@ -27,29 +29,13 @@ const cloneForm=(form:SiteFormDefinition):SiteFormDefinition=>({
 })
 const uid=(prefix:string)=>`${prefix}-${crypto.randomUUID()}`
 
-function PreviewField({field}:{field:FormFieldDefinition}){
-  if(field.type==='hidden')return null
-  const required=field.required?<b aria-label="obrigatório"> *</b>:null
-  if(field.type==='textarea')return <label className="site-form-preview-field"><span>{field.label}{required}</span><textarea rows={4} placeholder={field.placeholder||''} readOnly/></label>
-  if(field.type==='select')return <label className="site-form-preview-field"><span>{field.label}{required}</span><select defaultValue=""><option value="" disabled>{field.placeholder||'Selecione uma opção'}</option>{(field.options??[]).map(option=><option key={option}>{option}</option>)}</select></label>
-  if(field.type==='radio')return <fieldset className="site-form-preview-choice"><legend>{field.label}{required}</legend>{(field.options??[]).map(option=><label key={option}><input type="radio" name={`preview-${field.id}`}/><span>{option}</span></label>)}</fieldset>
-  if(field.type==='checkbox')return <label className="site-form-preview-checkbox"><input type="checkbox"/><span>{field.label}{required}</span></label>
-  if(field.type==='file')return <label className="site-form-preview-field"><span>{field.label}{required}</span><input type="file" disabled/></label>
-  return <label className="site-form-preview-field"><span>{field.label}{required}</span><input type={field.type} placeholder={field.placeholder||''} readOnly/>{field.helpText&&<small>{field.helpText}</small>}</label>
-}
-
 function FormPreview({form}:{form:SiteFormDefinition}){
-  const visibleFields=[...form.fields].sort((a,b)=>a.order-b.order).filter(field=>field.type!=='hidden')
+  const previewForm=form.source==='custom'?{...form,status:'draft' as const}:form
   return <aside className="site-form-preview-panel" aria-label="Preview do formulário em tempo real">
     <div className="site-form-preview-sticky">
-      <header><span>PREVIEW EM TEMPO REAL</span><h2>{form.name||'Formulário sem nome'}</h2><p>Visualização da experiência pública. Alterações feitas no editor aparecem aqui imediatamente.</p></header>
-      <div className="site-form-preview-meta"><span className={`status ${form.status}`}>{form.status==='active'?'Ativo':form.status==='draft'?'Rascunho':'Inativo'}</span><small>/{form.slug||'slug-do-formulario'}</small></div>
-      <form className="site-form-public-preview" onSubmit={event=>event.preventDefault()}>
-        {visibleFields.length?visibleFields.map(field=><PreviewField key={field.id} field={field}/>):<div className="site-form-preview-empty">Adicione campos para visualizar o formulário.</div>}
-        {form.consents.map(consent=><label className="site-form-preview-consent" key={consent.id}><input type="checkbox"/><span>{consent.text||consent.label}{consent.required?<b> *</b>:null}</span></label>)}
-        <button type="submit">Enviar</button>
-        <p className="site-form-preview-success">Após o envio: {form.successMessage||'Nenhuma mensagem configurada.'}</p>
-      </form>
+      <header><span>PREVIEW EM TEMPO REAL</span><h2>{previewForm.name||'Formulário sem nome'}</h2><p>Este painel usa o mesmo renderer do formulário público e reage diretamente ao estado atual do editor.</p></header>
+      <div className="site-form-preview-meta"><span className={`status ${previewForm.status}`}>{previewForm.status==='active'?'Ativo':previewForm.status==='draft'?'Rascunho':'Inativo'}</span><small>/{previewForm.slug||'slug-do-formulario'}</small></div>
+      <SiteFormRenderer form={previewForm} mode="preview" optionSets={resolveSiteFormOptionSets(previewForm)} submitLabel="Enviar"/>
     </div>
   </aside>
 }
@@ -120,7 +106,7 @@ export function SiteFormEditorPage(){
 
           <section className="site-form-card"><header><div><h2>Resumo de publicação</h2><p>Validação estrutural do rascunho atual.</p></div></header><div className="site-form-summary"><span><b>v{draft.version}</b> versão</span><span><b>{draft.fields.length}</b> campos</span><span><b>{draft.fields.filter(field=>field.required).length}</b> obrigatórios</span><span><b>{draft.consents.length}</b> consentimentos</span><span><b>{draft.routing.destination}</b> destino</span></div></section>
         </div>
-        <FormPreview form={isLocalDraft?{...draft,status:'draft'}:draft}/>
+        <FormPreview form={draft}/>
       </div>
     </div>
   </AdminShell>

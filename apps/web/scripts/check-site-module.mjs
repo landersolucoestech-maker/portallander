@@ -46,13 +46,9 @@ requireTokens('SiteSectionsPage.tsx',pages,[
 if(pages.includes("to=\"/app/site/configuracoes\""))failures.push('Páginas não pode reintroduzir identidade global dentro do módulo Site.')
 
 const formEditor=await read('src/features/site-manager/pages/SiteFormEditorPage.tsx')
-requireTokens('SiteFormEditorPage.tsx',formEditor,[
-  'PREVIEW EM TEMPO REAL',
-  'formDraftRepository.get',
-  'formDraftRepository.save',
-  'Salvar rascunho',
-  "status:'draft'",
-])
+requireTokens('SiteFormEditorPage.tsx',formEditor,['PREVIEW EM TEMPO REAL','formDraftRepository.get','formDraftRepository.save','Salvar rascunho'])
+const formDraftRepository=await read('src/features/site-manager/forms/draftRepository.ts')
+requireTokens('forms/draftRepository.ts',formDraftRepository,["status:'draft'","source:'custom'"])
 
 const forms=await read('src/features/site-manager/pages/SiteFormsPage.tsx')
 requireTokens('SiteFormsPage.tsx',forms,['Novo formulário','Duplicar','formDraftRepository.create','formDraftRepository.duplicate','formDraftRepository.remove'])
@@ -61,7 +57,9 @@ const contents=await read('src/features/site-manager/pages/SiteContentsPage.tsx'
 requireTokens('SiteContentsPage.tsx',contents,['Novo conteúdo','contentDraftRepository.create','contentDraftRepository.remove','Colaborações recebidas'])
 
 const contentEditor=await read('src/features/site-manager/pages/SiteContentEditorPage.tsx')
-requireTokens('SiteContentEditorPage.tsx',contentEditor,['Salvar rascunho','contentDraftRepository.save',"status:'draft'",'noIndex=true','PREVIEW DO RASCUNHO'])
+requireTokens('SiteContentEditorPage.tsx',contentEditor,['Salvar rascunho','contentDraftRepository.save','PREVIEW DO RASCUNHO'])
+const contentDraftRepository=await read('src/features/site-manager/contentDraftRepository.ts')
+requireTokens('contentDraftRepository.ts',contentDraftRepository,["status:'draft'",'active:false','noIndex:true'])
 
 const media=await read('src/features/site-manager/pages/SiteMediaPage.tsx')
 requireTokens('SiteMediaPage.tsx',media,['mediaRepository.list','Biblioteca conectada ao Data Provider','Biblioteca do Site'])
@@ -70,6 +68,8 @@ requireTokens('readModel.ts',readModel,['getRuntimeDataProvider().editorial.medi
 
 const mediaKit=await read('src/features/site-manager/pages/MediaKitPage.tsx')
 requireTokens('MediaKitPage.tsx',mediaKit,['mediaKitRepository.read','mediaKitRepository.save','Salvar rascunho','Publicar'])
+const mediaKitRepository=await read('src/features/site-manager/mediaKitRepository.ts')
+requireTokens('mediaKitRepository.ts',mediaKitRepository,["status:'draft'"])
 
 const editorialModel=await read('src/features/editorial/model.ts')
 requireTokens('editorial/model.ts',editorialModel,['isPublishedPage','isPublicEditorialPage','export const isPublicPage=isPublicEditorialPage'])

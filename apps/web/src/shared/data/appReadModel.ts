@@ -2,7 +2,6 @@ import {getRuntimeDataProvider} from './runtimeDataProvider'
 
 export const appReadModel={
  currentUser(){return getRuntimeDataProvider().identity.currentUser()},
- workspaces(){return getRuntimeDataProvider().identity.workspaces().filter(item=>item.active)},
  notifications(){return getRuntimeDataProvider().notifications.list().sort((a,b)=>b.createdAt.localeCompare(a.createdAt))},
  notificationsForCurrentUser(){
   const user=this.currentUser()

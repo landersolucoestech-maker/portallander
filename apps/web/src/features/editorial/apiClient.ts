@@ -17,7 +17,11 @@ async function request<T>(path:string,init:RequestInit={}):Promise<T>{
   const body=response.status===204?null:await response.json().catch(()=>null)
   if(!response.ok){
     const message=body&&typeof body==='object'&&'message' in body?String(body.message):`API editorial respondeu ${response.status}.`
-    throw new Error(message)
+    const error=new Error(message) as Error&{status?:number;code?:string;details?:unknown}
+    error.status=response.status
+    if(body&&typeof body==='object'&&'code' in body)error.code=String(body.code)
+    if(body&&typeof body==='object'&&'details' in body)error.details=body.details
+    throw error
   }
   return body as T
 }
@@ -32,8 +36,8 @@ const authHeaders=(credentials:EditorialAdminCredentials)=>({authorization:`Bear
 
 export const editorialApiClient={
   loadPublicSnapshot:loadPublicEditorialSnapshot,
-  async listPages(){const result=await request<{pages:EditorialPage[]}>('/api/editorial/pages');return result.pages},
-  async listContents(){const result=await request<{contents:EditorialContent[]}>('/api/editorial/contents');return result.contents},
+  async listPages(credentials:EditorialAdminCredentials){const result=await request<{pages:EditorialPage[]}>('/api/editorial/pages',{headers:authHeaders(credentials)});return result.pages},
+  async listContents(credentials:EditorialAdminCredentials){const result=await request<{contents:EditorialContent[]}>('/api/editorial/contents',{headers:authHeaders(credentials)});return result.contents},
   async createPage(page:EditorialPage,credentials:EditorialAdminCredentials){const result=await request<{page:EditorialPage}>('/api/editorial/pages',{method:'POST',headers:authHeaders(credentials),body:JSON.stringify(page)});return result.page},
   async updatePage(page:EditorialPage,credentials:EditorialAdminCredentials){const result=await request<{page:EditorialPage}>(`/api/editorial/pages/${encodeURIComponent(page.id)}`,{method:'PATCH',headers:authHeaders(credentials),body:JSON.stringify(page)});return result.page},
   async deletePage(id:string,credentials:EditorialAdminCredentials){await request(`/api/editorial/pages/${encodeURIComponent(id)}`,{method:'DELETE',headers:authHeaders(credentials)})},

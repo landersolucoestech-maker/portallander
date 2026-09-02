@@ -1,3 +1,4 @@
+import type {CSSProperties} from 'react'
 import type {EditorialPage} from '../../features/editorial/model'
 import {useEditorialSeo} from '../../features/editorial/hooks/useEditorialSeo'
 import {useSectionConfiguration} from '../../features/site-manager/useSectionConfiguration'
@@ -8,10 +9,11 @@ export function SobrePage({page}:{page:EditorialPage}){
   const hero=useSectionConfiguration(page.id,'sobre-hero','Hero Institucional')
   const body=useSectionConfiguration(page.id,'sobre-conteudo','Conteúdo Institucional')
   const heroBackground=hero.imageUrl?`linear-gradient(rgba(0,0,0,.48),rgba(0,0,0,.48)),url(${hero.imageUrl})`:hero.background
+  const heroHeights={'--pl-hero-height-desktop':`${hero.heroHeightDesktop}px`,'--pl-hero-height-tablet':`${hero.heroHeightTablet}px`,'--pl-hero-height-mobile':`${hero.heroHeightMobile}px`} as CSSProperties
   return <div className="public-page sobre-page">
     <PublicHeader/>
     <main>
-      {hero.active&&<section className="public-standard-page-hero" style={{background:heroBackground,backgroundSize:'cover',backgroundPosition:'center',backgroundRepeat:'no-repeat',color:hero.imageUrl?'#fff':hero.textColor,textAlign:hero.textAlign,position:'relative',overflow:'hidden'}}><div className="public-shell" style={{position:'relative',zIndex:1}}><div className="news-page-intro-copy"><span style={{color:hero.accentColor}}>{hero.eyebrow||'INSTITUCIONAL'}</span><h1>{hero.title||page.title.toUpperCase()}</h1><p>{hero.description||page.description}</p></div></div></section>}
+      {hero.active&&<section className="public-standard-page-hero pl-responsive-hero" style={{...heroHeights,background:heroBackground,backgroundSize:'cover',backgroundPosition:'center',backgroundRepeat:'no-repeat',color:hero.imageUrl?'#fff':hero.textColor,textAlign:hero.textAlign,position:'relative',overflow:'hidden'}}><div className="public-shell" style={{position:'relative',zIndex:1}}><div className="news-page-intro-copy"><span style={{color:hero.accentColor}}>{hero.eyebrow||'INSTITUCIONAL'}</span><h1>{hero.title||page.title.toUpperCase()}</h1><p>{hero.description||page.description}</p></div></div></section>}
       {body.active&&<section className="public-shell article-shell" style={{background:body.background,color:body.textColor,textAlign:body.textAlign}}><article className="article-content">{body.eyebrow&&<span style={{color:body.accentColor}}>{body.eyebrow}</span>}<h2>{body.title||'PORTAL LANDER'}</h2><p>{body.description||page.description}</p></article></section>}
     </main>
     <PublicFooter/>

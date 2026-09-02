@@ -15,7 +15,6 @@ requireTokens('main.tsx',main,['QueryClientProvider','<HashRouter><App/></HashRo
 
 const internalApp=await read('src/app/InternalApp.tsx')
 requireTokens('InternalApp.tsx',internalApp,[
- "from '../features/access/LoginPage'",
  "from '../features/access/CrmModuleRoutes'",
  "from '../features/dashboard/DashboardPage'",
  "from '../features/contracts/ContractsPage'",
@@ -27,7 +26,7 @@ requireTokens('InternalApp.tsx',internalApp,[
  "from '../features/site-manager/SiteManagerRoutes'",
  'path="/app/login"','path="/app/dashboard"','path="/app/crm/*"','path="/app/contracts"','path="/app/finance"','path="/app/finance/invoices"','path="/app/finance/accounting"','path="/app/finance/rules"','path="/app/finance/categories"','path="/app/settings"','path="/app/site/*"'
 ])
-forbidTokens('InternalApp.tsx',internalApp,['WorkspacePage','CrmWorkspace','/app/workspaces','workspace selection'])
+forbidTokens('InternalApp.tsx',internalApp,['WorkspacePage','CrmWorkspace','/app/workspaces','workspace selection','LoginPage','RequireAdmin','useAdminAuth'])
 
 const crmModuleRoutes=await read('src/features/access/CrmModuleRoutes.tsx')
 requireTokens('CrmModuleRoutes.tsx',crmModuleRoutes,["from '../crm/CrmPage'",'<Route index element={<CrmPage/>}/>','path="leads" element={<CrmPage/>}','path="contatos" element={<CrmPage/>}'])
@@ -80,10 +79,6 @@ const appReadModel=await read('src/shared/data/appReadModel.ts')
 forbidTokens('appReadModel.ts',appReadModel,['workspaces()','.identity.workspaces'])
 const identityMocks=await read('src/mocks/identity/index.ts')
 forbidTokens('mocks/identity/index.ts',identityMocks,['WorkspaceDescriptor','mockWorkspaces','workspace_admin','workspace_site','workspace_archive','/app/workspaces'])
-
-const loginPage=await read('src/features/access/LoginPage.tsx')
-forbidTokens('LoginPage.tsx',loginPage,['workspace administrativo','WORKSPACE ÚNICO','workspace unificado','/app/workspaces'])
-requireTokens('LoginPage.tsx',loginPage,['ADMINISTRAÇÃO UNIFICADA','/app/dashboard'])
 
 const accountPage=await read('src/features/access/AccountPages.tsx')
 requireTokens('AccountPages.tsx',accountPage,['UNIFIED_ADMIN_NAV','useAdminAuth','sessionUser.displayName'])

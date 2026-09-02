@@ -7,32 +7,13 @@ const failures=[]
 const requireTokens=(path,source,tokens)=>{for(const token of tokens)if(!source.includes(token))failures.push(`${path} deve preservar: ${token}`)}
 
 const requiredFiles=[
-  'src/features/site-manager/pageRepository.ts',
-  'src/features/site-manager/contentDraftRepository.ts',
-  'src/features/site-manager/mediaRepository.ts',
-  'src/features/site-manager/mediaKitRepository.ts',
-  'src/features/site-manager/mediaKitDomain.ts',
-  'src/features/site-manager/components/SiteMediaPicker.tsx',
-  'src/features/site-manager/forms/draftRepository.ts',
-  'src/features/site-manager/forms/SiteFormRenderer.tsx',
-  'src/features/site-manager/forms/runtimeOptions.ts',
-  'src/features/site-manager/pages/SiteSectionsPage.tsx',
-  'src/features/site-manager/pages/SiteContentEditorPage.tsx',
-  'src/features/site-manager/pages/SiteFormEditorPage.tsx',
-  'src/features/site-manager/pages/SiteFormsPage.tsx',
-  'src/features/site-manager/pages/SiteMediaPage.tsx',
-  'src/features/site-manager/pages/MediaKitPage.tsx',
-  'src/features/editorial/adminClient.ts',
-  'src/features/editorial/components/EditorialListingPage.tsx',
-  'src/features/editorial/components/EditorialContentPage.tsx',
-  'src/app/publicSpecialPageRegistry.tsx',
-  'src/pages/sobre/SobrePage.tsx',
-  'src/pages/contato/ContatoPage.tsx',
+  'src/features/site-manager/pageRepository.ts','src/features/site-manager/contentDraftRepository.ts','src/features/site-manager/mediaRepository.ts','src/features/site-manager/mediaKitRepository.ts','src/features/site-manager/mediaKitDomain.ts','src/features/site-manager/sectionConfiguration.ts','src/features/site-manager/components/SiteMediaPicker.tsx','src/features/site-manager/forms/draftRepository.ts','src/features/site-manager/forms/SiteFormRenderer.tsx','src/features/site-manager/forms/runtimeOptions.ts','src/features/site-manager/pages/SiteSectionsPage.tsx','src/features/site-manager/pages/SectionConfigurationPage.tsx','src/features/site-manager/pages/SiteContentEditorPage.tsx','src/features/site-manager/pages/SiteFormEditorPage.tsx','src/features/site-manager/pages/SiteFormsPage.tsx','src/features/site-manager/pages/SiteMediaPage.tsx','src/features/site-manager/pages/MediaKitPage.tsx','src/features/editorial/adminClient.ts','src/features/editorial/components/EditorialListingPage.tsx','src/features/editorial/components/EditorialContentPage.tsx','src/app/publicSpecialPageRegistry.tsx','src/pages/sobre/SobrePage.tsx','src/pages/contato/ContatoPage.tsx',
 ]
 for(const path of requiredFiles)if(!(await exists(path)))failures.push(`Módulo Site exige ${path}.`)
 
 const routes=await read('src/features/site-manager/SiteManagerRoutes.tsx')
 requireTokens('SiteManagerRoutes.tsx',routes,[
+  'path="paginas/:pageId/secoes/:sectionId" element={<SectionConfigurationPage/>}',
   'path="conteudos/:contentId" element={<SiteContentEditorPage/>}',
   'path="conteudos/colaboracoes" element={<SiteCollaborationsPage/>}',
   'path="formularios/:formId" element={<SiteFormEditorPage/>}',
@@ -43,25 +24,20 @@ requireTokens('SiteManagerRoutes.tsx',routes,[
 
 const pages=await read('src/features/site-manager/pages/SiteSectionsPage.tsx')
 requireTokens('SiteSectionsPage.tsx',pages,[
-  'isSpecialLayoutPage',
-  'isPublishedPage',
-  "name:'Template editorial de Notícias'",
-  'Páginas de conteúdo herdam o template de Notícias.',
-  'Criar página',
-  'Editar página',
-  'Excluir página',
-  'RESERVED_PAGE_SLUGS',
-  'to="/app/settings"',
-  'createAdminEditorialPage',
-  'updateAdminEditorialPage',
-  'deleteAdminEditorialPage',
+  'isSpecialLayoutPage','isPublishedPage','EDITORIAL_SECTION_DEFINITION','HOME_SECTION_DEFINITIONS','Páginas de conteúdo herdam o template de Notícias.','Criar página','Editar página','Excluir página','RESERVED_PAGE_SLUGS','to="/app/settings"','createAdminEditorialPage','updateAdminEditorialPage','deleteAdminEditorialPage','/app/site/paginas/${encodeURIComponent(selected.id)}/secoes/${encodeURIComponent(section.id)}','Configurar',
 ])
+if(pages.includes('section.target&&'))failures.push('Páginas não pode condicionar Configurar a target manual; toda seção deve ser configurável.')
 if(pages.includes('CUSTOM_LAYOUT_SLUGS'))failures.push('Páginas não pode duplicar a classificação de layouts especiais; use isSpecialLayoutPage do domínio editorial.')
-if(pages.includes("to=\"/app/site/configuracoes\""))failures.push('Páginas não pode reintroduzir identidade global dentro do módulo Site.')
+if(pages.includes('to="/app/site/configuracoes"'))failures.push('Páginas não pode reintroduzir identidade global dentro do módulo Site.')
+
+const sectionModel=await read('src/features/site-manager/sectionConfiguration.ts')
+requireTokens('sectionConfiguration.ts',sectionModel,['HOME_SECTION_DEFINITIONS','EDITORIAL_SECTION_DEFINITION','readSectionConfiguration','writeSectionConfiguration','resetSectionConfiguration',"id:'hero'","id:'em-destaque'","id:'mais-lidas'","id:'ultimas-noticias'","id:'publicidade-lateral'","id:'em-alta'","id:'anuncie-aqui'","id:'lancamentos'","id:'agenda'"])
+const sectionEditor=await read('src/features/site-manager/pages/SectionConfigurationPage.tsx')
+requireTokens('SectionConfigurationPage.tsx',sectionEditor,['HeroEditor','PREVIEW AO VIVO','section-config-workbench','readSectionConfiguration','writeSectionConfiguration','StandardPreview','homeReadModel','definition.kind===\'featured\'','definition.kind===\'ranking\'','definition.kind===\'latest\'','definition.kind===\'trending\'','definition.kind===\'releases\'','definition.kind===\'agenda\'','definition.kind===\'ad\'','definition.kind===\'cta\'','definition.kind===\'editorial\''])
 
 const listingTemplate=await read('src/features/editorial/components/EditorialListingPage.tsx')
 requireTokens('EditorialListingPage.tsx',listingTemplate,['editorialReadModel.listPageContents(page.id)','editorialReadModel.searchPublicContents(searchQuery)','EditorialListingPage'])
-if(listingTemplate.includes("page.slug==='noticias'")||listingTemplate.includes('page.slug === \'noticias\''))failures.push('Template editorial não pode decidir comportamento pelo slug noticias.')
+if(listingTemplate.includes("page.slug==='noticias'")||listingTemplate.includes("page.slug === 'noticias'"))failures.push('Template editorial não pode decidir comportamento pelo slug noticias.')
 const contentTemplate=await read('src/features/editorial/components/EditorialContentPage.tsx')
 requireTokens('EditorialContentPage.tsx',contentTemplate,['EditorialContentPage','to={`/${page.slug}`}','content.body.map'])
 
@@ -78,26 +54,15 @@ const colabore=await read('src/pages/colabore/ColaborePage.tsx')
 requireTokens('ColaborePage.tsx',colabore,['SiteFormRenderer','resolveSiteFormOptionSets','submitSiteForm','mode="public"'])
 const formDraftRepository=await read('src/features/site-manager/forms/draftRepository.ts')
 requireTokens('forms/draftRepository.ts',formDraftRepository,["status:'draft'","source:'custom'"])
-
 const forms=await read('src/features/site-manager/pages/SiteFormsPage.tsx')
 requireTokens('SiteFormsPage.tsx',forms,['Novo formulário','Duplicar','formDraftRepository.create','formDraftRepository.duplicate','formDraftRepository.remove','createAdminSiteForm','deleteAdminSiteForm'])
 
 const contents=await read('src/features/site-manager/pages/SiteContentsPage.tsx')
 requireTokens('SiteContentsPage.tsx',contents,['Novo conteúdo','contentDraftRepository.create','contentDraftRepository.remove','createAdminEditorialContent','Colaborações recebidas'])
-
 const contentEditor=await read('src/features/site-manager/pages/SiteContentEditorPage.tsx')
-requireTokens('SiteContentEditorPage.tsx',contentEditor,[
-  'getAdminEditorialContent',
-  'updateAdminEditorialContent',
-  'deleteAdminEditorialContent',
-  'contentDraftRepository.save',
-  'Salvar alterações',
-  'PREVIEW DO CONTEÚDO',
-  'SiteMediaPicker',
-  'Escolher da biblioteca',
-])
+requireTokens('SiteContentEditorPage.tsx',contentEditor,['getAdminEditorialContent','updateAdminEditorialContent','deleteAdminEditorialContent','contentDraftRepository.save','Salvar alterações','PREVIEW DO CONTEÚDO','SiteMediaPicker','Escolher da biblioteca'])
 const mediaPicker=await read('src/features/site-manager/components/SiteMediaPicker.tsx')
-requireTokens('SiteMediaPicker.tsx',mediaPicker,['mediaRepository.list','Selecionar imagem de capa','item.type.startsWith(\'image/\')','onSelect(item)'])
+requireTokens('SiteMediaPicker.tsx',mediaPicker,['mediaRepository.list','Selecionar imagem de capa',"item.type.startsWith('image/')",'onSelect(item)'])
 const contentDraftRepository=await read('src/features/site-manager/contentDraftRepository.ts')
 requireTokens('contentDraftRepository.ts',contentDraftRepository,["status:'draft'",'active:false','noIndex:true'])
 const editorialAdminClient=await read('src/features/editorial/adminClient.ts')
@@ -114,9 +79,8 @@ const mediaKit=await read('src/features/site-manager/pages/MediaKitPage.tsx')
 requireTokens('MediaKitPage.tsx',mediaKit,['mediaKitRepository.read','mediaKitRepository.save','mediaKitRepository.reset','mediaKitRepository.publish','isMediaKitPersistenceConfigured','Salvar rascunho','Publicar','Mídia Kit versionado e persistente'])
 const mediaKitRepository=await read('src/features/site-manager/mediaKitRepository.ts')
 requireTokens('mediaKitRepository.ts',mediaKitRepository,['adminApiBase','/api/media-kit','new ApiMediaKitRepository','new LocalMediaKitRepository',"status:'draft'"])
-
 const editorialModel=await read('src/features/editorial/model.ts')
 requireTokens('editorial/model.ts',editorialModel,['SPECIAL_LAYOUT_PAGE_SLUGS','isPublishedPage','isSpecialLayoutPage','isPublicEditorialPage','export const isPublicPage=isPublicEditorialPage'])
 
 if(failures.length){console.error('Falha na arquitetura do módulo Site:');failures.forEach(item=>console.error(`- ${item}`));process.exit(1)}
-console.log('Site module architecture OK — persistência editorial, mídia, formulários e Mídia Kit validadas')
+console.log('Site module architecture OK — todas as seções usam configurador + preview padronizados')

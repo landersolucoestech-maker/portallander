@@ -2,7 +2,7 @@ import {describe,expect,it} from 'vitest'
 import {
  mockUsers,mockNotifications,mockContacts,mockLeads,mockContracts,mockContractTemplates,mockContractCategories,mockContractVariables,
  mockFinanceTransactions,mockFinanceInvoices,mockFinanceCategories,mockFinanceRules,mockEditorialPages,mockEditorialContents,mockEditorialMedia,
- mockHomeStories,mockHomeMostRead,mockHomeReleases,mockHomeAgenda,mockAgendaItems,mockAdvertisingCampaigns,mockSocialChannels,mockCollaborationTypes,
+ mockHomeStories,mockHomeMostRead,mockHomeAgenda,mockAgendaItems,mockAdvertisingCampaigns,mockSocialChannels,mockCollaborationTypes,
  mockDataScenarios,
 } from './index'
 
@@ -25,7 +25,6 @@ describe('global mock data coverage',()=>{
   expect(mockEditorialMedia.length).toBeGreaterThanOrEqual(20)
   expect(mockHomeStories.length).toBeGreaterThanOrEqual(20)
   expect(mockHomeMostRead.length).toBeGreaterThanOrEqual(8)
-  expect(mockHomeReleases.length).toBeGreaterThanOrEqual(10)
   expect(mockHomeAgenda.length).toBeGreaterThanOrEqual(6)
   expect(mockAgendaItems.length).toBeGreaterThanOrEqual(24)
   expect(mockAdvertisingCampaigns.length).toBeGreaterThanOrEqual(12)

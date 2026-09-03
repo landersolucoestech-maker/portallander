@@ -12,6 +12,7 @@ import {AdminNotice,AdminShell} from '../../../shared/internal/AdminUi'
 import {SITE_MANAGER_NAV} from '../../../shared/internal/adminNavigation'
 import {HeroBackgroundManager} from '../components/HeroBackgroundManager'
 import {HeroFullPagePreview} from '../components/HeroFullPagePreview'
+import '../../../styles/admin-hero-editor-layout.css'
 import '../../../styles/home-hero-section-page.css'
 
 const HERO_CONTENT_EVENT='portal-lander:hero-updated'

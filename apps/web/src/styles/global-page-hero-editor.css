@@ -1,9 +1,4 @@
-/* Global Hero editor — reuses the Homepage Hero CMS interaction language. */
-.global-page-hero-editor{min-width:0}
-.global-page-hero-layout{align-items:start}
-.global-page-hero-controls{max-height:calc(100vh - 220px);overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none;-ms-overflow-style:none}
-.global-page-hero-controls::-webkit-scrollbar{width:0;height:0;display:none}
-.global-page-hero-preview-column{position:sticky;top:18px;align-self:start;max-height:calc(100vh - 120px);overflow:hidden}
+/* Global Hero preview — workbench/chrome comes from section-editor-workbench.css. */
 .global-page-hero-preview-stage{display:flex;justify-content:center;align-items:flex-start;min-height:620px;padding:24px;background:#eef1f5;overflow:auto;container-type:inline-size}
 .global-page-hero-preview-canvas{flex:0 0 auto;transform-origin:top center;transition:width .2s ease}
 .global-page-hero-preview-stage.desktop .global-page-hero-preview-canvas{width:1440px;zoom:calc(100cqw / 1440px)}
@@ -23,4 +18,4 @@
 .global-hero-padding-row{display:grid;gap:10px;padding:14px 0;border-top:1px solid #eaecf0}
 .global-hero-padding-row:first-of-type{border-top:0}
 .global-hero-padding-row>strong{font-size:12px;color:#344054}
-@media(max-width:1100px){.global-page-hero-controls{max-height:none;overflow:visible}.global-page-hero-preview-column{position:static;max-height:none}.global-page-hero-preview-stage{min-height:480px}}
+@media(max-width:1100px){.global-page-hero-preview-stage{min-height:480px}}

@@ -28,6 +28,6 @@ export const mockSettingsSeed:SettingsSeed={
  audit:[
   {id:'a1',createdAt:'2026-08-30T18:20:00Z',userId:'u1',actorRole:'owner',action:'company.updated',entity:'company_settings',entityId:'company_1',method:'PATCH',path:'/company-settings',ip:'177.0.0.1',correlationId:'corr-001',before:{tradeName:'Lander'},after:{tradeName:'MusicOS 360'},diff:{tradeName:{from:'Lander',to:'MusicOS 360'}}},
   {id:'a2',createdAt:'2026-08-30T17:10:00Z',userId:'u1',actorRole:'admin',action:'user.created',entity:'users',entityId:'u3',method:'POST',path:'/users/invitations',ip:'177.0.0.1',correlationId:'corr-002',before:null,after:{email:'carlos@portallander.com.br'},diff:null},
-  {id:'a3',createdAt:'2026-08-29T14:00:00Z',userId:'u1',actorRole:'owner',action:'integration.connected',entity:'integrations',entityId:'meta',method:'POST',path:'/integrations/meta',ip:'177.0.0.1',correlationId:'corr-003',before:null,after:{status:'connected'},diff:null},
+  {id:'a3',createdAt:'2026-08-29T14:00:00Z',userId:'u1',actorRole:'owner',action:'integration.catalog.reviewed',entity:'integrations',entityId:'spotify',method:'GET',path:'/settings/integrations',ip:'177.0.0.1',correlationId:'corr-003',before:null,after:{state:'partial'},diff:null},
  ],
 }

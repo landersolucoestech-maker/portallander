@@ -6,6 +6,7 @@ import { HomeContentSectionPage } from './pages/HomeContentSectionPage'
 import { HomeFeaturedSectionPage } from './pages/HomeFeaturedSectionPage'
 import { HomeHeroSectionPage } from './pages/HomeHeroSectionPage'
 import { HomeMostReadSectionPage } from './pages/HomeMostReadSectionPage'
+import { HomeReleasesSectionPage } from './pages/HomeReleasesSectionPage'
 import { SectionConfigurationPage } from './pages/SectionConfigurationPage'
 import { SiteCollaborationsPage } from './pages/SiteCollaborationsPage'
 import { SiteContentEditorPage } from './pages/SiteContentEditorPage'
@@ -29,7 +30,7 @@ export default function SiteManagerRoutes(){
     <Route path="paginas/home/secoes/mais-lidas" element={<HomeMostReadSectionPage/>}/>
     <Route path="paginas/home/secoes/em-destaque" element={<HomeFeaturedSectionPage/>}/>
     <Route path="paginas/home/secoes/ultimas-noticias" element={<HomeContentSectionPage sectionId="ultimas-noticias"/>}/>
-    <Route path="paginas/home/secoes/lancamentos" element={<HomeContentSectionPage sectionId="lancamentos"/>}/>
+    <Route path="paginas/home/secoes/lancamentos" element={<HomeReleasesSectionPage/>}/>
     <Route path="paginas/home/secoes/agenda" element={<HomeContentSectionPage sectionId="agenda"/>}/>
     <Route path="paginas/home/secoes/em-alta" element={<HomeContentSectionPage sectionId="em-alta"/>}/>
     <Route path="paginas/:pageId/secoes/editorial-hero" element={<GlobalHeroEditorPage sectionId="editorial-hero"/>}/>

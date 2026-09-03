@@ -40,7 +40,7 @@ async function request<T>(path:string,init:RequestInit={}):Promise<T>{
   try{response=await fetch(`${apiBase}${path}`,{credentials:'include',...init,headers})}
   catch{throw new SpotifyReleaseClientError('Não foi possível alcançar a API de integração Spotify.','SPOTIFY_NETWORK_ERROR',0)}
   let payload:unknown={}
-  try{payload=await response.json()}catch{}
+  try{payload=await response.json()}catch{payload={}}
   const body=payload&&typeof payload==='object'?payload as Record<string,unknown>:{}
   if(!response.ok)throw new SpotifyReleaseClientError(String(body.message||`Falha HTTP ${response.status}.`),String(body.code||'SPOTIFY_REQUEST_FAILED'),response.status,body.details)
   return payload as T

@@ -27,8 +27,8 @@ export const INTEGRATION_CAPABILITIES:Record<IntegrationProviderId,IntegrationCa
     category:'Contratos & Assinaturas',
     description:'Assinatura eletrônica brasileira — envio e acompanhamento de contratos.',
     state:'partial',
-    implementedCapabilities:['adapter backend autenticado por token','cliente GraphQL com timeout e erros normalizados','teste administrativo de conectividade'],
-    missingCapabilities:['envio multipart de documentos e signatários','consulta de status de documento','webhooks','cancelamento/arquivamento','download do documento assinado','persistência do vínculo contrato↔documento externo'],
+    implementedCapabilities:['adapter backend autenticado por token','cliente GraphQL com timeout e erros normalizados','teste administrativo de conectividade','criação multipart de documento PDF com signatários','ação de envio disponível no módulo Contratos','persistência local do externalId e estado de envio após confirmação do provider'],
+    missingCapabilities:['consulta periódica de status do documento','webhooks assinados','cancelamento/arquivamento','download e armazenamento do documento assinado','persistência backend canônica do vínculo contrato↔documento externo'],
   },
   meta:{
     id:'meta',
@@ -81,8 +81,8 @@ export const INTEGRATION_CAPABILITIES:Record<IntegrationProviderId,IntegrationCa
     category:'Mensagens',
     description:'WhatsApp Business Platform — mensagens, templates, webhooks e status de entrega.',
     state:'partial',
-    implementedCapabilities:['adapter backend para Meta Graph API','validação de credenciais/Phone Number ID','envio de mensagem de texto','normalização de destinatário','timeouts e erros normalizados'],
-    missingCapabilities:['templates','recebimento por webhook','verificação/assinatura de webhook','status de entrega/leitura','persistência de conversas e mensagens','reconciliação de falhas'],
+    implementedCapabilities:['adapter backend para Meta Graph API','validação de credenciais/Phone Number ID','envio de mensagem de texto','normalização de destinatário','timeouts e erros normalizados','Chat envia mensagens WhatsApp reais com estado sending→sent/failed e externalId'],
+    missingCapabilities:['templates','recebimento por webhook','verificação/assinatura de webhook','status de entrega/leitura','persistência backend de conversas e mensagens','reconciliação de falhas'],
   },
   resend:{
     id:'resend',
@@ -90,8 +90,8 @@ export const INTEGRATION_CAPABILITIES:Record<IntegrationProviderId,IntegrationCa
     category:'E-mail',
     description:'E-mails transacionais e newsletter — contatos, templates, envios e eventos de entrega.',
     state:'partial',
-    implementedCapabilities:['sincronização de contatos da newsletter','segmento/tópico opcional','persistência de estado de sincronização no PostgreSQL'],
-    missingCapabilities:['envio transacional genérico','templates gerenciados pelo Portal','webhooks de delivered/bounced/complained','reconciliação de unsubscribe/suppression','observabilidade de entrega'],
+    implementedCapabilities:['sincronização de contatos da newsletter','segmento/tópico opcional','persistência de estado de sincronização no PostgreSQL','envio transacional genérico pelo backend','remetente/reply-to configuráveis','idempotency key','timeout e propagação de erro do provider'],
+    missingCapabilities:['templates gerenciados pelo Portal','webhooks de delivered/bounced/complained','reconciliação de unsubscribe/suppression','observabilidade e histórico de entrega no Portal'],
   },
 }
 

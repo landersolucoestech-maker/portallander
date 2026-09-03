@@ -17,6 +17,12 @@ function corsHeaders(req){
 }
 function readCookie(req,name){for(const part of String(req.headers.cookie||'').split(';')){const index=part.indexOf('=');if(index<1)continue;const key=part.slice(0,index).trim();if(key!==name)continue;const value=part.slice(index+1).trim();try{return decodeURIComponent(value)}catch{return value}}return ''}
 function safeEqual(a,b){const left=Buffer.from(a),right=Buffer.from(b);return left.length===right.length&&timingSafeEqual(left,right)}
+function publicAppRedirect(returnTo,status){
+  const path=`${returnTo}${returnTo.includes('?')?'&':'?'}spotify=${encodeURIComponent(status)}`
+  const configured=String(process.env.PORTAL_PUBLIC_APP_URL||'').trim()
+  if(!configured)return path
+  try{return new URL(path,new URL(configured.endsWith('/')?configured:`${configured}/`)).toString()}catch{throw new HttpError(503,'PORTAL_PUBLIC_APP_URL possui formato inválido.','PUBLIC_APP_URL_INVALID')}
+}
 async function requireAdmin(req){
   const expected=process.env.PORTAL_ADMIN_TOKEN||'',header=String(req.headers.authorization||''),bearer=header.startsWith('Bearer ')?header.slice(7):''
   if(expected&&bearer&&safeEqual(bearer,expected))return
@@ -41,7 +47,7 @@ export async function handleSpotifyReleaseRequest(req,res){
       const error=url.searchParams.get('error')
       if(error)throw new HttpError(400,`Autorização Spotify recusada: ${error}.`,'SPOTIFY_AUTHORIZATION_DENIED')
       const returnTo=await spotifyReleaseService.completeAuthorization({code:url.searchParams.get('code'),state:url.searchParams.get('state')})
-      res.writeHead(302,{location:`${returnTo}${returnTo.includes('?')?'&':'?'}spotify=connected`,'cache-control':'no-store'});res.end();return true
+      res.writeHead(302,{location:publicAppRedirect(returnTo,'connected'),'cache-control':'no-store'});res.end();return true
     }
     await requireAdmin(req)
     if(req.method==='GET'&&path==='/api/integrations/spotify/releases'){send(res,200,await spotifyReleaseService.adminState(),cors);return true}

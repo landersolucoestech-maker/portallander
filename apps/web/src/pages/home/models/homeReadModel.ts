@@ -1,7 +1,6 @@
 import {getRuntimeDataProvider} from '../../../shared/data/runtimeDataProvider'
 
 export type HomeStory = { category:string; title:string; meta:string; views:string; image:string }
-export type HomeRelease = { title:string; image:string; year:string }
 export type HomeAgendaItem = { day:string; month:string; title:string; place:string }
 
 export const homeReadModel={
@@ -9,7 +8,6 @@ export const homeReadModel={
   get featuredStories(){return getRuntimeDataProvider().home.stories().slice(0,6)},
   get latestStories(){return getRuntimeDataProvider().home.stories().slice(4,8)},
   get mostRead(){return getRuntimeDataProvider().home.mostRead()},
-  get releases(){return getRuntimeDataProvider().home.releases()},
   get agenda(){return getRuntimeDataProvider().home.agenda()},
   source:'data-provider' as const,
 }

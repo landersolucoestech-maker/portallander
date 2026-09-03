@@ -11,6 +11,7 @@ import {
 import {AdminNotice,AdminShell} from '../../../shared/internal/AdminUi'
 import {SITE_MANAGER_NAV} from '../../../shared/internal/adminNavigation'
 import {HeroBackgroundManager} from '../components/HeroBackgroundManager'
+import '../../../styles/home-hero-section-page.css'
 
 const HERO_CONTENT_EVENT='portal-lander:hero-updated'
 
@@ -66,10 +67,10 @@ export function HomeHeroSectionPage(){
     }
   },[loading])
 
-  return <AdminShell area="cms" items={SITE_MANAGER_NAV} header={{title:'Configurar seção: Hero Section',description:'Gerencie a Hero e a imagem de fundo com preview fiel em Desktop, Tablet e Mobile.',backTo:'/app/site/paginas',backLabel:'Páginas'}}>
+  return <AdminShell area="cms" items={SITE_MANAGER_NAV} header={{title:'Configurar seção: Hero Section',description:'Gerencie toda a Hero em um único editor com um único preview responsivo em tempo real.',backTo:'/app/site/paginas',backLabel:'Páginas'}}>
     {loading&&<AdminNotice title="Sincronizando Hero" description="Carregando a configuração persistida antes de abrir o editor."/>}
     {syncing&&<AdminNotice title="Persistindo Hero" description="Validando e salvando a configuração antes de torná-la oficial no frontend."/>}
     {error&&<AdminNotice title="Falha ao sincronizar a Hero" description={`${error} Nenhuma falha de persistência é tratada como sucesso.`}/>} 
-    {!loading&&<><HeroBackgroundManager key={`background-${editorKey}`}/><HeroEditor key={`editor-${editorKey}`}/></>}
+    {!loading&&<div className="home-hero-section-workbench"><HeroBackgroundManager key={`background-${editorKey}`}/><HeroEditor key={`editor-${editorKey}`}/></div>}
   </AdminShell>
 }

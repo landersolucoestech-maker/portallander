@@ -1,5 +1,13 @@
-import type {SettingsSeed} from '../../features/settings/domain'
+import type {SettingsIntegration,SettingsSeed} from '../../features/settings/domain'
+import {INTEGRATION_CAPABILITIES,type IntegrationProviderId} from '../../features/settings/integrationCapabilities'
 const role=(id:string,slug:string,name:string,description:string,system=false,permissions:string[]=['Visualizar','Criar','Editar'])=>({id,slug,name,description,archived:false,system,permissions})
+const integrationIds:IntegrationProviderId[]=['autentique','meta','tiktok','google','spotify','nfe','whatsapp','resend']
+const integrationLogos:Record<IntegrationProviderId,string>={autentique:'A',meta:'M',tiktok:'T',google:'G',spotify:'S',nfe:'NF',whatsapp:'W',resend:'R'}
+const integrations=integrationIds.map((id):SettingsIntegration=>{
+ const capability=INTEGRATION_CAPABILITIES[id]
+ const status:SettingsIntegration['status']=capability.state==='implemented'?'available':capability.state==='partial'?'external':'unavailable'
+ return {id:capability.id,name:capability.name,category:capability.category,description:capability.description,status,logo:integrationLogos[id],actionLabel:capability.state==='planned'?'Em implementação':'Configurar'}
+})
 export const mockSettingsSeed:SettingsSeed={
  company:{legalName:'MusicOS 360 Produções Artísticas LTDA',tradeName:'MusicOS 360',cnpj:'50.056.858/0001-46',address:'Rua A, nº 58, Bairro Vila Império, Governador Valadares/MG, CEP 35050-560',phone:'(33) 99999-9999',responsible:'Admin MusicOS 360',slug:'minha-gravadora',logoUrl:''},
  automations:[
@@ -9,14 +17,7 @@ export const mockSettingsSeed:SettingsSeed={
   {id:'backup',title:'Backup automático',description:'Executar rotinas automáticas de segurança',enabled:true,email:false,push:false,sms:false},
   {id:'relatorio',title:'Relatório semanal de atividades',description:'Atividades, financeiro e contratos',enabled:false,email:true,push:false,sms:false},
  ],
- integrations:[
-  {id:'autentique',name:'Autentique',category:'Contratos & Assinaturas',description:'Assinatura eletrônica brasileira — envio e acompanhamento de contratos',status:'available',logo:'A',actionLabel:'Configurar'},
-  {id:'meta',name:'Meta',category:'Marketing & Social',description:'Facebook, Instagram e Meta Ads — mensagens, métricas, publicações, campanhas e resultados da empresa',status:'available',logo:'M',actionLabel:'Conectar'},
-  {id:'tiktok',name:'TikTok',category:'Marketing & Social',description:'TikTok for Business e TikTok Ads — mensagens, seguidores, conteúdos, métricas e campanhas',status:'available',logo:'T',actionLabel:'Conectar'},
-  {id:'google',name:'Google',category:'Marketing & Social',description:'Google Analytics, Search Console, Google Ads e YouTube — tráfego, anúncios, SEO e desempenho de vídeos',status:'available',logo:'G',actionLabel:'Conectar'},
-  {id:'spotify',name:'Spotify',category:'Marketing & Social',description:'Spotify Ads — ouvintes, streams, seguidores e campanhas',status:'available',logo:'S',actionLabel:'Conectar'},
-  {id:'nfe',name:'NF-e / SEFAZ',category:'Financeiro & Fiscal',description:'Emissão de NF-e com certificado digital e credenciais SEFAZ da sua empresa',status:'available',logo:'NF',actionLabel:'Configurar'},
- ],
+ integrations,
  users:[
   {id:'u1',name:'Deyvisson Lander',email:'admin@portallander.com.br',role:'Administrador Master',phone:'(33) 99999-9999',createdAt:'2026-08-01',status:'ativo'},
   {id:'u2',name:'Marina Costa',email:'marina@portallander.com.br',role:'Marketing',phone:'(31) 98888-7788',createdAt:'2026-08-08',status:'ativo'},

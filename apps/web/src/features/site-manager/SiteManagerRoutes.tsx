@@ -3,6 +3,7 @@ import { MediaKitPage } from './pages/MediaKitPage'
 import { GlobalHeroEditorPage } from './pages/GlobalHeroEditorPage'
 import { HomeAdvertisingSectionPage } from './pages/HomeAdvertisingSectionPage'
 import { HomeContentSectionPage } from './pages/HomeContentSectionPage'
+import { HomeFeaturedSectionPage } from './pages/HomeFeaturedSectionPage'
 import { HomeHeroSectionPage } from './pages/HomeHeroSectionPage'
 import { HomeMostReadSectionPage } from './pages/HomeMostReadSectionPage'
 import { SectionConfigurationPage } from './pages/SectionConfigurationPage'
@@ -26,7 +27,7 @@ export default function SiteManagerRoutes(){
     <Route path="paginas/home/secoes/publicidade-lateral" element={<HomeAdvertisingSectionPage sectionId="publicidade-lateral"/>}/>
     <Route path="paginas/home/secoes/anuncie-aqui" element={<HomeAdvertisingSectionPage sectionId="anuncie-aqui"/>}/>
     <Route path="paginas/home/secoes/mais-lidas" element={<HomeMostReadSectionPage/>}/>
-    <Route path="paginas/home/secoes/em-destaque" element={<HomeContentSectionPage sectionId="em-destaque"/>}/>
+    <Route path="paginas/home/secoes/em-destaque" element={<HomeFeaturedSectionPage/>}/>
     <Route path="paginas/home/secoes/ultimas-noticias" element={<HomeContentSectionPage sectionId="ultimas-noticias"/>}/>
     <Route path="paginas/home/secoes/lancamentos" element={<HomeContentSectionPage sectionId="lancamentos"/>}/>
     <Route path="paginas/home/secoes/agenda" element={<HomeContentSectionPage sectionId="agenda"/>}/>

@@ -19,7 +19,7 @@ export type HomeContentSectionConfiguration=SectionConfiguration&HomeContentSect
 
 const VERSION=3
 export const HOME_CONTENT_MAX_ITEMS:Record<HomeContentSectionId,number>={
-  'em-destaque':6,
+  'em-destaque':3,
   'ultimas-noticias':8,
   'lancamentos':8,
   'agenda':8,

@@ -43,7 +43,7 @@ export type SectionDefinition={id:string;name:string;summary:string;kind:Section
 
 const STORAGE_KEY='portal-lander:cms:section-configurations:v1'
 export const SECTION_CONFIGURATION_EVENT='portal-lander:section-configurations:changed'
-export const HOME_HERO_BACKGROUND_URL=new URL('../../pages/home/styles/hero-approved-background-fixed.png',import.meta.url).href
+export const HOME_HERO_BACKGROUND_URL=new URL('../../pages/home/styles/hero-approved-background-hq.jpg',import.meta.url).href
 const HOME_BACKGROUND_HERO_SECTION_IDS=new Set(['editorial-hero','sobre-hero','contato-hero','colabore-hero','institutional-hero','legal-hero'])
 const shouldUseHomeHeroBackground=(sectionId:string)=>HOME_BACKGROUND_HERO_SECTION_IDS.has(sectionId)
 

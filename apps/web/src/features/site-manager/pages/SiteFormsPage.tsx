@@ -1,10 +1,11 @@
-import {Copy,FileInput,Pencil,Plus,Trash2,UsersRound} from 'lucide-react'
+import {FileInput,Plus,UsersRound} from 'lucide-react'
 import {useCallback,useEffect,useMemo,useState} from 'react'
-import {Link,useNavigate} from 'react-router-dom'
+import {useNavigate} from 'react-router-dom'
 import {useAdminAuth} from '../../access/adminAuthState'
 import {AdminNotice,AdminShell} from '../../../shared/internal/AdminUi'
+import {TableRowActionMenu} from '../../../shared/internal/TableRowActionMenu'
 import {SITE_MANAGER_NAV} from '../../../shared/internal/adminNavigation'
-import {createAdminSiteForm,deleteAdminSiteForm,listAdminSiteForms,setAdminSiteFormStatus} from '../forms/adminClient'
+import {createAdminSiteForm,deleteAdminSiteForm,listAdminSiteForms} from '../forms/adminClient'
 import {listRuntimeSiteForms} from '../forms/catalog'
 import {formDraftRepository} from '../forms/draftRepository'
 import type {SiteFormDefinition} from '../forms/domain'
@@ -83,19 +84,13 @@ export function SiteFormsPage(){
     catch(caught){setError(caught instanceof Error?caught.message:'Não foi possível excluir o formulário.')}
   }
 
-  const toggleStatus=async(form:SiteFormDefinition)=>{
-    if(!persisted||form.status==='draft')return
-    const next=form.status==='active'?'inactive':'active'
-    setError('')
-    try{await setAdminSiteFormStatus(form.id,next);await reload()}
-    catch(caught){setError(caught instanceof Error?caught.message:'Não foi possível alterar o status público do formulário.')}
-  }
+  const openForm=(form:SiteFormDefinition)=>navigate(`/app/site/formularios/${form.id}`)
 
   return <AdminShell area="cms" items={SITE_MANAGER_NAV} header={{title:'Formulários',description:'Defina formulários do site sem misturar configuração, publicação e operação dos dados recebidos.'}} headerAction={{label:'Novo formulário',icon:Plus,onClick:()=>void createForm()}}>
     <AdminNotice title="Fonte central de formulários" description={persisted?'O CMS está conectado às definições versionadas da API. Salvar cria ou atualiza um rascunho persistente; publicar promove uma versão imutável para o runtime público.':'Este build está sem sessão persistente da API. Em desenvolvimento, os rascunhos continuam isolados no navegador e nunca são publicados por engano.'}/>
     {error&&<AdminNotice title="Falha na operação" description={error}/>} 
     {loading&&<AdminNotice title="Sincronizando formulários" description="Carregando as definições administrativas diretamente da API do Portal Lander."/>}
-    <div className="tableview-surface cms-tableview-surface"><section className="table-card"><table><thead><tr><th>Formulário</th><th>Origem</th><th>Finalidade</th><th>Destino operacional</th><th>Versão</th><th>Campos</th><th>Consentimentos</th><th>Status</th><th>Ações</th></tr></thead><tbody>{forms.map(form=>{const Icon=form.purpose==='editorial_submission'?FileInput:UsersRound;return <tr key={form.id}><td><div className="table-primary"><span className="table-avatar"><Icon size={15} aria-hidden="true"/></span><div><b>{form.name}</b><small>/{form.slug}</small></div></div></td><td>{form.source==='system'?'Sistema':persisted?'Personalizado':'Rascunho local'}</td><td>{purposeLabel[form.purpose]}</td><td>{destinationLabel[form.routing.destination]}</td><td>v{form.version}</td><td>{form.fields.length}</td><td>{form.consents.length}</td><td>{statusLabel[form.status]}</td><td><div style={{display:'flex',gap:8,flexWrap:'wrap'}}><Link className="button outline" to={`/app/site/formularios/${form.id}`}><Pencil size={14}/>Editar</Link><button type="button" className="button outline" onClick={()=>void duplicateForm(form)} title="Criar uma cópia editável como rascunho"><Copy size={14}/>Duplicar</button>{persisted&&form.status!=='draft'&&<button type="button" className="button outline" onClick={()=>void toggleStatus(form)}>{form.status==='active'?'Desativar':'Ativar'}</button>}{form.source==='custom'&&<button type="button" className="button outline" onClick={()=>void deleteDraft(form)}><Trash2 size={14}/>Excluir</button>}</div></td></tr>})}</tbody></table></section></div>
+    <div className="tableview-surface cms-tableview-surface"><section className="table-card"><table><thead><tr><th>Formulário</th><th>Origem</th><th>Finalidade</th><th>Destino operacional</th><th>Versão</th><th>Campos</th><th>Consentimentos</th><th>Status</th><th>Ações</th></tr></thead><tbody>{forms.map(form=>{const Icon=form.purpose==='editorial_submission'?FileInput:UsersRound;return <tr key={form.id}><td><div className="table-primary"><span className="table-avatar"><Icon size={15} aria-hidden="true"/></span><div><b>{form.name}</b><small>/{form.slug}</small></div></div></td><td>{form.source==='system'?'Sistema':persisted?'Personalizado':'Rascunho local'}</td><td>{purposeLabel[form.purpose]}</td><td>{destinationLabel[form.routing.destination]}</td><td>v{form.version}</td><td>{form.fields.length}</td><td>{form.consents.length}</td><td>{statusLabel[form.status]}</td><td><TableRowActionMenu label={form.name} viewLabel="Ver" onView={()=>openForm(form)} onEdit={()=>openForm(form)} onDelete={()=>void deleteDraft(form)} deleteDisabled={form.source!=='custom'} onDuplicate={()=>void duplicateForm(form)}/></td></tr>})}</tbody></table></section></div>
     <AdminNotice title="Publicação e submissões" description={persisted?'A escrita administrativa usa a sessão autenticada do painel. Nenhum segredo persistente da API é enviado ao navegador; versões publicadas continuam sendo a única fonte consumida pelo runtime público.':'A publicação permanece indisponível sem uma sessão administrativa real. O modo local existe apenas para desenvolvimento e validação visual.'}/>
   </AdminShell>
 }

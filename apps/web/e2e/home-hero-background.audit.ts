@@ -80,4 +80,23 @@ test.describe('Home Hero dynamic background',()=>{
       await expect(preview.locator('.editorial-hero-background')).toHaveCSS('background-position','31% 64%')
     }
   })
+
+  test('desktop keeps preview stationary while only the configuration panel scrolls',async({page})=>{
+    await page.setViewportSize({width:1440,height:900})
+    await seedBackground(page,configuredBackground)
+    await page.goto(`${base}#/app/site/paginas/home/secoes/hero`,{waitUntil:'domcontentloaded'})
+    const workbench=page.locator('.home-hero-section-workbench')
+    const panel=page.locator('.home-hero-section-workbench .hero-cms-panel')
+    const preview=page.locator('.home-hero-section-workbench .hero-cms-preview-column')
+    await expect(workbench).toHaveCSS('overflow','hidden')
+    await expect(panel).toHaveCSS('overflow-y','auto')
+    const before=await preview.boundingBox()
+    const scrollable=await panel.evaluate(el=>({scrollHeight:el.scrollHeight,clientHeight:el.clientHeight}))
+    expect(scrollable.scrollHeight).toBeGreaterThan(scrollable.clientHeight)
+    await panel.evaluate(el=>{el.scrollTop=el.scrollHeight})
+    await page.waitForTimeout(80)
+    const after=await preview.boundingBox()
+    expect(Math.abs((after?.y||0)-(before?.y||0))).toBeLessThanOrEqual(1)
+    expect(await page.evaluate(()=>window.scrollY)).toBe(0)
+  })
 })

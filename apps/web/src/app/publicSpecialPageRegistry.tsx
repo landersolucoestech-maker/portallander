@@ -1,13 +1,13 @@
 import type {ReactNode} from 'react'
 import {SPECIAL_LAYOUT_PAGE_SLUGS,type EditorialPage} from '../features/editorial/model'
-import {LazyColaborePage,LazyContatoPage,LazySobrePage} from './PublicSpecialPageRenderers'
+import {ColaborePage,ContatoPage,SobrePage} from './PublicSpecialPageRenderers'
 
 type SpecialPageRenderer=(page:EditorialPage)=>ReactNode
 
 const SPECIAL_PAGE_RENDERERS:Readonly<Record<string,SpecialPageRenderer>>={
-  sobre:page=><LazySobrePage page={page}/>,
-  colabore:()=> <LazyColaborePage/>,
-  contato:page=><LazyContatoPage page={page}/>,
+  sobre:page=><SobrePage page={page}/>,
+  colabore:()=> <ColaborePage/>,
+  contato:page=><ContatoPage page={page}/>,
 }
 
 for(const slug of SPECIAL_LAYOUT_PAGE_SLUGS){

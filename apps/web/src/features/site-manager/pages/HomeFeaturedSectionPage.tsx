@@ -1,0 +1,191 @@
+import {ArrowDown,ArrowUp,Monitor,RotateCcw,Save,Smartphone,Tablet} from 'lucide-react'
+import {useEffect,useState,type ReactNode} from 'react'
+import {homeReadModel,type HomeStory} from '../../../pages/home/models/homeReadModel'
+import {AdminNotice,AdminShell} from '../../../shared/internal/AdminUi'
+import {SITE_MANAGER_NAV} from '../../../shared/internal/adminNavigation'
+import {HomePagePreviewFrame} from '../components/HomePagePreviewFrame'
+import {
+  HOME_CONTENT_MAX_ITEMS,
+  withHomeContentSectionConfiguration,
+  type HomeContentSectionConfiguration,
+  type HomeSelectionMode,
+  type HomeSortMode,
+} from '../homeContentSectionConfiguration'
+import {loadAdminHomeSection,saveHomeSection} from '../homeSectionConfigRepository'
+import {defaultSectionConfiguration,type SectionHeroViewport} from '../sectionConfiguration'
+import '../../../styles/section-configuration-editor.css'
+import '../../../styles/home-hero-section-page.css'
+import '../../../styles/home-featured-section-page.css'
+
+type EditorTab='content'|'appearance'|'behavior'
+type PreviewItem={key:string;title:string}
+
+const SECTION_ID='em-destaque' as const
+const SECTION_NAME='Em Destaque'
+const MAX_ITEMS=HOME_CONTENT_MAX_ITEMS[SECTION_ID]
+const responsiveRule='Desktop 3 colunas · Tablet 2 quando há espaço · Mobile 1. No Desktop, Mais Lidas permanece à direita do terceiro grid.'
+const clamp=(value:number,min:number,max:number)=>Math.min(max,Math.max(min,value))
+const viewportLabel=(viewport:SectionHeroViewport)=>viewport==='desktop'?'Desktop':viewport==='tablet'?'Tablet':'Mobile'
+
+function Field({label,children}:{label:string;children:ReactNode}){
+  return <label className="section-config-field"><span>{label}</span>{children}</label>
+}
+
+function SectionTab({active,label,onClick}:{active:boolean;label:string;onClick:()=>void}){
+  return <button type="button" className={`featured-config-tab${active?' active':''}`} onClick={onClick}>{label}</button>
+}
+
+export function HomeFeaturedSectionPage(){
+  const initial=()=>withHomeContentSectionConfiguration(defaultSectionConfiguration(SECTION_ID,SECTION_NAME),SECTION_ID)
+  const [config,setConfig]=useState<HomeContentSectionConfiguration>(initial)
+  const [persisted,setPersisted]=useState<HomeContentSectionConfiguration>(initial)
+  const [viewport,setViewport]=useState<SectionHeroViewport>('desktop')
+  const [tab,setTab]=useState<EditorTab>('content')
+  const [loading,setLoading]=useState(true)
+  const [saving,setSaving]=useState(false)
+  const [message,setMessage]=useState('')
+  const [error,setError]=useState('')
+  const available:PreviewItem[]=homeReadModel.stories.map((item:HomeStory)=>({key:item.title,title:item.title}))
+  const dirty=JSON.stringify(config)!==JSON.stringify(persisted)
+
+  useEffect(()=>{
+    let active=true
+    void loadAdminHomeSection(SECTION_ID,SECTION_NAME).then(value=>{
+      if(!active)return
+      const normalized=withHomeContentSectionConfiguration(value,SECTION_ID)
+      setConfig(normalized)
+      setPersisted(normalized)
+    }).catch(caught=>{
+      if(active)setError(caught instanceof Error?caught.message:'Falha ao carregar a configuração persistida.')
+    }).finally(()=>{if(active)setLoading(false)})
+    return()=>{active=false}
+  },[])
+
+  const patch=(next:Partial<HomeContentSectionConfiguration>)=>{
+    setConfig(current=>withHomeContentSectionConfiguration({...current,...next},SECTION_ID))
+    setMessage('')
+    setError('')
+  }
+
+  const toggleManual=(key:string)=>patch({
+    homeManualSelection:config.homeManualSelection.includes(key)
+      ?config.homeManualSelection.filter(item=>item!==key)
+      :[...config.homeManualSelection,key],
+  })
+
+  const moveManual=(index:number,direction:-1|1)=>{
+    const target=index+direction
+    if(target<0||target>=config.homeManualSelection.length)return
+    const next=[...config.homeManualSelection]
+    ;[next[index],next[target]]=[next[target],next[index]]
+    patch({homeManualSelection:next})
+  }
+
+  const reset=()=>{
+    const next=withHomeContentSectionConfiguration(defaultSectionConfiguration(SECTION_ID,SECTION_NAME),SECTION_ID)
+    setConfig(next)
+    setMessage('')
+    setError('')
+  }
+
+  const discard=()=>{
+    setConfig(persisted)
+    setMessage('')
+    setError('')
+  }
+
+  const save=async()=>{
+    if(saving)return
+    setSaving(true)
+    setMessage('')
+    setError('')
+    try{
+      const candidate=withHomeContentSectionConfiguration({...config,itemLimit:clamp(config.itemLimit,0,MAX_ITEMS)},SECTION_ID)
+      const saved=withHomeContentSectionConfiguration(await saveHomeSection(SECTION_ID,SECTION_NAME,candidate),SECTION_ID)
+      setConfig(saved)
+      setPersisted(saved)
+      setMessage('Configuração persistida com sucesso.')
+    }catch(caught){
+      setConfig(persisted)
+      setError(caught instanceof Error?`${caught.message} O último estado persistido foi mantido.`:'Falha ao salvar. O último estado persistido foi mantido.')
+    }finally{setSaving(false)}
+  }
+
+  return <AdminShell area="cms" items={SITE_MANAGER_NAV} header={{
+    title:'Configurar seção: Em Destaque',
+    description:'Configure Em Destaque no painel rolável à esquerda e acompanhe a Página Inicial completa no preview fixo à direita.',
+    backTo:'/app/site/paginas',
+    backLabel:'Páginas',
+  }}>
+    {loading&&<AdminNotice title="Sincronizando Em Destaque" description="Carregando a configuração persistida antes de abrir o editor."/>}
+    {error&&<AdminNotice title="Falha na configuração" description={error}/>} 
+    {!loading&&<div className="home-hero-section-workbench home-featured-section-workbench">
+      <div className="home-hero-config-rail home-featured-config-rail" aria-label="Configurações da seção Em Destaque">
+        <section className="featured-config-summary-card">
+          <div className="featured-config-summary-head">
+            <div><small>EM DESTAQUE</small><h2>Configurações da seção</h2><p>Grid principal da Home: até 3 destaques, com Mais Lidas à direita no Desktop.</p></div>
+            <label className="featured-config-active"><input type="checkbox" checked={config.active} onChange={event=>patch({active:event.target.checked})}/><span>Ativa</span></label>
+          </div>
+        </section>
+
+        <div className="featured-config-tabs" aria-label="Grupos de configuração">
+          <SectionTab active={tab==='content'} label="Conteúdo" onClick={()=>setTab('content')}/>
+          <SectionTab active={tab==='appearance'} label="Aparência" onClick={()=>setTab('appearance')}/>
+          <SectionTab active={tab==='behavior'} label="Comportamento" onClick={()=>setTab('behavior')}/>
+        </div>
+
+        <section className="featured-config-detail-card">
+          {tab==='content'&&<>
+            <div className="featured-config-card-head"><h3>Conteúdo</h3><p>Defina título, quantidade, seleção e prioridade dos três destaques.</p></div>
+            <div className="section-config-fields">
+              <Field label="Título"><input value={config.title} onChange={event=>patch({title:event.target.value})}/></Field>
+              <div className="section-config-two"><Field label={`Quantidade exibida · máximo ${MAX_ITEMS}`}><input aria-label="Quantidade exibida" type="number" min="0" max={MAX_ITEMS} value={config.itemLimit} onChange={event=>patch({itemLimit:clamp(Number(event.target.value)||0,0,MAX_ITEMS)})}/></Field><Field label="Modo de seleção"><select value={config.homeSelectionMode} onChange={event=>patch({homeSelectionMode:event.target.value as HomeSelectionMode})}><option value="automatic">Automático</option><option value="manual">Manual</option></select></Field></div>
+              <div className="section-config-two"><Field label="Ordenação"><select value={config.homeSortMode} onChange={event=>patch({homeSortMode:event.target.value as HomeSortMode})}><option value="provider">Ordem da fonte</option><option value="reverse">Ordem inversa</option><option value="title-asc">Título A–Z</option><option value="title-desc">Título Z–A</option></select></Field><Field label="Critério automático"><input value="Destaques definidos pela fonte editorial" disabled/></Field></div>
+              {config.homeSelectionMode==='manual'&&<div className="featured-manual-card"><strong>Seleção manual e prioridade</strong><p>Selecione no máximo três conteúdos e organize a ordem dos cards.</p><div className="home-manual-selection-list">{available.map(item=>{const selectedIndex=config.homeManualSelection.indexOf(item.key);const selected=selectedIndex>=0;return <div className={`home-manual-selection-item${selected?' selected':''}`} key={item.key}><label><input type="checkbox" checked={selected} disabled={!selected&&config.homeManualSelection.length>=MAX_ITEMS} onChange={()=>toggleManual(item.key)}/><span>{item.title}</span></label>{selected&&<div><button type="button" onClick={()=>moveManual(selectedIndex,-1)} disabled={selectedIndex===0} aria-label={`Subir ${item.title}`}><ArrowUp size={14}/></button><button type="button" onClick={()=>moveManual(selectedIndex,1)} disabled={selectedIndex===config.homeManualSelection.length-1} aria-label={`Descer ${item.title}`}><ArrowDown size={14}/></button></div>}</div>})}</div></div>}
+            </div>
+          </>}
+
+          {tab==='appearance'&&<>
+            <div className="featured-config-card-head"><h3>Aparência</h3><p>Preserve a identidade visual pública da Home e ajuste apenas propriedades permitidas da seção.</p></div>
+            <div className="section-config-fields">
+              <Field label="Alinhamento"><select value={config.textAlign} onChange={event=>patch({textAlign:event.target.value as HomeContentSectionConfiguration['textAlign']})}><option value="left">Esquerda</option><option value="center">Centro</option><option value="right">Direita</option></select></Field>
+              <div className="section-config-colors"><Field label="Fundo"><input type="color" value={config.background} onChange={event=>patch({background:event.target.value})}/></Field><Field label="Texto"><input type="color" value={config.textColor} onChange={event=>patch({textColor:event.target.value})}/></Field><Field label="Destaque"><input type="color" value={config.accentColor} onChange={event=>patch({accentColor:event.target.value})}/></Field></div>
+            </div>
+          </>}
+
+          {tab==='behavior'&&<>
+            <div className="featured-config-card-head"><h3>Comportamento</h3><p>O layout canônico responde ao viewport real do mesmo preview usado pela Hero Section.</p></div>
+            <div className="section-config-fields">
+              <div className="featured-responsive-rule"><strong>Comportamento responsivo</strong><p>{responsiveRule}</p><span className="featured-device-badge">{viewportLabel(viewport)}</span></div>
+              <div className="section-config-two"><Field label="Texto do botão / link"><input value={config.linkLabel} onChange={event=>patch({linkLabel:event.target.value})}/></Field><Field label="Destino"><input value={config.linkUrl} onChange={event=>patch({linkUrl:event.target.value})}/></Field></div>
+            </div>
+          </>}
+        </section>
+
+        <div className="featured-config-actions">
+          <button type="button" className="button outline" disabled={saving} onClick={reset}><RotateCcw size={15}/> Restaurar padrão</button>
+        </div>
+        {message&&<div className="section-config-success" role="status">{message}</div>}
+      </div>
+
+      <section className="home-hero-full-preview" aria-label="Preview completo da Página Inicial">
+        <div className="home-hero-full-preview-head">
+          <div><h2>Preview da página inteira</h2><p>{viewportLabel(viewport)} · edição em tempo real · 3 destaques + Mais Lidas no Desktop.</p></div>
+          <div className="home-hero-full-preview-devices" aria-label="Viewport do preview">
+            <button type="button" className={viewport==='desktop'?'active':''} onClick={()=>setViewport('desktop')} aria-label="Desktop" title="Desktop"><Monitor size={17}/></button>
+            <button type="button" className={viewport==='tablet'?'active':''} onClick={()=>setViewport('tablet')} aria-label="Tablet" title="Tablet"><Tablet size={17}/></button>
+            <button type="button" className={viewport==='mobile'?'active':''} onClick={()=>setViewport('mobile')} aria-label="Mobile" title="Mobile"><Smartphone size={17}/></button>
+          </div>
+        </div>
+        <div className="home-hero-full-preview-canvas home-featured-preview-canvas">
+          <HomePagePreviewFrame sectionId={SECTION_ID} configuration={config} viewport={viewport}/>
+        </div>
+      </section>
+    </div>}
+
+    {!loading&&<div className="featured-config-savebar">
+      <div><span className={`featured-save-state${dirty?' dirty':''}`}/><strong>{dirty?'Alterações não salvas':'Sem alterações pendentes'}</strong><small>{dirty?'O preview já mostra o rascunho; a Home pública só muda após salvar.':'O estado salvo continua sendo usado pela Home.'}</small></div>
+      <div><button type="button" className="button outline" disabled={!dirty||saving} onClick={discard}>Descartar alterações</button><button type="button" className="button dark" disabled={!dirty||saving} onClick={()=>void save()}><Save size={15}/> {saving?'Salvando...':'Salvar alterações'}</button></div>
+    </div>}
+  </AdminShell>
+}

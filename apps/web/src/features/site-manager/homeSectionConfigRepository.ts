@@ -40,6 +40,10 @@ function normalize(sectionId:HomeConfigurableSectionId,name:string,value:Record<
   return {...defaultSectionConfiguration(sectionId,name),...(value||{})} as SectionConfiguration
 }
 
+function normalizeTyped<T extends SectionConfiguration>(sectionId:HomeConfigurableSectionId,name:string,value:T|Record<string,unknown>|null|undefined):T{
+  return normalize(sectionId,name,value as Record<string,unknown>|null|undefined) as T
+}
+
 function defaults():HomeSectionConfigurationMap{
   return Object.fromEntries(HOME_CONFIGURABLE_SECTION_IDS.map(sectionId=>[sectionId,defaultSectionConfiguration(sectionId,names[sectionId])])) as HomeSectionConfigurationMap
 }
@@ -58,14 +62,14 @@ export async function loadAdminHomeSection(sectionId:HomeConfigurableSectionId,n
   return normalize(sectionId,name,value)
 }
 
-export async function saveHomeSection(sectionId:HomeConfigurableSectionId,name:string,configuration:SectionConfiguration){
-  const normalized=normalize(sectionId,name,configuration as unknown as Record<string,unknown>)
+export async function saveHomeSection<T extends SectionConfiguration>(sectionId:HomeConfigurableSectionId,name:string,configuration:T):Promise<T>{
+  const normalized=normalizeTyped<T>(sectionId,name,configuration)
   if(!isSectionConfigurationApiConfigured()){
     writeSectionConfiguration('home',sectionId,normalized)
     return normalized
   }
   const persisted=await saveAdminSectionConfiguration('home',sectionId,normalized as unknown as Record<string,unknown>)
-  return normalize(sectionId,name,persisted)
+  return normalizeTyped<T>(sectionId,name,persisted)
 }
 
 export async function loadPublicHomeSections():Promise<HomeSectionConfigurationMap>{

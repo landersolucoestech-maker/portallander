@@ -12,7 +12,7 @@ export function SpotifyReleasesSection({configuration}:{configuration:SectionCon
   const config=withHomeContentSectionConfiguration(configuration,'lancamentos')
   const [loadState,setLoadState]=useState<LoadState>('loading')
   const [data,setData]=useState<SpotifyReleasePublicState|null>(null)
-  useEffect(()=>{let active=true;setLoadState('loading');void spotifyReleaseClient.publicState().then(value=>{if(active){setData(value);setLoadState('ready')}}).catch(()=>{if(active)setLoadState('error')});return()=>{active=false}},[])
+  useEffect(()=>{let active=true;void spotifyReleaseClient.publicState().then(value=>{if(active){setData(value);setLoadState('ready')}}).catch(()=>{if(active)setLoadState('error')});return()=>{active=false}},[])
   const items=useMemo(()=>[...(data?.items||[])].sort((a,b)=>a.position-b.position).slice(0,Math.max(0,config.itemLimit)),[data?.items,config.itemLimit])
   if(!config.active)return null
   const allRoute=config.linkUrl||PUBLIC_ROUTES.lancamentos

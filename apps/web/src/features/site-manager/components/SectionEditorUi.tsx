@@ -4,8 +4,6 @@ import type {SectionHeroViewport} from '../sectionConfiguration'
 
 export type SectionEditorTabId='content'|'appearance'|'behavior'
 
-export function sectionEditorViewportLabel(viewport:SectionHeroViewport){return viewport==='desktop'?'Desktop':viewport==='tablet'?'Tablet':'Mobile'}
-
 export function SectionEditorField({label,children,hint,className}:{label:string;children:ReactNode;hint?:string;className?:string}){
   return <label className={`section-config-field${className?` ${className}`:''}`}><span>{label}</span>{children}{hint&&<small>{hint}</small>}</label>
 }

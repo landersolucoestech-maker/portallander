@@ -36,6 +36,8 @@ export default function SiteManagerRoutes(){
     <Route path="paginas/home/secoes/em-alta" element={<HomeContentSectionPage sectionId="em-alta"/>}/>
     <Route path="paginas/home/secoes/newsletter" element={<HomeNewsletterSectionPage/>}/>
     <Route path="paginas/:pageId/secoes/editorial-hero" element={<GlobalHeroEditorPage sectionId="editorial-hero"/>}/>
+    <Route path="paginas/:pageId/secoes/institutional-hero" element={<GlobalHeroEditorPage sectionId="institutional-hero"/>}/>
+    <Route path="paginas/:pageId/secoes/legal-hero" element={<GlobalHeroEditorPage sectionId="legal-hero"/>}/>
     <Route path="paginas/:pageId/secoes/sobre-hero" element={<GlobalHeroEditorPage sectionId="sobre-hero"/>}/>
     <Route path="paginas/:pageId/secoes/contato-hero" element={<GlobalHeroEditorPage sectionId="contato-hero"/>}/>
     <Route path="paginas/:pageId/secoes/colabore-hero" element={<GlobalHeroEditorPage sectionId="colabore-hero"/>}/>

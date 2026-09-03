@@ -81,16 +81,22 @@ test.describe('Home Hero dynamic background',()=>{
     }
   })
 
-  test('desktop scroll belongs to the left configuration card while preview stays fixed',async({page})=>{
+  test('desktop uses compact left rail with upload card at top-left and fixed wide preview',async({page})=>{
     await page.setViewportSize({width:1440,height:900})
     await seedBackground(page,configuredBackground)
     await page.goto(`${base}#/app/site/paginas/home/secoes/hero`,{waitUntil:'domcontentloaded'})
     const workbench=page.locator('.home-hero-section-workbench')
+    const upload=page.locator('.home-hero-section-workbench .hero-background-manager')
     const panel=page.locator('.home-hero-section-workbench .hero-cms-panel')
     const preview=page.locator('.home-hero-section-workbench .hero-cms-preview-column')
     await expect(workbench).toHaveCSS('overflow','hidden')
     await expect(panel).toHaveCSS('overflow-y','scroll')
     await expect(preview).toHaveCSS('overflow','hidden')
+    const uploadBox=await upload.boundingBox()
+    const previewBox=await preview.boundingBox()
+    expect(uploadBox?.width||9999).toBeLessThanOrEqual(390)
+    expect((previewBox?.x||0)).toBeGreaterThan((uploadBox?.x||0)+(uploadBox?.width||0))
+    expect(previewBox?.width||0).toBeGreaterThan((uploadBox?.width||0)*1.4)
     const before=await preview.boundingBox()
     const scrollable=await panel.evaluate(el=>({scrollHeight:el.scrollHeight,clientHeight:el.clientHeight}))
     expect(scrollable.scrollHeight).toBeGreaterThan(scrollable.clientHeight)

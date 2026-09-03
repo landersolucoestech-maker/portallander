@@ -42,24 +42,35 @@ test.describe('responsive home section administration',()=>{
     expect(await grid.evaluate(el=>getComputedStyle(el).gridTemplateColumns.split(' ').filter(Boolean).length)).toBe(1)
   })
 
-  test('latest-news preview uses the real iframe viewport for 3 desktop, 2 tablet and 1 mobile columns',async({page})=>{
+  test('latest-news preview physically lays out 3 desktop, 2 tablet and 1 mobile cards per row',async({page})=>{
     await seed(page,{'ultimas-noticias':{active:true,itemLimit:6,homeSelectionMode:'automatic'}})
     await page.goto(`${base}#/app/site/paginas/home/secoes/ultimas-noticias`,{waitUntil:'domcontentloaded'})
     const iframe=page.locator('iframe.home-page-preview-iframe')
     const preview=page.frameLocator('iframe.home-page-preview-iframe')
     const grid=preview.locator('.official-ultimas-noticias .pl-latest-grid')
+    const cards=grid.locator('.pl-card')
+    const tops=()=>cards.evaluateAll(items=>items.slice(0,4).map(item=>item.getBoundingClientRect().top))
 
     await expect(iframe).toHaveCSS('width','1433px')
-    await expect(grid).toBeVisible()
+    await expect(cards).toHaveCount(6)
     expect(await grid.evaluate(el=>getComputedStyle(el).gridTemplateColumns.split(' ').filter(Boolean).length)).toBe(3)
+    let row=await tops()
+    expect(Math.abs(row[0]-row[1])).toBeLessThanOrEqual(1)
+    expect(Math.abs(row[0]-row[2])).toBeLessThanOrEqual(1)
+    expect(row[3]).toBeGreaterThan(row[0]+1)
 
     await page.getByRole('button',{name:/Tablet/}).first().click()
     await expect(iframe).toHaveCSS('width','768px')
     expect(await grid.evaluate(el=>getComputedStyle(el).gridTemplateColumns.split(' ').filter(Boolean).length)).toBe(2)
+    row=await tops()
+    expect(Math.abs(row[0]-row[1])).toBeLessThanOrEqual(1)
+    expect(row[2]).toBeGreaterThan(row[0]+1)
 
     await page.getByRole('button',{name:/Mobile/}).first().click()
     await expect(iframe).toHaveCSS('width','390px')
     expect(await grid.evaluate(el=>getComputedStyle(el).gridTemplateColumns.split(' ').filter(Boolean).length)).toBe(1)
+    row=await tops()
+    expect(row[1]).toBeGreaterThan(row[0]+1)
   })
 
   test('featured manual selection and quantity reach frontend while legacy device columns cannot redesign it',async({page})=>{

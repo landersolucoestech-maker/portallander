@@ -12,14 +12,9 @@
 @import '../pages/home/styles/home-ad-public.css';
 @import '../pages/home/styles/releases-four.css';
 @import '../shared/branding/styles/header-active-indicator.css';
-@import '../pages/noticias/styles/news-reference-page.css';
-@import '../pages/noticias/styles/news-hero-reference.css';
-@import '../pages/article/styles/article-page.css';
-@import '../pages/article/styles/article-hero-shared.css';
 @import '../pages/home/styles/home-sidebar-ad.css';
 @import '../pages/home/styles/home-trending.css';
 @import '../pages/home/styles/bastidores-three-grid.css';
-@import '../pages/article/styles/article-route-fix.css';
 @import './public-header-system.css';
 @import '../shared/behaviors/styles/public-search-suggestions.css';
 @import './public-typography-system.css';

@@ -1,3 +1,0 @@
-Force deploy after correcting the dedicated Sections module, list view, per-section configuration routes, dimensions and colors.
-
-2026-09-03: force a fresh GitHub Pages build from dev so the Lançamentos editor publishes the Spotify integration UI already present in HomeReleasesSectionPage.tsx, including Fonte dos conteúdos, Playlist vinculada, ID/URL/URI da playlist, Vincular e sincronizar, and Sincronizar agora. This marker intentionally invalidates the stale Pages deployment without introducing a parallel or legacy editor path.

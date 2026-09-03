@@ -1,5 +1,6 @@
 import { EllipsisVertical } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 
 type TableRowActionMenuProps={
   label:string
@@ -11,14 +12,49 @@ type TableRowActionMenuProps={
   deleteDisabled?:boolean
 }
 
+type MenuPosition={top:number;left:number}
+
+const MENU_GAP=4
+const VIEWPORT_GUTTER=12
+
 export function TableRowActionMenu({label,onView,onEdit,onDelete,onDuplicate,viewLabel='Visualizar',deleteDisabled=false}:TableRowActionMenuProps){
   const [open,setOpen]=useState(false)
+  const [position,setPosition]=useState<MenuPosition|null>(null)
   const root=useRef<HTMLDivElement>(null)
   const trigger=useRef<HTMLButtonElement>(null)
   const menu=useRef<HTMLDivElement>(null)
+
+  const placeMenu=()=>{
+    const anchor=trigger.current
+    if(!anchor)return
+    const anchorRect=anchor.getBoundingClientRect()
+    const menuRect=menu.current?.getBoundingClientRect()
+    const menuWidth=Math.max(menuRect?.width??148,148)
+    const menuHeight=menuRect?.height??148
+    const availableBelow=window.innerHeight-anchorRect.bottom-VIEWPORT_GUTTER
+    const openUp=availableBelow<menuHeight&&anchorRect.top>menuHeight+VIEWPORT_GUTTER
+    const top=openUp
+      ? Math.max(VIEWPORT_GUTTER,anchorRect.top-menuHeight-MENU_GAP)
+      : Math.min(window.innerHeight-menuHeight-VIEWPORT_GUTTER,anchorRect.bottom+MENU_GAP)
+    const left=Math.min(
+      Math.max(VIEWPORT_GUTTER,anchorRect.right-menuWidth),
+      window.innerWidth-menuWidth-VIEWPORT_GUTTER,
+    )
+    setPosition({top,left})
+  }
+
   useEffect(()=>{
     if(!open)return
-    const close=(event:PointerEvent)=>{if(!root.current?.contains(event.target as Node))setOpen(false)}
+    placeMenu()
+    const frame=window.requestAnimationFrame(()=>{
+      placeMenu()
+      menu.current?.querySelector<HTMLButtonElement>('[role="menuitem"]:not(:disabled)')?.focus()
+    })
+    const close=(event:PointerEvent)=>{
+      const target=event.target as Node
+      if(root.current?.contains(target)||menu.current?.contains(target))return
+      setOpen(false)
+    }
     const closeOnKey=(event:KeyboardEvent)=>{
       if(event.key==='Escape'){event.preventDefault();setOpen(false);trigger.current?.focus();return}
       if(!['ArrowDown','ArrowUp','Home','End'].includes(event.key))return
@@ -32,17 +68,45 @@ export function TableRowActionMenu({label,onView,onEdit,onDelete,onDuplicate,vie
     }
     document.addEventListener('pointerdown',close)
     document.addEventListener('keydown',closeOnKey)
-    window.requestAnimationFrame(()=>menu.current?.querySelector<HTMLButtonElement>('[role="menuitem"]:not(:disabled)')?.focus())
-    return()=>{document.removeEventListener('pointerdown',close);document.removeEventListener('keydown',closeOnKey)}
+    window.addEventListener('resize',placeMenu)
+    window.addEventListener('scroll',placeMenu,true)
+    return()=>{
+      window.cancelAnimationFrame(frame)
+      document.removeEventListener('pointerdown',close)
+      document.removeEventListener('keydown',closeOnKey)
+      window.removeEventListener('resize',placeMenu)
+      window.removeEventListener('scroll',placeMenu,true)
+    }
   },[open])
+
+  const toggle=()=>{
+    if(open){setOpen(false);return}
+    placeMenu()
+    setOpen(true)
+  }
   const run=(action:()=>void)=>{setOpen(false);trigger.current?.focus();action()}
-  return <div className="table-row-actions" ref={root}>
-    <button ref={trigger} type="button" className="table-row-actions-trigger" aria-label={`Ações de ${label}`} aria-haspopup="menu" aria-expanded={open} onClick={()=>setOpen(value=>!value)}><EllipsisVertical size={16}/></button>
-    {open&&<div className="table-row-actions-menu" role="menu" ref={menu}>
-      <button type="button" role="menuitem" onClick={()=>run(onView)}>{viewLabel}</button>
-      {onEdit&&<button type="button" role="menuitem" onClick={()=>run(onEdit)}>Editar</button>}
-      {onDelete&&<button type="button" role="menuitem" className="danger" disabled={deleteDisabled} onClick={()=>run(onDelete)}>Excluir</button>}
-      {onDuplicate&&<button type="button" role="menuitem" onClick={()=>run(onDuplicate)}>Duplicar</button>}
-    </div>}
-  </div>
+
+  const menuContent=open&&position
+    ? createPortal(
+        <div
+          className="table-row-actions-menu"
+          role="menu"
+          ref={menu}
+          style={{position:'fixed',top:position.top,left:position.left,right:'auto',zIndex:1000}}
+        >
+          <button type="button" role="menuitem" onClick={()=>run(onView)}>{viewLabel}</button>
+          {onEdit&&<button type="button" role="menuitem" onClick={()=>run(onEdit)}>Editar</button>}
+          {onDelete&&<button type="button" role="menuitem" className="danger" disabled={deleteDisabled} onClick={()=>run(onDelete)}>Excluir</button>}
+          {onDuplicate&&<button type="button" role="menuitem" onClick={()=>run(onDuplicate)}>Duplicar</button>}
+        </div>,
+        document.body,
+      )
+    : null
+
+  return <>
+    <div className="table-row-actions" ref={root}>
+      <button ref={trigger} type="button" className="table-row-actions-trigger" aria-label={`Ações de ${label}`} aria-haspopup="menu" aria-expanded={open} onClick={toggle}><EllipsisVertical size={16}/></button>
+    </div>
+    {menuContent}
+  </>
 }

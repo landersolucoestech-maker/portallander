@@ -1,22 +1,27 @@
-import type {CSSProperties} from 'react'
 import type {EditorialPage} from '../../features/editorial/model'
+import {editorialReadModel} from '../../features/editorial/repository'
 import {useEditorialSeo} from '../../features/editorial/hooks/useEditorialSeo'
-import {heroResponsiveCssVariables} from '../../features/site-manager/sectionConfiguration'
+import {defaultSectionConfiguration} from '../../features/site-manager/sectionConfiguration'
+import {usePublicHomeSections} from '../../features/site-manager/usePublicHomeSections'
 import {useSectionConfiguration} from '../../features/site-manager/useSectionConfiguration'
-import {PublicFooter,PublicHeader} from '../../shared/public/PublicChrome'
+import {ContentSidebarLayout,PageContainer,PageHero,PageSection,PageShell,SectionHeading} from '../../shared/public/PublicPageArchitecture'
 
 export function SobrePage({page}:{page:EditorialPage}){
   useEditorialSeo(page)
+  const {sections:homeSections}=usePublicHomeSections()
   const hero=useSectionConfiguration(page.id,'sobre-hero','Hero Institucional')
   const body=useSectionConfiguration(page.id,'sobre-conteudo','Conteúdo Institucional')
-  const heroBackground=hero.imageUrl?`linear-gradient(rgba(0,0,0,.48),rgba(0,0,0,.48)),url(${hero.imageUrl})`:hero.background
-  const heroResponsive=heroResponsiveCssVariables(hero) as CSSProperties
-  return <div className="public-page sobre-page">
-    <PublicHeader/>
+  const contents=editorialReadModel.listPageContents(page.id)
+  const newsletter=homeSections.newsletter??defaultSectionConfiguration('newsletter','Newsletter')
+  return <PageShell className="sobre-page institutional-page" newsletterConfiguration={newsletter}>
+    <PageHero configuration={hero} variant="institutional" breadcrumbs={[{label:'Início',to:'/'},{label:page.navigationLabel||page.title}]}/>
     <main>
-      {hero.active&&<section className="public-standard-page-hero pl-responsive-hero" style={{...heroResponsive,background:heroBackground,backgroundSize:'cover',backgroundPosition:'center',backgroundRepeat:'no-repeat',color:hero.imageUrl?'#fff':hero.textColor,textAlign:hero.textAlign,position:'relative',overflow:'hidden'}}><div className="public-shell" style={{position:'relative',zIndex:1}}><div className="news-page-intro-copy"><span style={{color:hero.accentColor}}>{hero.eyebrow||'INSTITUCIONAL'}</span><h1>{hero.title||page.title.toUpperCase()}</h1><p>{hero.description||page.description}</p></div></div></section>}
-      {body.active&&<section className="public-shell article-shell" style={{background:body.background,color:body.textColor,textAlign:body.textAlign}}><article className="article-content">{body.eyebrow&&<span style={{color:body.accentColor}}>{body.eyebrow}</span>}<h2>{body.title||'PORTAL LANDER'}</h2><p>{body.description||page.description}</p></article></section>}
+      {body.active&&<PageSection><PageContainer><ContentSidebarLayout variant="institutional">
+        <article className="pl-institutional-document" style={{background:body.background,color:body.textColor,textAlign:body.textAlign}}>
+          <SectionHeading eyebrow={body.eyebrow||'NOSSA HISTÓRIA'} title={body.title||'PORTAL LANDER'} description={contents.length?undefined:body.description||page.description}/>
+          {contents.length?contents.map(content=><section className="pl-institutional-content-block" key={content.id}><h2>{content.title}</h2>{content.subtitle&&<p className="pl-institutional-lead">{content.subtitle}</p>}{content.body.map((block,index)=>block.type==='heading'?<h3 key={index}>{block.text}</h3>:block.type==='quote'?<blockquote key={index}><p>{block.text}</p>{block.attribution&&<cite>{block.attribution}</cite>}</blockquote>:<p key={index}>{block.text}</p>)}</section>):<p>{body.description||page.description}</p>}
+        </article>
+      </ContentSidebarLayout></PageContainer></PageSection>}
     </main>
-    <PublicFooter/>
-  </div>
+  </PageShell>
 }

@@ -7,18 +7,17 @@ test('full-page viewport controls the Hero image adjustment breakpoint',async({p
   await page.goto(`${base}#/app/site/paginas/home/secoes/hero`,{waitUntil:'domcontentloaded'})
 
   const preview=page.locator('.home-hero-full-preview')
-  const rail=page.locator('.home-hero-config-rail')
+  const sourceHero=page.locator('.home-hero-config-rail .hero-cms-preview-stage .editorial-hero')
 
   await preview.getByRole('button',{name:'Tablet'}).click()
-  await expect(rail.getByText('Tablet',{exact:true}).first()).toBeVisible()
-  await expect(rail.getByText(/Ajustar enquadramento · Tablet/)).toBeVisible()
-  await expect(rail.getByText(/Ajustes avançados · Tablet/)).toBeVisible()
+  await expect(preview.locator('.home-hero-full-preview-canvas')).toHaveAttribute('data-preview-viewport','tablet')
+  await expect(preview.locator('iframe')).toHaveCSS('width','768px')
+  await expect(sourceHero).toHaveAttribute('data-hero-breakpoint','tablet')
 
   await preview.getByRole('button',{name:'Mobile'}).click()
-  await expect(rail.getByText('Mobile',{exact:true}).first()).toBeVisible()
-  await expect(rail.getByText(/Ajustar enquadramento · Mobile/)).toBeVisible()
-  await expect(rail.getByText(/Ajustes avançados · Mobile/)).toBeVisible()
-  await expect(rail.getByText(/Automático · herdado|Sobrescrito · Mobile/).first()).toBeVisible()
+  await expect(preview.locator('.home-hero-full-preview-canvas')).toHaveAttribute('data-preview-viewport','mobile')
+  await expect(preview.locator('iframe')).toHaveCSS('width','390px')
+  await expect(sourceHero).toHaveAttribute('data-hero-breakpoint','mobile')
 })
 
 test('unsaved Hero draft is mirrored live into the full-page iframe',async({page})=>{

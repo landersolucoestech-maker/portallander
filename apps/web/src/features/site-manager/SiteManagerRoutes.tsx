@@ -1,25 +1,27 @@
+import { lazy, Suspense } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
-import { MediaKitPage } from './pages/MediaKitPage'
-import { GlobalHeroEditorPage } from './pages/GlobalHeroEditorPage'
-import { HomeAdvertisingSectionPage } from './pages/HomeAdvertisingSectionPage'
-import { HomeContentSectionPage } from './pages/HomeContentSectionPage'
-import { HomeFeaturedSectionPage } from './pages/HomeFeaturedSectionPage'
-import { HomeHeroSectionPage } from './pages/HomeHeroSectionPage'
-import { HomeMostReadSectionPage } from './pages/HomeMostReadSectionPage'
-import { HomeNewsletterSectionPage } from './pages/HomeNewsletterSectionPage'
-import { HomeReleasesSectionPage } from './pages/HomeReleasesSectionPage'
-import { SectionConfigurationPage } from './pages/SectionConfigurationPage'
-import { SiteCollaborationsPage } from './pages/SiteCollaborationsPage'
-import { SiteContentEditorPage } from './pages/SiteContentEditorPage'
-import { SiteContentsPage } from './pages/SiteContentsPage'
-import { SiteFormEditorPage } from './pages/SiteFormEditorPage'
-import { SiteFormsPage } from './pages/SiteFormsPage'
-import { SiteManagerDashboardPage } from './pages/SiteManagerDashboardPage'
-import { SiteMediaPage } from './pages/SiteMediaPage'
-import { SiteSectionsPage } from './pages/SiteSectionsPage'
+
+const MediaKitPage=lazy(()=>import('./pages/MediaKitPage').then(module=>({default:module.MediaKitPage})))
+const GlobalHeroEditorPage=lazy(()=>import('./pages/GlobalHeroEditorPage').then(module=>({default:module.GlobalHeroEditorPage})))
+const HomeAdvertisingSectionPage=lazy(()=>import('./pages/HomeAdvertisingSectionPage').then(module=>({default:module.HomeAdvertisingSectionPage})))
+const HomeContentSectionPage=lazy(()=>import('./pages/HomeContentSectionPage').then(module=>({default:module.HomeContentSectionPage})))
+const HomeFeaturedSectionPage=lazy(()=>import('./pages/HomeFeaturedSectionPage').then(module=>({default:module.HomeFeaturedSectionPage})))
+const HomeHeroSectionPage=lazy(()=>import('./pages/HomeHeroSectionPage').then(module=>({default:module.HomeHeroSectionPage})))
+const HomeMostReadSectionPage=lazy(()=>import('./pages/HomeMostReadSectionPage').then(module=>({default:module.HomeMostReadSectionPage})))
+const HomeNewsletterSectionPage=lazy(()=>import('./pages/HomeNewsletterSectionPage').then(module=>({default:module.HomeNewsletterSectionPage})))
+const HomeReleasesSectionPage=lazy(()=>import('./pages/HomeReleasesSectionPage').then(module=>({default:module.HomeReleasesSectionPage})))
+const SectionConfigurationPage=lazy(()=>import('./pages/SectionConfigurationPage').then(module=>({default:module.SectionConfigurationPage})))
+const SiteCollaborationsPage=lazy(()=>import('./pages/SiteCollaborationsPage').then(module=>({default:module.SiteCollaborationsPage})))
+const SiteContentEditorPage=lazy(()=>import('./pages/SiteContentEditorPage').then(module=>({default:module.SiteContentEditorPage})))
+const SiteContentsPage=lazy(()=>import('./pages/SiteContentsPage').then(module=>({default:module.SiteContentsPage})))
+const SiteFormEditorPage=lazy(()=>import('./pages/SiteFormEditorPage').then(module=>({default:module.SiteFormEditorPage})))
+const SiteFormsPage=lazy(()=>import('./pages/SiteFormsPage').then(module=>({default:module.SiteFormsPage})))
+const SiteManagerDashboardPage=lazy(()=>import('./pages/SiteManagerDashboardPage').then(module=>({default:module.SiteManagerDashboardPage})))
+const SiteMediaPage=lazy(()=>import('./pages/SiteMediaPage').then(module=>({default:module.SiteMediaPage})))
+const SiteSectionsPage=lazy(()=>import('./pages/SiteSectionsPage').then(module=>({default:module.SiteSectionsPage})))
 
 export default function SiteManagerRoutes(){
-  return <Routes>
+  return <Suspense fallback={null}><Routes>
     <Route index element={<SiteManagerDashboardPage/>}/>
     <Route path="home" element={<Navigate to="/app/site/paginas" replace/>}/>
     <Route path="home/hero" element={<Navigate to="/app/site/paginas/home/secoes/hero" replace/>}/>
@@ -56,5 +58,5 @@ export default function SiteManagerRoutes(){
     <Route path="midia" element={<SiteMediaPage/>}/>
     <Route path="midia-kit" element={<MediaKitPage/>}/>
     <Route path="*" element={<Navigate to="/app/site" replace/>}/>
-  </Routes>
+  </Routes></Suspense>
 }

@@ -5,7 +5,8 @@ const backgroundKey='portal-lander:home:hero:background:v1'
 const configuredBackground={url:'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%221600%22 height=%22900%22%3E%3Crect width=%221600%22 height=%22900%22 fill=%22%23101010%22/%3E%3C/svg%3E',mediaId:'media-a',fileName:'hero-a.svg',positionX:31,positionY:64}
 
 async function seedBackground(page:Page,value:typeof configuredBackground|null){
-  await page.addInitScript(({key,value})=>{if(value)localStorage.setItem(key,JSON.stringify(value));else localStorage.removeItem(key)},{key:backgroundKey,value})
+  await page.goto(base,{waitUntil:'domcontentloaded'})
+  await page.evaluate(({key,value})=>{if(value)localStorage.setItem(key,JSON.stringify(value));else localStorage.removeItem(key)},{key:backgroundKey,value})
 }
 async function publicPage(context:BrowserContext){const page=await context.newPage();await page.goto(`${base}#/`,{waitUntil:'domcontentloaded'});return page}
 
@@ -30,19 +31,20 @@ test.describe('Home Hero dynamic background',()=>{
     expect(await background.evaluate(el=>getComputedStyle(el).backgroundPosition)).toBe('31% 64%')
   })
 
-  test('background draft updates the single admin preview without leaking into the public Home before save',async({page,context})=>{
+  test('background draft updates the full-page admin preview without leaking into public Home before save',async({page,context})=>{
     await seedBackground(page,configuredBackground)
     await page.goto(`${base}#/app/site/paginas/home/secoes/hero`,{waitUntil:'domcontentloaded'})
     const card=page.locator('.hero-background-card')
-    const preview=page.locator('.hero-cms-preview-column')
+    const preview=page.locator('.home-hero-full-preview')
+    const frame=page.frameLocator('.home-hero-full-preview iframe')
     await expect(card.getByText('Configurada')).toBeVisible()
     await expect(preview).toHaveCount(1)
     await expect(page.locator('.hero-background-preview')).toHaveCount(0)
-    await expect(preview.locator('.editorial-hero-background')).toHaveCSS('background-position','31% 64%')
+    await expect(frame.locator('.editorial-hero-background')).toHaveCSS('background-position','31% 64%')
 
     await card.getByRole('button',{name:/Remover imagem/}).click()
     await expect(card.getByText('Nenhuma imagem configurada')).toBeVisible()
-    expect(await preview.locator('.editorial-hero-background').evaluate(el=>getComputedStyle(el).backgroundImage)).toBe('none')
+    await expect(frame.locator('.editorial-hero-background')).toHaveCSS('background-image','none')
 
     const beforeSave=await publicPage(context)
     expect(await beforeSave.locator('.editorial-hero-background').evaluate(el=>getComputedStyle(el).backgroundImage)).toContain('data:image/svg+xml')
@@ -68,29 +70,32 @@ test.describe('Home Hero dynamic background',()=>{
     expect(persisted.url).toBe(configuredBackground.url)
   })
 
-  test('Hero editor exposes exactly one responsive preview for Desktop Tablet and Mobile',async({page})=>{
+  test('Hero editor exposes exactly one responsive full-page preview for Desktop Tablet and Mobile',async({page})=>{
     await seedBackground(page,configuredBackground)
     await page.goto(`${base}#/app/site/paginas/home/secoes/hero`,{waitUntil:'domcontentloaded'})
-    const preview=page.locator('.hero-cms-preview-column')
+    const preview=page.locator('.home-hero-full-preview')
+    const frame=page.frameLocator('.home-hero-full-preview iframe')
     await expect(preview).toHaveCount(1)
     await expect(page.locator('.hero-background-preview')).toHaveCount(0)
-    for(const name of ['Desktop','Tablet','Mobile']){
+    for(const [name,width,breakpoint] of [['Desktop','1433px','desktop'],['Tablet','768px','tablet'],['Mobile','390px','mobile']] as const){
       await preview.getByRole('button',{name}).click()
-      await expect(preview.locator('.editorial-hero')).toBeVisible()
-      await expect(preview.locator('.editorial-hero-background')).toHaveCSS('background-position','31% 64%')
+      await expect(preview.locator('iframe')).toHaveCSS('width',width)
+      await expect(frame.locator('.editorial-hero')).toBeVisible()
+      await expect(frame.locator('.editorial-hero')).toHaveAttribute('data-hero-breakpoint',breakpoint)
+      await expect(frame.locator('.editorial-hero-background')).toHaveCSS('background-position','31% 64%')
     }
   })
 
-  test('desktop uses compact left rail with upload card at top-left and fixed wide preview',async({page})=>{
+  test('desktop uses compact scrollable left rail with upload card and fixed wide full-page preview',async({page})=>{
     await page.setViewportSize({width:1440,height:900})
     await seedBackground(page,configuredBackground)
     await page.goto(`${base}#/app/site/paginas/home/secoes/hero`,{waitUntil:'domcontentloaded'})
     const workbench=page.locator('.home-hero-section-workbench')
+    const rail=page.locator('.home-hero-config-rail')
     const upload=page.locator('.home-hero-section-workbench .hero-background-manager')
-    const panel=page.locator('.home-hero-section-workbench .hero-cms-panel')
-    const preview=page.locator('.home-hero-section-workbench .hero-cms-preview-column')
+    const preview=page.locator('.home-hero-section-workbench .home-hero-full-preview')
     await expect(workbench).toHaveCSS('overflow','hidden')
-    await expect(panel).toHaveCSS('overflow-y','scroll')
+    await expect(rail).toHaveCSS('overflow-y','scroll')
     await expect(preview).toHaveCSS('overflow','hidden')
     const uploadBox=await upload.boundingBox()
     const previewBox=await preview.boundingBox()
@@ -98,11 +103,11 @@ test.describe('Home Hero dynamic background',()=>{
     expect((previewBox?.x||0)).toBeGreaterThan((uploadBox?.x||0)+(uploadBox?.width||0))
     expect(previewBox?.width||0).toBeGreaterThan((uploadBox?.width||0)*1.4)
     const before=await preview.boundingBox()
-    const scrollable=await panel.evaluate(el=>({scrollHeight:el.scrollHeight,clientHeight:el.clientHeight}))
+    const scrollable=await rail.evaluate(el=>({scrollHeight:el.scrollHeight,clientHeight:el.clientHeight}))
     expect(scrollable.scrollHeight).toBeGreaterThan(scrollable.clientHeight)
-    await panel.evaluate(el=>{el.scrollTop=el.scrollHeight})
+    await rail.evaluate(el=>{el.scrollTop=el.scrollHeight})
     await page.waitForTimeout(80)
-    expect(await panel.evaluate(el=>el.scrollTop)).toBeGreaterThan(0)
+    expect(await rail.evaluate(el=>el.scrollTop)).toBeGreaterThan(0)
     const after=await preview.boundingBox()
     expect(Math.abs((after?.y||0)-(before?.y||0))).toBeLessThanOrEqual(1)
     expect(await page.evaluate(()=>window.scrollY)).toBe(0)

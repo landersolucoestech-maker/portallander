@@ -23,6 +23,7 @@ export function HeroFullPagePreview(){
   const src=`${window.location.origin}${window.location.pathname}#/_preview/home`
 
   const syncLiveHero=useCallback(()=>{
+    const workbench=document.querySelector<HTMLElement>('.home-hero-section-workbench')
     const source=document.querySelector<HTMLElement>('.home-hero-config-rail .hero-cms-preview-stage')
     const frameDocument=iframeRef.current?.contentDocument
     if(!source||!frameDocument)return
@@ -35,8 +36,11 @@ export function HeroFullPagePreview(){
       const clonedBackground=heroClone.querySelector<HTMLElement>('.editorial-hero-background')
       if(sourceBackground&&clonedBackground){
         const computed=getComputedStyle(sourceBackground)
-        clonedBackground.style.backgroundImage=computed.backgroundImage
-        clonedBackground.style.backgroundPosition=computed.backgroundPosition
+        const workbenchStyle=workbench?getComputedStyle(workbench):null
+        const draftImage=workbenchStyle?.getPropertyValue('--hero-admin-preview-background-image').trim()
+        const draftPosition=workbenchStyle?.getPropertyValue('--hero-admin-preview-background-position').trim()
+        clonedBackground.style.backgroundImage=draftImage||computed.backgroundImage
+        clonedBackground.style.backgroundPosition=draftPosition||computed.backgroundPosition
         clonedBackground.style.backgroundSize=computed.backgroundSize
         clonedBackground.style.backgroundRepeat=computed.backgroundRepeat
       }

@@ -10,6 +10,30 @@ import {publicSiteReadModel} from '../data/publicSiteReadModel'
 const normalizeSearch=(value:string)=>value.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('pt-BR').trim()
 const socialAbbreviation:Record<string,string>={instagram:'IG',tiktok:'TK',youtube:'YT',x:'X',spotify:'SP',facebook:'FB',linkedin:'IN'}
 
+export type PublicNewsletterConfiguration={
+  active:boolean
+  title:string
+  description:string
+  eyebrow:string
+  linkLabel:string
+  textAlign:'left'|'center'|'right'
+  background:string
+  textColor:string
+  accentColor:string
+}
+
+const DEFAULT_NEWSLETTER_CONFIGURATION:PublicNewsletterConfiguration={
+  active:true,
+  title:'RECEBA AS PRINCIPAIS NOTÍCIAS',
+  description:'DIRETO NO SEU E-MAIL!',
+  eyebrow:'Seu melhor e-mail',
+  linkLabel:'INSCREVER-SE',
+  textAlign:'left',
+  background:'#111111',
+  textColor:'#ffffff',
+  accentColor:'#e50914',
+}
+
 function PublicBrand(){
   const [config,setConfig]=useState<HeaderBrandConfig>(()=>readHeaderBrandConfig())
   useEffect(()=>{const sync=()=>setConfig(readHeaderBrandConfig());window.addEventListener('portal-lander:header-brand-updated',sync);return()=>window.removeEventListener('portal-lander:header-brand-updated',sync)},[])
@@ -44,7 +68,7 @@ export function PublicHeader(){
   return <><header className="public-header"><div className="public-nav"><PublicBrand/><nav className={open?'public-links open':'public-links'}>{roots.map(page=>{const nested=children(page.id);return <div className="public-nav-item" key={page.id}><NavLink to={`/${page.slug}`}>{page.navigationLabel}</NavLink>{nested.length>0&&<div className="public-submenu">{nested.map(child=><NavLink key={child.id} to={`/${child.slug}`}>{child.navigationLabel}</NavLink>)}</div>}</div>})}<NavLink to="/colabore">Colabore</NavLink></nav><div className="nav-actions"><button type="button" className="public-search" aria-label={searchOpen?'Fechar busca':'Buscar'} aria-expanded={searchOpen} onClick={()=>{setSearchOpen(value=>!value);setQuery('')}}>{searchOpen?<X size={18}/>:<Search size={18}/>}</button><Link className="public-internal" to="/app/login">Área interna</Link><button type="button" className="public-menu" onClick={()=>setOpen(!open)} aria-label="Abrir menu">{open?<X/>:<Menu/>}</button></div></div></header>{searchOpen&&<div className="public-search-panel" role="search"><form onSubmit={submitSearch}><Search size={19}/><input autoFocus value={query} onChange={e=>setQuery(e.target.value)} onKeyDown={e=>{if(e.key==='Escape')closeSearch()}} placeholder="Buscar notícias, artistas, músicas..." aria-label="Termo de busca"/><button type="submit">BUSCAR</button><button type="button" className="public-search-close" onClick={closeSearch} aria-label="Fechar busca"><X size={18}/></button></form>{normalizedQuery&&suggestions.length>0&&<div className="public-search-suggestions" role="listbox" aria-label="Sugestões de conteúdo">{suggestions.map(content=>{const page=editorialReadModel.getPageById(content.pageId);if(!page)return null;return <Link className="public-search-suggestion" to={`/${page.slug}/${content.slug}`} onClick={closeSearch} key={content.id}><span><small>{page.navigationLabel}</small><strong>{content.title}</strong></span><b aria-hidden="true">→</b></Link>})}</div>}{normalizedQuery&&suggestions.length===0&&<div className="public-search-suggestions" role="status"><span className="public-search-empty">Nenhum conteúdo editorial corresponde à busca.</span></div>}</div>}</>
 }
 
-export function PublicFooter(){
+export function PublicFooter({newsletterConfiguration=DEFAULT_NEWSLETTER_CONFIGURATION}:{newsletterConfiguration?:PublicNewsletterConfiguration}={}){
   const [footerBrand,setFooterBrand]=useState<FooterBrandConfig>(()=>readFooterBrandConfig())
   const [newsletterUnavailable,setNewsletterUnavailable]=useState(false)
   useEffect(()=>{const sync=()=>setFooterBrand(readFooterBrandConfig());window.addEventListener('portal-lander:footer-brand-updated',sync);return()=>window.removeEventListener('portal-lander:footer-brand-updated',sync)},[])
@@ -53,5 +77,5 @@ export function PublicFooter(){
   const help=[['faq','Perguntas Frequentes'],['regras','Regras de Publicação']].filter(([slug])=>Boolean(editorialReadModel.getPageBySlug(slug)))
   const partnerships=editorialReadModel.getPageBySlug('parcerias')
   const socialChannels=publicSiteReadModel.socialChannels()
-  return <><section className="pl-newsletter"><div className="public-shell"><div className="pl-newsletter-brand"><img src={portalLogo} alt=""/><strong>RECEBA AS PRINCIPAIS NOTÍCIAS<br/>DIRETO NO SEU E-MAIL!</strong></div><form onSubmit={e=>{e.preventDefault();setNewsletterUnavailable(true)}}><input required type="email" placeholder="Seu melhor e-mail" aria-label="Seu melhor e-mail"/><button type="submit">INSCREVER-SE</button>{newsletterUnavailable&&<small className="pl-newsletter-status" role="status">Newsletter ainda não conectada. Nenhuma inscrição foi enviada.</small>}</form><div className="pl-social"><b>SIGA O PORTAL LANDER</b>{socialChannels.map(channel=><span key={channel.id} title={channel.label}>{socialAbbreviation[channel.network]??channel.label.slice(0,2).toUpperCase()}</span>)}</div></div></section><footer className="public-footer"><div className="public-shell"><div className="pl-footer-grid"><div className="pl-footer-about">{footerBrand.active&&footerBrand.image&&<img src={footerBrand.image} alt={footerBrand.imageAlt||'Portal Lander'} style={{width:`${footerBrand.width}px`,maxWidth:'100%',height:'auto'}}/>}<p>O maior portal de notícias sobre funk, cultura urbana e entretenimento. Conteúdo real, direto e sem filtro.</p></div><div className="pl-footer-col"><h4>NAVEGAÇÃO</h4>{menuPages.map(page=><Link key={page.id} to={`/${page.slug}`}>{page.navigationLabel}</Link>)}</div><div className="pl-footer-col"><h4>INSTITUCIONAL</h4>{institutional.map(([slug,label])=><Link key={slug} to={`/${slug}`}>{label}</Link>)}<Link to="/colabore">Colabore</Link></div><div className="pl-footer-col"><h4>AJUDA</h4>{help.map(([slug,label])=><Link key={slug} to={`/${slug}`}>{label}</Link>)}<Link to="/anuncie">Como Anunciar</Link></div><div className="pl-footer-col"><h4>COLABORE</h4><Link to="/colabore">Envie sua notícia</Link><Link to="/colabore">Envie seu vídeo</Link>{partnerships&&<Link to="/parcerias">Parcerias</Link>}</div></div><div className="pl-copyright">© 2026 Portal Lander. Todos os direitos reservados.</div></div></footer></>
+  return <>{newsletterConfiguration.active&&<section data-home-section="newsletter" className="pl-newsletter" style={{background:newsletterConfiguration.background,color:newsletterConfiguration.textColor,textAlign:newsletterConfiguration.textAlign}}><div className="public-shell"><div className="pl-newsletter-brand"><img src={portalLogo} alt=""/><strong>{newsletterConfiguration.title}{newsletterConfiguration.description&&<><br/>{newsletterConfiguration.description}</>}</strong></div><form onSubmit={e=>{e.preventDefault();setNewsletterUnavailable(true)}}><input required type="email" placeholder={newsletterConfiguration.eyebrow||'Seu melhor e-mail'} aria-label={newsletterConfiguration.eyebrow||'Seu melhor e-mail'}/><button type="submit" style={{background:newsletterConfiguration.accentColor}}>{newsletterConfiguration.linkLabel||'INSCREVER-SE'}</button>{newsletterUnavailable&&<small className="pl-newsletter-status" role="status">Newsletter ainda não conectada. Nenhuma inscrição foi enviada.</small>}</form><div className="pl-social"><b>SIGA O PORTAL LANDER</b>{socialChannels.map(channel=><span key={channel.id} title={channel.label}>{socialAbbreviation[channel.network]??channel.label.slice(0,2).toUpperCase()}</span>)}</div></div></section>}<footer className="public-footer"><div className="public-shell"><div className="pl-footer-grid"><div className="pl-footer-about">{footerBrand.active&&footerBrand.image&&<img src={footerBrand.image} alt={footerBrand.imageAlt||'Portal Lander'} style={{width:`${footerBrand.width}px`,maxWidth:'100%',height:'auto'}}/>}<p>O maior portal de notícias sobre funk, cultura urbana e entretenimento. Conteúdo real, direto e sem filtro.</p></div><div className="pl-footer-col"><h4>NAVEGAÇÃO</h4>{menuPages.map(page=><Link key={page.id} to={`/${page.slug}`}>{page.navigationLabel}</Link>)}</div><div className="pl-footer-col"><h4>INSTITUCIONAL</h4>{institutional.map(([slug,label])=><Link key={slug} to={`/${slug}`}>{label}</Link>)}<Link to="/colabore">Colabore</Link></div><div className="pl-footer-col"><h4>AJUDA</h4>{help.map(([slug,label])=><Link key={slug} to={`/${slug}`}>{label}</Link>)}<Link to="/anuncie">Como Anunciar</Link></div><div className="pl-footer-col"><h4>COLABORE</h4><Link to="/colabore">Envie sua notícia</Link><Link to="/colabore">Envie seu vídeo</Link>{partnerships&&<Link to="/parcerias">Parcerias</Link>}</div></div><div className="pl-copyright">© 2026 Portal Lander. Todos os direitos reservados.</div></div></footer></>
 }

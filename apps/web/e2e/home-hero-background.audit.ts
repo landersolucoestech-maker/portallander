@@ -30,17 +30,25 @@ test.describe('Home Hero dynamic background',()=>{
     expect(await background.evaluate(el=>getComputedStyle(el).backgroundPosition)).toBe('31% 64%')
   })
 
-  test('removing an image stays draft-only until save',async({page,context})=>{
+  test('background draft updates the single admin preview without leaking into the public Home before save',async({page,context})=>{
     await seedBackground(page,configuredBackground)
     await page.goto(`${base}#/app/site/paginas/home/secoes/hero`,{waitUntil:'domcontentloaded'})
     const card=page.locator('.hero-background-card')
+    const preview=page.locator('.hero-cms-preview-column')
     await expect(card.getByText('Configurada')).toBeVisible()
-    await card.getByRole('button',{name:/Remover/}).click()
+    await expect(preview).toHaveCount(1)
+    await expect(page.locator('.hero-background-preview')).toHaveCount(0)
+    await expect(preview.locator('.editorial-hero-background')).toHaveCSS('background-position','31% 64%')
+
+    await card.getByRole('button',{name:/Remover imagem/}).click()
     await expect(card.getByText('Nenhuma imagem configurada')).toBeVisible()
+    expect(await preview.locator('.editorial-hero-background').evaluate(el=>getComputedStyle(el).backgroundImage)).toBe('none')
+
     const beforeSave=await publicPage(context)
     expect(await beforeSave.locator('.editorial-hero-background').evaluate(el=>getComputedStyle(el).backgroundImage)).toContain('data:image/svg+xml')
     await beforeSave.close()
-    await card.getByRole('button',{name:/Salvar imagem de fundo/}).click()
+
+    await card.getByRole('button',{name:/Salvar imagem/}).click()
     await expect(card.getByText(/Imagem de fundo salva/)).toBeVisible()
     const afterSave=await publicPage(context)
     expect(await afterSave.locator('.editorial-hero-background').evaluate(el=>getComputedStyle(el).backgroundImage)).toBe('none')
@@ -60,10 +68,12 @@ test.describe('Home Hero dynamic background',()=>{
     expect(persisted.url).toBe(configuredBackground.url)
   })
 
-  test('manager preview offers Desktop Tablet Mobile using the same Hero renderer',async({page})=>{
+  test('Hero editor exposes exactly one responsive preview for Desktop Tablet and Mobile',async({page})=>{
     await seedBackground(page,configuredBackground)
     await page.goto(`${base}#/app/site/paginas/home/secoes/hero`,{waitUntil:'domcontentloaded'})
-    const preview=page.locator('.hero-background-preview')
+    const preview=page.locator('.hero-cms-preview-column')
+    await expect(preview).toHaveCount(1)
+    await expect(page.locator('.hero-background-preview')).toHaveCount(0)
     for(const name of ['Desktop','Tablet','Mobile']){
       await preview.getByRole('button',{name}).click()
       await expect(preview.locator('.editorial-hero')).toBeVisible()

@@ -1,0 +1,72 @@
+.colabore-page{background:#030303;color:#fff}
+.colabore-page main{overflow:hidden}
+
+.colabore-page .pl-page-section{padding-top:52px;padding-bottom:72px}
+.colabore-page .pl-special-intro-points{display:flex;flex-wrap:wrap;gap:12px 24px;margin:0 0 34px;padding:16px 18px;border:1px solid #242424;background:#070707}
+.colabore-page .pl-special-intro-points span{display:flex;align-items:center;gap:9px;color:#aaa;font-size:12px;font-weight:600}
+.colabore-page .pl-special-intro-points svg{color:#e31313;flex:0 0 auto}
+
+.colabore-page .colabore-guidelines{display:grid;grid-template-columns:minmax(0,1.35fr) repeat(3,minmax(0,.72fr));gap:12px;margin:0 0 56px;background:transparent!important;color:inherit}
+.colabore-page .colabore-guidelines>.pl-page-section-heading{grid-column:1/-1;margin:0 0 10px;padding-bottom:20px;border-bottom:1px solid #202020}
+.colabore-page .colabore-guideline{position:relative;display:flex;min-height:148px;flex-direction:column;justify-content:flex-end;gap:12px;padding:22px;border:1px solid #242424;background:linear-gradient(180deg,#0b0b0b 0%,#070707 100%);overflow:hidden}
+.colabore-page .colabore-guideline::before{content:'';position:absolute;left:0;top:0;width:3px;height:42px;background:#e31313}
+.colabore-page .colabore-guideline b{color:#e31313;font-family:'Bebas Neue','Arial Narrow',Impact,sans-serif;font-size:34px;font-weight:400;line-height:1}
+.colabore-page .colabore-guideline span{color:#ddd;font-size:13px;line-height:1.5}
+
+.colabore-page .colabore-layout{display:grid;grid-template-columns:1fr;gap:18px;background:transparent!important;color:inherit}
+.colabore-page .colabore-layout>.pl-page-section-heading{margin:0 0 4px;padding-bottom:20px;border-bottom:1px solid #202020}
+.colabore-page .colabore-form{position:relative;width:100%;padding:30px 32px 28px;border:1px solid #272727;background:linear-gradient(180deg,#090909 0%,#060606 100%)}
+.colabore-page .colabore-success{display:flex;align-items:flex-start;gap:10px;padding:13px 14px;margin-bottom:20px;border:1px solid #24442d;background:#08140b;color:#d9f6df}
+.colabore-page .colabore-success svg{color:#49c96b}
+.colabore-page .colabore-success div{display:flex;flex-direction:column;gap:3px}
+.colabore-page .colabore-success b{font-size:12px}
+.colabore-page .colabore-success span{font-size:10px;color:#9ec9a8}
+.colabore-page .colabore-field-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px 20px}
+.colabore-page .colabore-form label{display:flex;flex-direction:column;gap:7px;margin-bottom:18px;color:#d5d5d5;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.055em}
+.colabore-page .colabore-form label>small{font-size:10px;color:#666;text-transform:none;letter-spacing:0;font-weight:500}
+.colabore-page .colabore-form input,.colabore-page .colabore-form textarea{width:100%;border:1px solid #2b2b2b;background:#020202;color:#fff;padding:13px 14px;outline:0;font-family:'Montserrat',Arial,sans-serif;font-size:13px;border-radius:0}
+.colabore-page .colabore-form textarea{resize:vertical;min-height:150px;line-height:1.5}
+.colabore-page .colabore-form input:hover,.colabore-page .colabore-form textarea:hover{border-color:#3b3b3b}
+.colabore-page .colabore-form input:focus,.colabore-page .colabore-form textarea:focus{border-color:#e31313}
+.colabore-page .colabore-form input::placeholder,.colabore-page .colabore-form textarea::placeholder{color:#5e5e5e}
+
+.colabore-page .colabore-type-select{position:relative;width:100%}
+.colabore-page .colabore-type-trigger{width:100%;min-height:43px;display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid #303030;background:#030303;color:#5e5e5e;padding:12px 13px;outline:0;font-family:'Montserrat',Arial,sans-serif;font-size:13px;text-align:left;border-radius:0;cursor:pointer}
+.colabore-page .colabore-type-trigger.has-value{color:#fff}
+.colabore-page .colabore-type-select.open .colabore-type-trigger,.colabore-page .colabore-type-trigger:focus{border-color:#e31313}
+.colabore-page .colabore-type-trigger i{width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid #777;flex:0 0 auto}
+.colabore-page .colabore-type-menu{position:absolute;top:calc(100% + 1px);left:0;right:0;z-index:100;border:1px solid #303030;background:#030303;box-shadow:none}
+.colabore-page .colabore-type-menu button{width:100%;display:block;padding:10px 13px;border:0;border-bottom:1px solid #151515;background:#030303;color:#fff;font-family:'Montserrat',Arial,sans-serif;font-size:13px;text-align:left;cursor:pointer}
+.colabore-page .colabore-type-menu button:last-child{border-bottom:0}
+.colabore-page .colabore-type-menu button:hover,.colabore-page .colabore-type-menu button:focus,.colabore-page .colabore-type-menu button.selected{background:#151515;color:#fff;outline:0}
+
+.colabore-page .colabore-upload{min-height:92px;border:1px dashed #343434;background:#050505;display:grid!important;grid-template-columns:28px minmax(0,1fr) auto;gap:13px!important;align-items:center;padding:18px;margin:6px 0 18px!important;cursor:pointer;text-transform:none!important;letter-spacing:0!important}
+.colabore-page .colabore-upload>svg{color:#e31313}
+.colabore-page .colabore-upload>div{display:flex;flex-direction:column;gap:4px}
+.colabore-page .colabore-upload b{font-size:13px}
+.colabore-page .colabore-upload span{font-size:11px;color:#777}
+.colabore-page .colabore-upload button{height:34px;padding:0 12px;border:1px solid #343434;background:#0b0b0b;color:#ddd;font-size:11px;cursor:pointer}
+.colabore-page .colabore-consent{display:grid!important;grid-template-columns:17px 1fr;gap:9px!important;align-items:start;text-transform:none!important;letter-spacing:0!important;font-weight:500!important;color:#8e8e8e!important;font-size:11px!important;line-height:1.45}
+.colabore-page .colabore-consent input{width:15px;height:15px;margin:0;accent-color:#e31313}
+.colabore-page .colabore-submit{min-width:190px;height:46px;display:inline-flex;align-items:center;justify-content:center;gap:9px;padding:0 20px;border:1px solid #e31313;background:#e31313;color:#fff;font-family:'Bebas Neue','Arial Narrow',Impact,sans-serif;font-size:14px;letter-spacing:.045em;cursor:pointer}
+.colabore-page .colabore-submit:hover{background:#b60d12}
+.colabore-page .colabore-submit:disabled{cursor:not-allowed;opacity:.65}
+.colabore-page .colabore-note{font-size:11px!important;line-height:1.5!important;color:#626262!important;margin:14px 0 0!important;max-width:720px}
+
+@media(max-width:980px){
+  .colabore-page .pl-page-section{padding-top:44px;padding-bottom:64px}
+  .colabore-page .colabore-guidelines{grid-template-columns:1fr 1fr;gap:10px;margin-bottom:48px}
+  .colabore-page .colabore-guideline{min-height:126px}
+}
+
+@media(max-width:620px){
+  .colabore-page .pl-page-section{padding-top:36px;padding-bottom:52px}
+  .colabore-page .pl-special-intro-points{flex-direction:column;gap:10px;margin-bottom:28px}
+  .colabore-page .colabore-guidelines{grid-template-columns:1fr;margin-bottom:40px}
+  .colabore-page .colabore-guideline{min-height:auto;padding:20px}
+  .colabore-page .colabore-field-grid{grid-template-columns:1fr;gap:0}
+  .colabore-page .colabore-form{padding:22px 18px}
+  .colabore-page .colabore-upload{grid-template-columns:24px 1fr}
+  .colabore-page .colabore-upload button{grid-column:1/-1;width:100%}
+  .colabore-page .colabore-submit{width:100%}
+}

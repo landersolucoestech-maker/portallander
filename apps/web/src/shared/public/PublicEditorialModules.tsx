@@ -26,8 +26,9 @@ export function PublicAdvertisementModule({configuration,placement='sidebar'}:{c
   return <section data-home-section="publicidade-lateral" data-ad-placement={placement} className={`pl-home-sidebar-ad official-publicidade-lateral pl-home-configurable-ad ${imageUrl?'has-creative':'is-empty'} ad-fit-${imageFit}`} aria-label="Publicidade Lateral" style={{...advertisingResponsiveCssVariables(configured),textAlign:configured.textAlign,background:imageUrl?'transparent':configured.background,color:configured.textColor,borderColor:imageUrl?'transparent':configured.accentColor,borderRadius:0}}><div className="pl-home-sidebar-ad-inner"><AdvertisingAreaLink config={configured} className="pl-home-ad-area-link">{media}</AdvertisingAreaLink></div></section>
 }
 
-export function PublicMostReadModule({configuration,limit=5}:{configuration:SectionConfiguration;limit?:number}){
+export function PublicMostReadModule({configuration,limit}:{configuration:SectionConfiguration;limit?:number}){
   if(!configuration.active)return null
-  const items=getRuntimeDataProvider().home.mostRead().slice(0,Math.max(1,Math.min(5,limit)))
+  const configuredLimit=limit??configuration.itemLimit??5
+  const items=getRuntimeDataProvider().home.mostRead().slice(0,Math.max(0,Math.min(5,configuredLimit)))
   return <section data-home-section="mais-lidas" className="pl-most official-mais-lidas pl-editorial-sidebar-module" aria-label="Mais Lidas" style={{background:configuration.background,color:configuration.textColor,textAlign:configuration.textAlign}}><h2>{configuration.title||'MAIS LIDAS'}</h2><div className="pl-editorial-sidebar-list">{items.map((title,index)=><SmartLink className="pl-editorial-sidebar-item" to={configuration.linkUrl||'/noticias'} key={title}><strong>{String(index+1).padStart(2,'0')}</strong><div><h3>{title}</h3><small>Há {index+3} horas</small></div></SmartLink>)}</div>{configuration.linkLabel&&<SmartLink className="pl-outline-button" to={configuration.linkUrl||'/noticias'}>{configuration.linkLabel}</SmartLink>}</section>
 }

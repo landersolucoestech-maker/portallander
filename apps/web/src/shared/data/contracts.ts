@@ -64,6 +64,25 @@ export interface AdvertisingFormat{
  active:boolean
  order:number
 }
+export interface EditorialAdConfig{
+ active:boolean
+ label:string
+ title:string
+ subtitle:string
+ buttonLabel:string
+ buttonUrl:string
+ openInNewTab:boolean
+ image:string
+ imageAlt:string
+ background:string
+ advertiser:string
+ campaign:string
+ startDate:string
+ endDate:string
+ height:number
+ contentWidth:number
+ align:'left'|'center'|'right'
+}
 
 export interface SocialChannel{
  id:EntityId

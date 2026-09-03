@@ -16,7 +16,6 @@ export const mockSettingsSeed:SettingsSeed={
   {id:'google',name:'Google',category:'Marketing & Social',description:'Google Analytics, Search Console, Google Ads e YouTube — tráfego, anúncios, SEO e desempenho de vídeos',status:'available',logo:'G',actionLabel:'Conectar'},
   {id:'spotify',name:'Spotify',category:'Marketing & Social',description:'Spotify Ads — ouvintes, streams, seguidores e campanhas',status:'available',logo:'S',actionLabel:'Conectar'},
   {id:'nfe',name:'NF-e / SEFAZ',category:'Financeiro & Fiscal',description:'Emissão de NF-e com certificado digital e credenciais SEFAZ da sua empresa',status:'available',logo:'NF',actionLabel:'Configurar'},
-  {id:'website',name:'Website / Leads',category:'CRM & Captação',description:'Captação de leads via Pixel, Webhooks e formulários integrados ao CRM',status:'available',logo:'W',actionLabel:'Configurar'},
  ],
  users:[
   {id:'u1',name:'Deyvisson Lander',email:'admin@portallander.com.br',role:'Administrador Master',phone:'(33) 99999-9999',createdAt:'2026-08-01',status:'ativo'},

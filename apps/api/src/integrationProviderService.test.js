@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import {integrationProviderConfig,integrationRuntimeStatus,normalizeWhatsappRecipient} from './integrationProviderService.js'
+import {autentiqueProvider,integrationProviderConfig,integrationRuntimeStatus,normalizeWhatsappRecipient} from './integrationProviderService.js'
 
 test('integration provider config requires complete WhatsApp credentials',()=>{
   const partial=integrationProviderConfig({WHATSAPP_ACCESS_TOKEN:'token',WHATSAPP_PHONE_NUMBER_ID:'123'})
@@ -13,6 +13,11 @@ test('integration provider config requires complete WhatsApp credentials',()=>{
 test('Autentique is configured only when API token exists',()=>{
   assert.equal(integrationProviderConfig({}).autentique.configured,false)
   assert.equal(integrationProviderConfig({AUTENTIQUE_API_TOKEN:'secret'}).autentique.configured,true)
+})
+
+test('Autentique refuses missing or invalid PDFs before contacting provider',async()=>{
+  await assert.rejects(()=>autentiqueProvider.createDocument({name:'Contrato',signers:[{email:'signer@example.com'}]}),error=>error?.code==='AUTENTIQUE_DOCUMENT_FILE_REQUIRED')
+  await assert.rejects(()=>autentiqueProvider.createDocument({name:'Contrato',signers:[{email:'signer@example.com'}],file:{filename:'fake.pdf',mimeType:'application/pdf',buffer:Buffer.from('not-pdf')}}),error=>error?.code==='AUTENTIQUE_DOCUMENT_FILE_INVALID')
 })
 
 test('WhatsApp recipient is normalized to digits',()=>{

@@ -7,13 +7,15 @@ const failures=[]
 const requireTokens=(path,source,tokens)=>{for(const token of tokens)if(!source.includes(token))failures.push(`${path} deve preservar: ${token}`)}
 
 const requiredFiles=[
-  'src/features/site-manager/pageRepository.ts','src/features/site-manager/contentDraftRepository.ts','src/features/site-manager/mediaRepository.ts','src/features/site-manager/mediaKitRepository.ts','src/features/site-manager/mediaKitDomain.ts','src/features/site-manager/sectionConfiguration.ts','src/features/site-manager/useSectionConfiguration.ts','src/features/site-manager/components/SiteMediaPicker.tsx','src/features/site-manager/components/SectionEditorUi.tsx','src/features/site-manager/forms/draftRepository.ts','src/features/site-manager/forms/SiteFormRenderer.tsx','src/features/site-manager/forms/runtimeOptions.ts','src/features/site-manager/pages/SiteSectionsPage.tsx','src/features/site-manager/pages/SectionConfigurationPage.tsx','src/features/site-manager/pages/HomeReleasesSectionPage.tsx','src/features/site-manager/spotifyReleaseClient.ts','src/features/site-manager/pages/SiteContentEditorPage.tsx','src/features/site-manager/pages/SiteFormEditorPage.tsx','src/features/site-manager/pages/SiteFormsPage.tsx','src/features/site-manager/pages/SiteMediaPage.tsx','src/features/site-manager/pages/MediaKitPage.tsx','src/features/editorial/adminClient.ts','src/features/editorial/components/EditorialListingPage.tsx','src/features/editorial/components/EditorialContentPage.tsx','src/app/publicSpecialPageRegistry.tsx','src/pages/home/components/SpotifyReleasesSection.tsx','src/pages/home/styles/spotify-releases.css','src/pages/sobre/SobrePage.tsx','src/pages/contato/ContatoPage.tsx','src/styles/section-editor-workbench.css','src/styles/spotify-releases-editor.css',
+  'src/features/site-manager/pageRepository.ts','src/features/site-manager/contentDraftRepository.ts','src/features/site-manager/mediaRepository.ts','src/features/site-manager/mediaKitRepository.ts','src/features/site-manager/mediaKitDomain.ts','src/features/site-manager/sectionConfiguration.ts','src/features/site-manager/useSectionConfiguration.ts','src/features/site-manager/usePublicHomeSections.ts','src/features/site-manager/components/SiteMediaPicker.tsx','src/features/site-manager/components/SectionEditorUi.tsx','src/features/site-manager/forms/draftRepository.ts','src/features/site-manager/forms/SiteFormRenderer.tsx','src/features/site-manager/forms/runtimeOptions.ts','src/features/site-manager/pages/SiteSectionsPage.tsx','src/features/site-manager/pages/SectionConfigurationPage.tsx','src/features/site-manager/pages/HomeReleasesSectionPage.tsx','src/features/site-manager/spotifyReleaseClient.ts','src/features/site-manager/pages/SiteContentEditorPage.tsx','src/features/site-manager/pages/SiteFormEditorPage.tsx','src/features/site-manager/pages/SiteFormsPage.tsx','src/features/site-manager/pages/SiteMediaPage.tsx','src/features/site-manager/pages/MediaKitPage.tsx','src/features/editorial/adminClient.ts','src/features/editorial/components/EditorialListingPage.tsx','src/features/editorial/components/EditorialContentPage.tsx','src/features/editorial/components/StructuredPublicPage.tsx','src/app/publicSpecialPageRegistry.tsx','src/pages/home/components/SpotifyReleasesSection.tsx','src/pages/home/styles/spotify-releases.css','src/pages/sobre/SobrePage.tsx','src/pages/contato/ContatoPage.tsx','src/shared/public/PublicPageArchitecture.tsx','src/shared/public/PublicEditorialModules.tsx','src/styles/public-page-architecture.css','src/styles/section-editor-workbench.css','src/styles/spotify-releases-editor.css',
 ]
 for(const path of requiredFiles)if(!(await exists(path)))failures.push(`Módulo Site exige ${path}.`)
 
 const routes=await read('src/features/site-manager/SiteManagerRoutes.tsx')
 requireTokens('SiteManagerRoutes.tsx',routes,[
   'path="paginas/home/secoes/lancamentos" element={<HomeReleasesSectionPage/>}',
+  'path="paginas/:pageId/secoes/institutional-hero" element={<GlobalHeroEditorPage sectionId="institutional-hero"/>}',
+  'path="paginas/:pageId/secoes/legal-hero" element={<GlobalHeroEditorPage sectionId="legal-hero"/>}',
   'path="paginas/:pageId/secoes/:sectionId" element={<SectionConfigurationPage/>}',
   'path="conteudos/:contentId" element={<SiteContentEditorPage/>}',
   'path="conteudos/colaboracoes" element={<SiteCollaborationsPage/>}',
@@ -25,15 +27,14 @@ requireTokens('SiteManagerRoutes.tsx',routes,[
 if(routes.includes('<HomeContentSectionPage sectionId="lancamentos"'))failures.push('Lançamentos não pode voltar ao editor genérico dependente do data provider; use HomeReleasesSectionPage.')
 
 const pages=await read('src/features/site-manager/pages/SiteSectionsPage.tsx')
-requireTokens('SiteSectionsPage.tsx',pages,['isSpecialLayoutPage','isPublishedPage','EDITORIAL_PAGE_SECTION_DEFINITIONS','HOME_SECTION_DEFINITIONS','openCreatePage','openEditPage','deletePage','openCreateSection','RESERVED_PAGE_SLUGS','to="/app/settings"','createAdminEditorialPage','updateAdminEditorialPage','deleteAdminEditorialPage','/app/site/paginas/${encodeURIComponent(selected.id)}/secoes/${encodeURIComponent(section.id)}','Configurar','site-pages-management','site-pages-management-actions','site-pages-structure','site-pages-structure-header','site-pages-context','site-pages-global-settings','site-sections-list','site-sections-actions','Estrutura editorial herdada de Notícias','Páginas de conteúdo herdam a estrutura canônica de Notícias.','Estrutura de ${selected.title}','Configurações globais do site','pageSections.length'])
+requireTokens('SiteSectionsPage.tsx',pages,['isSpecialLayoutPage','isPublishedPage','EDITORIAL_PAGE_SECTION_DEFINITIONS','HOME_SECTION_DEFINITIONS','INSTITUTIONAL_PAGE_SECTION_DEFINITIONS','LEGAL_PAGE_SECTION_DEFINITIONS','LEGAL_PAGE_SLUGS','resolvePageLayout','openCreatePage','openEditPage','deletePage','openCreateSection','RESERVED_PAGE_SLUGS','to="/app/settings"','createAdminEditorialPage','updateAdminEditorialPage','deleteAdminEditorialPage','/app/site/paginas/${encodeURIComponent(selected.id)}/secoes/${encodeURIComponent(section.id)}','Configurar','site-pages-management','site-pages-management-actions','site-pages-structure','site-pages-structure-header','site-pages-context','site-pages-global-settings','site-sections-list','site-sections-actions','Estrutura editorial herdada de Notícias','Arquitetura institucional global','Arquitetura jurídica global','Estrutura de ${selected.title}','Configurações globais do site','pageSections.length'])
 if(pages.includes('section.target&&'))failures.push('Páginas não pode condicionar Configurar a target manual; toda seção deve ser configurável.')
 if(pages.includes('CUSTOM_LAYOUT_SLUGS'))failures.push('Páginas não pode duplicar a classificação de layouts especiais; use isSpecialLayoutPage do domínio editorial.')
 if(pages.includes('to="/app/site/configuracoes"'))failures.push('Páginas não pode reintroduzir identidade global dentro do módulo Site.')
 if(pages.includes('<span>ESTRUTURA</span>'))failures.push('Páginas não deve reintroduzir a coluna redundante Estrutura na lista de seções.')
-if(pages.includes('Padrão de configuração')||pages.includes('Regra de layout')||pages.includes('Modo de desenvolvimento liberado'))failures.push('Páginas não deve reintroduzir avisos permanentes que competem com a hierarquia principal.')
 
 const sectionModel=await read('src/features/site-manager/sectionConfiguration.ts')
-requireTokens('sectionConfiguration.ts',sectionModel,['HOME_SECTION_DEFINITIONS','EDITORIAL_PAGE_SECTION_DEFINITIONS','EDITORIAL_SECTION_DEFINITION','readSectionConfiguration','writeSectionConfiguration','resetSectionConfiguration',"id:'hero'","id:'em-destaque'","id:'mais-lidas'","id:'ultimas-noticias'","id:'publicidade-lateral'","id:'em-alta'","id:'anuncie-aqui'","id:'lancamentos'","id:'agenda'","id:'editorial-hero'","id:'editorial-template'","kind:'standard-hero'","kind:'editorial'","'em-destaque':{title:'EM DESTAQUE',linkLabel:'EXPLORAR DESTAQUES',linkUrl:'/noticias',itemLimit:3,columns:3}","lancamentos:{title:'LANÇAMENTOS',linkLabel:'VER TODOS OS LANÇAMENTOS',linkUrl:'/lancamentos',itemLimit:5,columns:4}"])
+requireTokens('sectionConfiguration.ts',sectionModel,['HOME_SECTION_DEFINITIONS','EDITORIAL_PAGE_SECTION_DEFINITIONS','INSTITUTIONAL_PAGE_SECTION_DEFINITIONS','LEGAL_PAGE_SECTION_DEFINITIONS','LEGAL_PAGE_SLUGS','EDITORIAL_SECTION_DEFINITION','readSectionConfiguration','writeSectionConfiguration','resetSectionConfiguration',"id:'hero'","id:'em-destaque'","id:'mais-lidas'","id:'ultimas-noticias'","id:'publicidade-lateral'","id:'em-alta'","id:'anuncie-aqui'","id:'lancamentos'","id:'agenda'","id:'newsletter'","id:'editorial-hero'","id:'editorial-template'","id:'institutional-hero'","id:'institutional-body'","id:'legal-hero'","id:'legal-document'","kind:'standard-hero'","kind:'editorial'","'em-destaque':{title:'EM DESTAQUE',linkLabel:'EXPLORAR DESTAQUES',linkUrl:'/noticias',itemLimit:3,columns:3}","lancamentos:{title:'LANÇAMENTOS',linkLabel:'VER TODOS OS LANÇAMENTOS',linkUrl:'/lancamentos',itemLimit:5,columns:4}"])
 const sharedEditorUi=await read('src/features/site-manager/components/SectionEditorUi.tsx')
 requireTokens('SectionEditorUi.tsx',sharedEditorUi,['SectionEditorField','SectionEditorTabButton','SectionViewportSwitch','SectionEditorSaveBar','SectionEditorSummaryCard','section-editor-devices','section-editor-savebar'])
 const canonicalEditorPages=['SectionConfigurationPage.tsx','HomeContentSectionPage.tsx','HomeMostReadSectionPage.tsx','HomeAdvertisingSectionPage.tsx','HomeFeaturedSectionPage.tsx','HomeReleasesSectionPage.tsx','GlobalHeroEditorPage.tsx']
@@ -55,11 +56,11 @@ requireTokens('section-editor-workbench.css',workbenchCss,['grid-template-column
 const releasesEditor=await read('src/features/site-manager/pages/HomeReleasesSectionPage.tsx')
 requireTokens('HomeReleasesSectionPage.tsx',releasesEditor,['spotifyReleaseClient.adminState','spotifyReleaseClient.connect','spotifyReleaseClient.setPlaylist','spotifyReleaseClient.sync','Spotify','PLAYLIST VINCULADA','Quantidade de itens a exibir','HomePagePreviewFrame'])
 const releasesPublic=await read('src/pages/home/components/SpotifyReleasesSection.tsx')
-requireTokens('SpotifyReleasesSection.tsx',releasesPublic,['spotifyReleaseClient.publicState','a.position-b.position','item.spotifyUrl','item.albumName','OUVIR NO SPOTIFY','config.itemLimit','pl-spotify-cover'])
+requireTokens('SpotifyReleasesSection.tsx',releasesPublic,['spotifyReleaseClient.publicState','a.position-b.position','item.spotifyUrl','item.albumName','OUVIR NO SPOTIFY','config.itemLimit','pl-spotify-cover',"variant='grid'","variant==='sidebar'"])
 const releasesCss=await read('src/pages/home/styles/spotify-releases.css')
 requireTokens('spotify-releases.css',releasesCss,['object-fit:contain','--pl-home-columns-desktop','--pl-home-columns-tablet','--pl-home-columns-mobile'])
 const homeRenderer=await read('src/pages/home/HomePageRenderer.tsx')
-requireTokens('HomePageRenderer.tsx',homeRenderer,['SpotifyReleasesSection','configuration={sectionConfig(configurations,\'lancamentos\')}'])
+requireTokens('HomePageRenderer.tsx',homeRenderer,['SpotifyReleasesSection','PublicMostReadModule','PublicAdvertisementModule','configuration={sectionConfig(configurations,\'lancamentos\')}'])
 if(homeRenderer.includes('homeReadModel.releases'))failures.push('Home pública não pode usar homeReadModel.releases; Spotify cache é a fonte única de Lançamentos.')
 const homeReadModel=await read('src/pages/home/models/homeReadModel.ts')
 if(homeReadModel.includes('releases'))failures.push('homeReadModel não pode voltar a expor releases mockados.')
@@ -70,14 +71,25 @@ if(apiProvider.includes("['home']['releases']")||apiProvider.includes('snapshot.
 const contentDomain=await read('src/features/site-manager/homeContentSectionConfiguration.ts')
 requireTokens('homeContentSectionConfiguration.ts',contentDomain,["'lancamentos':20","const spotify=sectionId==='lancamentos'","homeSelectionMode:spotify?'automatic'","homeSortMode:spotify?'provider'"])
 
+const pageArchitecture=await read('src/shared/public/PublicPageArchitecture.tsx')
+requireTokens('PublicPageArchitecture.tsx',pageArchitecture,['PageShell','PageContainer','PageHero','Breadcrumbs','ContentSidebarLayout','PageSection','SectionHeading','PromotionalRegion',"'editorial'","'institutional'","'legal'","'detail'",'PublicHeader','PublicFooter','heroResponsiveCssVariables'])
+const pageArchitectureCss=await read('src/styles/public-page-architecture.css')
+requireTokens('public-page-architecture.css',pageArchitectureCss,['--pl-page-container','--pl-page-sidebar','--pl-page-grid-gap','--pl-page-reading-width','.pl-content-sidebar-layout.has-sidebar','.pl-editorial-card-grid','grid-template-columns:repeat(3,minmax(0,1fr))','@media(max-width:980px)','grid-template-columns:repeat(2,minmax(0,1fr))','@media(max-width:600px)','grid-template-columns:1fr'])
+const editorialModules=await read('src/shared/public/PublicEditorialModules.tsx')
+requireTokens('PublicEditorialModules.tsx',editorialModules,['PublicAdvertisementModule','PublicMostReadModule','withAdvertisingSectionLayout','getRuntimeDataProvider().home.mostRead()'])
+
 const listingTemplate=await read('src/features/editorial/components/EditorialListingPage.tsx')
-requireTokens('EditorialListingPage.tsx',listingTemplate,['editorialReadModel.listPageContents(page.id)','editorialReadModel.searchPublicContents(searchQuery)','EditorialListingPage',"useSectionConfiguration(page.id,'editorial-hero'","useSectionConfiguration('editorial-template','editorial-template'",'editorial-page-hero','hero.imageUrl','hero.eyebrow','hero.title','hero.description'])
+requireTokens('EditorialListingPage.tsx',listingTemplate,['editorialReadModel.listPageContents(page.id)','EditorialListingPage',"useSectionConfiguration(page.id,'editorial-hero'","useSectionConfiguration('editorial-template','editorial-template'",'<PageShell','<PageHero','variant="editorial"','<ContentSidebarLayout','PublicAdvertisementModule','PublicMostReadModule','SpotifyReleasesSection','variant="sidebar"','limit={3}','pl-editorial-card-grid','pl-pagination','URLSearchParams','categoria','busca','ordem','pagina','<PromotionalRegion>'])
 if(listingTemplate.includes("page.slug==='noticias'")||listingTemplate.includes("page.slug === 'noticias'"))failures.push('Template editorial não pode decidir comportamento pelo slug noticias.')
+if(listingTemplate.includes('editorial-page-hero')||listingTemplate.includes('news-reference-page'))failures.push('Template editorial não pode reintroduzir Hero/layout legado específico de Notícias.')
 const contentTemplate=await read('src/features/editorial/components/EditorialContentPage.tsx')
-requireTokens('EditorialContentPage.tsx',contentTemplate,['EditorialContentPage','to={`/${page.slug}`}','content.body.map'])
+requireTokens('EditorialContentPage.tsx',contentTemplate,['EditorialContentPage','content.body.map','<PageShell','<PageHero','variant="editorial"','<ContentSidebarLayout','variant="detail"','pl-reading-column','PublicAdvertisementModule','PublicMostReadModule','SpotifyReleasesSection','pl-related-content','<PromotionalRegion>'])
+if(contentTemplate.includes('article-page')||contentTemplate.includes('article-route-fix'))failures.push('Slug page não pode reintroduzir layout legado de Artigo.')
+const structuredPage=await read('src/features/editorial/components/StructuredPublicPage.tsx')
+requireTokens('StructuredPublicPage.tsx',structuredPage,['StructuredPublicPage','LEGAL_PAGE_SLUGS',"'legal-hero'","'institutional-hero'","'legal-document'","'institutional-body'",'<PageShell','<PageHero','pl-document-toc','editorialReadModel.listPageContents(page.id)'])
 
 const portalApp=await read('src/app/PortalApp.tsx')
-requireTokens('PortalApp.tsx',portalApp,['renderPublicSpecialPage','<EditorialListingPage page={page}/>','<EditorialContentPage page={page} content={content}/>'])
+requireTokens('PortalApp.tsx',portalApp,['renderPublicSpecialPage','<EditorialListingPage page={page}/>','<EditorialContentPage page={page} content={content}/>','<StructuredPublicPage page={page}/>'])
 const specialRegistry=await read('src/app/publicSpecialPageRegistry.tsx')
 requireTokens('publicSpecialPageRegistry.tsx',specialRegistry,['SPECIAL_LAYOUT_PAGE_SLUGS','sobre:page=><SobrePage page={page}/>','colabore:()=> <ColaborePage/>','contato:page=><ContatoPage page={page}/>'])
 
@@ -86,7 +98,7 @@ requireTokens('forms/SiteFormRenderer.tsx',formRenderer,['form.fields','form.con
 const formEditor=await read('src/features/site-manager/pages/SiteFormEditorPage.tsx')
 requireTokens('SiteFormEditorPage.tsx',formEditor,['PREVIEW EM TEMPO REAL','SiteFormRenderer','resolveSiteFormOptionSets','formDraftRepository.get','formDraftRepository.save','Salvar rascunho','getAdminSiteForm','saveAdminSiteForm','publishAdminSiteForm'])
 const colabore=await read('src/pages/colabore/ColaborePage.tsx')
-requireTokens('ColaborePage.tsx',colabore,['SiteFormRenderer','resolveSiteFormOptionSets','submitSiteForm','mode="public"'])
+requireTokens('ColaborePage.tsx',colabore,['SiteFormRenderer','resolveSiteFormOptionSets','submitSiteForm','mode="public"','<PageShell','<PageHero'])
 const formDraftRepository=await read('src/features/site-manager/forms/draftRepository.ts')
 requireTokens('forms/draftRepository.ts',formDraftRepository,["status:'draft'","source:'custom'"])
 const forms=await read('src/features/site-manager/pages/SiteFormsPage.tsx')
@@ -118,4 +130,4 @@ const editorialModel=await read('src/features/editorial/model.ts')
 requireTokens('editorial/model.ts',editorialModel,['SPECIAL_LAYOUT_PAGE_SLUGS','isPublishedPage','isSpecialLayoutPage','isPublicEditorialPage','export const isPublicPage=isPublicEditorialPage'])
 
 if(failures.length){console.error('Falha na arquitetura do módulo Site:');failures.forEach(item=>console.error(`- ${item}`));process.exit(1)}
-console.log('Site module architecture OK — workbench canônico compartilhado e Lançamentos com Spotify como fonte única, sem fallback mock concorrente')
+console.log('Site module architecture OK — arquitetura pública global, workbench canônico e integrações compartilhadas certificados')

@@ -20,3 +20,23 @@ test('full-page viewport controls the Hero image adjustment breakpoint',async({p
   await expect(rail.getByText(/Ajustes avançados · Mobile/)).toBeVisible()
   await expect(rail.getByText(/Automático · herdado|Sobrescrito · Mobile/).first()).toBeVisible()
 })
+
+test('unsaved Hero draft is mirrored live into the full-page iframe',async({page})=>{
+  await page.setViewportSize({width:1440,height:900})
+  await page.goto(`${base}#/app/site/paginas/home/secoes/hero`,{waitUntil:'domcontentloaded'})
+
+  const preview=page.locator('.home-hero-full-preview')
+  await preview.getByRole('button',{name:'Mobile'}).click()
+
+  const iframe=preview.locator('iframe')
+  await expect(iframe).toBeVisible()
+  const frame=page.frames().find(item=>item.url().includes('#/_preview/home'))
+  expect(frame).toBeTruthy()
+  await expect(frame!.locator('.editorial-hero')).toBeVisible()
+
+  await page.locator('.home-hero-config-rail .hero-cms-preview-stage .editorial-hero').evaluate(element=>{
+    element.setAttribute('data-live-e2e','unsaved-responsive-draft')
+  })
+
+  await expect(frame!.locator('.editorial-hero')).toHaveAttribute('data-live-e2e','unsaved-responsive-draft')
+})

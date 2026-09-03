@@ -57,6 +57,7 @@ const defaults:Record<string,Partial<SectionConfiguration>>={
   'anuncie-aqui':{title:'ANUNCIE AQUI',description:'Sua marca no ritmo certo.',linkLabel:'SAIBA MAIS',linkUrl:'/anuncie',itemLimit:1,columns:1},
   lancamentos:{title:'LANÇAMENTOS',linkLabel:'VER TODOS OS LANÇAMENTOS',linkUrl:'/lancamentos',itemLimit:5,columns:4},
   agenda:{title:'AGENDA',linkLabel:'VER DESTAQUES',linkUrl:'/destaques',itemLimit:4,columns:1},
+  newsletter:{title:'RECEBA AS PRINCIPAIS NOTÍCIAS',description:'DIRETO NO SEU E-MAIL!',eyebrow:'Seu melhor e-mail',linkLabel:'INSCREVER-SE',itemLimit:1,columns:1,background:'#111111',textColor:'#ffffff',accentColor:'#e50914'},
   'editorial-hero':{eyebrow:'AGORA NO PORTAL',columns:1,background:'#020202',textColor:'#ffffff',accentColor:'#e50914'},
   'editorial-summary':{title:'RESUMO DA LISTAGEM',description:'Exibe a quantidade de conteúdos encontrados antes do grid.',itemLimit:1,columns:1,background:'#ffffff',textColor:'#111111',accentColor:'#e50914'},
   'editorial-ad':{title:'PUBLICIDADE EDITORIAL',eyebrow:'PUBLICIDADE',description:'Espaço publicitário integrado à listagem editorial.',itemLimit:1,columns:1,background:'#090909',textColor:'#ffffff',accentColor:'#e50914'},
@@ -126,6 +127,7 @@ export const HOME_SECTION_DEFINITIONS:SectionDefinition[]=[
   {id:'anuncie-aqui',name:'Anuncie Aqui',summary:'Chamada comercial para anunciantes.',kind:'cta',locked:true},
   {id:'lancamentos',name:'Lançamentos',summary:'Playlist Spotify sincronizada e apresentada na ordem configurada.',kind:'releases',locked:true},
   {id:'agenda',name:'Agenda',summary:'Agenda de eventos e destaques.',kind:'agenda',locked:true},
+  {id:'newsletter',name:'Newsletter',summary:'Captação de e-mails exibida acima do rodapé público.',kind:'custom',locked:true},
 ]
 
 export const EDITORIAL_PAGE_SECTION_DEFINITIONS:SectionDefinition[]=[

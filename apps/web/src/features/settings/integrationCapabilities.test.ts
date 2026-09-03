@@ -7,18 +7,19 @@ describe('integration capability registry',()=>{
   })
 
   it('does not claim unfinished providers are fully implemented',()=>{
-    expect(INTEGRATION_CAPABILITIES.autentique.state).toBe('planned')
-    expect(INTEGRATION_CAPABILITIES.meta.state).toBe('planned')
-    expect(INTEGRATION_CAPABILITIES.tiktok.state).toBe('planned')
-    expect(INTEGRATION_CAPABILITIES.google.state).toBe('planned')
-    expect(INTEGRATION_CAPABILITIES.nfe.state).toBe('planned')
-    expect(INTEGRATION_CAPABILITIES.whatsapp.state).toBe('planned')
-    expect(INTEGRATION_CAPABILITIES.spotify.state).toBe('partial')
-    expect(INTEGRATION_CAPABILITIES.resend.state).toBe('partial')
+    for(const id of REQUIRED_INTEGRATION_PROVIDER_IDS){
+      expect(INTEGRATION_CAPABILITIES[id].state).not.toBe('implemented')
+    }
+    for(const id of ['meta','tiktok','google','nfe'] as const){
+      expect(INTEGRATION_CAPABILITIES[id].state).toBe('planned')
+    }
+    for(const id of ['autentique','whatsapp','spotify','resend'] as const){
+      expect(INTEGRATION_CAPABILITIES[id].state).toBe('partial')
+    }
   })
 
   it('documents both implemented and missing scopes for partial providers',()=>{
-    for(const id of ['spotify','resend'] as const){
+    for(const id of ['autentique','whatsapp','spotify','resend'] as const){
       expect(INTEGRATION_CAPABILITIES[id].implementedCapabilities.length).toBeGreaterThan(0)
       expect(INTEGRATION_CAPABILITIES[id].missingCapabilities.length).toBeGreaterThan(0)
     }

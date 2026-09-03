@@ -4,7 +4,7 @@ import { createPortal } from 'react-dom'
 
 type TableRowActionMenuProps={
   label:string
-  onView:()=>void
+  onView?:()=>void
   onEdit?:()=>void
   onDelete?:()=>void
   onDuplicate?:()=>void
@@ -30,7 +30,7 @@ export function TableRowActionMenu({label,onView,onEdit,onDelete,onDuplicate,vie
     const anchorRect=anchor.getBoundingClientRect()
     const menuRect=menu.current?.getBoundingClientRect()
     const menuWidth=Math.max(menuRect?.width??148,148)
-    const menuHeight=menuRect?.height??148
+    const menuHeight=menuRect?.height??116
     const availableBelow=window.innerHeight-anchorRect.bottom-VIEWPORT_GUTTER
     const openUp=availableBelow<menuHeight&&anchorRect.top>menuHeight+VIEWPORT_GUTTER
     const top=openUp
@@ -94,7 +94,7 @@ export function TableRowActionMenu({label,onView,onEdit,onDelete,onDuplicate,vie
           ref={menu}
           style={{position:'fixed',top:position.top,left:position.left,right:'auto',zIndex:1000}}
         >
-          <button type="button" role="menuitem" onClick={()=>run(onView)}>{viewLabel}</button>
+          {onView&&<button type="button" role="menuitem" onClick={()=>run(onView)}>{viewLabel}</button>}
           {onEdit&&<button type="button" role="menuitem" onClick={()=>run(onEdit)}>Editar</button>}
           {onDelete&&<button type="button" role="menuitem" className="danger" disabled={deleteDisabled} onClick={()=>run(onDelete)}>Excluir</button>}
           {onDuplicate&&<button type="button" role="menuitem" onClick={()=>run(onDuplicate)}>Duplicar</button>}

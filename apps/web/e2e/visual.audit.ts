@@ -84,19 +84,21 @@ for(const viewport of viewports){
 test.describe('site architecture behavior',()=>{
  test.use({viewport:{width:1440,height:900}})
 
- test('noticias and cultura share the editorial listing template',async({page})=>{
+ test('noticias and cultura share the canonical editorial listing template',async({page})=>{
    for(const route of ['/noticias','/cultura']){
      await openRoute(page,route)
-     await expect(page.locator('.news-reference-page')).toBeVisible()
-     await expect(page.locator('.editorial-listing-grid')).toBeVisible()
+     await expect(page.locator('.editorial-listing-page')).toBeVisible()
+     await expect(page.locator('.pl-content-sidebar-layout.is-editorial')).toBeVisible()
+     await expect(page.locator('.pl-editorial-card-grid')).toBeVisible()
    }
  })
 
- test('noticias and cultura slugs share the individual content template',async({page})=>{
+ test('noticias and cultura slugs share the canonical detail template',async({page})=>{
    for(const route of ['/noticias/mercado-criativo-em-expansao','/cultura/cidade-em-movimento']){
      await openRoute(page,route)
-     await expect(page.locator('.article-page')).toBeVisible()
-     await expect(page.locator('.article-layout')).toBeVisible()
+     await expect(page.locator('.editorial-detail-page')).toBeVisible()
+     await expect(page.locator('.pl-content-sidebar-layout.is-detail')).toBeVisible()
+     await expect(page.locator('.pl-reading-column.pl-article-content')).toBeVisible()
    }
  })
 
@@ -104,7 +106,7 @@ test.describe('site architecture behavior',()=>{
    for(const [route,selector] of [['/sobre','.sobre-page'],['/colabore','.colabore-page'],['/contato','.contato-page']] as const){
      await openRoute(page,route)
      await expect(page.locator(selector)).toBeVisible()
-     await expect(page.locator('.news-reference-page')).toHaveCount(0)
+     await expect(page.locator('.editorial-listing-page')).toHaveCount(0)
    }
  })
 

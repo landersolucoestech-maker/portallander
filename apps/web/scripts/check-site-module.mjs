@@ -53,7 +53,7 @@ const workbenchCss=await read('src/styles/section-editor-workbench.css')
 requireTokens('section-editor-workbench.css',workbenchCss,['grid-template-columns:minmax(350px,390px)','overflow-y:scroll','section-editor-tab.active','section-editor-devices button.active','section-editor-savebar'])
 
 const releasesEditor=await read('src/features/site-manager/pages/HomeReleasesSectionPage.tsx')
-requireTokens('HomeReleasesSectionPage.tsx',releasesEditor,['spotifyReleaseClient.adminState','spotifyReleaseClient.connect','spotifyReleaseClient.setPlaylist','spotifyReleaseClient.sync','Spotify','PLAYLIST VINCULADA','Quantidade de itens a exibir','homeSelectionMode:\'automatic\'','homeSortMode:\'provider\'','HomePagePreviewFrame'])
+requireTokens('HomeReleasesSectionPage.tsx',releasesEditor,['spotifyReleaseClient.adminState','spotifyReleaseClient.connect','spotifyReleaseClient.setPlaylist','spotifyReleaseClient.sync','Spotify','PLAYLIST VINCULADA','Quantidade de itens a exibir','HomePagePreviewFrame'])
 const releasesPublic=await read('src/pages/home/components/SpotifyReleasesSection.tsx')
 requireTokens('SpotifyReleasesSection.tsx',releasesPublic,['spotifyReleaseClient.publicState','a.position-b.position','item.spotifyUrl','item.albumName','OUVIR NO SPOTIFY','config.itemLimit','pl-spotify-cover'])
 const releasesCss=await read('src/pages/home/styles/spotify-releases.css')

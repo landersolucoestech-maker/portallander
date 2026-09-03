@@ -1,6 +1,6 @@
 import {Image as ImageIcon,Save,Trash2,Upload} from 'lucide-react'
 import {useEffect,useMemo,useRef,useState} from 'react'
-import {readHeroBackground,writeHeroBackground,type HeroBackgroundConfig} from '../../../pages/home/models/heroBackgroundModel'
+import {readHeroBackground,type HeroBackgroundConfig} from '../../../pages/home/models/heroBackgroundModel'
 import {saveHeroBackgroundCmsState} from '../../../pages/home/models/heroCmsRepository'
 import {mediaRepository} from '../mediaRepository'
 import '../../../styles/hero-background-manager.css'
@@ -33,14 +33,20 @@ export function HeroBackgroundManager(){
   const [error,setError]=useState('')
   const fileRef=useRef<HTMLInputElement>(null)
   const temporaryUrl=useRef('')
-  const persistedRef=useRef<HeroBackgroundConfig>(initial)
-  const dirtyRef=useRef(false)
   const dirty=JSON.stringify(draft)!==JSON.stringify(persisted)
 
-  useEffect(()=>{persistedRef.current=persisted},[persisted])
-  useEffect(()=>{dirtyRef.current=dirty},[dirty])
+  useEffect(()=>{
+    const host=document.querySelector<HTMLElement>('.home-hero-section-workbench')
+    if(!host)return
+    host.style.setProperty('--hero-admin-preview-background-image',draft.url?`url(${JSON.stringify(draft.url)})`:'none')
+    host.style.setProperty('--hero-admin-preview-background-position',`${draft.positionX}% ${draft.positionY}%`)
+    return()=>{
+      host.style.removeProperty('--hero-admin-preview-background-image')
+      host.style.removeProperty('--hero-admin-preview-background-position')
+    }
+  },[draft.url,draft.positionX,draft.positionY])
+
   useEffect(()=>()=>{
-    if(dirtyRef.current)writeHeroBackground(persistedRef.current)
     if(temporaryUrl.current)URL.revokeObjectURL(temporaryUrl.current)
   },[])
 
@@ -48,14 +54,6 @@ export function HeroBackgroundManager(){
     if(!temporaryUrl.current)return
     URL.revokeObjectURL(temporaryUrl.current)
     temporaryUrl.current=''
-  }
-
-  const commitDraft=(updater:HeroBackgroundConfig|((current:HeroBackgroundConfig)=>HeroBackgroundConfig))=>{
-    setDraft(current=>{
-      const next=typeof updater==='function'?updater(current):updater
-      writeHeroBackground(next)
-      return next
-    })
   }
 
   const selectFile=async(file?:File)=>{
@@ -67,15 +65,15 @@ export function HeroBackgroundManager(){
       clearTemporaryUrl()
       const localUrl=URL.createObjectURL(file)
       temporaryUrl.current=localUrl
-      commitDraft(current=>({...current,url:localUrl,mediaId:'',fileName:file.name}))
+      setDraft(current=>({...current,url:localUrl,mediaId:'',fileName:file.name}))
       setUploading(true)
       const media=await mediaRepository.upload({file,alt:'Imagem de fundo da Hero Section'})
-      commitDraft(current=>({...current,url:media.url,mediaId:media.id,fileName:media.name||file.name}))
+      setDraft(current=>({...current,url:media.url,mediaId:media.id,fileName:media.name||file.name}))
       clearTemporaryUrl()
       setMessage('Upload concluído. A imagem já aparece no preview único e continua não publicada até você salvar.')
     }catch(caught){
       clearTemporaryUrl()
-      commitDraft(previous)
+      setDraft(previous)
       setError(caught instanceof Error?caught.message:'Não foi possível enviar a imagem.')
     }finally{
       setUploading(false)
@@ -85,14 +83,14 @@ export function HeroBackgroundManager(){
 
   const removeAssociation=()=>{
     clearTemporaryUrl()
-    commitDraft(current=>({...current,url:'',mediaId:'',fileName:''}))
+    setDraft(current=>({...current,url:'',mediaId:'',fileName:''}))
     setMessage('Imagem removida do estado em edição. O arquivo da biblioteca não foi excluído.')
     setError('')
   }
 
   const discard=()=>{
     clearTemporaryUrl()
-    commitDraft(persisted)
+    setDraft(persisted)
     setMessage('Alterações descartadas. A configuração publicada foi restaurada no preview único.')
     setError('')
   }
@@ -103,7 +101,7 @@ export function HeroBackgroundManager(){
     try{
       const state=await saveHeroBackgroundCmsState(draft)
       setPersisted(state.background)
-      commitDraft(state.background)
+      setDraft(state.background)
       setMessage('Imagem de fundo salva. A Home pública passa a usar esta configuração.')
     }catch(caught){
       setError(caught instanceof Error?caught.message:'Não foi possível persistir a imagem de fundo. A configuração publicada anterior foi preservada.')
@@ -124,8 +122,8 @@ export function HeroBackgroundManager(){
         {draft.url&&<button type="button" className="button outline hero-background-remove" disabled={uploading||saving} onClick={removeAssociation}><Trash2 size={15}/>Remover imagem</button>}
       </div>
       {adjusting&&draft.url&&<div className="hero-background-focal" aria-label="Ajuste do ponto focal">
-        <label><span>Posição horizontal · {Math.round(draft.positionX)}%</span><input type="range" min="0" max="100" value={draft.positionX} onChange={event=>commitDraft(current=>({...current,positionX:Number(event.target.value)}))}/></label>
-        <label><span>Posição vertical · {Math.round(draft.positionY)}%</span><input type="range" min="0" max="100" value={draft.positionY} onChange={event=>commitDraft(current=>({...current,positionY:Number(event.target.value)}))}/></label>
+        <label><span>Posição horizontal · {Math.round(draft.positionX)}%</span><input type="range" min="0" max="100" value={draft.positionX} onChange={event=>setDraft(current=>({...current,positionX:Number(event.target.value)}))}/></label>
+        <label><span>Posição vertical · {Math.round(draft.positionY)}%</span><input type="range" min="0" max="100" value={draft.positionY} onChange={event=>setDraft(current=>({...current,positionY:Number(event.target.value)}))}/></label>
         <small>O ponto focal define a região prioritária quando o cover precisar recortar a imagem. Desktop, Tablet e Mobile usam a mesma mídia.</small>
       </div>}
       {error&&<div className="hero-background-feedback error" role="alert">{error}</div>}

@@ -1,39 +1,80 @@
-import {Link,useLocation} from 'react-router-dom'
-import {useMemo,type CSSProperties} from 'react'
-import {heroResponsiveCssVariables} from '../../site-manager/sectionConfiguration'
+import {useMemo,type FormEvent} from 'react'
+import {Link,useLocation,useNavigate} from 'react-router-dom'
+import {withAdvertisingSectionLayout} from '../../site-manager/advertisingSectionLayout'
+import {defaultSectionConfiguration} from '../../site-manager/sectionConfiguration'
+import {usePublicHomeSections} from '../../site-manager/usePublicHomeSections'
 import {useSectionConfiguration} from '../../site-manager/useSectionConfiguration'
-import {PublicFooter,PublicHeader} from '../../../shared/public/PublicChrome'
+import {AdvertiseHereSection} from '../../../pages/home/components/AdvertiseHereSection'
+import {SpotifyReleasesSection} from '../../../pages/home/components/SpotifyReleasesSection'
+import {defaultHomeAdConfig} from '../../../pages/home/models/adModel'
+import {ContentSidebarLayout,PageContainer,PageHero,PageSection,PageShell,PromotionalRegion} from '../../../shared/public/PublicPageArchitecture'
+import {PublicAdvertisementModule,PublicMostReadModule} from '../../../shared/public/PublicEditorialModules'
 import {useEditorialSeo} from '../hooks/useEditorialSeo'
 import type {EditorialPage} from '../model'
 import {editorialReadModel} from '../repository'
-import '../../../styles/editorial-listing-layout.css'
+
+const normalize=(value:string)=>value.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('pt-BR').trim()
 
 export function EditorialListingPage({page}:{page:EditorialPage}){
   const location=useLocation()
+  const navigate=useNavigate()
+  const {sections:homeSections}=usePublicHomeSections()
   const heroFallback=useMemo(()=>({title:page.title.toUpperCase(),description:page.description,eyebrow:'AGORA NO PORTAL'}),[page.title,page.description])
   const hero=useSectionConfiguration(page.id,'editorial-hero',page.title,heroFallback)
   const summary=useSectionConfiguration(page.id,'editorial-summary','Resumo da Listagem')
   const advertising=useSectionConfiguration(page.id,'editorial-ad','Publicidade Editorial')
   const template=useSectionConfiguration('editorial-template','editorial-template','Conteúdos / Grid Editorial')
-  const searchQuery=new URLSearchParams(location.search).get('busca')?.trim()||''
-  const isSearchMode=Boolean(searchQuery)
-  const allContents=isSearchMode?editorialReadModel.searchPublicContents(searchQuery):editorialReadModel.listPageContents(page.id)
-  const contents=allContents.slice(0,Math.max(1,template.itemLimit||12))
-  const showAdvertising=advertising.active&&!isSearchMode
+  const params=useMemo(()=>new URLSearchParams(location.search),[location.search])
+  const searchQuery=params.get('busca')?.trim()||''
+  const category=params.get('categoria')?.trim()||'todos'
+  const sort=params.get('ordem')==='antigos'?'antigos':'recentes'
+  const currentPage=Math.max(1,Number(params.get('pagina'))||1)
+  const baseContents=editorialReadModel.listPageContents(page.id)
+  const categories=useMemo(()=>Array.from(new Set(baseContents.map(content=>content.tags[0]).filter((tag):tag is string=>Boolean(tag)))).sort((a,b)=>a.localeCompare(b,'pt-BR')),[baseContents])
+  const filteredContents=useMemo(()=>{
+    const query=normalize(searchQuery)
+    const filtered=baseContents.filter(content=>{
+      const categoryMatch=category==='todos'||normalize(content.tags[0]||'')===normalize(category)
+      const searchMatch=!query||normalize([content.title,content.subtitle,content.summary,content.author,...content.tags].join(' ')).includes(query)
+      return categoryMatch&&searchMatch
+    })
+    return [...filtered].sort((a,b)=>sort==='antigos'?(a.publishedAt||a.updatedAt).localeCompare(b.publishedAt||b.updatedAt):(b.publishedAt||b.updatedAt).localeCompare(a.publishedAt||a.updatedAt))
+  },[baseContents,category,searchQuery,sort])
+  const pageSize=Math.max(1,template.itemLimit||12)
+  const totalPages=Math.max(1,Math.ceil(filteredContents.length/pageSize))
+  const safePage=Math.min(currentPage,totalPages)
+  const contents=filteredContents.slice((safePage-1)*pageSize,safePage*pageSize)
+  const updateParams=(changes:Record<string,string|null>)=>{
+    const next=new URLSearchParams(location.search)
+    Object.entries(changes).forEach(([key,value])=>value&&value!=='todos'?next.set(key,value):next.delete(key))
+    navigate({pathname:location.pathname,search:next.toString()?`?${next.toString()}`:''})
+  }
+  const submitSearch=(event:FormEvent<HTMLFormElement>)=>{event.preventDefault();const value=String(new FormData(event.currentTarget).get('busca')||'').trim();updateParams({busca:value||null,pagina:null})}
   useEditorialSeo(page)
 
-  const heroResponsive=heroResponsiveCssVariables(hero) as CSSProperties
-  const heroStyle={...heroResponsive,background:hero.background,color:hero.imageUrl?'#fff':hero.textColor,textAlign:hero.textAlign,...(hero.imageUrl?{backgroundImage:`linear-gradient(rgba(0,0,0,.48),rgba(0,0,0,.48)),url(${hero.imageUrl})`,backgroundSize:'cover',backgroundPosition:'center',backgroundRepeat:'no-repeat'}:{})}
+  const mostRead=homeSections['mais-lidas']??defaultSectionConfiguration('mais-lidas','Mais Lidas')
+  const releases=homeSections.lancamentos??defaultSectionConfiguration('lancamentos','Lançamentos')
+  const advertiseHere=homeSections['anuncie-aqui']??defaultSectionConfiguration('anuncie-aqui','Anuncie Aqui')
+  const newsletter=homeSections.newsletter??defaultSectionConfiguration('newsletter','Newsletter')
+  const adLayout=withAdvertisingSectionLayout(advertiseHere,'anuncie-aqui')
 
-  return <div className="public-page news-reference-page"><PublicHeader/>
-    {hero.active&&<section className="public-standard-page-hero editorial-page-hero pl-responsive-hero" style={heroStyle}><div className="public-shell"><div className="news-page-intro-copy"><span style={{color:hero.accentColor}}>Início › {isSearchMode?'BUSCA':hero.eyebrow}</span><h1>{isSearchMode?'RESULTADOS':hero.title}</h1><p>{isSearchMode?`Resultados editoriais para “${searchQuery}”.`:hero.description}</p></div></div></section>}
-    <main className="pl-page public-shell" style={{background:template.background,color:template.textColor,textAlign:template.textAlign}}>
-      {!template.active&&!isSearchMode?<section className="editorial-empty-state" role="status"><h2>Seção editorial temporariamente oculta</h2><p>O grid editorial está desativado na configuração de Páginas.</p></section>:allContents.length===0?<section className="editorial-empty-state" role="status"><h2>{isSearchMode?'Nenhum resultado encontrado':'Nenhum conteúdo publicado ainda'}</h2><p>{isSearchMode?'Tente outro termo ou navegue pelas páginas editoriais do portal.':'Esta página está publicada, mas ainda não possui conteúdos disponíveis.'}</p>{isSearchMode&&<Link className="button outline" to={`/${page.slug}`}>Voltar para {page.title}</Link>}</section>:<>
-        {summary.active&&<div className="editorial-results-summary" role="status" style={{background:summary.background,color:summary.textColor,textAlign:summary.textAlign,borderColor:summary.accentColor}}>{isSearchMode?`${allContents.length} resultado${allContents.length===1?'':'s'} encontrado${allContents.length===1?'':'s'}`:`${allContents.length} conteúdo${allContents.length===1?'':'s'}`}</div>}
-        <div className={`editorial-content-layout${showAdvertising?' has-advertising':''}`}>
-          <div className="news-reference-grid editorial-listing-grid" style={{gridTemplateColumns:`repeat(${Math.max(1,Math.min(4,template.columns||3))},minmax(0,1fr))`}}>{contents.map(content=>{const contentPage=editorialReadModel.getPageById(content.pageId);const targetPage=contentPage?.slug||page.slug;return <Link className="pl-card news-reference-card" to={`/${targetPage}/${content.slug}`} key={content.id}><div className="pl-thumb has-image" style={{backgroundImage:`linear-gradient(180deg,transparent 55%,rgba(0,0,0,.72)),url(${content.coverImage||''})`}}>{content.tags[0]&&<span className="pl-badge">{content.tags[0]}</span>}</div><div className="pl-card-body news-reference-card-body"><h3>{content.title}</h3><p>{content.summary}</p><div className="pl-meta news-reference-meta"><span>{contentPage?.navigationLabel||'Editorial'}</span><span>{content.publishedAt?new Date(content.publishedAt).toLocaleDateString('pt-BR'):'Sem data'}</span><span>{content.author}</span></div></div></Link>})}</div>
-          {showAdvertising&&<aside className="editorial-advertising-sidebar" aria-label="Publicidade"><div className="editorial-advertising-card" style={{background:advertising.background,color:advertising.textColor}}>{advertising.imageUrl?<img className="editorial-advertising-image" src={advertising.imageUrl} alt={advertising.title||'Publicidade'}/>:<div className="editorial-advertising-placeholder">IMAGEM DA PUBLICIDADE</div>}<div className="editorial-advertising-copy">{advertising.eyebrow&&<small style={{color:advertising.accentColor}}>{advertising.eyebrow}</small>}{advertising.title&&<strong>{advertising.title}</strong>}{advertising.description&&<p>{advertising.description}</p>}{advertising.linkLabel&&(advertising.linkUrl?<Link className="editorial-advertising-link" style={{borderColor:advertising.accentColor,color:advertising.accentColor}} to={advertising.linkUrl}>{advertising.linkLabel}</Link>:<span className="editorial-advertising-link" style={{borderColor:advertising.accentColor,color:advertising.accentColor}}>{advertising.linkLabel}</span>)}</div></div></aside>}
-        </div>
-      </>}
-    </main><PublicFooter/></div>
+  return <PageShell className="news-reference-page" newsletterConfiguration={newsletter}>
+    <PageHero configuration={hero} variant="editorial" title={searchQuery?'RESULTADOS':undefined} description={searchQuery?`Resultados editoriais para “${searchQuery}”.`:undefined} breadcrumbs={[{label:'Início',to:'/'},{label:page.navigationLabel}]} />
+    <main style={{background:template.background,color:template.textColor,textAlign:template.textAlign}}>
+      <PageSection><PageContainer>
+        <ContentSidebarLayout variant="editorial" sidebar={<><PublicAdvertisementModule configuration={advertising} placement="editorial"/><PublicMostReadModule configuration={mostRead} limit={5}/><SpotifyReleasesSection configuration={releases} variant="sidebar" limit={3}/></>}>
+          <div className="pl-editorial-controls" aria-label="Filtros de notícias">
+            <div className="pl-category-filters" role="group" aria-label="Categorias"><button type="button" className={category==='todos'?'is-active':''} onClick={()=>updateParams({categoria:null,pagina:null})}>TODOS</button>{categories.map(item=><button type="button" key={item} className={normalize(category)===normalize(item)?'is-active':''} onClick={()=>updateParams({categoria:item,pagina:null})}>{item.toUpperCase()}</button>)}</div>
+            <div className="pl-editorial-control-row"><label className="pl-editorial-sort"><span className="sr-only">Ordenação</span><select value={sort} onChange={event=>updateParams({ordem:event.target.value==='antigos'?'antigos':null,pagina:null})}><option value="recentes">Mais recentes</option><option value="antigos">Mais antigos</option></select></label><form className="pl-editorial-search" role="search" onSubmit={submitSearch}><input name="busca" type="search" defaultValue={searchQuery} key={searchQuery} placeholder="Buscar notícias..." aria-label="Buscar notícias"/><button type="submit">BUSCAR</button></form></div>
+          </div>
+          {!template.active?<section className="editorial-empty-state" role="status"><h2>Seção editorial temporariamente oculta</h2><p>O grid editorial está desativado na configuração de Páginas.</p></section>:filteredContents.length===0?<section className="editorial-empty-state" role="status"><h2>Nenhum resultado encontrado</h2><p>Altere a busca ou os filtros para localizar outros conteúdos.</p><button className="button outline" type="button" onClick={()=>navigate(`/${page.slug}`)}>Limpar filtros</button></section>:<>
+            {summary.active&&<div className="editorial-results-summary" role="status" style={{background:summary.background,color:summary.textColor,textAlign:summary.textAlign,borderColor:summary.accentColor}}>{filteredContents.length} conteúdo{filteredContents.length===1?'':'s'}</div>}
+            <div className="pl-editorial-card-grid">{contents.map(content=>{const contentPage=editorialReadModel.getPageById(content.pageId);const targetPage=contentPage?.slug||page.slug;return <Link className="pl-card news-reference-card" to={`/${targetPage}/${content.slug}`} key={content.id}><div className="pl-thumb has-image" style={{backgroundImage:`linear-gradient(180deg,transparent 55%,rgba(0,0,0,.72)),url(${content.coverImage||''})`}}>{content.tags[0]&&<span className="pl-badge">{content.tags[0]}</span>}</div><div className="pl-card-body news-reference-card-body"><h3>{content.title}</h3><p>{content.summary}</p><div className="pl-meta news-reference-meta"><span>{contentPage?.navigationLabel||'Editorial'}</span><span>{content.publishedAt?new Date(content.publishedAt).toLocaleDateString('pt-BR'):'Sem data'}</span><span>{content.author}</span></div></div></Link>})}</div>
+            {totalPages>1&&<nav className="pl-pagination" aria-label="Paginação"><button type="button" disabled={safePage<=1} onClick={()=>updateParams({pagina:String(safePage-1)})}>← ANTERIOR</button><div>{Array.from({length:totalPages},(_,index)=>index+1).map(number=><button type="button" key={number} aria-current={number===safePage?'page':undefined} className={number===safePage?'is-active':''} onClick={()=>updateParams({pagina:String(number)})}>{number}</button>)}</div><button type="button" disabled={safePage>=totalPages} onClick={()=>updateParams({pagina:String(safePage+1)})}>PRÓXIMA →</button></nav>}
+          </>}
+        </ContentSidebarLayout>
+      </PageContainer></PageSection>
+      {adLayout.active&&<PromotionalRegion><AdvertiseHereSection layout={adLayout} config={{...defaultHomeAdConfig,active:true,title:adLayout.title,subtitle:adLayout.description||adLayout.eyebrow,buttonLabel:adLayout.linkLabel,buttonUrl:adLayout.linkUrl,image:adLayout.imageUrl,imageAlt:adLayout.adImageAlt,align:adLayout.textAlign==='center'?'center':adLayout.textAlign==='right'?'right':'left'}}/></PromotionalRegion>}
+    </main>
+  </PageShell>
 }

@@ -20,6 +20,7 @@ export const HOME_CONFIGURABLE_SECTION_IDS=[
   'anuncie-aqui',
   'lancamentos',
   'agenda',
+  'newsletter',
 ] as const
 
 export type HomeConfigurableSectionId=typeof HOME_CONFIGURABLE_SECTION_IDS[number]
@@ -34,6 +35,7 @@ const names:Record<HomeConfigurableSectionId,string>={
   'anuncie-aqui':'Anuncie Aqui',
   lancamentos:'Lançamentos',
   agenda:'Agenda',
+  newsletter:'Newsletter',
 }
 
 function normalize(sectionId:HomeConfigurableSectionId,name:string,value:Record<string,unknown>|null|undefined):SectionConfiguration{

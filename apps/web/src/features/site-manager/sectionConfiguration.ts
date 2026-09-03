@@ -44,7 +44,7 @@ export type SectionDefinition={id:string;name:string;summary:string;kind:Section
 const STORAGE_KEY='portal-lander:cms:section-configurations:v1'
 export const SECTION_CONFIGURATION_EVENT='portal-lander:section-configurations:changed'
 export const HOME_HERO_BACKGROUND_URL=new URL('../../pages/home/styles/hero-approved-background-fixed.png',import.meta.url).href
-const HOME_BACKGROUND_HERO_SECTION_IDS=new Set(['editorial-hero','sobre-hero','contato-hero','colabore-hero'])
+const HOME_BACKGROUND_HERO_SECTION_IDS=new Set(['editorial-hero','sobre-hero','contato-hero','colabore-hero','institutional-hero','legal-hero'])
 const shouldUseHomeHeroBackground=(sectionId:string)=>HOME_BACKGROUND_HERO_SECTION_IDS.has(sectionId)
 
 const defaults:Record<string,Partial<SectionConfiguration>>={
@@ -65,6 +65,10 @@ const defaults:Record<string,Partial<SectionConfiguration>>={
   'article-hero':{eyebrow:'CONTEÚDO EDITORIAL',title:'HERO DA MATÉRIA',description:'Cabeçalho da slug page com categoria, título, subtítulo, autor e data.',columns:1,background:'#ffffff',textColor:'#111111',accentColor:'#e50914'},
   'article-content':{title:'CORPO DA MATÉRIA',description:'Imagem de capa e blocos editoriais da publicação.',itemLimit:1,columns:1,background:'#ffffff',textColor:'#111111',accentColor:'#e50914'},
   'article-tags':{title:'TAGS DA MATÉRIA',description:'Tags exibidas ao final do conteúdo editorial.',itemLimit:8,columns:1,background:'#ffffff',textColor:'#111111',accentColor:'#e50914'},
+  'institutional-hero':{eyebrow:'INSTITUCIONAL',title:'PÁGINA INSTITUCIONAL',description:'Informações oficiais do Portal Lander.',columns:1,background:'#020202',textColor:'#ffffff',accentColor:'#e50914'},
+  'institutional-body':{title:'CONTEÚDO',description:'Conteúdo institucional da página.',columns:1,itemLimit:20},
+  'legal-hero':{eyebrow:'DOCUMENTO',title:'INFORMAÇÕES LEGAIS',description:'Documento oficial do Portal Lander.',columns:1,background:'#020202',textColor:'#ffffff',accentColor:'#e50914'},
+  'legal-document':{title:'DOCUMENTO',description:'Conteúdo legal com largura de leitura e índice quando houver títulos.',columns:1,itemLimit:50},
   'sobre-hero':{eyebrow:'INSTITUCIONAL',title:'SOBRE O PORTAL',description:'Conheça o Portal Lander.',columns:1,background:'#020202',textColor:'#ffffff'},
   'sobre-conteudo':{title:'PORTAL LANDER',description:'Conteúdo institucional do Portal Lander.',columns:1},
   'contato-hero':{eyebrow:'CONTATO',title:'FALE CONOSCO',description:'Entre em contato com o Portal Lander.',columns:1,background:'#020202',textColor:'#ffffff'},
@@ -140,7 +144,18 @@ export const EDITORIAL_PAGE_SECTION_DEFINITIONS:SectionDefinition[]=[
   {id:'article-tags',name:'Slug Page · Tags',summary:'Bloco final de tags das páginas individuais de conteúdo.',kind:'body',locked:true},
 ]
 
+export const INSTITUTIONAL_PAGE_SECTION_DEFINITIONS:SectionDefinition[]=[
+  {id:'institutional-hero',name:'Hero Institucional',summary:'Hero global da família institucional, configurável por página.',kind:'standard-hero',locked:true},
+  {id:'institutional-body',name:'Conteúdo Institucional',summary:'Região principal de conteúdo institucional, sem Sidebar artificial.',kind:'body',locked:true},
+]
+
+export const LEGAL_PAGE_SECTION_DEFINITIONS:SectionDefinition[]=[
+  {id:'legal-hero',name:'Hero Legal',summary:'Hero global da família jurídica/documental, configurável por página.',kind:'standard-hero',locked:true},
+  {id:'legal-document',name:'Documento Legal',summary:'Documento com largura de leitura confortável e índice automático quando aplicável.',kind:'body',locked:true},
+]
+
 export const SHARED_EDITORIAL_SECTION_IDS=new Set(['editorial-summary','editorial-ad','editorial-template','article-hero','article-content','article-tags'])
+export const LEGAL_PAGE_SLUGS=new Set(['politica','politica-de-privacidade','termos','termos-de-uso','dmca'])
 
 export const SPECIAL_PAGE_SECTION_DEFINITIONS:Record<string,SectionDefinition[]>={
   sobre:[

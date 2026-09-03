@@ -1,4 +1,4 @@
-import {FileText,Inbox,Newspaper,Pencil,Plus,Trash2} from 'lucide-react'
+import {FileText,Inbox,Newspaper,Plus} from 'lucide-react'
 import {useEffect,useMemo,useState} from 'react'
 import {Link,useNavigate} from 'react-router-dom'
 import {useAdminAuth} from '../../access/adminAuthState'
@@ -6,6 +6,7 @@ import {createAdminEditorialContent,deleteAdminEditorialContent,listAdminEditori
 import {isPublicContent,type EditorialContent,type EditorialPage} from '../../editorial/model'
 import {editorialReadModel} from '../../editorial/repository'
 import {AdminNotice,AdminShell} from '../../../shared/internal/AdminUi'
+import {TableRowActionMenu} from '../../../shared/internal/TableRowActionMenu'
 import {SITE_MANAGER_NAV} from '../../../shared/internal/adminNavigation'
 import {contentDraftRepository} from '../contentDraftRepository'
 import {sitePageRepository} from '../pageRepository'
@@ -101,6 +102,6 @@ export function SiteContentsPage(){
     {loading&&<AdminNotice title="Sincronizando conteúdos" description="Carregando páginas e conteúdos diretamente da API do Portal Lander."/>}
     {error&&<AdminNotice title="Falha na operação" description={error}/>} 
 
-    <div className="tableview-surface cms-tableview-surface"><section className="table-card"><table><thead><tr><th>Conteúdo</th><th>Página</th><th>Slug</th><th>Status</th><th>Autor</th><th>Atualização</th><th>Ações</th></tr></thead><tbody>{contents.map(content=><tr key={content.id}><td><div className="table-primary"><span className="table-avatar"><FileText size={15}/></span><div><b>{content.title}</b><small>{content.summary||'Sem resumo'}</small></div></div></td><td>{pageTitle(content.pageId)}</td><td>/{content.slug}</td><td><span className={`status ${content.status}`}>{content.status}</span></td><td>{content.author||'—'}</td><td>{new Date(content.updatedAt).toLocaleDateString('pt-BR')}</td><td><div style={{display:'flex',gap:8,flexWrap:'wrap'}}><Link className="button outline" to={`/app/site/conteudos/${content.id}`}><Pencil size={14}/>Editar</Link>{persisted&&<button type="button" className="button outline" onClick={()=>void togglePublication(content)}>{isPublicContent(content)?'Retirar do ar':'Publicar'}</button>}<button type="button" className="button outline" onClick={()=>persisted?void removeRemote(content):removeLocal(content)}><Trash2 size={14}/>Excluir</button></div></td></tr>)}</tbody></table></section></div>
+    <div className="tableview-surface cms-tableview-surface"><section className="table-card"><table><thead><tr><th>Conteúdo</th><th>Página</th><th>Slug</th><th>Status</th><th>Autor</th><th>Atualização</th><th>Ações</th></tr></thead><tbody>{contents.map(content=><tr key={content.id}><td><div className="table-primary"><span className="table-avatar"><FileText size={15}/></span><div><b>{content.title}</b><small>{content.summary||'Sem resumo'}</small></div></div></td><td>{pageTitle(content.pageId)}</td><td>/{content.slug}</td><td><span className={`status ${content.status}`}>{content.status}</span></td><td>{content.author||'—'}</td><td>{new Date(content.updatedAt).toLocaleDateString('pt-BR')}</td><td><TableRowActionMenu label={content.title} onEdit={()=>navigate(`/app/site/conteudos/${content.id}`)} onView={persisted?()=>void togglePublication(content):undefined} viewLabel={isPublicContent(content)?'Retirar do ar':'Publicar'} onDelete={()=>persisted?void removeRemote(content):removeLocal(content)}/></td></tr>)}</tbody></table></section></div>
   </AdminShell>
 }

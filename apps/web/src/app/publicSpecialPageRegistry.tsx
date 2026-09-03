@@ -1,17 +1,13 @@
-import {lazy,Suspense,type ReactNode} from 'react'
+import type {ReactNode} from 'react'
 import {SPECIAL_LAYOUT_PAGE_SLUGS,type EditorialPage} from '../features/editorial/model'
-
-const SobrePage=lazy(()=>import('../pages/sobre/SobrePage').then(module=>({default:module.SobrePage})))
-const ColaborePage=lazy(()=>import('../pages/colabore/ColaborePage').then(module=>({default:module.ColaborePage})))
-const ContatoPage=lazy(()=>import('../pages/contato/ContatoPage').then(module=>({default:module.ContatoPage})))
+import {LazyColaborePage,LazyContatoPage,LazySobrePage} from './PublicSpecialPageRenderers'
 
 type SpecialPageRenderer=(page:EditorialPage)=>ReactNode
-const lazyPage=(node:ReactNode)=><Suspense fallback={null}>{node}</Suspense>
 
 const SPECIAL_PAGE_RENDERERS:Readonly<Record<string,SpecialPageRenderer>>={
-  sobre:page=>lazyPage(<SobrePage page={page}/>),
-  colabore:()=>lazyPage(<ColaborePage/>),
-  contato:page=>lazyPage(<ContatoPage page={page}/>),
+  sobre:page=><LazySobrePage page={page}/>,
+  colabore:()=> <LazyColaborePage/>,
+  contato:page=><LazyContatoPage page={page}/>,
 }
 
 for(const slug of SPECIAL_LAYOUT_PAGE_SLUGS){

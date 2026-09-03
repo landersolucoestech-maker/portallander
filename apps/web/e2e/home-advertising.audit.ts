@@ -99,7 +99,9 @@ test.describe('home advertising layout contract',()=>{
     await quantity.selectOption('3')
     await expect(frame.locator('.official-mais-lidas .pl-editorial-sidebar-item')).toHaveCount(3)
     await expect(frame.locator('.official-mais-lidas')).toHaveClass(/home-admin-preview-target/)
-    await expect(page.locator('.section-config-switch input[type="checkbox"]')).toBeVisible()
+    const activeToggle=page.locator('.section-editor-summary .section-editor-active input[type="checkbox"]')
+    await expect(activeToggle).toBeVisible()
+    await expect(activeToggle).toBeChecked()
   })
 
   test('most read defaults to five items and advertising starts immediately below it',async({page})=>{

@@ -27,3 +27,4 @@
 @import './public-inner-hero-system.css';
 @import './editorial-system.css';
 @import './public-layout-system.css';
+@import '../pages/home/styles/home-content-responsive.css';

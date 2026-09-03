@@ -5,6 +5,7 @@ const read=path=>readFile(new URL(`../${path}`,import.meta.url),'utf8')
 const exists=async path=>{try{await access(new URL(`../${path}`,import.meta.url),constants.F_OK);return true}catch{return false}}
 const failures=[]
 const requireTokens=(path,source,tokens)=>{for(const token of tokens)if(!source.includes(token))failures.push(`${path} deve preservar: ${token}`)}
+const requireModuleSources=(path,source,moduleSources)=>{for(const moduleSource of moduleSources)if(!source.includes(moduleSource))failures.push(`${path} deve preservar origem canônica de módulo: ${moduleSource}`)}
 const forbidTokens=(path,source,tokens)=>{for(const token of tokens)if(source.includes(token))failures.push(`${path} não pode reintroduzir arquitetura removida: ${token}`)}
 
 const publicStyles=await read('src/styles/public-styles.css')
@@ -14,18 +15,18 @@ const main=await read('src/main.tsx')
 requireTokens('main.tsx',main,['QueryClientProvider','<HashRouter><App/></HashRouter>','purgeRemovedModuleStorage'])
 
 const internalApp=await read('src/app/InternalApp.tsx')
-requireTokens('InternalApp.tsx',internalApp,[
- "from '../features/access/CrmModuleRoutes'",
- "from '../features/dashboard/DashboardPage'",
- "from '../features/contracts/ContractsPage'",
- "from '../features/finance/FinanceMainPage'",
- "from '../features/finance/FinanceInvoicesPage'",
- "from '../features/finance/FinanceAccountingPage'",
- "from '../features/finance/FinanceRegistryPage'",
- "from '../features/settings/SettingsPage'",
- "from '../features/site-manager/SiteManagerRoutes'",
- 'path="/app/login"','path="/app/dashboard"','path="/app/crm/*"','path="/app/contracts"','path="/app/finance"','path="/app/finance/invoices"','path="/app/finance/accounting"','path="/app/finance/rules"','path="/app/finance/categories"','path="/app/settings"','path="/app/site/*"'
+requireModuleSources('InternalApp.tsx',internalApp,[
+ '../features/access/CrmModuleRoutes',
+ '../features/dashboard/DashboardPage',
+ '../features/contracts/ContractsPage',
+ '../features/finance/FinanceMainPage',
+ '../features/finance/FinanceInvoicesPage',
+ '../features/finance/FinanceAccountingPage',
+ '../features/finance/FinanceRegistryPage',
+ '../features/settings/SettingsPage',
+ '../features/site-manager/SiteManagerRoutes',
 ])
+requireTokens('InternalApp.tsx',internalApp,['path="/app/login"','path="/app/dashboard"','path="/app/crm/*"','path="/app/contracts"','path="/app/finance"','path="/app/finance/invoices"','path="/app/finance/accounting"','path="/app/finance/rules"','path="/app/finance/categories"','path="/app/settings"','path="/app/site/*"'])
 forbidTokens('InternalApp.tsx',internalApp,['WorkspacePage','CrmWorkspace','/app/workspaces','workspace selection','LoginPage','RequireAdmin','useAdminAuth'])
 
 const crmModuleRoutes=await read('src/features/access/CrmModuleRoutes.tsx')

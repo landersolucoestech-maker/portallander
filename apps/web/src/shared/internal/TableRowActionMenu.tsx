@@ -10,6 +10,7 @@ type TableRowActionMenuProps={
   onDuplicate?:()=>void
   viewLabel?:string
   deleteDisabled?:boolean
+  align?:'start'|'center'|'end'
 }
 
 type MenuPosition={top:number;left:number}
@@ -17,7 +18,7 @@ type MenuPosition={top:number;left:number}
 const MENU_GAP=4
 const VIEWPORT_GUTTER=12
 
-export function TableRowActionMenu({label,onView,onEdit,onDelete,onDuplicate,viewLabel='Visualizar',deleteDisabled=false}:TableRowActionMenuProps){
+export function TableRowActionMenu({label,onView,onEdit,onDelete,onDuplicate,viewLabel='Visualizar',deleteDisabled=false,align='end'}:TableRowActionMenuProps){
   const [open,setOpen]=useState(false)
   const [position,setPosition]=useState<MenuPosition|null>(null)
   const root=useRef<HTMLDivElement>(null)
@@ -103,10 +104,16 @@ export function TableRowActionMenu({label,onView,onEdit,onDelete,onDuplicate,vie
       )
     : null
 
+  const triggerContent=<div className="table-row-actions" ref={root}>
+    <button ref={trigger} type="button" className="table-row-actions-trigger" aria-label={`Ações de ${label}`} aria-haspopup="menu" aria-expanded={open} onClick={toggle}><EllipsisVertical size={16}/></button>
+  </div>
+
+  const alignedTrigger=align==='end'
+    ? triggerContent
+    : <div style={{width:32,marginLeft:align==='center'?'auto':0,marginRight:align==='center'?'auto':'auto'}}>{triggerContent}</div>
+
   return <>
-    <div className="table-row-actions" ref={root}>
-      <button ref={trigger} type="button" className="table-row-actions-trigger" aria-label={`Ações de ${label}`} aria-haspopup="menu" aria-expanded={open} onClick={toggle}><EllipsisVertical size={16}/></button>
-    </div>
+    {alignedTrigger}
     {menuContent}
   </>
 }

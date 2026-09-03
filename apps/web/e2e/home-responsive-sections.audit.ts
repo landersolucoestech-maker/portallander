@@ -91,20 +91,27 @@ test.describe('responsive home section administration',()=>{
     expect(await columnCount(page,'.official-em-destaque .pl-card-grid')).toBe(1)
   })
 
-  test('latest and releases follow canonical desktop tablet mobile grids',async({page})=>{
+  test('latest follows canonical grids and releases never fall back to mock content',async({page})=>{
     await seed(page,{
       'ultimas-noticias':{active:true,itemLimit:4,homeSelectionMode:'automatic'},
       lancamentos:{active:true,itemLimit:4,homeSelectionMode:'automatic'},
     })
     await page.setViewportSize({width:1440,height:900});await page.goto(`${base}#/`,{waitUntil:'domcontentloaded'})
     expect(await columnCount(page,'.official-ultimas-noticias .pl-latest-grid')).toBe(3)
-    expect(await columnCount(page,'.official-lancamentos .pl-release-row')).toBe(4)
+    const releases=page.locator('.official-lancamentos')
+    await expect(releases).toBeVisible()
+    await expect.poll(()=>releases.getAttribute('data-release-state')).not.toBe('loading')
+    const releaseState=await releases.getAttribute('data-release-state')
+    if(releaseState==='success')expect(await columnCount(page,'.official-lancamentos .pl-release-row')).toBe(4)
+    else await expect(releases.locator('.pl-release')).toHaveCount(0)
+
     await page.setViewportSize({width:820,height:1100})
     expect(await columnCount(page,'.official-ultimas-noticias .pl-latest-grid')).toBe(2)
-    expect(await columnCount(page,'.official-lancamentos .pl-release-row')).toBe(2)
+    if(releaseState==='success')expect(await columnCount(page,'.official-lancamentos .pl-release-row')).toBe(2)
+
     await page.setViewportSize({width:390,height:844})
     expect(await columnCount(page,'.official-ultimas-noticias .pl-latest-grid')).toBe(1)
-    expect(await columnCount(page,'.official-lancamentos .pl-release-row')).toBe(1)
+    if(releaseState==='success')expect(await columnCount(page,'.official-lancamentos .pl-release-row')).toBe(1)
   })
 
   test('zero items is allowed while explicit disable removes the section without container',async({page})=>{

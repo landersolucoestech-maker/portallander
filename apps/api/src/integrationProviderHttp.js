@@ -1,6 +1,7 @@
 import {timingSafeEqual} from 'node:crypto'
 import {authService} from './authService.js'
 import {HttpError} from './editorialService.js'
+import {parseMultipart} from './multipart.js'
 import {autentiqueProvider,integrationRuntimeStatus,whatsappProvider} from './integrationProviderService.js'
 
 const SESSION_COOKIE_NAME=String(process.env.PORTAL_SESSION_COOKIE_NAME||'portal_lander_session').trim()||'portal_lander_session'
@@ -11,6 +12,7 @@ function readCookie(req,name){for(const part of String(req.headers.cookie||'').s
 function safeEqual(a,b){const left=Buffer.from(a),right=Buffer.from(b);return left.length===right.length&&timingSafeEqual(left,right)}
 async function requireAdmin(req){const expected=process.env.PORTAL_ADMIN_TOKEN||'',header=String(req.headers.authorization||''),bearer=header.startsWith('Bearer ')?header.slice(7):'';if(expected&&bearer&&safeEqual(bearer,expected))return;if(!await authService.session(readCookie(req,SESSION_COOKIE_NAME)))throw new HttpError(401,'Sessão administrativa inválida ou expirada.','ADMIN_UNAUTHORIZED')}
 async function readJson(req){let total=0,raw='';for await(const chunk of req){total+=chunk.length;if(total>MAX_JSON_BYTES)throw new HttpError(413,'Payload excede o limite permitido.','PAYLOAD_TOO_LARGE');raw+=chunk}if(!raw)return {};try{return JSON.parse(raw)}catch{throw new HttpError(400,'JSON inválido.','INVALID_JSON')}}
+function parseJsonField(value,code){try{return JSON.parse(String(value||''))}catch{throw new HttpError(400,'Campo JSON multipart inválido.',code)}}
 
 export async function handleIntegrationProviderRequest(req,res){
   const url=new URL(req.url||'/',`http://${req.headers.host||'localhost'}`),path=url.pathname.replace(/\/+$/,'')||'/'
@@ -21,6 +23,12 @@ export async function handleIntegrationProviderRequest(req,res){
     await requireAdmin(req)
     if(req.method==='GET'&&path==='/api/integrations/providers'){send(res,200,{providers:integrationRuntimeStatus()},cors);return true}
     if(req.method==='POST'&&path==='/api/integrations/providers/autentique/test'){send(res,200,await autentiqueProvider.testConnection(),cors);return true}
+    if(req.method==='POST'&&path==='/api/integrations/providers/autentique/documents'){
+      const {fields,files}=await parseMultipart(req,{maxFiles:1,maxFileBytes:25*1024*1024})
+      const file=files.find(item=>item.fieldName==='file')||files[0]
+      const signers=parseJsonField(fields.signers,'AUTENTIQUE_SIGNERS_INVALID')
+      send(res,201,await autentiqueProvider.createDocument({name:fields.name,signers,file}),cors);return true
+    }
     if(req.method==='POST'&&path==='/api/integrations/providers/whatsapp/test'){send(res,200,await whatsappProvider.testConnection(),cors);return true}
     if(req.method==='POST'&&path==='/api/integrations/providers/whatsapp/messages'){
       const body=await readJson(req)

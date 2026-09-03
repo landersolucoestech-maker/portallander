@@ -8,7 +8,7 @@ export type ChatPriority='baixa'|'media'|'alta'|'critica'
 export type ChatNotificationChannel='in_app'|'whatsapp'|'sms'
 
 export interface ChatAttachment{id:string;name:string;type:string;size:number;dataUrl?:string}
-export interface SupportMessage{id:string;conversationId:string;sender:'customer'|'agent'|'system';author:string;body:string;time:string;createdAt:string;attachments?:ChatAttachment[];deliveryStatus?:MessageDeliveryStatus;deliveryError?:string;internalNote?:boolean}
+export interface SupportMessage{id:string;conversationId:string;sender:'customer'|'agent'|'system';author:string;body:string;time:string;createdAt:string;attachments?:ChatAttachment[];deliveryStatus?:MessageDeliveryStatus;deliveryError?:string;externalId?:string;internalNote?:boolean}
 export interface SupportCrmSummary{existingCustomer:boolean;lead:string;openDeal:string;stage:string}
 export interface SupportConversation{id:string;customer:string;handle:string;phone:string;instagram:string;email:string;originLabel:string;channel:SupportChannel;queue:string;sector:string;status:SupportStatus;assignee:string;protocol:string;sla:number;remainingTimeLabel:string;deadlineState:DeadlineState;tags:string[];assunto?:string;lastMessage:string;lastMessageAt:string;createdAt:string;lastReplyAt:string;unread:number;value:string;crmSummary:SupportCrmSummary;auditTrail:string[];updatedAt:string}
 export interface InternalMember{authUserId:string;fullName:string|null;email:string}

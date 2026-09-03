@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "node src/index.js",
-    "build": "node --check src/index.js && node --check src/http.js && node --check src/db.js && node --check src/editorialService.js && node --check src/formService.js && node --check src/formAdminService.js && node --check src/formPublicService.js && node --check src/authService.js && node --check src/multipart.js && node --check src/storage.js && node --check src/mediaService.js && node --check src/mediaKitService.js && node --check src/pageSectionService.js && node --check src/pageSectionHttp.js && node --check src/sectionConfigurationService.js && node --check src/sectionConfigurationHttp.js && node --check src/spotifyTokenCrypto.js && node --check src/spotifyReleaseService.js && node --check src/spotifyReleaseHttp.js",
+    "build": "node --check src/index.js && node --check src/http.js && node --check src/db.js && node --check src/editorialService.js && node --check src/formService.js && node --check src/formAdminService.js && node --check src/formPublicService.js && node --check src/authService.js && node --check src/multipart.js && node --check src/storage.js && node --check src/mediaService.js && node --check src/mediaKitService.js && node --check src/pageSectionService.js && node --check src/pageSectionHttp.js && node --check src/sectionConfigurationService.js && node --check src/sectionConfigurationHttp.js && node --check src/spotifyTokenCrypto.js && node --check src/spotifyReleaseService.js && node --check src/spotifyReleaseHttp.js && node --check src/newsletterService.js && node --check src/newsletterHttp.js",
     "lint": "npm run build",
     "typecheck": "npm run build",
     "test": "node --test src/*.test.js"

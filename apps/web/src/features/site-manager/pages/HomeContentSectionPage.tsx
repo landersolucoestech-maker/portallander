@@ -1,9 +1,10 @@
-import {ArrowDown,ArrowUp,Monitor,RotateCcw,Save,Smartphone,Tablet} from 'lucide-react'
-import {useEffect,useState,type ReactNode} from 'react'
+import {ArrowDown,ArrowUp,RotateCcw} from 'lucide-react'
+import {useEffect,useState} from 'react'
 import {AdminNotice,AdminShell} from '../../../shared/internal/AdminUi'
 import {SITE_MANAGER_NAV} from '../../../shared/internal/adminNavigation'
 import {homeReadModel,type HomeAgendaItem,type HomeRelease,type HomeStory} from '../../../pages/home/models/homeReadModel'
 import {HomePagePreviewFrame} from '../components/HomePagePreviewFrame'
+import {SectionEditorField as Field,SectionEditorSaveBar,SectionEditorSummaryCard,SectionEditorTabButton as Tab,SectionViewportSwitch,type SectionEditorTabId as EditorTab} from '../components/SectionEditorUi'
 import {
   HOME_CONTENT_MAX_ITEMS,
   filterAgendaByWindow,
@@ -18,7 +19,6 @@ import {defaultSectionConfiguration,type SectionHeroViewport} from '../sectionCo
 import '../../../styles/section-configuration-editor.css'
 import '../../../styles/section-editor-workbench.css'
 
-type EditorTab='content'|'appearance'|'behavior'
 type PreviewItem={key:string;title:string}
 
 const meta:Record<HomeContentSectionId,{name:string;summary:string;criterion:string;responsive:string}>={
@@ -31,8 +31,6 @@ const meta:Record<HomeContentSectionId,{name:string;summary:string;criterion:str
 
 const clamp=(value:number,min:number,max:number)=>Math.min(max,Math.max(min,value))
 const viewportLabel=(viewport:SectionHeroViewport)=>viewport==='desktop'?'Desktop':viewport==='tablet'?'Tablet':'Mobile'
-function Field({label,children}:{label:string;children:ReactNode}){return <label className="section-config-field"><span>{label}</span>{children}</label>}
-function Tab({active,label,onClick}:{active:boolean;label:string;onClick:()=>void}){return <button type="button" className={`section-editor-tab${active?' active':''}`} onClick={onClick}>{label}</button>}
 
 function availableFor(sectionId:HomeContentSectionId,config?:HomeContentSectionConfiguration):PreviewItem[]{
   if(sectionId==='em-destaque'||sectionId==='ultimas-noticias')return homeReadModel.stories.map((item:HomeStory)=>({key:item.title,title:item.title}))
@@ -70,7 +68,7 @@ export function HomeContentSectionPage({sectionId}:{sectionId:HomeContentSection
     {error&&<AdminNotice title="Falha na configuração" description={error}/>} 
     {!loading&&<div className="section-editor-workbench">
       <div className="section-editor-rail" aria-label={`Configurações da seção ${info.name}`}>
-        <section className="section-editor-card section-editor-summary"><div className="section-editor-summary-head"><div><small>{info.name.toUpperCase()}</small><h2>Configurações da seção</h2><p>{info.summary}</p></div><label className="section-editor-active"><input type="checkbox" checked={config.active} onChange={event=>patch({active:event.target.checked})}/><span>Ativa</span></label></div></section>
+        <SectionEditorSummaryCard eyebrow={info.name.toUpperCase()} description={info.summary} active={config.active} onActiveChange={active=>patch({active})}/>
         <div className="section-editor-tabs" aria-label="Grupos de configuração"><Tab active={tab==='content'} label="Conteúdo" onClick={()=>setTab('content')}/><Tab active={tab==='appearance'} label="Aparência" onClick={()=>setTab('appearance')}/><Tab active={tab==='behavior'} label="Comportamento" onClick={()=>setTab('behavior')}/></div>
         <section className="section-editor-card section-editor-detail">
           {tab==='content'&&<><div className="section-editor-card-head"><h3>Conteúdo</h3><p>Defina conteúdo, quantidade, seleção e prioridade desta seção.</p></div><div className="section-config-fields"><Field label="Título"><input value={config.title} onChange={event=>patch({title:event.target.value})}/></Field><div className="section-config-two"><Field label={`Quantidade exibida · máximo ${max}`}><input type="number" min="0" max={max} value={config.itemLimit} onChange={event=>patch({itemLimit:clamp(Number(event.target.value)||0,0,max)})}/></Field><Field label="Modo de seleção"><select value={config.homeSelectionMode} onChange={event=>patch({homeSelectionMode:event.target.value as HomeSelectionMode})}><option value="automatic">Automático</option><option value="manual">Manual</option></select></Field></div><div className="section-config-two"><Field label="Ordenação"><select value={config.homeSortMode} onChange={event=>patch({homeSortMode:event.target.value as HomeSortMode})}><option value="provider">Ordem da fonte</option><option value="reverse">Ordem inversa</option><option value="title-asc">Título A–Z</option><option value="title-desc">Título Z–A</option></select></Field><Field label="Critério automático"><input value={info.criterion} disabled/></Field></div>{sectionId==='agenda'&&<Field label="Eventos considerados"><select value={config.homeAgendaWindow} onChange={event=>patch({homeAgendaWindow:event.target.value as HomeContentSectionConfiguration['homeAgendaWindow']})}><option value="all">Todos</option><option value="future">Futuros</option><option value="past">Passados</option></select></Field>}{config.homeSelectionMode==='manual'&&<div className="section-editor-manual"><strong>Seleção manual e prioridade</strong><p>Marque os conteúdos e use as setas para definir a ordem exata.</p><div className="home-manual-selection-list">{available.map(item=>{const selectedIndex=config.homeManualSelection.indexOf(item.key);const selected=selectedIndex>=0;return <div className={`home-manual-selection-item${selected?' selected':''}`} key={item.key}><label><input type="checkbox" checked={selected} disabled={!selected&&config.homeManualSelection.length>=max} onChange={()=>toggleManual(item.key)}/><span>{item.title}</span></label>{selected&&<div><button type="button" onClick={()=>moveManual(selectedIndex,-1)} disabled={selectedIndex===0} aria-label={`Subir ${item.title}`}><ArrowUp size={14}/></button><button type="button" onClick={()=>moveManual(selectedIndex,1)} disabled={selectedIndex===config.homeManualSelection.length-1} aria-label={`Descer ${item.title}`}><ArrowDown size={14}/></button></div>}</div>})}</div></div>}</div></>}
@@ -80,8 +78,8 @@ export function HomeContentSectionPage({sectionId}:{sectionId:HomeContentSection
         <div className="section-editor-actions"><button type="button" className="button outline" disabled={saving} onClick={reset}><RotateCcw size={15}/> Restaurar padrão</button></div>
         {message&&<div className="section-config-success" role="status">{message}</div>}
       </div>
-      <section className="section-editor-preview" aria-label="Preview completo da Página Inicial"><div className="section-editor-preview-head"><div><h2>Preview da página inteira</h2><p>{viewportLabel(viewport)} · edição em tempo real · alterações refletidas antes de salvar.</p></div><div className="section-editor-devices" aria-label="Viewport do preview"><button type="button" className={viewport==='desktop'?'active':''} onClick={()=>setViewport('desktop')} aria-label="Desktop" title="Desktop"><Monitor size={17}/></button><button type="button" className={viewport==='tablet'?'active':''} onClick={()=>setViewport('tablet')} aria-label="Tablet" title="Tablet"><Tablet size={17}/></button><button type="button" className={viewport==='mobile'?'active':''} onClick={()=>setViewport('mobile')} aria-label="Mobile" title="Mobile"><Smartphone size={17}/></button></div></div><div className="section-editor-preview-canvas"><HomePagePreviewFrame sectionId={sectionId} configuration={config} viewport={viewport}/></div></section>
+      <section className="section-editor-preview" aria-label="Preview completo da Página Inicial"><div className="section-editor-preview-head"><div><h2>Preview da página inteira</h2><p>{viewportLabel(viewport)} · edição em tempo real · alterações refletidas antes de salvar.</p></div><SectionViewportSwitch viewport={viewport} onChange={setViewport}/></div><div className="section-editor-preview-canvas"><HomePagePreviewFrame sectionId={sectionId} configuration={config} viewport={viewport}/></div></section>
     </div>}
-    {!loading&&<div className="section-editor-savebar"><div><span className={`section-editor-save-state${dirty?' dirty':''}`}/><strong>{dirty?'Alterações não salvas':'Sem alterações pendentes'}</strong><small>{dirty?'O preview já mostra o rascunho; a Home pública só muda após salvar.':'O estado salvo continua sendo usado pela Home.'}</small></div><div><button type="button" className="button outline" disabled={!dirty||saving} onClick={discard}>Descartar alterações</button><button type="button" className="button dark" disabled={!dirty||saving} onClick={()=>void save()}><Save size={15}/> {saving?'Salvando...':'Salvar alterações'}</button></div></div>}
+    {!loading&&<SectionEditorSaveBar dirty={dirty} saving={saving} onDiscard={discard} onSave={()=>void save()} dirtyText="O preview já mostra o rascunho; a Home pública só muda após salvar." cleanText="O estado salvo continua sendo usado pela Home."/>}
   </AdminShell>
 }

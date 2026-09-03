@@ -69,6 +69,7 @@ test.describe('home advertising layout contract',()=>{
     await expect(page.getByText('Conteúdo exibido quando não houver imagem',{exact:true})).toBeVisible()
     await expect(page.getByText('Título principal',{exact:true})).toBeVisible()
     await expect(page.getByText('Texto do botão',{exact:true})).toBeVisible()
+    await page.getByRole('button',{name:'Comportamento',exact:true}).click()
     await expect(page.getByText(/Largura ·/).first()).toBeVisible()
     await expect(page.getByText(/Altura ·/).first()).toBeVisible()
     const frame=page.frameLocator('.home-page-preview-iframe')
@@ -78,12 +79,14 @@ test.describe('home advertising layout contract',()=>{
     await expect(frame.locator('.official-lancamentos')).toBeVisible()
   })
 
-  test('Mais Lidas supports 1 to 5 items and can be disabled',async({page})=>{
+  test('Mais Lidas supports 0 to 5 items and can be disabled',async({page})=>{
     await seedSidebarCreative(page)
     const mostRead=page.locator('.official-mais-lidas')
-    await patchMostRead(page,{active:true,itemLimit:3});await expect(mostRead.locator('.pl-ranked')).toHaveCount(3)
-    await patchMostRead(page,{itemLimit:99});await expect(mostRead.locator('.pl-ranked')).toHaveCount(5)
-    await patchMostRead(page,{itemLimit:1});await expect(mostRead.locator('.pl-ranked')).toHaveCount(1)
+    const items=mostRead.locator('.pl-editorial-sidebar-item')
+    await patchMostRead(page,{active:true,itemLimit:3});await expect(items).toHaveCount(3)
+    await patchMostRead(page,{itemLimit:99});await expect(items).toHaveCount(5)
+    await patchMostRead(page,{itemLimit:1});await expect(items).toHaveCount(1)
+    await patchMostRead(page,{itemLimit:0});await expect(items).toHaveCount(0)
     await patchMostRead(page,{active:false});await expect(mostRead).toHaveCount(0)
   })
 
@@ -94,7 +97,7 @@ test.describe('home advertising layout contract',()=>{
     const frame=page.frameLocator('.home-page-preview-iframe')
     await expect(frame.locator('.public-page')).toBeVisible()
     await quantity.selectOption('3')
-    await expect(frame.locator('.official-mais-lidas .pl-ranked')).toHaveCount(3)
+    await expect(frame.locator('.official-mais-lidas .pl-editorial-sidebar-item')).toHaveCount(3)
     await expect(frame.locator('.official-mais-lidas')).toHaveClass(/home-admin-preview-target/)
     await expect(page.locator('.section-config-switch input[type="checkbox"]')).toBeVisible()
   })
@@ -102,7 +105,7 @@ test.describe('home advertising layout contract',()=>{
   test('most read defaults to five items and advertising starts immediately below it',async({page})=>{
     await seedSidebarCreative(page)
     const stack=page.locator('.official-home-sidebar-stack');const mostRead=stack.locator('.official-mais-lidas');const ad=stack.locator('.official-publicidade-lateral');const trending=stack.locator('.official-em-alta')
-    await expect(mostRead.locator('.pl-ranked')).toHaveCount(5);await expect(ad).toBeVisible();await expect(trending).toBeVisible()
+    await expect(mostRead.locator('.pl-editorial-sidebar-item')).toHaveCount(5);await expect(ad).toBeVisible();await expect(trending).toBeVisible()
     const mostReadBox=await mostRead.boundingBox();const adBox=await ad.boundingBox();const trendingBox=await trending.boundingBox();expect(mostReadBox).not.toBeNull();expect(adBox).not.toBeNull();expect(trendingBox).not.toBeNull()
     if(mostReadBox&&adBox&&trendingBox){const gapAfterMostRead=adBox.y-(mostReadBox.y+mostReadBox.height);const gapAfterAd=trendingBox.y-(adBox.y+adBox.height);expect(gapAfterMostRead).toBeGreaterThanOrEqual(0);expect(gapAfterMostRead).toBeLessThanOrEqual(40);expect(gapAfterAd).toBeGreaterThanOrEqual(0);expect(gapAfterAd).toBeLessThanOrEqual(40)}
   })

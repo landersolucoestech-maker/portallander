@@ -7,7 +7,7 @@ const failures=[]
 const requireTokens=(path,source,tokens)=>{for(const token of tokens)if(!source.includes(token))failures.push(`${path} deve preservar: ${token}`)}
 
 const requiredFiles=[
-  'src/features/site-manager/pageRepository.ts','src/features/site-manager/contentDraftRepository.ts','src/features/site-manager/mediaRepository.ts','src/features/site-manager/mediaKitRepository.ts','src/features/site-manager/mediaKitDomain.ts','src/features/site-manager/sectionConfiguration.ts','src/features/site-manager/useSectionConfiguration.ts','src/features/site-manager/components/SiteMediaPicker.tsx','src/features/site-manager/components/SectionEditorUi.tsx','src/features/site-manager/forms/draftRepository.ts','src/features/site-manager/forms/SiteFormRenderer.tsx','src/features/site-manager/forms/runtimeOptions.ts','src/features/site-manager/pages/SiteSectionsPage.tsx','src/features/site-manager/pages/SectionConfigurationPage.tsx','src/features/site-manager/pages/HomeReleasesSectionPage.tsx','src/features/site-manager/spotifyReleaseClient.ts','src/features/site-manager/pages/SiteContentEditorPage.tsx','src/features/site-manager/pages/SiteFormEditorPage.tsx','src/features/site-manager/pages/SiteFormsPage.tsx','src/features/site-manager/pages/SiteMediaPage.tsx','src/features/site-manager/pages/MediaKitPage.tsx','src/features/editorial/adminClient.ts','src/features/editorial/components/EditorialListingPage.tsx','src/features/editorial/components/EditorialContentPage.tsx','src/app/publicSpecialPageRegistry.tsx','src/pages/home/components/SpotifyReleasesSection.tsx','src/pages/sobre/SobrePage.tsx','src/pages/contato/ContatoPage.tsx','src/styles/section-editor-workbench.css','src/styles/spotify-releases-editor.css',
+  'src/features/site-manager/pageRepository.ts','src/features/site-manager/contentDraftRepository.ts','src/features/site-manager/mediaRepository.ts','src/features/site-manager/mediaKitRepository.ts','src/features/site-manager/mediaKitDomain.ts','src/features/site-manager/sectionConfiguration.ts','src/features/site-manager/useSectionConfiguration.ts','src/features/site-manager/components/SiteMediaPicker.tsx','src/features/site-manager/components/SectionEditorUi.tsx','src/features/site-manager/forms/draftRepository.ts','src/features/site-manager/forms/SiteFormRenderer.tsx','src/features/site-manager/forms/runtimeOptions.ts','src/features/site-manager/pages/SiteSectionsPage.tsx','src/features/site-manager/pages/SectionConfigurationPage.tsx','src/features/site-manager/pages/HomeReleasesSectionPage.tsx','src/features/site-manager/spotifyReleaseClient.ts','src/features/site-manager/pages/SiteContentEditorPage.tsx','src/features/site-manager/pages/SiteFormEditorPage.tsx','src/features/site-manager/pages/SiteFormsPage.tsx','src/features/site-manager/pages/SiteMediaPage.tsx','src/features/site-manager/pages/MediaKitPage.tsx','src/features/editorial/adminClient.ts','src/features/editorial/components/EditorialListingPage.tsx','src/features/editorial/components/EditorialContentPage.tsx','src/app/publicSpecialPageRegistry.tsx','src/pages/home/components/SpotifyReleasesSection.tsx','src/pages/home/styles/spotify-releases.css','src/pages/sobre/SobrePage.tsx','src/pages/contato/ContatoPage.tsx','src/styles/section-editor-workbench.css','src/styles/spotify-releases-editor.css',
 ]
 for(const path of requiredFiles)if(!(await exists(path)))failures.push(`Módulo Site exige ${path}.`)
 
@@ -55,7 +55,9 @@ requireTokens('section-editor-workbench.css',workbenchCss,['grid-template-column
 const releasesEditor=await read('src/features/site-manager/pages/HomeReleasesSectionPage.tsx')
 requireTokens('HomeReleasesSectionPage.tsx',releasesEditor,['spotifyReleaseClient.adminState','spotifyReleaseClient.connect','spotifyReleaseClient.setPlaylist','spotifyReleaseClient.sync','Spotify','PLAYLIST VINCULADA','Quantidade de itens a exibir','homeSelectionMode:\'automatic\'','homeSortMode:\'provider\'','HomePagePreviewFrame'])
 const releasesPublic=await read('src/pages/home/components/SpotifyReleasesSection.tsx')
-requireTokens('SpotifyReleasesSection.tsx',releasesPublic,['spotifyReleaseClient.publicState','item.position','item.spotifyUrl','OUVIR NO SPOTIFY','config.itemLimit','object-fit'])
+requireTokens('SpotifyReleasesSection.tsx',releasesPublic,['spotifyReleaseClient.publicState','a.position-b.position','item.spotifyUrl','item.albumName','OUVIR NO SPOTIFY','config.itemLimit','pl-spotify-cover'])
+const releasesCss=await read('src/pages/home/styles/spotify-releases.css')
+requireTokens('spotify-releases.css',releasesCss,['object-fit:contain','--pl-home-columns-desktop','--pl-home-columns-tablet','--pl-home-columns-mobile'])
 const homeRenderer=await read('src/pages/home/HomePageRenderer.tsx')
 requireTokens('HomePageRenderer.tsx',homeRenderer,['SpotifyReleasesSection','configuration={sectionConfig(configurations,\'lancamentos\')}'])
 if(homeRenderer.includes('homeReadModel.releases'))failures.push('Home pública não pode usar homeReadModel.releases; Spotify cache é a fonte única de Lançamentos.')
@@ -73,6 +75,7 @@ requireTokens('EditorialListingPage.tsx',listingTemplate,['editorialReadModel.li
 if(listingTemplate.includes("page.slug==='noticias'")||listingTemplate.includes("page.slug === 'noticias'"))failures.push('Template editorial não pode decidir comportamento pelo slug noticias.')
 const contentTemplate=await read('src/features/editorial/components/EditorialContentPage.tsx')
 requireTokens('EditorialContentPage.tsx',contentTemplate,['EditorialContentPage','to={`/${page.slug}`}','content.body.map'])
+
 const portalApp=await read('src/app/PortalApp.tsx')
 requireTokens('PortalApp.tsx',portalApp,['renderPublicSpecialPage','<EditorialListingPage page={page}/>','<EditorialContentPage page={page} content={content}/>'])
 const specialRegistry=await read('src/app/publicSpecialPageRegistry.tsx')
@@ -88,6 +91,7 @@ const formDraftRepository=await read('src/features/site-manager/forms/draftRepos
 requireTokens('forms/draftRepository.ts',formDraftRepository,["status:'draft'","source:'custom'"])
 const forms=await read('src/features/site-manager/pages/SiteFormsPage.tsx')
 requireTokens('SiteFormsPage.tsx',forms,['Novo formulário','Duplicar','formDraftRepository.create','formDraftRepository.duplicate','formDraftRepository.remove','createAdminSiteForm','deleteAdminSiteForm'])
+
 const contents=await read('src/features/site-manager/pages/SiteContentsPage.tsx')
 requireTokens('SiteContentsPage.tsx',contents,['Novo conteúdo','contentDraftRepository.create','contentDraftRepository.remove','createAdminEditorialContent','Colaborações recebidas'])
 const contentEditor=await read('src/features/site-manager/pages/SiteContentEditorPage.tsx')
@@ -98,12 +102,14 @@ const contentDraftRepository=await read('src/features/site-manager/contentDraftR
 requireTokens('contentDraftRepository.ts',contentDraftRepository,["status:'draft'",'active:false','noIndex:true'])
 const editorialAdminClient=await read('src/features/editorial/adminClient.ts')
 requireTokens('editorial/adminClient.ts',editorialAdminClient,['getAdminEditorialContent','createAdminEditorialContent','updateAdminEditorialContent','deleteAdminEditorialContent'])
+
 const media=await read('src/features/site-manager/pages/SiteMediaPage.tsx')
 requireTokens('SiteMediaPage.tsx',media,['mediaRepository.list','mediaRepository.upload','mediaRepository.remove','Biblioteca persistente conectada','Storage persistente'])
 const mediaRepository=await read('src/features/site-manager/mediaRepository.ts')
 requireTokens('mediaRepository.ts',mediaRepository,['adminApiBase','/api/editorial/media','new ApiMediaRepository','new ReadOnlyMediaRepository'])
 const readModel=await read('src/features/site-manager/readModel.ts')
 requireTokens('readModel.ts',readModel,['getRuntimeDataProvider().editorial.media()'])
+
 const mediaKit=await read('src/features/site-manager/pages/MediaKitPage.tsx')
 requireTokens('MediaKitPage.tsx',mediaKit,['mediaKitRepository.read','mediaKitRepository.save','mediaKitRepository.reset','mediaKitRepository.publish','isMediaKitPersistenceConfigured','Salvar rascunho','Publicar','Mídia Kit versionado e persistente'])
 const mediaKitRepository=await read('src/features/site-manager/mediaKitRepository.ts')

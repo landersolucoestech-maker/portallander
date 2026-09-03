@@ -1,4 +1,4 @@
-import { lazy, Suspense, useMemo } from 'react'
+import { lazy, Suspense, useMemo, type ReactNode } from 'react'
 import { Link, Navigate, useLocation } from 'react-router-dom'
 import { renderPublicSpecialPage } from './publicSpecialPageRegistry'
 import { editorialReadModel } from '../features/editorial/repository'
@@ -12,7 +12,7 @@ const EditorialContentPage=lazy(()=>import('../features/editorial/components/Edi
 const EditorialListingPage=lazy(()=>import('../features/editorial/components/EditorialListingPage').then(module=>({default:module.EditorialListingPage})))
 const StructuredPublicPage=lazy(()=>import('../features/editorial/components/StructuredPublicPage').then(module=>({default:module.StructuredPublicPage})))
 const HomePreviewPage=lazy(()=>import('../pages/home/HomePreviewPage').then(module=>({default:module.HomePreviewPage})))
-const deferred=(node:React.ReactNode)=><Suspense fallback={null}>{node}</Suspense>
+const deferred=(node:ReactNode)=><Suspense fallback={null}>{node}</Suspense>
 
 export { PublicHeader, PublicFooter } from '../shared/public/PublicChrome'
 

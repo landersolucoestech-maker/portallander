@@ -1,6 +1,5 @@
-import { useMemo } from 'react'
+import { lazy, Suspense, useMemo } from 'react'
 import { Link, Navigate, useLocation } from 'react-router-dom'
-import InternalApp from './InternalApp'
 import { renderPublicSpecialPage } from './publicSpecialPageRegistry'
 import { AnunciePage } from '../pages/anuncie/AnunciePage'
 import { EditorialContentPage } from '../features/editorial/components/EditorialContentPage'
@@ -12,6 +11,8 @@ import { HomePreviewPage } from '../pages/home/HomePreviewPage'
 import { PageContainer,PageSection,PageShell } from '../shared/public/PublicPageArchitecture'
 import { PublicNotFound } from '../shared/public/PublicNotFound'
 
+const InternalApp=lazy(()=>import('./InternalApp'))
+
 export { PublicHeader, PublicFooter } from '../shared/public/PublicChrome'
 
 export default function PortalApp(){
@@ -22,7 +23,7 @@ export default function PortalApp(){
   if(path==='/')return <PublicHome/>
   if(path==='/_preview/home')return <HomePreviewPage/>
   if(path==='/anuncie')return <AnunciePage/>
-  if(path.startsWith('/app'))return <InternalApp/>
+  if(path.startsWith('/app'))return <Suspense fallback={null}><InternalApp/></Suspense>
   if(segments[0]==='noticia'&&segments[1])return <Navigate to={`/noticias/${segments[1]}`} replace/>
 
   if(segments.length===1){

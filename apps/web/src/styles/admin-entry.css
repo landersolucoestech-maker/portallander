@@ -11,7 +11,6 @@
 @import './admin-hero.css';
 @import './admin-hero-editor.css';
 @import './admin-hero-responsive-padding.css';
-@import './admin-home-ad-editor.css';
 @import './admin-access.css';
 @import './admin-crm-portal.css';
 @import './admin-crm-tabs.css';
@@ -38,5 +37,4 @@
 @import './admin-table-sort.css';
 @import './admin-requested-hotfix.css';
 @import './admin-pagination-unified.css';
-@import './section-configuration-sticky-workbench.css';
 @import './admin-design-system.css';

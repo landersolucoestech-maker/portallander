@@ -49,7 +49,7 @@ const shouldUseHomeHeroBackground=(sectionId:string)=>HOME_BACKGROUND_HERO_SECTI
 
 const defaults:Record<string,Partial<SectionConfiguration>>={
   hero:{title:'Hero Section',itemLimit:5,columns:1},
-  'em-destaque':{title:'EM DESTAQUE',linkLabel:'EXPLORAR DESTAQUES',linkUrl:'/noticias',itemLimit:6,columns:3},
+  'em-destaque':{title:'EM DESTAQUE',linkLabel:'EXPLORAR DESTAQUES',linkUrl:'/noticias',itemLimit:3,columns:3},
   'mais-lidas':{title:'MAIS LIDAS',linkLabel:'VER TODOS',linkUrl:'/noticias',itemLimit:5,columns:1},
   'ultimas-noticias':{title:'ÚLTIMAS NOTÍCIAS',linkLabel:'VER TODAS AS NOTÍCIAS',linkUrl:'/noticias',itemLimit:4,columns:2},
   'publicidade-lateral':{title:'PUBLICIDADE',eyebrow:'ANUNCIE AQUI',linkLabel:'SAIBA MAIS',linkUrl:'/anuncie',itemLimit:1,columns:1,background:'#090909',textColor:'#ffffff',accentColor:'#e50914'},

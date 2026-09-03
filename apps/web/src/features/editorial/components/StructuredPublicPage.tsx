@@ -1,5 +1,5 @@
 import {useMemo} from 'react'
-import {defaultSectionConfiguration} from '../../site-manager/sectionConfiguration'
+import {defaultSectionConfiguration,LEGAL_PAGE_SLUGS} from '../../site-manager/sectionConfiguration'
 import {usePublicHomeSections} from '../../site-manager/usePublicHomeSections'
 import {useSectionConfiguration} from '../../site-manager/useSectionConfiguration'
 import {ContentSidebarLayout,PageContainer,PageHero,PageSection,PageShell,SectionHeading} from '../../../shared/public/PublicPageArchitecture'
@@ -7,17 +7,17 @@ import {useEditorialSeo} from '../hooks/useEditorialSeo'
 import type {EditorialContent,EditorialPage} from '../model'
 import {editorialReadModel} from '../repository'
 
-const LEGAL_SLUGS=new Set(['politica','politica-de-privacidade','termos','termos-de-uso','dmca'])
-
 function contentBlocks(contents:EditorialContent[]){return contents.flatMap(content=>content.body.map((block,index)=>({...block,id:`${content.id}-${index}`})))}
 function anchorFor(value:string,index:number){const slug=value.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');return slug||`secao-${index+1}`}
 
 export function StructuredPublicPage({page}:{page:EditorialPage}){
   useEditorialSeo(page)
   const {sections:homeSections}=usePublicHomeSections()
-  const isLegal=LEGAL_SLUGS.has(page.slug)
-  const hero=useSectionConfiguration(page.id,`${page.slug}-hero`,isLegal?'Hero Legal':'Hero Institucional',{title:page.title.toUpperCase(),eyebrow:isLegal?'DOCUMENTO':'INSTITUCIONAL',description:page.description})
-  const body=useSectionConfiguration(page.id,`${page.slug}-conteudo`,isLegal?'Documento':'Conteúdo Institucional',{title:page.title,description:page.description,itemLimit:20,columns:1})
+  const isLegal=LEGAL_PAGE_SLUGS.has(page.slug)
+  const heroId=isLegal?'legal-hero':'institutional-hero'
+  const bodyId=isLegal?'legal-document':'institutional-body'
+  const hero=useSectionConfiguration(page.id,heroId,isLegal?'Hero Legal':'Hero Institucional',{title:page.title.toUpperCase(),eyebrow:isLegal?'DOCUMENTO':'INSTITUCIONAL',description:page.description})
+  const body=useSectionConfiguration(page.id,bodyId,isLegal?'Documento Legal':'Conteúdo Institucional',{title:page.title,description:page.description,itemLimit:isLegal?50:20,columns:1})
   const contents=editorialReadModel.listPageContents(page.id)
   const blocks=useMemo(()=>contentBlocks(contents),[contents])
   const headings=blocks.filter((block):block is Extract<(typeof blocks)[number],{type:'heading'}>=>block.type==='heading')

@@ -1,5 +1,6 @@
 import {createServer} from 'node:http'
 import {handleRequest} from './http.js'
+import {handleNewsletterRequest} from './newsletterHttp.js'
 import {handlePageSectionRequest} from './pageSectionHttp.js'
 import {handleSectionConfigurationRequest} from './sectionConfigurationHttp.js'
 import {handleSpotifyReleaseRequest} from './spotifyReleaseHttp.js'
@@ -7,6 +8,7 @@ import {handleSpotifyReleaseRequest} from './spotifyReleaseHttp.js'
 const port=Number(process.env.PORT||8787)
 const server=createServer((req,res)=>{
   void (async()=>{
+    if(await handleNewsletterRequest(req,res))return
     if(await handleSpotifyReleaseRequest(req,res))return
     if(await handleSectionConfigurationRequest(req,res))return
     if(await handlePageSectionRequest(req,res))return

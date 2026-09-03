@@ -1,69 +1,52 @@
-/* Portal Lander — public layout, viewport and interaction baseline. */
+/* Portal Lander — final public layout, viewport and interaction baseline. */
 html,body,#root{min-height:100%;background:#000}
 body{min-height:100dvh;overflow-x:clip;background:#000}
-.public-page,.article-page,.article-route-overlay{min-height:100dvh;background:#000}
-.public-page{display:flex;flex-direction:column;min-width:0;background:#000}
-.public-page>main,.public-page>.public-shell,.article-page main{min-width:0}
+.public-page{min-height:100dvh;display:flex;flex-direction:column;min-width:0;background:#000}
+.public-page>main,.public-page>.public-shell{min-width:0}
 .public-page .public-footer{margin-top:auto}
-.public-page img,.article-page img{max-width:100%}
+.public-page img{max-width:100%}
 
-/* Reference news sub-heroes keep their compact geometry unless they opt into the configurable Hero contract. */
-.news-reference-page .pl-page-hero{min-height:300px!important;padding:34px 0!important;background-size:cover!important;background-position:center right!important;background-repeat:no-repeat!important}
-.news-reference-page .pl-page-hero .public-shell{position:relative;z-index:2}
-.news-reference-page .pl-page-hero h1{margin-top:56px!important}
-
-/* Configurable public Hero contract. Values are supplied by the CMS per page. */
+/* Configurable global Hero contract. Values are supplied by the CMS per page. */
 .pl-responsive-hero{
   height:var(--pl-hero-height-desktop,420px)!important;
   min-height:var(--pl-hero-height-desktop,420px)!important;
   max-height:var(--pl-hero-height-desktop,420px)!important;
   box-sizing:border-box;
 }
-.pl-responsive-hero>.public-shell,
-.pl-responsive-hero>.colabore-hero-grid{min-height:0!important}
-.colabore-page .pl-responsive-hero .colabore-hero-grid{height:100%!important;min-height:0!important;max-height:none!important}
-
-.pl-responsive-hero .news-page-intro-copy>span,
-.pl-responsive-hero .colabore-hero-copy>.colabore-eyebrow{padding:var(--pl-hero-kicker-py-desktop,0px) var(--pl-hero-kicker-px-desktop,0px)!important;box-sizing:border-box}
-.pl-responsive-hero .news-page-intro-copy>h1,
-.pl-responsive-hero .colabore-hero-copy>h1{padding:var(--pl-hero-title-py-desktop,0px) var(--pl-hero-title-px-desktop,0px)!important;box-sizing:border-box}
-.pl-responsive-hero .news-page-intro-copy>p,
-.pl-responsive-hero .colabore-hero-copy>p{padding:var(--pl-hero-description-py-desktop,0px) var(--pl-hero-description-px-desktop,0px)!important;box-sizing:border-box}
+.pl-responsive-hero>.public-shell,.pl-responsive-hero>.pl-page-container{height:100%;min-height:0!important}
+.pl-responsive-hero .pl-page-eyebrow{padding:var(--pl-hero-kicker-py-desktop,0px) var(--pl-hero-kicker-px-desktop,0px)!important;box-sizing:border-box}
+.pl-responsive-hero .pl-global-page-hero-copy>h1{padding:var(--pl-hero-title-py-desktop,0px) var(--pl-hero-title-px-desktop,0px)!important;box-sizing:border-box}
+.pl-responsive-hero .pl-global-page-hero-copy>p{padding:var(--pl-hero-description-py-desktop,0px) var(--pl-hero-description-px-desktop,0px)!important;box-sizing:border-box}
 
 /* One keyboard-focus language across the public portal. */
-.public-page a:focus-visible,.public-page button:focus-visible,.public-page input:focus-visible,.public-page select:focus-visible,.public-page textarea:focus-visible,.article-page a:focus-visible,.article-page button:focus-visible{outline:3px solid #e30613;outline-offset:3px}
+.public-page a:focus-visible,.public-page button:focus-visible,.public-page input:focus-visible,.public-page select:focus-visible,.public-page textarea:focus-visible{outline:3px solid var(--pl-page-accent,#e30613);outline-offset:3px}
 
 /* Prevent menus, search and dynamic editorial content from creating horizontal page scroll. */
 .public-header,.public-nav,.public-links,.public-search-panel,.public-footer,.pl-newsletter{max-width:100vw}
-.public-search-panel form{min-width:0}
-.public-search-panel input{min-width:0}
+.public-search-panel form,.public-search-panel input{min-width:0}
 .public-submenu,.public-search-suggestions{max-width:min(92vw,720px)}
 
 /* Long editorial/user-generated strings must wrap rather than expand layouts. */
-.public-page p,.public-page h1,.public-page h2,.public-page h3,.public-page h4,.article-page p,.article-page h1,.article-page h2,.article-page h3,.public-footer a{overflow-wrap:anywhere}
+.public-page p,.public-page h1,.public-page h2,.public-page h3,.public-page h4,.public-footer a{overflow-wrap:anywhere}
 
 @media(max-width:980px){
-  .news-reference-page .pl-page-hero{min-height:260px!important;background-position:62% center!important}
   .pl-responsive-hero{height:var(--pl-hero-height-tablet,340px)!important;min-height:var(--pl-hero-height-tablet,340px)!important;max-height:var(--pl-hero-height-tablet,340px)!important}
-  .pl-responsive-hero .news-page-intro-copy>span,.pl-responsive-hero .colabore-hero-copy>.colabore-eyebrow{padding:var(--pl-hero-kicker-py-tablet,0px) var(--pl-hero-kicker-px-tablet,0px)!important}
-  .pl-responsive-hero .news-page-intro-copy>h1,.pl-responsive-hero .colabore-hero-copy>h1{padding:var(--pl-hero-title-py-tablet,0px) var(--pl-hero-title-px-tablet,0px)!important}
-  .pl-responsive-hero .news-page-intro-copy>p,.pl-responsive-hero .colabore-hero-copy>p{padding:var(--pl-hero-description-py-tablet,0px) var(--pl-hero-description-px-tablet,0px)!important}
+  .pl-responsive-hero .pl-page-eyebrow{padding:var(--pl-hero-kicker-py-tablet,0px) var(--pl-hero-kicker-px-tablet,0px)!important}
+  .pl-responsive-hero .pl-global-page-hero-copy>h1{padding:var(--pl-hero-title-py-tablet,0px) var(--pl-hero-title-px-tablet,0px)!important}
+  .pl-responsive-hero .pl-global-page-hero-copy>p{padding:var(--pl-hero-description-py-tablet,0px) var(--pl-hero-description-px-tablet,0px)!important}
 }
 @media(max-width:760px){
-  .public-page,.article-page{min-height:100dvh}
+  .public-page{min-height:100dvh}
   .public-header .public-nav{min-width:0}
-  .public-search-panel{width:100%}
-  .public-search-panel form{width:100%}
+  .public-search-panel,.public-search-panel form{width:100%}
 }
 @media(max-width:600px){
-  .news-reference-page .pl-page-hero{min-height:235px!important;background-position:64% center!important}
-  .news-reference-page .pl-page-hero h1{margin-top:34px!important}
   .pl-responsive-hero{height:var(--pl-hero-height-mobile,280px)!important;min-height:var(--pl-hero-height-mobile,280px)!important;max-height:var(--pl-hero-height-mobile,280px)!important}
-  .pl-responsive-hero .news-page-intro-copy>span,.pl-responsive-hero .colabore-hero-copy>.colabore-eyebrow{padding:var(--pl-hero-kicker-py-mobile,0px) var(--pl-hero-kicker-px-mobile,0px)!important}
-  .pl-responsive-hero .news-page-intro-copy>h1,.pl-responsive-hero .colabore-hero-copy>h1{padding:var(--pl-hero-title-py-mobile,0px) var(--pl-hero-title-px-mobile,0px)!important}
-  .pl-responsive-hero .news-page-intro-copy>p,.pl-responsive-hero .colabore-hero-copy>p{padding:var(--pl-hero-description-py-mobile,0px) var(--pl-hero-description-px-mobile,0px)!important}
+  .pl-responsive-hero .pl-page-eyebrow{padding:var(--pl-hero-kicker-py-mobile,0px) var(--pl-hero-kicker-px-mobile,0px)!important}
+  .pl-responsive-hero .pl-global-page-hero-copy>h1{padding:var(--pl-hero-title-py-mobile,0px) var(--pl-hero-title-px-mobile,0px)!important}
+  .pl-responsive-hero .pl-global-page-hero-copy>p{padding:var(--pl-hero-description-py-mobile,0px) var(--pl-hero-description-px-mobile,0px)!important}
 }
 
 @media(prefers-reduced-motion:reduce){
-  .public-page *,.article-page *{scroll-behavior:auto!important;transition-duration:.01ms!important;animation-duration:.01ms!important;animation-iteration-count:1!important}
+  .public-page *{scroll-behavior:auto!important;transition-duration:.01ms!important;animation-duration:.01ms!important;animation-iteration-count:1!important}
 }

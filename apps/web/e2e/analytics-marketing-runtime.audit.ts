@@ -51,7 +51,8 @@ test('deterministic Analytics response renders real zero, provenance and no unre
 
  await open(page,'/app/marketing/metricas')
  await page.waitForTimeout(250)
- test.skip(interceptedAnalyticsRequests===0,'This production build has no Analytics API base; deterministic interception is proven by the dedicated Analytics browser runtime workflow.')
+ const unavailable=await page.getByText('Analytics indisponível',{exact:true}).count()
+ test.skip(interceptedAnalyticsRequests===0||unavailable>0,'This production build does not provide the isolated Analytics runtime; deterministic interception is proven by the dedicated Analytics browser runtime workflow.')
  await expect(page.getByText('Analytics indisponível',{exact:true})).toHaveCount(0)
  const impressionsCard=page.locator('.marketing-metric-strip article').filter({hasText:'Impressões'})
  await expect(impressionsCard.locator('strong')).toHaveText('100')

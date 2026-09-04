@@ -1,6 +1,5 @@
-import {readFileSync} from 'node:fs'
-import {fileURLToPath} from 'node:url'
 import {describe,expect,it} from 'vitest'
+import sectionConfigurationSource from '../pages/SectionConfigurationPage.tsx?raw'
 import {getSiteFormById} from './catalog'
 import {resolveSectionFormId} from './SectionFormPreview'
 
@@ -16,11 +15,9 @@ describe('section form preview contract',()=>{
   })
 
   it('prevents SectionConfigurationPage from restoring a scenic hardcoded form',()=>{
-    const sourcePath=fileURLToPath(new URL('../pages/SectionConfigurationPage.tsx',import.meta.url))
-    const source=readFileSync(sourcePath,'utf8')
-    expect(source).toContain('<SectionFormPreview sectionId={definition.id}/>')
-    expect(source).not.toContain('ENVIAR MATERIAL')
-    expect(source).not.toContain('placeholder="Seu nome"')
-    expect(source).not.toContain('placeholder="seu@email.com"')
+    expect(sectionConfigurationSource).toContain('<SectionFormPreview sectionId={definition.id}/>')
+    expect(sectionConfigurationSource).not.toContain('ENVIAR MATERIAL')
+    expect(sectionConfigurationSource).not.toContain('placeholder="Seu nome"')
+    expect(sectionConfigurationSource).not.toContain('placeholder="seu@email.com"')
   })
 })

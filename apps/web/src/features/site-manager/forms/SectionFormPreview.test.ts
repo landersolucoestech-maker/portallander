@@ -1,7 +1,7 @@
 import {describe,expect,it} from 'vitest'
 import sectionConfigurationSource from '../pages/SectionConfigurationPage.tsx?raw'
 import {getSiteFormById} from './catalog'
-import {resolveSectionFormId} from './SectionFormPreview'
+import {resolveSectionFormId} from './sectionFormMapping'
 
 describe('section form preview contract',()=>{
   it('maps the Colabore section to the canonical collaborate form id',()=>{

@@ -10,16 +10,16 @@ describe('integration capability registry',()=>{
     for(const id of REQUIRED_INTEGRATION_PROVIDER_IDS){
       expect(INTEGRATION_CAPABILITIES[id].state).not.toBe('implemented')
     }
-    for(const id of ['meta','tiktok','google','nfe'] as const){
+    for(const id of ['meta','tiktok','nfe'] as const){
       expect(INTEGRATION_CAPABILITIES[id].state).toBe('planned')
     }
-    for(const id of ['autentique','whatsapp','spotify','resend'] as const){
+    for(const id of ['autentique','google','whatsapp','spotify','resend'] as const){
       expect(INTEGRATION_CAPABILITIES[id].state).toBe('partial')
     }
   })
 
   it('documents both implemented and missing scopes for partial providers',()=>{
-    for(const id of ['autentique','whatsapp','spotify','resend'] as const){
+    for(const id of ['autentique','google','whatsapp','spotify','resend'] as const){
       expect(INTEGRATION_CAPABILITIES[id].implementedCapabilities.length).toBeGreaterThan(0)
       expect(INTEGRATION_CAPABILITIES[id].missingCapabilities.length).toBeGreaterThan(0)
     }

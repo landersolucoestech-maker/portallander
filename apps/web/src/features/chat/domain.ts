@@ -2,7 +2,7 @@ export type ChatArea='internal'|'support'
 export type SupportChannel='whatsapp'|'instagram'|'facebook'|'tiktok'|'site'|'custom'
 export type SupportStatus='nova'|'aguardando_atendimento'|'em_atendimento'|'aguardando_cliente'|'resolvida'|'arquivada'
 export type DeadlineState='on_track'|'at_risk'|'overdue'
-export type MessageDeliveryStatus='sending'|'sent'|'failed'|'internal_only'
+export type MessageDeliveryStatus='sending'|'sent'|'failed'|'internal_only'|'unavailable'
 export type InternalConversationType='direct'|'group'
 export type ChatPriority='baixa'|'media'|'alta'|'critica'
 export type ChatNotificationChannel='in_app'|'whatsapp'|'sms'
@@ -19,4 +19,5 @@ export interface ChatMenuOption{id:string;order:number;label:string;responseTemp
 export interface ChatTemplate{id:string;title:string;body:string}
 export interface ChatEscalationRule{id:string;afterMinutes:number;level:string;recipientRole:'supervisor'|'manager'|string;recipientUserId?:string|null;channels:ChatNotificationChannel[];active:boolean}
 export interface ChatAutomationSettings{enabled:boolean;welcomeMessage:string;mainMenuMessage:string;menuOptions:ChatMenuOption[];templates:ChatTemplate[];requiredFields:string[];optionalFields:string[];invalidOptionMessage:string;absenceMessage:string;outOfHoursMessage:string;closingMessage:string;returnToMenuRule:{enabled:boolean;commands:string[]};escalationRules:ChatEscalationRule[];notificationChannels:Record<ChatNotificationChannel,boolean>;supervisorUserId:string|null;managerUserId:string|null;updatedAt:string}
-export interface ChatSeed{supportConversations:SupportConversation[];supportMessages:SupportMessage[];internalMembers:InternalMember[];internalConversations:InternalConversation[];internalMessages:InternalMessage[];quickReplies:string[];automation:ChatAutomationSettings}
+export interface ChatRuntimeCapabilities{whatsapp?:{implementation:'implemented'|'partial'|'planned';configured:boolean};attachments?:{configured:boolean};audioRecording?:{configured:boolean};escalation?:{configured:boolean}}
+export interface ChatSeed{supportConversations:SupportConversation[];supportMessages:SupportMessage[];internalMembers:InternalMember[];internalConversations:InternalConversation[];internalMessages:InternalMessage[];quickReplies:string[];automation:ChatAutomationSettings;runtime?:ChatRuntimeCapabilities;meta?:{version:number;updatedAt:string}}

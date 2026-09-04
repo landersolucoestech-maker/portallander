@@ -1,0 +1,75 @@
+name: CRM PostgreSQL Runtime Proof
+
+on:
+  push:
+    branches: [dev]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: crm-runtime-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  crm-runtime:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: portal
+          POSTGRES_PASSWORD: portal
+          POSTGRES_DB: portal_crm_runtime
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U portal -d portal_crm_runtime"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=10
+    env:
+      PGPASSWORD: portal
+      PGHOST: 127.0.0.1
+      PGPORT: 5432
+      PGUSER: portal
+      PGDATABASE: portal_crm_runtime
+      DATABASE_URL: postgresql://portal:portal@127.0.0.1:5432/portal_crm_runtime
+      PORTAL_IP_HASH_SECRET: crm-runtime-ci-secret
+      PORTAL_FORM_MIN_FILL_MS: 250
+      NODE_ENV: test
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify canonical dev head
+        run: |
+          set -euo pipefail
+          test "$(git branch --show-current)" = "dev"
+          test "$(git rev-parse HEAD)" = "${GITHUB_SHA}"
+          test -z "$(git status --short)"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install reproducibly
+        run: npm ci
+      - name: Provision Supabase Storage compatibility fixture
+        run: |
+          psql -v ON_ERROR_STOP=1 <<'SQL'
+          create schema if not exists storage;
+          create table if not exists storage.buckets(
+            id text primary key,
+            name text not null,
+            public boolean not null default false,
+            file_size_limit bigint,
+            allowed_mime_types text[]
+          );
+          SQL
+      - name: Apply migrations
+        run: |
+          set -euo pipefail
+          for migration in $(find apps/api/migrations -maxdepth 1 -type f -name '*.sql' | sort -V); do
+            echo "APPLY $migration"
+            psql -v ON_ERROR_STOP=1 -f "$migration"
+          done
+      - name: Prove authenticated CRM and advertising intake lifecycle
+        run: node apps/api/scripts/verify-crm-runtime.mjs

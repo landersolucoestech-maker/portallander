@@ -7,6 +7,7 @@ import {AdminKpi,AdminNotice,AdminShell} from '../../../shared/internal/AdminUi'
 import {type MediaKitDraft,type MediaKitMetricBinding} from '../mediaKitDomain'
 import {isMediaKitPersistenceConfigured,mediaKitRepository} from '../mediaKitRepository'
 import {siteManagerReadModel} from '../readModel'
+import {MediaKitLivePreview} from './MediaKitLivePreview'
 import './site-forms.css'
 import './media-kit.css'
 
@@ -80,7 +81,8 @@ export function MediaKitPage(){
 
       <section className="site-form-card"><header><div><h2>Contato comercial</h2><p>Somente informações efetivamente configuradas serão usadas pelo documento.</p></div></header><div className="site-form-grid"><label><span>Responsável / equipe</span><input value={draft.commercial.name} onChange={event=>patch({...draft,commercial:{...draft.commercial,name:event.target.value}})}/></label><label><span>E-mail</span><input type="email" value={draft.commercial.email} onChange={event=>patch({...draft,commercial:{...draft.commercial,email:event.target.value}})}/></label><label><span>Telefone / WhatsApp</span><input value={draft.commercial.phone} onChange={event=>patch({...draft,commercial:{...draft.commercial,phone:event.target.value}})}/></label><label><span>CTA</span><input value={draft.commercial.cta} onChange={event=>patch({...draft,commercial:{...draft.commercial,cta:event.target.value}})}/></label></div></section>
 
-      <div className="site-form-editor-top site-media-kit-actions"><button type="button" className="button outline" onClick={()=>navigate('/app/site/midia-kit/preview')}><Eye size={15}/>Preview</button><button type="button" className="button outline" onClick={()=>void resetDraft()} disabled={busy}><RotateCcw size={15}/>{operation==='reset'?'Restaurando…':'Restaurar'}</button><button type="button" className="button outline" onClick={()=>void saveDraft()} disabled={busy}><Save size={15}/>{operation==='save'?'Salvando…':'Salvar rascunho'}</button><button type="button" className="button" onClick={()=>void publish()} disabled={!persistent||busy} title={persistent?'Publicar a versão atual com snapshot':'A publicação exige a API administrativa'}>{operation==='publish'?'Publicando…':'Publicar'}</button></div>
+      <div className="site-form-editor-top site-media-kit-actions"><button type="button" className="button outline" onClick={()=>navigate('/app/site/midia-kit/preview')}><Eye size={15}/>Preview completo</button><button type="button" className="button outline" onClick={()=>void resetDraft()} disabled={busy}><RotateCcw size={15}/>{operation==='reset'?'Restaurando…':'Restaurar'}</button><button type="button" className="button outline" onClick={()=>void saveDraft()} disabled={busy}><Save size={15}/>{operation==='save'?'Salvando…':'Salvar rascunho'}</button><button type="button" className="button" onClick={()=>void publish()} disabled={!persistent||busy} title={persistent?'Publicar a versão atual com snapshot':'A publicação exige a API administrativa'}>{operation==='publish'?'Publicando…':'Publicar'}</button></div>
+      <MediaKitLivePreview kit={draft}/>
     </div>
   </AdminShell>
 }

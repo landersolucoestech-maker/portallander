@@ -1,4 +1,5 @@
 import {analyticsService} from './analyticsService.js'
+import {deriveFreshnessStatus} from './analyticsFreshness.js'
 import {HttpError} from './editorialService.js'
 import {GA4_METRIC_MAPPINGS,ga4DayPeriod,googleAnalyticsConfig,googleAnalyticsProvider,normalizeGa4Range} from './googleAnalyticsProvider.js'
 
@@ -21,8 +22,9 @@ export function createGoogleAnalyticsSyncService({provider=googleAnalyticsProvid
             const mapping=GA4_METRIC_MAPPINGS[index],value=numeric(row?.metricValues?.[index]?.value)
             const sourceReference=`ga4:${report.propertyId}:${date}:${mapping.providerMetric}`
             const collectedAt=new Date().toISOString()
+            const freshnessStatus=deriveFreshnessStatus({provider:report.provider,collectedAt})
             const raw=await analytics.upsertRawMetric({syncId:sync.id,provider:report.provider,providerAccountId:report.accountId,providerPropertyId:report.propertyId,scopeType:'portal',scopeId:'portal',providerMetric:mapping.providerMetric,value,unit:mapping.unit,periodStart:period.periodStart,periodEnd:period.periodEnd,granularity:'day',timezone:report.timezone,dimensions:{date},filters:{},sourceReference,collectedAt,providerPayload:{dimensionValues:row.dimensionValues,metricValue:row.metricValues?.[index]}})
-            await analytics.upsertMetric({rawMetricId:raw.id,syncId:sync.id,metricKey:mapping.metricKey,value,unit:mapping.unit,provider:report.provider,providerAccountId:report.accountId,providerPropertyId:report.propertyId,scopeType:'portal',scopeId:'portal',periodStart:period.periodStart,periodEnd:period.periodEnd,granularity:'day',timezone:report.timezone,dimensions:{date},filters:{},sourceType:'provider',sourceReference,collectedAt,providerUpdatedAt:null,freshnessStatus:'UNKNOWN',dataStatus:'LIVE',provenance:{providerMetric:mapping.providerMetric,provider:'Google Analytics Data API',apiVersion:'v1beta',accountId:report.accountId,propertyId:report.propertyId,timezone:report.timezone},isEstimated:false,isManual:false})
+            await analytics.upsertMetric({rawMetricId:raw.id,syncId:sync.id,metricKey:mapping.metricKey,value,unit:mapping.unit,provider:report.provider,providerAccountId:report.accountId,providerPropertyId:report.propertyId,scopeType:'portal',scopeId:'portal',periodStart:period.periodStart,periodEnd:period.periodEnd,granularity:'day',timezone:report.timezone,dimensions:{date},filters:{},sourceType:'provider',sourceReference,collectedAt,providerUpdatedAt:null,freshnessStatus,dataStatus:'LIVE',provenance:{providerMetric:mapping.providerMetric,provider:'Google Analytics Data API',apiVersion:'v1beta',accountId:report.accountId,propertyId:report.propertyId,timezone:report.timezone,freshnessPolicy:'ingestion_age_48h'},isEstimated:false,isManual:false})
             processed+=1
           }
         }

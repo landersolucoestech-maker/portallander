@@ -38,20 +38,27 @@ const normalizeBinding=(value,index)=>{
   const sourceMode=value.sourceMode==='manual'?'manual':'analytics'
   const metricKey=text(value.metricKey)
   if(!metricKey)throw new HttpError(400,`Métrica ${index+1} sem metricKey.`,'MEDIA_KIT_METRIC_KEY_REQUIRED')
+  const provider=text(value.provider),providerAccountId=text(value.providerAccountId),providerPropertyId=text(value.providerPropertyId)
+  const manualValue=text(value.manualValue),manualPeriodStart=text(value.manualPeriodStart),manualPeriodEnd=text(value.manualPeriodEnd)
+  if(sourceMode==='analytics'&&(!provider||!providerAccountId))throw new HttpError(400,`Métrica ${index+1} de Analytics exige provider e providerAccountId explícitos.`,'MEDIA_KIT_ANALYTICS_BOUNDARY_REQUIRED')
+  if(sourceMode==='manual'){
+    const parsedValue=numeric(manualValue),start=validDate(manualPeriodStart),end=validDate(manualPeriodEnd)
+    if(parsedValue===null||!start||!end||end<=start)throw new HttpError(400,`Métrica manual ${index+1} exige valor numérico e período válido.`,'MEDIA_KIT_MANUAL_METRIC_INVALID')
+  }
   return {
     id:text(value.id)||`metric-${index+1}`,
     label:text(value.label)||metricKey,
     metricKey,
     unit:text(value.unit)||'count',
     sourceMode,
-    provider:text(value.provider),
-    providerAccountId:text(value.providerAccountId),
-    providerPropertyId:text(value.providerPropertyId),
+    provider,
+    providerAccountId,
+    providerPropertyId,
     scopeType:text(value.scopeType)||'portal',
     scopeId:text(value.scopeId)||'portal',
-    manualValue:text(value.manualValue),
-    manualPeriodStart:text(value.manualPeriodStart),
-    manualPeriodEnd:text(value.manualPeriodEnd),
+    manualValue,
+    manualPeriodStart,
+    manualPeriodEnd,
   }
 }
 
@@ -96,12 +103,10 @@ function unavailableSnapshot(binding,resolvedAt){return {id:binding.id,label:bin
 async function resolveMetricBinding(client,binding,resolvedAt){
   if(binding.sourceMode==='manual'){
     const value=numeric(binding.manualValue),periodStart=validDate(binding.manualPeriodStart),periodEnd=validDate(binding.manualPeriodEnd)
-    if(value===null||!periodStart||!periodEnd||periodEnd<=periodStart)return unavailableSnapshot(binding,resolvedAt)
+    if(value===null||!periodStart||!periodEnd||periodEnd<=periodStart)throw new HttpError(400,'Métrica manual inválida no momento da publicação.','MEDIA_KIT_MANUAL_METRIC_INVALID')
     return {id:binding.id,label:binding.label,metricKey:binding.metricKey,value,unit:binding.unit,provider:null,providerAccountId:null,providerPropertyId:null,periodStart:periodStart.toISOString(),periodEnd:periodEnd.toISOString(),granularity:'custom',sourceType:'manual',sourceReference:`media-kit:${binding.id}:v-manual`,collectedAt:resolvedAt,providerUpdatedAt:null,normalizedAt:resolvedAt,freshnessStatus:'UNKNOWN',dataStatus:'MANUAL',syncId:null,provenance:{collectionMethod:'manual',resolvedForMediaKit:true},isEstimated:false,isManual:true}
   }
-  const where=['metric_key=$1','scope_type=$2','scope_id=$3',`data_status<>'MOCK'`],params=[binding.metricKey,binding.scopeType,binding.scopeId]
-  if(binding.provider){params.push(binding.provider);where.push(`provider=$${params.length}`)}
-  if(binding.providerAccountId){params.push(binding.providerAccountId);where.push(`provider_account_id=$${params.length}`)}
+  const where=['metric_key=$1','scope_type=$2','scope_id=$3',`data_status<>'MOCK'`,'provider=$4','provider_account_id=$5'],params=[binding.metricKey,binding.scopeType,binding.scopeId,binding.provider,binding.providerAccountId]
   if(binding.providerPropertyId){params.push(binding.providerPropertyId);where.push(`provider_property_id=$${params.length}`)}
   const {rows}=await client.query(`select * from analytics_metrics where ${where.join(' and ')} order by period_end desc,normalized_at desc limit 1`,params)
   const row=rows[0]

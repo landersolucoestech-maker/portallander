@@ -8,22 +8,34 @@ import {withDevelopmentCmsOverrides} from './features/site-manager/developmentCm
 import {contentDraftRepository} from './features/site-manager/contentDraftRepository'
 import {sitePageRepository} from './features/site-manager/pageRepository'
 import {bootstrapPublishedSiteForms} from './features/site-manager/forms/runtimeClient'
-import {mockDataProvider} from './shared/data/mockDataProvider'
 import {withEditorialSnapshot} from './shared/data/editorialOverlayDataProvider'
 import type {ApplicationDataProvider} from './shared/data/dataProvider'
-import {prepareMockSeedStorage} from './shared/data/mockSeedLifecycle'
-import {setRuntimeDataProvider} from './shared/data/runtimeDataProvider'
+import {hasRuntimeDataProvider,setRuntimeDataProvider} from './shared/data/runtimeDataProvider'
 import {scenarioController} from './shared/data/scenarioController'
 import {purgeRemovedModuleStorage} from './shared/internal/legacyStorageCleanup'
 import {installRhMarketingTableSorting} from './shared/internal/tableSortEnhancer'
 import {installAutoTablePagination} from './shared/internal/autoTablePagination'
 import './styles/public-styles.css'
 
-let editorialBaseProvider:ApplicationDataProvider=mockDataProvider
-const applyDevelopmentCmsPreview=()=>setRuntimeDataProvider(withDevelopmentCmsOverrides(editorialBaseProvider))
-applyDevelopmentCmsPreview()
-scenarioController.bootstrapFromLocation()
-prepareMockSeedStorage()
+const demoDataEnabled=import.meta.env.DEV||import.meta.env.VITE_ENABLE_DEMO_DATA==='true'
+let editorialBaseProvider:ApplicationDataProvider|null=null
+
+const applyDevelopmentCmsPreview=()=>{
+  if(editorialBaseProvider)setRuntimeDataProvider(withDevelopmentCmsOverrides(editorialBaseProvider))
+}
+
+async function bootstrapExplicitDemoData(){
+  if(!demoDataEnabled)return
+  const [{mockDataProvider},{prepareMockSeedStorage}]=await Promise.all([
+    import('./shared/data/mockDataProvider'),
+    import('./shared/data/mockSeedLifecycle'),
+  ])
+  editorialBaseProvider=mockDataProvider
+  applyDevelopmentCmsPreview()
+  scenarioController.bootstrapFromLocation()
+  prepareMockSeedStorage()
+}
+
 purgeRemovedModuleStorage()
 
 const queryClient=new QueryClient()
@@ -41,19 +53,26 @@ async function waitForPublicFonts() {
 async function bootstrapEditorialData(){
   try{
     const snapshot=await loadPublicEditorialSnapshot()
-    if(snapshot){editorialBaseProvider=withEditorialSnapshot(mockDataProvider,snapshot);applyDevelopmentCmsPreview()}
+    if(snapshot&&editorialBaseProvider){editorialBaseProvider=withEditorialSnapshot(editorialBaseProvider,snapshot);applyDevelopmentCmsPreview()}
   }catch(error){
-    console.warn('[Portal Lander] API editorial indisponível; mantendo provider atual.',error)
+    console.warn('[Portal Lander] API editorial indisponível; nenhuma fonte real foi substituída por mock.',error)
   }
 }
 
 async function bootstrapForms(){
   try{await bootstrapPublishedSiteForms()}
-  catch(error){console.warn('[Portal Lander] API de formulários indisponível; mantendo definições seed.',error)}
+  catch(error){console.warn('[Portal Lander] API de formulários indisponível; nenhuma definição mock foi promovida a produção.',error)}
 }
 
 function mountApp() {
-  ReactDOM.createRoot(document.getElementById('root')!).render(
+  const root=document.getElementById('root')!
+  if(!hasRuntimeDataProvider()){
+    ReactDOM.createRoot(root).render(
+      <React.StrictMode><main role="main" className="runtime-data-unavailable"><h1>Portal Lander</h1><p>Dados operacionais indisponíveis.</p><p>O provider real ainda não foi configurado para este ambiente.</p></main></React.StrictMode>,
+    )
+    return
+  }
+  ReactDOM.createRoot(root).render(
     <React.StrictMode><QueryClientProvider client={queryClient}><HashRouter><App/></HashRouter></QueryClientProvider></React.StrictMode>,
   )
   requestAnimationFrame(()=>{
@@ -65,11 +84,11 @@ function mountApp() {
 window.addEventListener(sitePageRepository.eventName,applyDevelopmentCmsPreview)
 window.addEventListener(contentDraftRepository.eventName,applyDevelopmentCmsPreview)
 
-void Promise.all([
+void bootstrapExplicitDemoData().then(()=>Promise.all([
   waitForPublicFonts().catch(()=>undefined),
   bootstrapEditorialData(),
   bootstrapForms(),
-]).finally(() => {
+])).finally(() => {
   document.documentElement.classList.remove('pl-fonts-loading')
   document.documentElement.classList.add('pl-fonts-ready')
   mountApp()

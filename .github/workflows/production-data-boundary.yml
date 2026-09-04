@@ -1,0 +1,95 @@
+name: Production Data Boundary
+
+on:
+  push:
+    branches: [dev]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-data-boundary-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  production-runtime:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify canonical dev head
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git branch --show-current)" = 'dev'
+          test "$(git rev-parse HEAD)" = "${GITHUB_SHA}"
+          test -z "$(git status --short)"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install reproducibly
+        run: npm ci
+      - name: Deterministic source boundary
+        run: npm --workspace @portallander/web run check:architecture
+      - name: Build production without demo data
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -z "${VITE_ENABLE_DEMO_DATA:-}"
+          NODE_ENV=production npm run build
+      - name: Install Chromium
+        working-directory: apps/web
+        run: npx playwright install --with-deps chromium
+      - name: Start production preview
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm --workspace @portallander/web run preview -- --host 127.0.0.1 > /tmp/production-data-preview.log 2>&1 &
+          for i in {1..60}; do
+            curl -fsS http://127.0.0.1:4173/portallander/ >/dev/null && exit 0
+            sleep 1
+          done
+          cat /tmp/production-data-preview.log
+          exit 1
+      - name: Prove fail-closed browser runtime
+        working-directory: apps/web
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p test-results/production-data
+          node --input-type=module <<'NODE'
+          import {chromium} from '@playwright/test'
+          import {writeFile} from 'node:fs/promises'
+          const browser=await chromium.launch({headless:true})
+          try{
+            const page=await browser.newPage({viewport:{width:1280,height:800}})
+            const requests=[]
+            const failed=[]
+            const consoleErrors=[]
+            page.on('request',request=>requests.push(request.url()))
+            page.on('requestfailed',request=>failed.push({url:request.url(),reason:request.failure()?.errorText||'unknown'}))
+            page.on('console',message=>{if(message.type()==='error')consoleErrors.push(message.text())})
+            await page.goto('http://127.0.0.1:4173/portallander/#/',{waitUntil:'networkidle'})
+            const text=(await page.locator('body').innerText()).replace(/\s+/g,' ')
+            if(!text.includes('Dados operacionais indisponíveis.'))throw new Error('Production did not fail closed when no real provider was configured')
+            if(!text.includes('O provider real ainda não foi configurado para este ambiente.'))throw new Error('Production unavailable-provider explanation missing')
+            const mockRequests=requests.filter(url=>/mockDataProvider|mockSeedLifecycle|\/mocks[-./]/i.test(url))
+            if(mockRequests.length)throw new Error('Production requested mock/demo chunks: '+JSON.stringify(mockRequests))
+            if(failed.length)throw new Error('Failed browser requests: '+JSON.stringify(failed))
+            if(consoleErrors.length)throw new Error('Console errors: '+consoleErrors.join(' | '))
+            await page.screenshot({path:'test-results/production-data/fail-closed.png',fullPage:true})
+            await writeFile('test-results/production-data/runtime.json',JSON.stringify({sha:process.env.GITHUB_SHA,productionUnavailableState:true,mockRequests:[],failedRequests:[],consoleErrors:[]},null,2))
+            console.log('PL_ENG_001_PRODUCTION_FAIL_CLOSED=PASS')
+            console.log('PRODUCTION_MOCK_REQUESTS=0')
+          }finally{await browser.close()}
+          NODE
+      - name: Upload production data-boundary evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-data-boundary
+          path: |
+            apps/web/test-results/production-data
+            /tmp/production-data-preview.log
+          if-no-files-found: warn

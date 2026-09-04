@@ -11,6 +11,7 @@ import {parseMultipart} from './multipart.js'
 
 const MAX_JSON_BYTES=1024*1024
 const SESSION_COOKIE_NAME=String(process.env.PORTAL_SESSION_COOKIE_NAME||'portal_lander_session').trim()||'portal_lander_session'
+const ADMINISTRATIVE_ROLES=new Set(['owner','admin'])
 
 function send(res,status,value,headers={}){
   const body=JSON.stringify(value)
@@ -68,6 +69,8 @@ function sessionCookie(token,{expiresAt,clear=false}={}){
   return parts.join('; ')
 }
 
+export function isAdministrativeRole(role){return ADMINISTRATIVE_ROLES.has(String(role||'').trim().toLowerCase())}
+
 export async function requireAdmin(req){
   const expected=process.env.PORTAL_ADMIN_TOKEN||''
   const header=String(req.headers.authorization||'')
@@ -75,6 +78,7 @@ export async function requireAdmin(req){
   if(expected&&bearer&&safeEqual(bearer,expected))return {mode:'legacy-token'}
   const session=await authService.session(readSessionToken(req))
   if(!session)throw new HttpError(401,'Sessão administrativa inválida ou expirada.','ADMIN_UNAUTHORIZED')
+  if(!isAdministrativeRole(session.user?.role))throw new HttpError(403,'Seu perfil não possui permissão administrativa.','ADMIN_FORBIDDEN',{role:session.user?.role||null})
   return {mode:'session',...session}
 }
 

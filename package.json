@@ -12,6 +12,7 @@
     "lint": "npm --workspace @portallander/web run lint",
     "typecheck": "npm --workspace @portallander/web run typecheck",
     "check:architecture": "npm --workspace @portallander/web run check:architecture",
+    "audit:engineering": "node scripts/engineering-census.mjs && node scripts/engineering-audit.mjs",
     "test": "npm --workspace @portallander/web run test",
     "preview": "npm --workspace @portallander/web run preview"
   }

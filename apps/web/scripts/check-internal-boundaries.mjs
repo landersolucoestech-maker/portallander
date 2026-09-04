@@ -16,6 +16,9 @@ requireTokens('main.tsx',main,['QueryClientProvider','<HashRouter><App/></HashRo
 
 const internalApp=await read('src/app/InternalApp.tsx')
 requireModuleSources('InternalApp.tsx',internalApp,[
+ '../features/access/LoginPage',
+ '../features/access/AdminAuthContext',
+ '../features/access/adminAuthState',
  '../features/access/CrmModuleRoutes',
  '../features/dashboard/DashboardPage',
  '../features/contracts/ContractsPage',
@@ -26,8 +29,35 @@ requireModuleSources('InternalApp.tsx',internalApp,[
  '../features/settings/SettingsPage',
  '../features/site-manager/SiteManagerRoutes',
 ])
-requireTokens('InternalApp.tsx',internalApp,['path="/app/login"','path="/app/dashboard"','path="/app/crm/*"','path="/app/contracts"','path="/app/finance"','path="/app/finance/invoices"','path="/app/finance/accounting"','path="/app/finance/rules"','path="/app/finance/categories"','path="/app/settings"','path="/app/site/*"'])
-forbidTokens('InternalApp.tsx',internalApp,['WorkspacePage','CrmWorkspace','/app/workspaces','workspace selection','LoginPage','RequireAdmin','useAdminAuth'])
+requireTokens('InternalApp.tsx',internalApp,[
+ 'function RequireAdmin',
+ 'useAdminAuth',
+ "status==='authenticated'||status==='development'",
+ 'return <Navigate to="/app/login"',
+ 'path="/app/login"',
+ 'path="/app/dashboard"',
+ 'path="/app/crm/*"',
+ 'path="/app/contracts"',
+ 'path="/app/finance"',
+ 'path="/app/finance/invoices"',
+ 'path="/app/finance/accounting"',
+ 'path="/app/finance/rules"',
+ 'path="/app/finance/categories"',
+ 'path="/app/settings"',
+ 'path="/app/site/*"',
+])
+forbidTokens('InternalApp.tsx',internalApp,['WorkspacePage','CrmWorkspace','/app/workspaces','workspace selection'])
+
+const authContext=await read('src/features/access/AdminAuthContext.tsx')
+requireTokens('AdminAuthContext.tsx',authContext,[
+ "const demoAuthEnabled=import.meta.env.DEV||import.meta.env.VITE_ENABLE_DEMO_DATA==='true'",
+ 'isAdminAuthConfigured',
+ 'readAdminSession',
+ 'loginAdmin',
+ 'logoutAdmin',
+ "configured?'loading':demoAuthEnabled?'development':'unavailable'",
+])
+if(authContext.includes("useState<AdminAuthStatus>('development')"))failures.push('AdminAuthContext.tsx não pode manter bypass administrativo incondicional.')
 
 const crmModuleRoutes=await read('src/features/access/CrmModuleRoutes.tsx')
 requireTokens('CrmModuleRoutes.tsx',crmModuleRoutes,["from '../crm/CrmPage'",'<Route index element={<CrmPage/>}/>','path="leads" element={<CrmPage/>}','path="contatos" element={<CrmPage/>}'])
@@ -115,4 +145,4 @@ for(const domain of ['identity','notifications','crm','contracts','finance','edi
 for(const required of ['uiMayImportRawMocks:false','crossDomainIds:true','metricsMustBeDerived:true','scenariosCentralized:true','providerBoundaryRequired:true'])if(!mockManifest.includes(required))failures.push(`Manifesto global de mocks deve preservar regra: ${required}`)
 
 if(failures.length){console.error('Falha nos boundaries da aplicação:');failures.forEach(item=>console.error(`- ${item}`));process.exit(1)}
-console.log('Application boundaries OK — administração unificada sem arquitetura de workspaces')
+console.log('Application boundaries OK — administração unificada com autenticação protegida e sem arquitetura de workspaces')

@@ -1,8 +1,8 @@
-import {expect,test} from '@playwright/test'
+import {expect,test,type Page} from '@playwright/test'
 
 const base='http://127.0.0.1:4173/portallander/'
 
-async function open(page:Parameters<typeof test>[0] extends never?never:any,route:string){
+async function open(page:Page,route:string){
  await page.goto(`${base}#${route}`,{waitUntil:'domcontentloaded'})
  await page.locator('#root').waitFor({state:'attached'})
  await page.waitForFunction(()=>document.querySelector('#root')?.childElementCount!==0)

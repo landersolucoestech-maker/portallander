@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 
 const MediaKitPage=lazy(()=>import('./pages/MediaKitPage').then(module=>({default:module.MediaKitPage})))
+const MediaKitPreviewPage=lazy(()=>import('./pages/MediaKitPreviewPage').then(module=>({default:module.MediaKitPreviewPage})))
 const GlobalHeroEditorPage=lazy(()=>import('./pages/GlobalHeroEditorPage').then(module=>({default:module.GlobalHeroEditorPage})))
 const HomeAdvertisingSectionPage=lazy(()=>import('./pages/HomeAdvertisingSectionPage').then(module=>({default:module.HomeAdvertisingSectionPage})))
 const HomeContentSectionPage=lazy(()=>import('./pages/HomeContentSectionPage').then(module=>({default:module.HomeContentSectionPage})))
@@ -57,6 +58,7 @@ export default function SiteManagerRoutes(){
     <Route path="formularios/:formId" element={<SiteFormEditorPage/>}/>
     <Route path="midia" element={<SiteMediaPage/>}/>
     <Route path="midia-kit" element={<MediaKitPage/>}/>
+    <Route path="midia-kit/preview" element={<MediaKitPreviewPage/>}/>
     <Route path="*" element={<Navigate to="/app/site" replace/>}/>
   </Routes></Suspense>
 }

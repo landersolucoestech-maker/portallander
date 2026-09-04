@@ -1,5 +1,5 @@
 import {Plus,Save,Trash2,Zap} from 'lucide-react'
-import {useEffect,useMemo,useState} from 'react'
+import {useMemo,useState} from 'react'
 import {AdminShell} from '../../shared/internal/AdminUi'
 import {UNIFIED_ADMIN_NAV} from '../../shared/internal/adminNavigation'
 import {AUTOMATION_TABS} from './constants'
@@ -11,12 +11,12 @@ const id=(prefix:string)=>`${prefix}_${Date.now()}_${Math.random().toString(36).
 const empty:ChatAutomationSettings={enabled:false,welcomeMessage:'',mainMenuMessage:'',menuOptions:[],templates:[],requiredFields:[],optionalFields:[],invalidOptionMessage:'',absenceMessage:'',outOfHoursMessage:'',closingMessage:'',returnToMenuRule:{enabled:false,commands:[]},escalationRules:[],notificationChannels:{in_app:true,whatsapp:false,sms:false},supervisorUserId:null,managerUserId:null,updatedAt:''}
 function Switch({checked,onChange,disabled=false}:{checked:boolean;onChange:(value:boolean)=>void;disabled?:boolean}){return <button type="button" disabled={disabled} className={`chat-switch${checked?' on':''}`} aria-pressed={checked} onClick={()=>onChange(!checked)}><span/></button>}
 export default function ChatAutomationSettingsPage(){
- const stateQuery=useChatState(),saveMutation=useSaveChatAutomation(),[draft,setDraft]=useState<ChatAutomationSettings>(empty),[tab,setTab]=useState('mensagens'),[saved,setSaved]=useState(false)
- useEffect(()=>{if(stateQuery.data)setDraft({...stateQuery.data.automation,enabled:false})},[stateQuery.data])
+ const stateQuery=useChatState(),saveMutation=useSaveChatAutomation(),[draftOverride,setDraftOverride]=useState<ChatAutomationSettings|null>(null),[tab,setTab]=useState('mensagens'),[saved,setSaved]=useState(false)
+ const baseDraft=stateQuery.data?{...stateQuery.data.automation,enabled:false}:empty,draft=draftOverride??baseDraft
  const runtimeAvailable=Boolean(stateQuery.data?.runtime?.escalation?.configured)
- const patch=(value:Partial<ChatAutomationSettings>)=>{setDraft(current=>({...current,...value,enabled:false}));setSaved(false)}
+ const patch=(value:Partial<ChatAutomationSettings>)=>{setDraftOverride({...draft,...value,enabled:false});setSaved(false)}
  const previewMenu=useMemo(()=>draft.menuOptions.filter(item=>item.active).sort((a,b)=>a.order-b.order).map(item=>`${item.order}. ${item.label}`).join('\n'),[draft.menuOptions])
- const save=()=>{void saveMutation.mutateAsync({...draft,enabled:false,mainMenuMessage:draft.mainMenuMessage||previewMenu}).then(()=>setSaved(true))}
+ const save=()=>{void saveMutation.mutateAsync({...draft,enabled:false,mainMenuMessage:draft.mainMenuMessage||previewMenu}).then(next=>{setDraftOverride({...next.automation,enabled:false});setSaved(true)})}
  const addMenu=()=>{const option:ChatMenuOption={id:id('menu'),order:Math.max(0,...draft.menuOptions.map(item=>item.order))+1,label:'Nova opção',responseTemplateId:'',queue:'Atendimento',sector:'Triagem',defaultAssignee:null,tags:[],priority:'media',active:true};patch({menuOptions:[...draft.menuOptions,option]})}
  const saveError=saveMutation.error
  return <AdminShell area="chat" items={UNIFIED_ADMIN_NAV} header={{title:'Automações do Chat',description:'Configure rascunhos de mensagens, triagem, filas e escalonamentos.'}} headerActions={[{label:'Testar escalonamento',icon:Zap,variant:'secondary',disabled:!runtimeAvailable,onClick:()=>undefined},{label:'Salvar configuração',icon:Save,onClick:save,disabled:saveMutation.isPending||stateQuery.isLoading}]}>

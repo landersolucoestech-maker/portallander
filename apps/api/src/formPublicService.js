@@ -30,6 +30,7 @@ export const formPublicService={
         consents:asArray(row.consents),
         routing:asObject(row.routing),
         successMessage:String(row.success_message||''),
+        appearance:asObject(meta.appearance),
       }
     })
   },

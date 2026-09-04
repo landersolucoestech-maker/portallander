@@ -36,7 +36,7 @@ export default function AgendaPage(){
    </>}
    {saveError&&<div className="agenda-empty agenda-error" role="alert"><strong>Não foi possível salvar</strong><p>{saveError}</p></div>}
   </section>
-  <AgendaFormModal key={`${form.mode}-${form.event?.id??'new'}-${form.open?'open':'closed'}`} open={form.open} mode={form.mode} event={form.event} participants={participants} locations={locations} onClose={()=>setForm(current=>({...current,open:false}))} onSave={draft=>{void save(draft)}}/>
+  <AgendaFormModal key={`${form.mode}-${form.event?.id??'new'}-${form.open?'open':'closed'}`} open={form.open} mode={form.mode} event={form.event} participants={participants} locations={locations} locationCatalogAvailable={lookups.available} onClose={()=>setForm(current=>({...current,open:false}))} onSave={draft=>{void save(draft)}}/>
   <AgendaViewModal open={Boolean(viewEvent)} event={viewEvent} participants={participants} onClose={()=>setViewEvent(undefined)} onEdit={()=>{if(!viewEvent)return;setForm({open:true,mode:'edit',event:viewEvent});setViewEvent(undefined)}}/>
  </AdminShell>
 }

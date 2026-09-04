@@ -1,4 +1,5 @@
 import {HttpError} from './editorialService.js'
+import {googleAnalyticsConfig} from './googleAnalyticsProvider.js'
 
 const AUTENTIQUE_DEFAULT_URL='https://api.autentique.com.br/v2/graphql'
 const META_GRAPH_BASE='https://graph.facebook.com'
@@ -36,6 +37,7 @@ export function integrationProviderConfig(env=process.env){
     whatsapp:{configured:Boolean(clean(env.WHATSAPP_ACCESS_TOKEN)&&clean(env.WHATSAPP_PHONE_NUMBER_ID)&&clean(env.WHATSAPP_GRAPH_API_VERSION)),phoneNumberId:clean(env.WHATSAPP_PHONE_NUMBER_ID),graphVersion:clean(env.WHATSAPP_GRAPH_API_VERSION),verifyTokenConfigured:Boolean(clean(env.WHATSAPP_WEBHOOK_VERIFY_TOKEN))},
     spotify:{configured:Boolean(clean(env.SPOTIFY_CLIENT_ID)&&clean(env.SPOTIFY_CLIENT_SECRET)&&clean(env.SPOTIFY_REDIRECT_URI)&&clean(env.SPOTIFY_TOKEN_ENCRYPTION_KEY))},
     resend:{configured:Boolean(clean(env.RESEND_API_KEY))},
+    google:{configured:googleAnalyticsConfig(env).configured},
   }
 }
 
@@ -109,6 +111,6 @@ export const whatsappProvider={
 export function integrationRuntimeStatus(){
   const cfg=integrationProviderConfig()
   return {
-    autentique:{implementation:'partial',configured:cfg.autentique.configured},meta:{implementation:'planned',configured:false},tiktok:{implementation:'planned',configured:false},google:{implementation:'planned',configured:false},spotify:{implementation:'partial',configured:cfg.spotify.configured},nfe:{implementation:'planned',configured:false},whatsapp:{implementation:'partial',configured:cfg.whatsapp.configured,webhookVerifyTokenConfigured:cfg.whatsapp.verifyTokenConfigured},resend:{implementation:'partial',configured:cfg.resend.configured},
+    autentique:{implementation:'partial',configured:cfg.autentique.configured},meta:{implementation:'planned',configured:false},tiktok:{implementation:'planned',configured:false},google:{implementation:'partial',configured:cfg.google.configured},spotify:{implementation:'partial',configured:cfg.spotify.configured},nfe:{implementation:'planned',configured:false},whatsapp:{implementation:'partial',configured:cfg.whatsapp.configured,webhookVerifyTokenConfigured:cfg.whatsapp.verifyTokenConfigured},resend:{implementation:'partial',configured:cfg.resend.configured},
   }
 }

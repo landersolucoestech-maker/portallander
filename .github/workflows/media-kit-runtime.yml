@@ -1,0 +1,146 @@
+name: Media Kit Preview and PDF Runtime
+
+on:
+  push:
+    branches: [dev]
+    paths:
+      - 'apps/web/**'
+      - '.github/workflows/media-kit-runtime.yml'
+      - 'package-lock.json'
+      - 'package.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  preview-pdf-runtime:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify dev execution head
+        run: |
+          echo "HEAD=$(git rev-parse HEAD)"
+          test "$(git branch --show-current)" = "dev"
+          test "$(git rev-parse HEAD)" = "${GITHUB_SHA}"
+          test -z "$(git status --short)"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install reproducibly
+        run: npm ci
+      - name: Build explicit browser fixture
+        env:
+          VITE_ENABLE_DEMO_DATA: 'true'
+        run: npm run build
+      - name: Install Chromium and PDF utilities
+        working-directory: apps/web
+        run: |
+          npx playwright install --with-deps chromium
+          command -v pdfinfo >/dev/null || (sudo apt-get update && sudo apt-get install -y poppler-utils)
+          command -v pdftotext >/dev/null || (sudo apt-get update && sudo apt-get install -y poppler-utils)
+          command -v pdftoppm >/dev/null || (sudo apt-get update && sudo apt-get install -y poppler-utils)
+      - name: Start production preview server
+        run: |
+          npm --workspace @portallander/web run preview -- --host 127.0.0.1 > /tmp/media-kit-preview-server.log 2>&1 &
+          for i in {1..40}; do
+            curl -fsS http://127.0.0.1:4173/portallander/ >/dev/null && exit 0
+            sleep 1
+          done
+          cat /tmp/media-kit-preview-server.log
+          exit 1
+      - name: Validate Preview and generate shared-renderer PDF
+        working-directory: apps/web
+        run: |
+          node --input-type=module <<'NODE'
+          import {chromium} from '@playwright/test'
+          import {mkdir,stat} from 'node:fs/promises'
+          const browser=await chromium.launch({headless:true})
+          const failedRequests=[]
+          const consoleErrors=[]
+          try{
+            const context=await browser.newContext({viewport:{width:1440,height:1200}})
+            const page=await context.newPage()
+            page.on('console',msg=>{if(msg.type()==='error')consoleErrors.push(msg.text())})
+            page.on('requestfailed',request=>failedRequests.push({url:request.url().replace(/([?&](?:token|access_token|refresh_token|client_secret|authorization)=)[^&]+/gi,'$1[REDACTED]'),reason:request.failure()?.errorText||'unknown'}))
+            const target='http://127.0.0.1:4173/portallander/#/app/site/midia-kit/preview'
+            await page.goto(target,{waitUntil:'domcontentloaded'})
+            await page.locator('[data-media-kit-page="1"]').waitFor({state:'attached',timeout:15000})
+            await page.evaluate(async()=>{if(document.fonts)await document.fonts.ready})
+            const pages=page.locator('[data-media-kit-page]')
+            if(await pages.count()!==9)throw new Error(`Expected 9 document pages; found ${await pages.count()}`)
+            const numbers=await pages.evaluateAll(nodes=>nodes.map(node=>node.getAttribute('data-media-kit-page')))
+            if(JSON.stringify(numbers)!==JSON.stringify(['1','2','3','4','5','6','7','8','9']))throw new Error(`Page order invalid: ${JSON.stringify(numbers)}`)
+            if(await page.locator('.mk-preview-page-label').count()!==9)throw new Error('Preview page labels missing')
+            await page.getByRole('button',{name:'Voltar ao editor do Mídia Kit'}).waitFor()
+            await page.getByRole('button',{name:'Gerar ou baixar PDF do Mídia Kit'}).waitFor()
+            const fonts=await page.evaluate(()=>({bebas:document.fonts?.check('16px "Bebas Neue"')??false,montserrat:document.fonts?.check('16px "Montserrat"')??false,status:document.fonts?.status??'unsupported'}))
+            console.log('FONTS='+JSON.stringify(fonts))
+            if(!fonts.bebas||!fonts.montserrat||fonts.status!=='loaded')throw new Error('Required fonts are not loaded')
+            const checkViewport=async(width,height,name)=>{
+              await page.setViewportSize({width,height})
+              await page.waitForTimeout(100)
+              const result=await page.evaluate(()=>({viewport:innerWidth,scrollWidth:Math.max(document.documentElement.scrollWidth,document.body.scrollWidth),frameWidth:document.querySelector('.mk-preview-page-frame')?.getBoundingClientRect().width||0,pageRect:(()=>{const rect=document.querySelector('[data-media-kit-page="1"]')?.getBoundingClientRect();return rect?{width:rect.width,height:rect.height}:null})()}))
+              console.log(`VIEWPORT_${name}=`+JSON.stringify(result))
+              if(result.scrollWidth>result.viewport+2)throw new Error(`${name}: global horizontal overflow`)
+              if(result.frameWidth>result.viewport+2)throw new Error(`${name}: preview frame exceeds viewport`)
+              if(!result.pageRect)throw new Error(`${name}: page missing`)
+              const ratio=result.pageRect.width/result.pageRect.height
+              if(Math.abs(ratio-(210/297))>.01)throw new Error(`${name}: A4 proportion changed (${ratio})`)
+            }
+            await checkViewport(1440,1200,'DESKTOP')
+            await checkViewport(768,1024,'TABLET')
+            await checkViewport(375,812,'MOBILE')
+            await page.setViewportSize({width:1440,height:1200})
+            await page.emulateMedia({media:'print'})
+            const printPages=await pages.evaluateAll(nodes=>nodes.map(node=>{const r=node.getBoundingClientRect();return {width:r.width,height:r.height,scrollWidth:node.scrollWidth,scrollHeight:node.scrollHeight}}))
+            if(printPages.some(item=>Math.abs(item.width-793.7)>3||Math.abs(item.height-1122.5)>3))throw new Error('Printed document page is not A4')
+            if(printPages.some(item=>item.scrollWidth>item.width+2||item.scrollHeight>item.height+2))throw new Error('Printed document page overflows')
+            const toolbarHidden=await page.locator('.mk-preview-toolbar').evaluate(node=>getComputedStyle(node).display==='none')
+            const labelsHidden=await page.locator('.mk-preview-page-label').first().evaluate(node=>getComputedStyle(node).display==='none')
+            if(!toolbarHidden||!labelsHidden)throw new Error('Preview-only controls leaked into print')
+            await mkdir('test-results/media-kit',{recursive:true})
+            await page.screenshot({path:'test-results/media-kit/print-preview.png',fullPage:true})
+            await page.pdf({path:'test-results/media-kit/media-kit.pdf',format:'A4',printBackground:true,preferCSSPageSize:true,margin:{top:'0',right:'0',bottom:'0',left:'0'}})
+            const pdf=await stat('test-results/media-kit/media-kit.pdf')
+            if(pdf.size<10000)throw new Error('Generated PDF is unexpectedly small')
+            console.log('PREVIEW_PAGE_COUNT=9')
+            console.log('PREVIEW_PDF_SHARED_RENDERER=PASS')
+            console.log('PDF_BYTES='+pdf.size)
+            console.log('FAILED_REQUESTS='+JSON.stringify(failedRequests))
+            if(consoleErrors.length)throw new Error('Console errors: '+consoleErrors.join(' | '))
+            if(failedRequests.length)throw new Error('Failed requests: '+JSON.stringify(failedRequests))
+            await context.close()
+          }finally{await browser.close()}
+          NODE
+      - name: Inspect PDF structure and searchable text
+        working-directory: apps/web
+        run: |
+          pdfinfo test-results/media-kit/media-kit.pdf | tee test-results/media-kit/pdfinfo.txt
+          pages=$(awk '/^Pages:/ {print $2}' test-results/media-kit/pdfinfo.txt)
+          test "$pages" = "9"
+          grep -q '594.96 x 841.92 pts (A4)' test-results/media-kit/pdfinfo.txt
+          pdftotext test-results/media-kit/media-kit.pdf test-results/media-kit/media-kit.txt
+          grep -q 'PORTAL LANDER' test-results/media-kit/media-kit.txt
+          grep -q 'NOSSA AUDIÊNCIA' test-results/media-kit/media-kit.txt
+          grep -q 'INVENTÁRIO PUBLICITÁRIO' test-results/media-kit/media-kit.txt
+          echo "PDF_PAGE_COUNT=$pages"
+          echo "PDF_SEARCHABLE_TEXT=PASS"
+      - name: Render all PDF pages
+        working-directory: apps/web
+        run: |
+          mkdir -p test-results/media-kit/rendered
+          pdftoppm -png -r 110 test-results/media-kit/media-kit.pdf test-results/media-kit/rendered/page >/dev/null 2>&1
+          count=$(find test-results/media-kit/rendered -type f -name 'page-*.png' | wc -l)
+          echo "RENDERED_PAGE_IMAGES=$count"
+          test "$count" = "9"
+      - name: Upload Preview and PDF evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: media-kit-preview-pdf-runtime
+          path: |
+            apps/web/test-results/media-kit
+            /tmp/media-kit-preview-server.log
+          if-no-files-found: warn

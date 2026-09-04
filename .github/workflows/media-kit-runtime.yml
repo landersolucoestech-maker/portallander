@@ -50,12 +50,12 @@ jobs:
           done
           cat /tmp/media-kit-preview-server.log
           exit 1
-      - name: Validate Preview and generate shared-renderer PDF
+      - name: Validate Editor Preview and generate shared-renderer PDF
         working-directory: apps/web
         run: |
           node --input-type=module <<'NODE'
           import {chromium} from '@playwright/test'
-          import {mkdir,stat} from 'node:fs/promises'
+          import {mkdir,stat,writeFile} from 'node:fs/promises'
           const browser=await chromium.launch({headless:true})
           const failedRequests=[]
           const consoleErrors=[]
@@ -64,20 +64,66 @@ jobs:
             const page=await context.newPage()
             page.on('console',msg=>{if(msg.type()==='error')consoleErrors.push(msg.text())})
             page.on('requestfailed',request=>failedRequests.push({url:request.url().replace(/([?&](?:token|access_token|refresh_token|client_secret|authorization)=)[^&]+/gi,'$1[REDACTED]'),reason:request.failure()?.errorText||'unknown'}))
-            const target='http://127.0.0.1:4173/portallander/#/app/site/midia-kit/preview'
-            await page.goto(target,{waitUntil:'domcontentloaded'})
-            await page.locator('[data-media-kit-page="1"]').waitFor({state:'attached',timeout:15000})
-            await page.evaluate(async()=>{if(document.fonts)await document.fonts.ready})
+
+            await page.goto('http://127.0.0.1:4173/portallander/#/app/site/midia-kit',{waitUntil:'domcontentloaded'})
+            const previewAction=page.getByRole('button',{name:'Preview'})
+            try{
+              await previewAction.waitFor({state:'visible',timeout:15000})
+            }catch(error){
+              console.log('EDITOR_HASH='+await page.evaluate(()=>location.hash))
+              console.log('EDITOR_BODY='+((await page.locator('body').innerText()).replace(/\s+/g,' ').slice(0,2000)))
+              console.log('EDITOR_CONSOLE_ERRORS='+JSON.stringify(consoleErrors))
+              throw error
+            }
+            console.log('MEDIA_KIT_EDITOR=PASS')
+            console.log('MEDIA_KIT_PREVIEW_ACTION=PASS')
+
+            await previewAction.focus()
+            if(await previewAction.evaluate(node=>document.activeElement!==node))throw new Error('Preview action cannot receive keyboard focus')
+            await page.keyboard.press('Enter')
+            await page.waitForURL(/#\/app\/site\/midia-kit\/preview$/,{timeout:10000})
+            console.log('MEDIA_KIT_PREVIEW_KEYBOARD_OPEN=PASS')
+
+            try{
+              await page.locator('[data-media-kit-page="1"]').waitFor({state:'attached',timeout:15000})
+            }catch(error){
+              console.log('PREVIEW_HASH='+await page.evaluate(()=>location.hash))
+              console.log('PREVIEW_BODY='+((await page.locator('body').innerText()).replace(/\s+/g,' ').slice(0,2500)))
+              console.log('PREVIEW_CONSOLE_ERRORS='+JSON.stringify(consoleErrors))
+              throw error
+            }
+
+            await page.evaluate(async()=>{
+              if(!document.fonts)return
+              await Promise.race([
+                document.fonts.ready,
+                new Promise((_,reject)=>setTimeout(()=>reject(new Error('FONT_READY_TIMEOUT')),15000)),
+              ])
+            })
+
             const pages=page.locator('[data-media-kit-page]')
             if(await pages.count()!==9)throw new Error(`Expected 9 document pages; found ${await pages.count()}`)
             const numbers=await pages.evaluateAll(nodes=>nodes.map(node=>node.getAttribute('data-media-kit-page')))
             if(JSON.stringify(numbers)!==JSON.stringify(['1','2','3','4','5','6','7','8','9']))throw new Error(`Page order invalid: ${JSON.stringify(numbers)}`)
-            if(await page.locator('.mk-preview-page-label').count()!==9)throw new Error('Preview page labels missing')
-            await page.getByRole('button',{name:'Voltar ao editor do Mídia Kit'}).waitFor()
-            await page.getByRole('button',{name:'Gerar ou baixar PDF do Mídia Kit'}).waitFor()
+            const pageLabels=page.locator('.mk-preview-page-label')
+            if(await pageLabels.count()!==9)throw new Error('Preview page labels missing')
+            const labelTexts=await pageLabels.allInnerTexts()
+            if(JSON.stringify(labelTexts)!==JSON.stringify(Array.from({length:9},(_,index)=>`Página ${index+1} de 9`)))throw new Error(`Preview page labels invalid: ${JSON.stringify(labelTexts)}`)
+
+            const backButton=page.getByRole('button',{name:'Voltar ao editor do Mídia Kit'})
+            const pdfButton=page.getByRole('button',{name:'Gerar ou baixar PDF do Mídia Kit'})
+            await backButton.waitFor()
+            await pdfButton.waitFor()
+            await backButton.focus()
+            await page.keyboard.press('Tab')
+            const focusedLabel=await page.evaluate(()=>document.activeElement?.getAttribute('aria-label')||document.activeElement?.textContent?.trim()||'')
+            if(focusedLabel!=='Gerar ou baixar PDF do Mídia Kit')throw new Error(`Toolbar keyboard order invalid; focused=${focusedLabel}`)
+            console.log('MEDIA_KIT_TOOLBAR_KEYBOARD=PASS')
+
             const fonts=await page.evaluate(()=>({bebas:document.fonts?.check('16px "Bebas Neue"')??false,montserrat:document.fonts?.check('16px "Montserrat"')??false,status:document.fonts?.status??'unsupported'}))
             console.log('FONTS='+JSON.stringify(fonts))
             if(!fonts.bebas||!fonts.montserrat||fonts.status!=='loaded')throw new Error('Required fonts are not loaded')
+
             const checkViewport=async(width,height,name)=>{
               await page.setViewportSize({width,height})
               await page.waitForTimeout(100)
@@ -88,11 +134,15 @@ jobs:
               if(!result.pageRect)throw new Error(`${name}: page missing`)
               const ratio=result.pageRect.width/result.pageRect.height
               if(Math.abs(ratio-(210/297))>.01)throw new Error(`${name}: A4 proportion changed (${ratio})`)
+              await page.screenshot({path:`test-results/media-kit/preview-${name.toLowerCase()}.png`,fullPage:true})
             }
+
+            await mkdir('test-results/media-kit',{recursive:true})
             await checkViewport(1440,1200,'DESKTOP')
             await checkViewport(768,1024,'TABLET')
             await checkViewport(375,812,'MOBILE')
             await page.setViewportSize({width:1440,height:1200})
+
             await page.emulateMedia({media:'print'})
             const printPages=await pages.evaluateAll(nodes=>nodes.map(node=>{const r=node.getBoundingClientRect();return {width:r.width,height:r.height,scrollWidth:node.scrollWidth,scrollHeight:node.scrollHeight}}))
             if(printPages.some(item=>Math.abs(item.width-793.7)>3||Math.abs(item.height-1122.5)>3))throw new Error('Printed document page is not A4')
@@ -100,11 +150,12 @@ jobs:
             const toolbarHidden=await page.locator('.mk-preview-toolbar').evaluate(node=>getComputedStyle(node).display==='none')
             const labelsHidden=await page.locator('.mk-preview-page-label').first().evaluate(node=>getComputedStyle(node).display==='none')
             if(!toolbarHidden||!labelsHidden)throw new Error('Preview-only controls leaked into print')
-            await mkdir('test-results/media-kit',{recursive:true})
+
             await page.screenshot({path:'test-results/media-kit/print-preview.png',fullPage:true})
             await page.pdf({path:'test-results/media-kit/media-kit.pdf',format:'A4',printBackground:true,preferCSSPageSize:true,margin:{top:'0',right:'0',bottom:'0',left:'0'}})
             const pdf=await stat('test-results/media-kit/media-kit.pdf')
             if(pdf.size<10000)throw new Error('Generated PDF is unexpectedly small')
+            await writeFile('test-results/media-kit/runtime-summary.json',JSON.stringify({sha:process.env.GITHUB_SHA,editorOpened:true,previewOpenedFromEditor:true,pageCount:9,pageOrder:numbers,keyboard:true,fonts,failedRequests,consoleErrors,pdfBytes:pdf.size},null,2))
             console.log('PREVIEW_PAGE_COUNT=9')
             console.log('PREVIEW_PDF_SHARED_RENDERER=PASS')
             console.log('PDF_BYTES='+pdf.size)

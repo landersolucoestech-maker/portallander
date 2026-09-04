@@ -23,6 +23,7 @@ test('production mock guard blocks operational fixtures but keeps Analytics trut
 
 test('deterministic Analytics response renders real zero, provenance and no unrelated ranking',async({page})=>{
  test.skip(process.env.ANALYTICS_RUNTIME_SIMULATION!=='1','Dedicated runtime simulation only')
+ const runtimeProofRequired=process.env.ANALYTICS_RUNTIME_REQUIRED==='1'
  const currentMonth=new Date().toISOString().slice(0,7)
  const [year,month]=currentMonth.split('-').map(Number)
  const previousMonth=new Date(Date.UTC(year,month-2,1)).toISOString().slice(0,7)
@@ -52,7 +53,7 @@ test('deterministic Analytics response renders real zero, provenance and no unre
  await open(page,'/app/marketing/metricas')
  await page.waitForTimeout(250)
  const unavailable=await page.getByText('Analytics indisponível',{exact:true}).count()
- test.skip(interceptedAnalyticsRequests===0||unavailable>0,'This production build does not provide the isolated Analytics runtime; deterministic interception is proven by the dedicated Analytics browser runtime workflow.')
+ test.skip(!runtimeProofRequired&&(interceptedAnalyticsRequests===0||unavailable>0),'This production build does not provide the isolated Analytics runtime; deterministic interception is proven by the dedicated Analytics browser runtime workflow.')
  await expect(page.getByText('Analytics indisponível',{exact:true})).toHaveCount(0)
  const impressionsCard=page.locator('.marketing-metric-strip article').filter({hasText:'Impressões'})
  await expect(impressionsCard.locator('strong')).toHaveText('100')

@@ -13,11 +13,12 @@
 .pl-mini .pl-thumb.has-image{min-height:56px}
 .pl-gallery .pl-thumb.has-image{min-height:120px}
 .pl-podcast .pl-thumb.has-image{min-height:55px;aspect-ratio:1.15}
-.pl-center-link{display:flex;justify-content:center;margin-top:14px}.pl-center-link a,.pl-outline-button{border:1px solid #4a2224;color:#fff;text-decoration:none;padding:9px 22px;font-family:'Bebas Neue','Arial Narrow',sans-serif;font-size:12px;letter-spacing:.04em}.pl-outline-button{display:flex;justify-content:center;margin-top:12px}
+.pl-center-link{display:flex;justify-content:center;margin-top:14px}.pl-center-link a{border:1px solid #4a2224;color:inherit;text-decoration:none;padding:9px 22px;font-family:'Bebas Neue','Arial Narrow',sans-serif;font-size:12px;letter-spacing:.04em}.pl-outline-button{border:1px solid #4a2224;color:#fff;text-decoration:none;padding:9px 22px;font-family:'Bebas Neue','Arial Narrow',sans-serif;font-size:12px;letter-spacing:.04em;display:flex;justify-content:center;margin-top:12px}
 .pl-whatsapp{position:relative;overflow:hidden;padding-right:112px}.pl-whatsapp:after{content:'';position:absolute;right:-28px;bottom:-18px;width:145px;height:205px;border:1px solid #315b38;border-radius:22px;transform:rotate(-7deg);background:linear-gradient(180deg,#181818,#060606);box-shadow:0 0 0 7px #050505,0 0 26px rgba(0,255,80,.1)}.pl-whatsapp:before{content:'';position:absolute;right:8px;bottom:15px;width:92px;height:156px;z-index:2;background:linear-gradient(180deg,#132416,#08100a);border-radius:14px;box-shadow:inset 0 0 0 1px #315b38}.pl-phone-visual{position:absolute;right:18px;bottom:70px;z-index:3;width:74px;height:85px;display:flex;align-items:center;justify-content:center;color:#34d058;font-size:8px;font-weight:900;transform:rotate(-7deg)}
 
-/* Accessibility: keep decorative brand red while using an AA-safe action red for controls. */
+/* Accessibility: keep decorative brand red while using an AA-safe functional red where white text is painted on red. */
 .editorial-actions .portal-button,.pl-ad-content a{background:#e50914!important;border-color:#e50914!important}
+.public-page .pl-badge{background:#e50914!important}
 .editorial-secondary{background:#111!important;color:#fff!important}
 /* Editorial cards are dark surfaces, so their content must not inherit dark configurable section text. */
 .public-page .pl-card{color:#fff!important}
@@ -28,8 +29,8 @@
 .public-page .pl-section-head a{color:inherit!important}
 /* Advertising fallback labels remain normal-size text on a dark surface. */
 .public-page .pl-home-sidebar-ad-kicker{color:#858585!important}
-/* The dynamic advertising region is visually dark; make that painted surface explicit for text contrast. */
-.public-page .pl-ad-dynamic{background:#080202!important;background-image:none!important}
+/* The text-based Anuncie Aqui composition must keep an explicit dark painted surface. The higher specificity intentionally outranks the configurable layout rule that makes creative/image banners transparent. */
+.public-page .official-secao-anuncie-aqui.pl-home-configurable-ad.pl-ad-dynamic{background:#080202!important;background-image:none!important}
 .public-page .pl-ad-content span{color:#eee!important}
 /* Generic legacy outline styles paint a white button; public empty states are dark. */
 .public-page .editorial-empty-state .button.outline{background:#111!important;color:#fff!important;border-color:#767676!important}

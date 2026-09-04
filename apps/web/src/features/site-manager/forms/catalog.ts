@@ -31,6 +31,21 @@ export const siteFormRegistry:readonly SiteFormDefinition[]=[
     routing:{destination:'content_collaborations',collaboration:{defaultStatus:'received',defaultPriority:'normal'}},
     successMessage:'Material recebido. Nossa equipe editorial fará a triagem.',
   },
+  {
+    id:'advertising-inquiry',name:'Contato Comercial · Anuncie',slug:'anuncie-contato',version:1,purpose:'advertising',status:'active',source:'system',
+    fields:[
+      {id:'ads-name',key:'name',label:'Nome',type:'text',required:true,placeholder:'Seu nome',order:1},
+      {id:'ads-email',key:'email',label:'E-mail profissional',type:'email',required:true,placeholder:'voce@empresa.com',order:2},
+      {id:'ads-phone',key:'phone',label:'Telefone / WhatsApp',type:'tel',required:false,order:3},
+      {id:'ads-company',key:'company',label:'Empresa / Marca',type:'text',required:true,placeholder:'Nome da empresa ou marca',order:4},
+      {id:'ads-type',key:'type',label:'Perfil comercial',type:'select',required:true,options:['anunciante','patrocinador','agencia_publicidade','parceiro_comercial','outro'],order:5},
+      {id:'ads-service',key:'service',label:'Interesse comercial',type:'select',required:true,options:['banner_publicitario','materia_patrocinada','campanha_publicitaria','publicacao_comercial','patrocinio','parceria_comercial','outro'],order:6},
+      {id:'ads-message',key:'message',label:'Conte sobre a oportunidade',type:'textarea',required:true,placeholder:'Objetivo, campanha, período e outras informações relevantes',order:7},
+    ],
+    consents:[{id:'ads-privacy',kind:'privacy',label:'Privacidade',required:true,version:'1.0',text:'Autorizo o tratamento dos dados informados para que o Portal Lander responda a esta solicitação comercial.'}],
+    routing:{destination:'crm',crm:{origin:'formulario_portal',tags:['site','anuncie','publicidade']}},
+    successMessage:'Recebemos sua solicitação comercial. A equipe do Portal Lander fará a triagem pelo CRM.',
+  },
 ]
 
 let runtimeForms:readonly SiteFormDefinition[]=siteFormRegistry

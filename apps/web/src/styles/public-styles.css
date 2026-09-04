@@ -5,7 +5,6 @@
 @import './public-mockup.css';
 @import '../pages/home/styles/hero-public.css';
 @import './public-reference.css';
-@import './public-corrections.css';
 @import '../pages/home/styles/hero-fixed-background.css';
 @import '../pages/home/styles/hero-carousel.css';
 @import '../pages/home/styles/featured-grid.css';
@@ -23,3 +22,4 @@
 @import '../pages/home/styles/home-content-responsive.css';
 @import './public-page-architecture.css';
 @import './public-layout-system.css';
+@import './public-corrections.css';

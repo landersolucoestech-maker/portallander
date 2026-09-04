@@ -62,6 +62,8 @@ jobs:
       - name: API unit tests
         run: npm --workspace @portallander/api test
       - name: Production build
+        env:
+          NODE_ENV: production
         run: npm run build
 
       - name: Apply prerequisite schema
@@ -155,6 +157,8 @@ jobs:
           for i in {1..40}; do curl -fsS http://127.0.0.1:4173/portallander/ >/dev/null && exit 0; sleep 1; done
           cat /tmp/preview.log; exit 1
       - name: Existing visual regression audit
+        env:
+          ANALYTICS_RUNTIME_SIMULATION: '1'
         run: npm --workspace @portallander/web run test:visual
       - name: Production public truth and Media Kit PDF proof
         working-directory: apps/web

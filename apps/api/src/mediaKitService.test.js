@@ -40,7 +40,9 @@ test('nunca aceita snapshot de audiência fornecido pelo cliente',()=>{
 })
 
 test('rejeita placement que não pertence ao inventário canônico do Portal',()=>{
-  assert.throws(()=>normalizePayload({inventory:{placements:[{placementId:'invented-takeover',commercialAvailability:'AVAILABLE'}]}}),error=>error?.code==='MEDIA_KIT_PLACEMENT_NOT_CANONICAL')
+  for(const placementId of ['invented-takeover','300x600-random','homepage-mega-takeover']){
+    assert.throws(()=>normalizePayload({inventory:{placements:[{placementId,commercialAvailability:'AVAILABLE'}]}}),error=>error?.code==='MEDIA_KIT_PLACEMENT_NOT_CANONICAL')
+  }
 })
 
 test('binding manual permanece explicitamente manual e preserva período',()=>{
@@ -50,4 +52,17 @@ test('binding manual permanece explicitamente manual e preserva período',()=>{
   assert.equal(metric.manualValue,'120')
   assert.equal(metric.manualPeriodStart,'2026-08-01')
   assert.equal(metric.manualPeriodEnd,'2026-09-01')
+})
+
+test('binding manual inválido é rejeitado antes de persistir draft',()=>{
+  assert.throws(()=>normalizePayload({audience:{metrics:[{metricKey:'users',sourceMode:'manual',manualValue:'abc',manualPeriodStart:'2026-08-01',manualPeriodEnd:'2026-09-01'}]}}),error=>error?.code==='MEDIA_KIT_MANUAL_METRIC_INVALID')
+  assert.throws(()=>normalizePayload({audience:{metrics:[{metricKey:'users',sourceMode:'manual',manualValue:'10'}]}}),error=>error?.code==='MEDIA_KIT_MANUAL_METRIC_INVALID')
+  assert.throws(()=>normalizePayload({audience:{metrics:[{metricKey:'users',sourceMode:'manual',manualValue:'10',manualPeriodStart:'2026-09-01',manualPeriodEnd:'2026-08-01'}]}}),error=>error?.code==='MEDIA_KIT_MANUAL_METRIC_INVALID')
+})
+
+test('binding Analytics exige provider e account boundary explícitos',()=>{
+  assert.throws(()=>normalizePayload({audience:{metrics:[{metricKey:'sessions',sourceMode:'analytics'}]}}),error=>error?.code==='MEDIA_KIT_ANALYTICS_BOUNDARY_REQUIRED')
+  assert.throws(()=>normalizePayload({audience:{metrics:[{metricKey:'sessions',sourceMode:'analytics',provider:'google-analytics'}]}}),error=>error?.code==='MEDIA_KIT_ANALYTICS_BOUNDARY_REQUIRED')
+  const payload=normalizePayload({audience:{metrics:[{metricKey:'sessions',sourceMode:'analytics',provider:'google-analytics',providerAccountId:'acct-A',providerPropertyId:'prop-A'}]}})
+  assert.equal(payload.audience.metrics[0].providerAccountId,'acct-A')
 })

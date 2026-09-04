@@ -32,7 +32,6 @@ export default function DashboardPage(){
  useEffect(()=>{
   let active=true
   const range=lastSevenDayRange()
-  setVisitsLoading(true);setVisitsError('')
   analyticsClient.metrics({...range,metricKey:'pageviews',granularity:'day',limit:50}).then(response=>{if(active)setVisits(resolveDashboardPageviews(response.metrics))}).catch(caught=>{if(active){setVisits({points:[],source:'UNAVAILABLE',updatedAt:null});setVisitsError(caught instanceof Error?caught.message:'Analytics indisponível.')}}).finally(()=>{if(active)setVisitsLoading(false)})
   return()=>{active=false}
  },[])

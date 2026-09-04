@@ -10,19 +10,23 @@ test('GA4 config never becomes configured without explicit timezone and account/
   assert.equal(googleAnalyticsConfig({GOOGLE_CLIENT_ID:'c',GOOGLE_CLIENT_SECRET:'s',GOOGLE_REFRESH_TOKEN:'r',GOOGLE_ANALYTICS_ACCOUNT_ID:'a',GOOGLE_ANALYTICS_PROPERTY_ID:'p',GOOGLE_ANALYTICS_TIMEZONE:'America/Sao_Paulo'}).configured,true)
 })
 
-test('GA4 sync range is bounded and ordered',()=>{
+test('GA4 sync range is bounded, ordered and calendar-valid',()=>{
   assert.deepEqual(normalizeGa4Range({startDate:'2026-08-01',endDate:'2026-08-31'}),{startDate:'2026-08-01',endDate:'2026-08-31',days:31})
+  assert.deepEqual(normalizeGa4Range({startDate:'2028-02-29',endDate:'2028-02-29'}),{startDate:'2028-02-29',endDate:'2028-02-29',days:1})
   assert.throws(()=>normalizeGa4Range({startDate:'2026-08-31',endDate:'2026-08-01'}),error=>error?.code==='GA4_RANGE_INVALID')
   assert.throws(()=>normalizeGa4Range({startDate:'2026-07-01',endDate:'2026-08-31'}),error=>error?.code==='GA4_RANGE_TOO_LARGE')
   assert.throws(()=>normalizeGa4Range({startDate:'2026-02-29',endDate:'2026-03-01'}),error=>error?.code==='GA4_DATE_INVALID')
 })
 
-test('GA4 daily boundaries preserve configured property timezone',()=>{
+test('GA4 daily boundaries preserve configured property timezone and UTC day identity',()=>{
   const period=ga4DayPeriod('2026-08-01','America/Sao_Paulo')
   assert.equal(period.periodStart.toISOString(),'2026-08-01T03:00:00.000Z')
   assert.equal(period.periodEnd.toISOString(),'2026-08-02T03:00:00.000Z')
   const monthStart=ga4DayPeriod('2026-09-01','America/Sao_Paulo')
   assert.equal(monthStart.periodStart.toISOString(),'2026-09-01T03:00:00.000Z')
+  const utc=ga4DayPeriod('2026-09-01','UTC')
+  assert.equal(utc.periodStart.toISOString(),'2026-09-01T00:00:00.000Z')
+  assert.equal(utc.periodEnd.toISOString(),'2026-09-02T00:00:00.000Z')
 })
 
 test('GA4 provider metrics map explicitly instead of collapsing unlike concepts',()=>{

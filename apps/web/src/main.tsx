@@ -43,11 +43,15 @@ const queryClient=new QueryClient()
 const REQUIRED_PUBLIC_FONTS = [
   '400 16px "Bebas Neue"','400 16px "Montserrat"','500 16px "Montserrat"','600 16px "Montserrat"','700 16px "Montserrat"','800 16px "Montserrat"',
 ]
+const FONT_BOOTSTRAP_TIMEOUT_MS=3000
 
 async function waitForPublicFonts() {
   if (!document.fonts?.load) return
-  await Promise.all(REQUIRED_PUBLIC_FONTS.map(font => document.fonts.load(font)))
-  await document.fonts.ready
+  const fontLoad=Promise.all(REQUIRED_PUBLIC_FONTS.map(font => document.fonts.load(font))).then(()=>document.fonts.ready).then(()=>undefined)
+  await Promise.race([
+    fontLoad,
+    new Promise<void>(resolve=>window.setTimeout(resolve,FONT_BOOTSTRAP_TIMEOUT_MS)),
+  ])
 }
 
 async function bootstrapEditorialData(){

@@ -44,11 +44,17 @@ const evidence=(path,pattern)=>({path,line:lineOf(path,pattern)})
 const existing=(path)=>sources.has(path)
 const lockfiles=tracked.filter(path=>['package-lock.json','pnpm-lock.yaml','yarn.lock'].includes(path))
 const packagePaths=tracked.filter(path=>path.endsWith('package.json'))
+const exactSemver=/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/
 const unpinned=[]
 for(const path of packagePaths){
   let pkg
   try{pkg=JSON.parse(get(path))}catch{continue}
-  for(const section of ['dependencies','devDependencies','optionalDependencies'])for(const [name,version] of Object.entries(pkg[section]||{}))if(version==='latest'||version==='*')unpinned.push({path,section,name,version})
+  for(const section of ['dependencies','devDependencies','optionalDependencies']){
+    for(const [name,declared] of Object.entries(pkg[section]||{})){
+      const version=String(declared??'').trim()
+      if(!exactSemver.test(version))unpinned.push({path,section,name,version})
+    }
+  }
 }
 
 const findings=[]
@@ -68,14 +74,16 @@ if(get(mainPath).includes('editorialBaseProvider:ApplicationDataProvider=mockDat
 }
 
 const authMigration='apps/api/migrations/009_admin_auth.sql',httpPath='apps/api/src/http.js'
-if(/role\s+text[\s\S]*owner[\s\S]*admin[\s\S]*editor/.test(get(authMigration))&&existing(httpPath)&&!/(requireRole|requirePermission|authorizeRole|allowedRoles)/.test(get(httpPath))){
+const httpSource=get(httpPath)
+const administrativeRoleBoundaryComplete=/ADMINISTRATIVE_ROLES/.test(httpSource)&&/isAdministrativeRole/.test(httpSource)&&/ADMIN_FORBIDDEN/.test(httpSource)&&/owner/.test(httpSource)&&/admin/.test(httpSource)
+if(/role\s+text[\s\S]*owner[\s\S]*admin[\s\S]*editor/.test(get(authMigration))&&existing(httpPath)&&!administrativeRoleBoundaryComplete){
   finding({
     id:'PL-ENG-002',severity:'HIGH',confidence:'HIGH',domain:'backend/authorization',status:'OPEN',classification:'EXISTS_BUT_WEAK',disposition:'STRENGTHEN',
-    title:'Administrative roles exist but route mutations are not governed by role/permission checks',
+    title:'Administrative roles exist but the administrative boundary is not enforced',
     evidence:[evidence(authMigration,/role\s+text/),evidence(httpPath,/export async function requireAdmin/)],
-    rootCause:'Authentication and authorization are collapsed into a single requireAdmin gate; the stored owner/admin/editor role is not used to authorize individual operations.',
+    rootCause:'The stored owner/admin/editor role is not proven to constrain the administrative boundary.',
     blastRadius:['editorial mutations','media','media kit publish','forms administration','integration/provider administration and other admin handlers'],
-    recommendation:'Introduce deterministic permission checks at backend boundaries and map roles to permissions. Keep frontend authorization non-authoritative.'
+    recommendation:'Enforce owner/admin at the backend administrative boundary, keep editor outside that boundary until product permissions are explicitly defined, and keep frontend authorization non-authoritative.'
   })
 }
 
@@ -84,9 +92,9 @@ if(lockfiles.length===0||unpinned.length){
     id:'PL-ENG-003',severity:'HIGH',confidence:'HIGH',domain:'tooling/dependencies',status:'OPEN',classification:'EXISTS_BUT_WEAK',disposition:'FIX',
     title:'Dependency resolution is not reproducible',
     evidence:[...unpinned.slice(0,20).map(item=>({path:item.path,dependency:item.name,declared:item.version})),{lockfiles}],
-    rootCause:'The repository has no tracked package-manager lockfile and frontend dependencies are declared with floating latest/* ranges.',
+    rootCause:lockfiles.length===0?'No canonical package-manager lockfile is tracked.':'One or more direct dependencies use non-exact version ranges.',
     blastRadius:['local development','CI','build reproducibility','security review','regression attribution'],
-    recommendation:'Generate and commit one canonical npm lockfile, pin intentional dependency ranges, then use npm ci in CI.'
+    recommendation:'Track one canonical npm lockfile, pin every direct dependency to an intentional exact version, and use npm ci in CI.'
   })
 }
 

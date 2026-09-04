@@ -6,4 +6,7 @@ export interface SettingsUser{id:string;name:string;email:string;role:string;pho
 export interface SettingsRole{id:string;slug:string;name:string;description:string;archived:boolean;system:boolean;permissions:string[]}
 export interface SettingsInvite{id:string;email:string;role:string;status:'pendente'}
 export interface SettingsAudit{id:string;createdAt:string;userId:string;actorRole:string;action:string;entity:string;entityId:string;method:string;path:string;ip:string;correlationId:string;before:Record<string,unknown>|null;after:Record<string,unknown>|null;diff:Record<string,{from:unknown;to:unknown}>|null}
-export interface SettingsSeed{company:SettingsCompany;automations:SettingsAutomation[];integrations:SettingsIntegration[];users:SettingsUser[];roles:SettingsRole[];invites:SettingsInvite[];audit:SettingsAudit[]}
+export interface SettingsSession{id:string;isCurrent:boolean;createdAt:string;lastSeenAt:string;expiresAt:string;userAgent:string}
+export interface SettingsSecurity{passwordChange:boolean;twoFactor:boolean;sessionList:boolean;revokeOtherSessions:boolean;deleteAccount:boolean;sessions:SettingsSession[]}
+export interface SettingsRuntime{automation:boolean;userInvites:boolean;roleMutation:boolean;userRemoval:boolean;companyLogoUpload:boolean;websiteEmbed:boolean}
+export interface SettingsSeed{company:SettingsCompany;automations:SettingsAutomation[];integrations:SettingsIntegration[];users:SettingsUser[];roles:SettingsRole[];invites:SettingsInvite[];audit:SettingsAudit[];security?:SettingsSecurity;runtime?:SettingsRuntime;meta?:{version:number;updatedAt:string}}

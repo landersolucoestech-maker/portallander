@@ -4,14 +4,9 @@ import {getAdminSiteForm} from './adminClient'
 import {getSiteFormById} from './catalog'
 import {formDraftRepository} from './draftRepository'
 import type {SiteFormDefinition} from './domain'
+import {resolveSectionFormId} from './sectionFormMapping'
 import {resolveSiteFormOptionSets} from './runtimeOptions'
 import {SiteFormRenderer} from './SiteFormRenderer'
-
-const SECTION_FORM_IDS:Readonly<Record<string,string>>={
-  'colabore-formulario':'collaborate',
-}
-
-export const resolveSectionFormId=(sectionId:string)=>SECTION_FORM_IDS[sectionId]??null
 
 export function SectionFormPreview({sectionId}:{sectionId:string}){
   const formId=resolveSectionFormId(sectionId)

@@ -1,5 +1,5 @@
 import {ChevronLeft,ChevronRight,ExternalLink,Maximize2,Minus,Plus} from 'lucide-react'
-import {useState} from 'react'
+import {useState,type CSSProperties} from 'react'
 import {useNavigate} from 'react-router-dom'
 import type {MediaKitDraft} from '../mediaKitDomain'
 import {MEDIA_KIT_PAGE_COUNT,MediaKitDocument} from './MediaKitDocument'
@@ -23,7 +23,7 @@ export function MediaKitLivePreview({kit}:{kit:MediaKitDraft}){
         <button type="button" aria-label="Diminuir zoom" onClick={()=>changeZoom(zoom-5)}><Minus size={15}/></button><output aria-label="Zoom do preview">{zoom}%</output><button type="button" aria-label="Aumentar zoom" onClick={()=>changeZoom(zoom+5)}><Plus size={15}/></button>
         <button type="button" className="fit" onClick={()=>setZoom(52)} title="Ajustar à largura"><Maximize2 size={15}/>Fit</button>
       </div>
-      <div className="site-media-kit-live-stage" style={{'--mk-live-scale':String(zoom/100)} as React.CSSProperties}>
+      <div className="site-media-kit-live-stage" style={{'--mk-live-scale':String(zoom/100)} as CSSProperties}>
         <div className="site-media-kit-live-document"><MediaKitDocument kit={kit} selectedPage={page}/></div>
       </div>
       <p className="site-media-kit-live-note">O preview usa o draft atual em memória e o mesmo <code>MediaKitDocument</code> utilizado pelo preview completo e pelo PDF. Nenhuma alteração precisa ser salva para aparecer aqui.</p>

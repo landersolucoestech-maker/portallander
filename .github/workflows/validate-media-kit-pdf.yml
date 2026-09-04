@@ -29,6 +29,8 @@ jobs:
       - name: Install monorepo dependencies
         run: npm install
       - name: Build production frontend
+        env:
+          NODE_ENV: production
         run: npm run build
       - name: Install Chromium and PDF inspection utilities
         working-directory: apps/web
@@ -57,7 +59,13 @@ jobs:
             const context=await browser.newContext({viewport:{width:1440,height:1200}})
             const page=await context.newPage()
             const consoleErrors=[]
+            const failedRequests=[]
             page.on('console',msg=>{if(msg.type()==='error')consoleErrors.push(msg.text())})
+            page.on('requestfailed',request=>{
+              const url=request.url()
+              const sanitized=url.replace(/([?&](?:token|access_token|refresh_token|client_secret|authorization)=)[^&]+/gi,'$1[REDACTED]')
+              failedRequests.push({url:sanitized,reason:request.failure()?.errorText||'unknown',resourceType:request.resourceType()})
+            })
 
             await page.goto('http://127.0.0.1:4173/portallander/#/anuncie',{waitUntil:'networkidle'})
             const publicText=await page.locator('body').innerText()
@@ -104,7 +112,9 @@ jobs:
             const pdf=await stat('test-results/media-kit/media-kit.pdf')
             console.log('PDF_BYTES='+pdf.size)
             if(pdf.size<10000)throw new Error('Generated PDF is unexpectedly small')
+            console.log('FAILED_REQUESTS='+JSON.stringify(failedRequests))
             if(consoleErrors.length)throw new Error('Console errors: '+consoleErrors.join(' | '))
+            if(failedRequests.length)throw new Error('Failed browser requests: '+JSON.stringify(failedRequests))
             await context.close()
           } finally {
             await browser.close()

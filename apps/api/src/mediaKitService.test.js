@@ -25,9 +25,29 @@ test('aplica defaults seguros para campos institucionais e CTA',()=>{
   assert.equal(payload.institutional.title,'Portal Lander')
   assert.equal(payload.commercial.cta,'Fale com nosso time comercial')
   assert.deepEqual(payload.adFormats,[])
+  assert.deepEqual(payload.inventory.placements.map(item=>item.placementId),['home-sidebar','editorial-sidebar','advertise-here'])
 })
 
 test('rejeita payload ou formato publicitário inválido',()=>{
   assert.throws(()=>normalizePayload(null),error=>error?.code==='MEDIA_KIT_INVALID')
   assert.throws(()=>normalizePayload({adFormats:['inválido']}),error=>error?.code==='MEDIA_KIT_FORMAT_INVALID')
+})
+
+test('nunca aceita snapshot de audiência fornecido pelo cliente',()=>{
+  const payload=normalizePayload({audience:{metrics:[],snapshot:[{id:'fake',value:999999}],snapshotResolvedAt:'2026-01-01T00:00:00.000Z'}})
+  assert.deepEqual(payload.audience.snapshot,[])
+  assert.equal(payload.audience.snapshotResolvedAt,null)
+})
+
+test('rejeita placement que não pertence ao inventário canônico do Portal',()=>{
+  assert.throws(()=>normalizePayload({inventory:{placements:[{placementId:'invented-takeover',commercialAvailability:'AVAILABLE'}]}}),error=>error?.code==='MEDIA_KIT_PLACEMENT_NOT_CANONICAL')
+})
+
+test('binding manual permanece explicitamente manual e preserva período',()=>{
+  const payload=normalizePayload({audience:{metrics:[{id:'users',label:'Usuários',metricKey:'users',unit:'count',sourceMode:'manual',manualValue:'120',manualPeriodStart:'2026-08-01',manualPeriodEnd:'2026-09-01'}]}})
+  const [metric]=payload.audience.metrics
+  assert.equal(metric.sourceMode,'manual')
+  assert.equal(metric.manualValue,'120')
+  assert.equal(metric.manualPeriodStart,'2026-08-01')
+  assert.equal(metric.manualPeriodEnd,'2026-09-01')
 })

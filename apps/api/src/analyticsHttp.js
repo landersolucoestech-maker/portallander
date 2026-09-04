@@ -1,7 +1,9 @@
 import {analyticsService} from './analyticsService.js'
 import {HttpError} from './editorialService.js'
+import {googleAnalyticsSyncService} from './googleAnalyticsSyncService.js'
 import {requireAdmin} from './http.js'
 
+const MAX_JSON_BYTES=64*1024
 function corsHeaders(req){
   const origin=String(req.headers.origin||'').trim()
   if(!origin)return {}
@@ -12,26 +14,32 @@ function corsHeaders(req){
 }
 function send(res,status,value,headers={}){res.writeHead(status,{'content-type':'application/json; charset=utf-8','cache-control':'no-store',...headers});res.end(JSON.stringify(value))}
 function query(url){return Object.fromEntries(url.searchParams.entries())}
+async function readJson(req){let size=0,raw='';for await(const chunk of req){size+=chunk.length;if(size>MAX_JSON_BYTES)throw new HttpError(413,'Payload de Analytics excede o limite.','ANALYTICS_PAYLOAD_TOO_LARGE');raw+=chunk}if(!raw)return{};try{return JSON.parse(raw)}catch{throw new HttpError(400,'JSON inválido.','ANALYTICS_INVALID_JSON')}}
 
 export async function handleAnalyticsRequest(req,res){
-  if(req.method!=='GET')return false
   const url=new URL(req.url||'/',`http://${req.headers.host||'localhost'}`)
   const path=url.pathname.replace(/\/+$/,'')||'/'
   if(!path.startsWith('/api/analytics/'))return false
+  if(!['GET','POST'].includes(req.method||''))return false
   const cors=corsHeaders(req)
   try{
     await requireAdmin(req)
-    if(path==='/api/analytics/metrics'){
+    if(req.method==='GET'&&path==='/api/analytics/metrics'){
       const metrics=await analyticsService.listMetrics(query(url))
       send(res,200,{metrics},cors);return true
     }
-    if(path==='/api/analytics/providers/status'){
+    if(req.method==='GET'&&path==='/api/analytics/providers/status'){
       const providers=await analyticsService.providerStatus()
       send(res,200,{providers},cors);return true
     }
-    if(path==='/api/analytics/syncs'){
+    if(req.method==='GET'&&path==='/api/analytics/syncs'){
       const syncs=await analyticsService.listSyncs(query(url))
       send(res,200,{syncs},cors);return true
+    }
+    if(req.method==='POST'&&path==='/api/analytics/syncs/ga4'){
+      const body=await readJson(req)
+      const result=await googleAnalyticsSyncService.syncRange({startDate:body.startDate,endDate:body.endDate})
+      send(res,200,result,cors);return true
     }
     throw new HttpError(404,'Rota de Analytics não encontrada.','ANALYTICS_ROUTE_NOT_FOUND')
   }catch(error){

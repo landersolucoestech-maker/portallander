@@ -45,7 +45,6 @@ export function MarketingMetrics({state}:{state:MarketingSeed}){
 
   useEffect(()=>{
     let active=true
-    setLoading(true);setError('')
     const currentRange=monthRange(period),previousRange=monthRange(previousMonth(period))
     Promise.all([analyticsClient.metrics({...currentRange,limit:500}),analyticsClient.metrics({...previousRange,limit:500})]).then(([current,previous])=>{if(active){setMetrics(current.metrics.filter(metric=>metric.dataStatus!=='MOCK'));setPreviousMetrics(previous.metrics.filter(metric=>metric.dataStatus!=='MOCK'))}}).catch(caught=>{if(active){setMetrics([]);setPreviousMetrics([]);setError(caught instanceof Error?caught.message:'Analytics indisponível.')}}).finally(()=>{if(active)setLoading(false)})
     return()=>{active=false}
@@ -63,9 +62,11 @@ export function MarketingMetrics({state}:{state:MarketingSeed}){
   const ranked=useMemo(()=>buildContentReachRanking(state.contents,base),[state.contents,base])
   const comparisons={impressions:comparisonLabel(comparePeriods(totals.impressions,previousTotals.impressions)),clicks:comparisonLabel(comparePeriods(totals.clicks,previousTotals.clicks)),engagement:comparisonLabel(comparePeriods(totals.engagement,previousTotals.engagement)),conversions:comparisonLabel(comparePeriods(totals.conversions,previousTotals.conversions)),spend:comparisonLabel(comparePeriods(totals.spend,previousTotals.spend)),ctr:comparisonLabel(comparePeriods(ctr,previousCtr))}
 
+  const changePeriod=(next:string)=>{setLoading(true);setError('');setPeriod(next)}
+
   return <>
     <div className="marketing-platform-tabs marketing-platform-tabs-exact"><button type="button" className={provider==='all'?'active':''} onClick={()=>setProvider('all')}><Globe2 size={14}/>Visão Geral</button>{providers.map(name=><button type="button" key={name} className={provider===name?'active':''} onClick={()=>setProvider(name)}><span className="marketing-platform-dot"/>{name}</button>)}</div>
-    <div className="marketing-metrics-period"><input type="month" value={period} onChange={event=>setPeriod(event.target.value)}/><small>Comparação automática com {previousMonth(period)} somente quando os dois períodos são semanticamente comparáveis.</small></div>
+    <div className="marketing-metrics-period"><input type="month" value={period} onChange={event=>changePeriod(event.target.value)}/><small>Comparação automática com {previousMonth(period)} somente quando os dois períodos são semanticamente comparáveis.</small></div>
     {error&&<div className="marketing-empty"><strong>Analytics indisponível</strong><p>{error} Nenhum valor mock foi usado como fallback.</p></div>}
     <div className="marketing-metric-strip marketing-metric-strip-exact">{[
       ['Alcance',valueLabel(totals.reach),'não somado/comparado entre observações incompatíveis',Users],

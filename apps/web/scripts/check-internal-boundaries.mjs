@@ -126,14 +126,21 @@ requireTokens('SettingsPage.tsx',settingsPage,["'identidade_site'",'Identidade d
 requireTokens('SiteIdentitySettings.tsx',siteIdentity,['Cabeçalho global','Rodapé global','HeaderBrandEditor'])
 
 const financeMain=await read('src/features/finance/FinanceMainPage.tsx')
-requireTokens('FinanceMainPage.tsx',financeMain,['Financeiro','Nova Transação','Importar OFX'])
+requireTokens('FinanceMainPage.tsx',financeMain,['Financeiro','Nova Transação','Importar OFX','useFinanceTransactions','useFinanceCategories','useSaveFinanceTransaction','useDeleteFinanceTransaction'])
 if(financeMain.includes("label:'Automações'"))failures.push('Financeiro principal não pode reintroduzir ação Automações.')
 const financeInvoices=await read('src/features/finance/FinanceInvoicesPage.tsx')
-requireTokens('FinanceInvoicesPage.tsx',financeInvoices,['Notas Fiscais','Registrar Nota','setInvoiceModal(null)','function InvoiceModal','writeInvoices'])
+requireTokens('FinanceInvoicesPage.tsx',financeInvoices,['Notas Fiscais','Registrar Nota','setInvoiceModal(null)','function InvoiceModal','useFinanceInvoices','useSaveFinanceInvoice','useDeleteFinanceInvoice'])
 const financeAccounting=await read('src/features/finance/FinanceAccountingPage.tsx')
-requireTokens('FinanceAccountingPage.tsx',financeAccounting,['Contabilidade','Receita Total','Despesa Total','Lucro Líquido','Margem Líquida','Demonstrativo de Resultado'])
+requireTokens('FinanceAccountingPage.tsx',financeAccounting,['Contabilidade','Receita Total','Despesa Total','Lucro Líquido','Margem Líquida','Demonstrativo de Resultado','useFinanceTransactions'])
 const financeRegistry=await read('src/features/finance/FinanceRegistryPage.tsx')
-requireTokens('FinanceRegistryPage.tsx',financeRegistry,['Categorias Financeiras','Regras Financeiras','financeRepository.listCategories','financeRepository.listRules','financeRepository.saveCategories','financeRepository.saveRules'])
+requireTokens('FinanceRegistryPage.tsx',financeRegistry,['Categorias Financeiras','Regras Financeiras','useFinanceCategories','useFinanceRules','useSaveFinanceCategory','useDeleteFinanceCategory','useSaveFinanceRule','useDeleteFinanceRule'])
+for(const [path,source] of [['FinanceMainPage.tsx',financeMain],['FinanceInvoicesPage.tsx',financeInvoices],['FinanceAccountingPage.tsx',financeAccounting],['FinanceRegistryPage.tsx',financeRegistry]]){
+ if(source.includes('financeRepository.'))failures.push(`${path} não pode persistir dados financeiros diretamente no repository/localStorage; use hooks canônicos.`)
+}
+const financeHooks=await read('src/features/finance/hooks.ts')
+requireTokens('finance/hooks.ts',financeHooks,['financeAdminClient','status===\'authenticated\'?\'api\':\'development\'','useQuery','useMutation'])
+const financeAdminClient=await read('src/features/finance/adminClient.ts')
+requireTokens('finance/adminClient.ts',financeAdminClient,['/api/finance/transactions','/api/finance/invoices','/api/finance/categories','/api/finance/rules',"credentials:'include'"])
 
 const mockArchitectureFiles=[
  'src/mocks/README.md','src/mocks/index.ts','src/mocks/manifest.ts',

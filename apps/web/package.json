@@ -8,7 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint . --max-warnings=0",
     "typecheck": "tsc -b --pretty false",
-    "check:architecture": "node scripts/check-unified-admin.mjs && node scripts/check-internal-boundaries.mjs && node scripts/check-chat-boundaries.mjs && node scripts/check-data-boundaries.mjs && node scripts/check-ui-system.mjs && node scripts/check-site-module.mjs && node scripts/check-editorial-sections.mjs",
+    "check:architecture": "node scripts/check-unified-admin.mjs && node scripts/check-internal-boundaries.mjs && node scripts/check-chat-boundaries.mjs && node scripts/check-rh-boundaries.mjs && node scripts/check-data-boundaries.mjs && node scripts/check-ui-system.mjs && node scripts/check-site-module.mjs && node scripts/check-editorial-sections.mjs",
     "test": "vitest run",
     "test:visual": "playwright test --reporter=line",
     "preview": "vite preview"

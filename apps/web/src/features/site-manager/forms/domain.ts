@@ -2,6 +2,20 @@ export type FormPurpose='lead_capture'|'contact'|'advertising'|'editorial_submis
 export type FormDestination='crm'|'content_collaborations'|'marketing'|'internal'|'none'
 export type FormStatus='draft'|'active'|'inactive'
 export type FormFieldType='text'|'email'|'tel'|'textarea'|'select'|'radio'|'checkbox'|'url'|'file'|'date'|'number'|'hidden'
+export type FormAppearancePreset='portal'|'minimal'|'editorial'|'compact'|'highlight'
+
+export interface FormAppearance{
+  preset:FormAppearancePreset
+  container:{maxWidth:number;width:number;align:'left'|'center'|'right';padding:number;background:string;border:'none'|'solid';borderColor:string;borderWidth:number;borderRadius:number;shadow:'none'|'soft'|'strong'}
+  layout:{columns:1|2;responsiveCollapseAt:'mobile'|'tablet';columnGap:number;rowGap:number}
+  typography:{font:'montserrat'|'system';labelSize:number;labelWeight:400|500|600|700;labelColor:string;helpSize:number;helpColor:string}
+  fields:{height:number;background:string;textColor:string;placeholderColor:string;borderColor:string;borderWidth:number;borderRadius:number;paddingX:number;focusColor:string;focusRing:number}
+  textarea:{minHeight:number;resize:'none'|'vertical'|'both'}
+  button:{text:string;align:'left'|'center'|'right';width:'auto'|'full';height:number;background:string;foreground:string;borderColor:string;borderWidth:number;borderRadius:number;fontSize:number;fontWeight:500|600|700;hoverBackground:string;focusColor:string}
+  consents:{color:string;gap:number;fontSize:number}
+  upload:{background:string;borderColor:string;borderWidth:number;borderRadius:number;foreground:string}
+  states:{successBackground:string;successForeground:string;errorBackground:string;errorForeground:string;borderColor:string;borderRadius:number}
+}
 
 export interface FormFieldDefinition{
   id:string
@@ -42,6 +56,7 @@ export interface SiteFormDefinition{
   consents:readonly FormConsentDefinition[]
   routing:FormRoutingDefinition
   successMessage:string
+  appearance?:FormAppearance
 }
 
 export interface FormVersionSnapshot{

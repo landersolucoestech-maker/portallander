@@ -51,6 +51,14 @@
 .table-card th{white-space:nowrap}
 .table-card tbody tr:focus-within{background:#fff7f7}
 
+/* Normal-size secondary copy must remain AA on the light administrative surfaces. */
+.app-shell .admin-notice p,
+.app-shell .admin-kpi>small,
+.app-shell .dashboard-stat-card small,
+.app-shell .dashboard-section-heading p{
+  color:#667085!important;
+}
+
 @media (prefers-reduced-motion:reduce){
   .app-shell *,
   .workspace-picker *{

@@ -142,8 +142,12 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          presence_file='artifacts/ga4/credential-presence.txt'
+          : > "$presence_file"
           present(){ if [ -n "${!1:-}" ]; then echo "$1=PRESENT"; else echo "$1=MISSING"; fi; }
-          for key in STAGING_CLIENT STAGING_SECRET STAGING_REFRESH STAGING_ACCOUNT STAGING_PROPERTY STAGING_TZ GENERIC_CLIENT_SECRET GENERIC_CLIENT_VAR GENERIC_SECRET GENERIC_REFRESH GENERIC_ACCOUNT_SECRET GENERIC_ACCOUNT_VAR GENERIC_PROPERTY_SECRET GENERIC_PROPERTY_VAR GA4_PROPERTY_SECRET GA4_PROPERTY_VAR GA_PROPERTY_SECRET GA_PROPERTY_VAR GENERIC_TZ_SECRET GENERIC_TZ_VAR; do present "$key"; done
+          for key in STAGING_CLIENT STAGING_SECRET STAGING_REFRESH STAGING_ACCOUNT STAGING_PROPERTY STAGING_TZ GENERIC_CLIENT_SECRET GENERIC_CLIENT_VAR GENERIC_SECRET GENERIC_REFRESH GENERIC_ACCOUNT_SECRET GENERIC_ACCOUNT_VAR GENERIC_PROPERTY_SECRET GENERIC_PROPERTY_VAR GA4_PROPERTY_SECRET GA4_PROPERTY_VAR GA_PROPERTY_SECRET GA_PROPERTY_VAR GENERIC_TZ_SECRET GENERIC_TZ_VAR; do
+            present "$key" | tee -a "$presence_file"
+          done
 
           CLIENT="${STAGING_CLIENT:-${GENERIC_CLIENT_SECRET:-${GENERIC_CLIENT_VAR:-}}}"
           SECRET="${STAGING_SECRET:-${GENERIC_SECRET:-}}"
@@ -157,10 +161,11 @@ jobs:
             [ -n "$value" ] || complete=0
           done
           echo "GA4_CREDENTIALS_COMPLETE=${complete}" >> "$GITHUB_ENV"
+          echo 'GA4_CREDENTIAL_PRESENCE_EVIDENCE=credential-presence.txt' | tee -a artifacts/ga4/status.txt
           if [ "$complete" = '1' ]; then
             echo 'GA4_CREDENTIALS=PRESENT_COMPLETE' | tee -a artifacts/ga4/status.txt
           else
-            echo 'GA4_CREDENTIALS=EXTERNALLY_BLOCKED_MISSING' | tee -a artifacts/ga4/status.txt
+            echo 'GA4_CREDENTIALS=EXTERNALLY_BLOCKED_WITH_PROOF' | tee -a artifacts/ga4/status.txt
           fi
 
       - name: Real read-only GA4 account/property validation
@@ -231,23 +236,23 @@ jobs:
         run: |
           set -euo pipefail
           if [ "${GA4_CREDENTIALS_COMPLETE:-0}" != '1' ]; then
-            echo 'GA4_ACCOUNT_VALIDATION=EXTERNALLY_BLOCKED' | tee -a artifacts/ga4/status.txt
-            echo 'GA4_ONE_DAY_SYNC=EXTERNALLY_BLOCKED' | tee -a artifacts/ga4/status.txt
-            echo 'GA4_REAL_IDEMPOTENCY=EXTERNALLY_BLOCKED' | tee -a artifacts/ga4/status.txt
+            echo 'GA4_ACCOUNT_VALIDATION=EXTERNALLY_BLOCKED_WITH_PROOF' | tee -a artifacts/ga4/status.txt
+            echo 'GA4_ONE_DAY_SYNC=EXTERNALLY_BLOCKED_WITH_PROOF' | tee -a artifacts/ga4/status.txt
+            echo 'GA4_REAL_IDEMPOTENCY=EXTERNALLY_BLOCKED_WITH_PROOF' | tee -a artifacts/ga4/status.txt
           else
             echo 'GA4_ACCOUNT_STEP_OUTCOME=${{ steps.ga4_account.outcome }}' | tee -a artifacts/ga4/status.txt
             echo 'GA4_SYNC_STEP_OUTCOME=${{ steps.ga4_sync.outcome }}' | tee -a artifacts/ga4/status.txt
             if [ '${{ steps.ga4_account.outcome }}' = 'success' ]; then
               echo 'GA4_ACCOUNT_VALIDATION=PASS' | tee -a artifacts/ga4/status.txt
             else
-              echo 'GA4_ACCOUNT_VALIDATION=EXTERNALLY_BLOCKED_OR_INVALID' | tee -a artifacts/ga4/status.txt
+              echo 'GA4_ACCOUNT_VALIDATION=FAIL' | tee -a artifacts/ga4/status.txt
             fi
             if [ '${{ steps.ga4_sync.outcome }}' = 'success' ]; then
               echo 'GA4_ONE_DAY_SYNC=PASS' | tee -a artifacts/ga4/status.txt
               echo 'GA4_REAL_IDEMPOTENCY=PASS' | tee -a artifacts/ga4/status.txt
             else
-              echo 'GA4_ONE_DAY_SYNC=EXTERNALLY_BLOCKED_OR_INVALID' | tee -a artifacts/ga4/status.txt
-              echo 'GA4_REAL_IDEMPOTENCY=EXTERNALLY_BLOCKED_OR_INVALID' | tee -a artifacts/ga4/status.txt
+              echo 'GA4_ONE_DAY_SYNC=FAIL' | tee -a artifacts/ga4/status.txt
+              echo 'GA4_REAL_IDEMPOTENCY=FAIL' | tee -a artifacts/ga4/status.txt
             fi
           fi
           echo 'GA4_PIPELINE=PASS_INTERNAL' | tee -a artifacts/ga4/status.txt

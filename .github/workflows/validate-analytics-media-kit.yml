@@ -21,82 +21,58 @@ jobs:
           POSTGRES_USER: portal
           POSTGRES_PASSWORD: portal
           POSTGRES_DB: portallander_test
-        ports:
-          - 5432:5432
+        ports: ['5432:5432']
         options: >-
           --health-cmd "pg_isready -U portal -d portallander_test"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 10
+          --health-interval 10s --health-timeout 5s --health-retries 10
     env:
       DATABASE_URL: postgresql://portal:portal@127.0.0.1:5432/portallander_test
       NODE_ENV: test
       PORTAL_ADMIN_TOKEN: validation-admin-token
     steps:
-      - name: Checkout PR head
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
-
       - name: Verify execution head
-        shell: bash
         run: |
           echo "HEAD=$(git rev-parse HEAD)"
           test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha }}"
-          git status --short
-
-      - name: Setup Node 22
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
+          test -z "$(git status --short)"
+      - uses: actions/setup-node@v4
+        with: {node-version: 22}
       - name: Runtime inventory
-        shell: bash
         run: |
           node --version
           npm --version
-          echo "Lockfiles:"
+          echo 'LOCKFILES:'
           find . -maxdepth 2 -type f \( -name package-lock.json -o -name npm-shrinkwrap.json -o -name yarn.lock -o -name pnpm-lock.yaml \) -print
-          echo "Root package manager: npm (repository scripts/workflow)"
-          cat package.json
-
-      - name: Install monorepo dependencies
+          echo 'PACKAGE_MANAGER=npm'
+      - name: Install dependencies
         run: npm install
-
-      - name: Lint web
+      - name: Lint
         run: npm run lint
-
       - name: Architecture boundaries
         run: npm run check:architecture
-
-      - name: Typecheck web
+      - name: Typecheck
         run: npm run typecheck
-
-      - name: Unit tests web
+      - name: Web unit tests
         run: npm test
-
-      - name: Validate API syntax
+      - name: API syntax
         run: npm --workspace @portallander/api run build
-
-      - name: Unit tests API
+      - name: API unit tests
         run: npm --workspace @portallander/api test
-
-      - name: Build web
+      - name: Production build
         run: npm run build
 
-      - name: Apply prerequisite auth and media kit schema
-        shell: bash
+      - name: Apply prerequisite schema
         run: |
           psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f apps/api/migrations/009_admin_auth.sql
           psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f apps/api/migrations/011_media_kit.sql
-
-      - name: Apply Analytics migration 018 twice
-        shell: bash
+      - name: Apply migration 018 twice
         run: |
           psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f apps/api/migrations/018_analytics_metrics.sql
           psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f apps/api/migrations/018_analytics_metrics.sql
-
-      - name: Prove Analytics schema and constraints
+      - name: Prove database constraints
         shell: bash
         run: |
           psql "$DATABASE_URL" -v ON_ERROR_STOP=1 <<'SQL'
@@ -104,103 +80,122 @@ jobs:
           \di idx_analytics_*
           insert into analytics_sync_runs(id,provider,provider_account_id,provider_property_id,status)
           values('00000000-0000-0000-0000-000000000001','ga4','acct-test','prop-test','running');
-
           insert into analytics_raw_metrics(id,sync_id,provider,provider_account_id,provider_property_id,provider_metric,value,unit,period_start,period_end,granularity,timezone,source_reference)
           values('00000000-0000-0000-0000-000000000002','00000000-0000-0000-0000-000000000001','ga4','acct-test','prop-test','sessions',10,'count','2026-09-01T03:00:00Z','2026-09-02T03:00:00Z','day','America/Sao_Paulo','ga4:prop-test:20260901:sessions');
-
           insert into analytics_metrics(id,raw_metric_id,sync_id,metric_key,value,unit,provider,provider_account_id,provider_property_id,scope_type,scope_id,period_start,period_end,granularity,timezone,source_type,source_reference,data_status,freshness_status,provenance,is_manual)
           values('00000000-0000-0000-0000-000000000003','00000000-0000-0000-0000-000000000002','00000000-0000-0000-0000-000000000001','sessions',10,'count','ga4','acct-test','prop-test','portal','portal','2026-09-01T03:00:00Z','2026-09-02T03:00:00Z','day','America/Sao_Paulo','provider','ga4:prop-test:20260901:sessions','LIVE','FRESH','{"providerMetric":"sessions"}'::jsonb,false);
-
           insert into analytics_metrics(id,metric_key,value,unit,scope_type,scope_id,period_start,period_end,granularity,timezone,source_type,source_reference,data_status,freshness_status,provenance,is_manual)
           values('00000000-0000-0000-0000-000000000004','manual_audience',123,'count','portal','portal','2026-09-01T00:00:00Z','2026-10-01T00:00:00Z','month','America/Sao_Paulo','manual','manual:test:audience','MANUAL','UNKNOWN','{"enteredBy":"validation"}'::jsonb,true);
           SQL
-
-          expect_fail(){
-            local label="$1"; shift
-            if psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -c "$*"; then
-              echo "EXPECTED FAILURE DID NOT OCCUR: $label" >&2
-              exit 1
-            else
-              echo "EXPECTED FAILURE CONFIRMED: $label"
-            fi
-          }
-
+          expect_fail(){ local label="$1"; shift; if psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -c "$*"; then echo "UNEXPECTED_SUCCESS:$label"; exit 1; else echo "EXPECTED_FAILURE:$label"; fi; }
           expect_fail invalid_period "insert into analytics_raw_metrics(provider,provider_account_id,provider_metric,period_start,period_end,granularity,source_reference) values('ga4','acct-test','sessions','2026-09-02','2026-09-01','day','invalid-period');"
-          expect_fail invalid_json_shape "insert into analytics_raw_metrics(provider,provider_account_id,provider_metric,period_start,period_end,granularity,dimensions,source_reference) values('ga4','acct-test','sessions','2026-09-01','2026-09-02','day','[]'::jsonb,'invalid-json');"
+          expect_fail invalid_json "insert into analytics_raw_metrics(provider,provider_account_id,provider_metric,period_start,period_end,granularity,dimensions,source_reference) values('ga4','acct-test','sessions','2026-09-01','2026-09-02','day','[]'::jsonb,'invalid-json');"
+          expect_fail empty_provider "insert into analytics_sync_runs(provider,provider_account_id) values('','acct-test');"
+          expect_fail empty_account "insert into analytics_raw_metrics(provider,provider_account_id,provider_metric,period_start,period_end,granularity,source_reference) values('ga4','','sessions','2026-09-01','2026-09-02','day','empty-account');"
           expect_fail duplicate_raw "insert into analytics_raw_metrics(provider,provider_account_id,provider_property_id,provider_metric,period_start,period_end,granularity,timezone,source_reference) values('ga4','acct-test','prop-test','sessions','2026-09-01T03:00:00Z','2026-09-02T03:00:00Z','day','America/Sao_Paulo','ga4:prop-test:20260901:sessions');"
           expect_fail duplicate_normalized "insert into analytics_metrics(metric_key,value,unit,provider,provider_account_id,provider_property_id,scope_type,scope_id,period_start,period_end,granularity,timezone,source_type,source_reference,data_status,freshness_status,provenance,is_manual) values('sessions',11,'count','ga4','acct-test','prop-test','portal','portal','2026-09-01T03:00:00Z','2026-09-02T03:00:00Z','day','America/Sao_Paulo','provider','ga4:prop-test:20260901:sessions','LIVE','FRESH','{}'::jsonb,false);"
           expect_fail invalid_manual_flag "insert into analytics_metrics(metric_key,value,unit,scope_type,scope_id,period_start,period_end,granularity,timezone,source_type,source_reference,data_status,freshness_status,provenance,is_manual) values('manual_bad',1,'count','portal','portal','2026-09-01','2026-10-01','month','UTC','manual','manual:bad','MANUAL','UNKNOWN','{}'::jsonb,false);"
+      - name: Prove service idempotency and account boundaries
+        run: node apps/api/scripts/validateAnalyticsRuntime.mjs
+      - name: Prove Media Kit snapshot integrity
+        run: node apps/api/scripts/validateMediaKitRuntime.mjs
 
-          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -c "select count(*) as raw_count from analytics_raw_metrics where source_reference='ga4:prop-test:20260901:sessions';"
-          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -c "select count(*) as normalized_count from analytics_metrics where source_reference='ga4:prop-test:20260901:sessions';"
-
-      - name: Install Chromium for Playwright
-        working-directory: apps/web
-        run: npx playwright install --with-deps chromium
-
-      - name: Start production preview
-        shell: bash
+      - name: Check staging GA4 credential availability without disclosure
+        env:
+          G_CLIENT: ${{ secrets.STAGING_GOOGLE_CLIENT_ID }}
+          G_SECRET: ${{ secrets.STAGING_GOOGLE_CLIENT_SECRET }}
+          G_REFRESH: ${{ secrets.STAGING_GOOGLE_REFRESH_TOKEN }}
+          G_ACCOUNT: ${{ secrets.STAGING_GOOGLE_ANALYTICS_ACCOUNT_ID }}
+          G_PROPERTY: ${{ secrets.STAGING_GOOGLE_ANALYTICS_PROPERTY_ID }}
+          G_TZ: ${{ secrets.STAGING_GOOGLE_ANALYTICS_TIMEZONE }}
         run: |
-          npm --workspace @portallander/web run preview -- --host 127.0.0.1 > /tmp/portallander-preview.log 2>&1 &
-          echo $! > /tmp/portallander-preview.pid
-          for i in {1..40}; do
-            if curl -fsS http://127.0.0.1:4173/portallander/ >/dev/null; then exit 0; fi
-            sleep 1
+          all=1
+          for item in G_CLIENT G_SECRET G_REFRESH G_ACCOUNT G_PROPERTY G_TZ; do
+            if [ -n "${!item}" ]; then echo "$item=PRESENT"; else echo "$item=MISSING"; all=0; fi
           done
-          cat /tmp/portallander-preview.log
-          exit 1
-
-      - name: Existing visual audit
-        run: npm --workspace @portallander/web run test:visual
-
-      - name: Media Kit print/PDF smoke proof
-        working-directory: apps/web
-        shell: bash
+          echo "STAGING_GA4_COMPLETE=$all" >> "$GITHUB_ENV"
+      - name: Real read-only 1-day GA4 staging proof
+        if: env.STAGING_GA4_COMPLETE == '1'
+        env:
+          GOOGLE_CLIENT_ID: ${{ secrets.STAGING_GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.STAGING_GOOGLE_CLIENT_SECRET }}
+          GOOGLE_REFRESH_TOKEN: ${{ secrets.STAGING_GOOGLE_REFRESH_TOKEN }}
+          GOOGLE_ANALYTICS_ACCOUNT_ID: ${{ secrets.STAGING_GOOGLE_ANALYTICS_ACCOUNT_ID }}
+          GOOGLE_ANALYTICS_PROPERTY_ID: ${{ secrets.STAGING_GOOGLE_ANALYTICS_PROPERTY_ID }}
+          GOOGLE_ANALYTICS_TIMEZONE: ${{ secrets.STAGING_GOOGLE_ANALYTICS_TIMEZONE }}
         run: |
           node --input-type=module <<'NODE'
-          import { chromium } from '@playwright/test'
-          import { mkdir, stat } from 'node:fs/promises'
+          import {googleAnalyticsSyncService} from './apps/api/src/googleAnalyticsSyncService.js'
+          import {getPool} from './apps/api/src/db.js'
+          try { const result=await googleAnalyticsSyncService.syncRange({startDate:'2026-09-01',endDate:'2026-09-01'}); console.log(JSON.stringify({realStagingGa4:true,processed:result.processed,status:result.sync.status})) } finally { await getPool().end() }
+          NODE
+
+      - name: Start local API for authenticated HTTP proof
+        run: |
+          GOOGLE_CLIENT_ID=dummy GOOGLE_CLIENT_SECRET=dummy GOOGLE_REFRESH_TOKEN=dummy GOOGLE_ANALYTICS_ACCOUNT_ID=dummy GOOGLE_ANALYTICS_PROPERTY_ID=dummy GOOGLE_ANALYTICS_TIMEZONE=America/Sao_Paulo PORT=8787 npm --workspace @portallander/api run dev > /tmp/api.log 2>&1 &
+          for i in {1..30}; do curl -fsS http://127.0.0.1:8787/health >/dev/null && exit 0; sleep 1; done
+          cat /tmp/api.log; exit 1
+      - name: Analytics API auth and range proof
+        shell: bash
+        run: |
+          code=$(curl -s -o /tmp/noauth.json -w '%{http_code}' http://127.0.0.1:8787/api/analytics/metrics); test "$code" = 401; echo "NO_AUTH=$code"
+          code=$(curl -s -H 'Authorization: Bearer validation-admin-token' -o /tmp/metrics.json -w '%{http_code}' 'http://127.0.0.1:8787/api/analytics/metrics?limit=1000'); test "$code" = 200; echo "METRICS_AUTH=$code"
+          code=$(curl -s -H 'Authorization: Bearer validation-admin-token' -o /tmp/status.json -w '%{http_code}' http://127.0.0.1:8787/api/analytics/providers/status); test "$code" = 200; echo "PROVIDER_STATUS=$code"
+          code=$(curl -s -H 'Authorization: Bearer validation-admin-token' -o /tmp/syncs.json -w '%{http_code}' http://127.0.0.1:8787/api/analytics/syncs); test "$code" = 200; echo "SYNCS=$code"
+          code=$(curl -s -H 'Authorization: Bearer validation-admin-token' -o /tmp/range.json -w '%{http_code}' 'http://127.0.0.1:8787/api/analytics/metrics?periodStart=2025-01-01&periodEnd=2026-09-03'); test "$code" = 400; echo "QUERY_GT_366=$code"
+          code=$(curl -s -H 'Authorization: Bearer validation-admin-token' -H 'Content-Type: application/json' -d '{"startDate":"2026-07-01","endDate":"2026-08-31"}' -o /tmp/ga4range.json -w '%{http_code}' http://127.0.0.1:8787/api/analytics/syncs/ga4); test "$code" = 400; echo "GA4_GT_31=$code"
+          ! grep -Eqi 'client_secret|refresh_token|access_token' /tmp/*.json
+
+      - name: Install Chromium
+        working-directory: apps/web
+        run: npx playwright install --with-deps chromium
+      - name: Start production preview
+        run: |
+          npm --workspace @portallander/web run preview -- --host 127.0.0.1 > /tmp/preview.log 2>&1 &
+          for i in {1..40}; do curl -fsS http://127.0.0.1:4173/portallander/ >/dev/null && exit 0; sleep 1; done
+          cat /tmp/preview.log; exit 1
+      - name: Existing visual regression audit
+        run: npm --workspace @portallander/web run test:visual
+      - name: Production public truth and Media Kit PDF proof
+        working-directory: apps/web
+        run: |
+          node --input-type=module <<'NODE'
+          import {chromium} from '@playwright/test'
+          import {mkdir,stat} from 'node:fs/promises'
           const browser=await chromium.launch({headless:true})
           try{
             const context=await browser.newContext({viewport:{width:1440,height:1200}})
-            const page=await context.newPage()
-            const errors=[]
+            const page=await context.newPage(); const errors=[]
             page.on('console',msg=>{if(msg.type()==='error')errors.push(msg.text())})
+            await page.goto('http://127.0.0.1:4173/portallander/#/anuncie',{waitUntil:'networkidle'})
+            const publicText=await page.locator('body').innerText()
+            if(!publicText.includes('Atendimento comercial em preparação'))throw new Error('/anuncie commercial preparation truth missing')
+            for(const url of ['instagram.com/portallander','tiktok.com/@portallander','youtube.com/@portallander','x.com/portallander'])if((await page.content()).includes(url))throw new Error(`Mock social URL leaked: ${url}`)
             await page.goto('http://127.0.0.1:4173/portallander/#/app/site/midia-kit/preview',{waitUntil:'networkidle'})
-            await page.emulateMedia({media:'print'})
-            await page.evaluate(async()=>{if(document.fonts?.ready)await document.fonts.ready})
+            await page.emulateMedia({media:'print'}); await page.evaluate(async()=>{await document.fonts?.ready})
             const sizes=await page.locator('.mk-page').evaluateAll(nodes=>nodes.map(node=>({w:node.getBoundingClientRect().width,h:node.getBoundingClientRect().height,scrollW:node.scrollWidth,scrollH:node.scrollHeight})))
-            console.log('MEDIA_KIT_PAGE_COUNT='+sizes.length)
-            console.log('MEDIA_KIT_PAGE_SIZES='+JSON.stringify(sizes))
-            if(sizes.length!==9)throw new Error(`Expected 9 media kit pages, found ${sizes.length}`)
-            if(sizes.some(item=>item.scrollW>item.w+2||item.scrollH>item.h+2))throw new Error('Media Kit page overflow detected')
+            console.log('MEDIA_KIT_PAGE_COUNT='+sizes.length); console.log('MEDIA_KIT_PAGE_SIZES='+JSON.stringify(sizes))
+            if(sizes.length!==9)throw new Error(`Expected 9 pages; found ${sizes.length}`)
+            if(sizes.some(x=>x.scrollW>x.w+2||x.scrollH>x.h+2))throw new Error('Media Kit overflow detected')
             const fonts=await page.evaluate(()=>({bebas:document.fonts?.check('16px "Bebas Neue"')??false,montserrat:document.fonts?.check('16px "Montserrat"')??false}))
-            console.log('FONTS='+JSON.stringify(fonts))
-            if(!fonts.bebas||!fonts.montserrat)throw new Error('Required fonts are not loaded')
+            console.log('FONTS='+JSON.stringify(fonts)); if(!fonts.bebas||!fonts.montserrat)throw new Error('Required fonts not loaded')
             await mkdir('test-results/media-kit',{recursive:true})
             await page.screenshot({path:'test-results/media-kit/preview.png',fullPage:true})
             await page.pdf({path:'test-results/media-kit/media-kit.pdf',format:'A4',printBackground:true,preferCSSPageSize:true})
-            const info=await stat('test-results/media-kit/media-kit.pdf')
-            console.log('PDF_BYTES='+info.size)
-            if(info.size<10000)throw new Error('Generated PDF is unexpectedly small')
-            console.log('CONSOLE_ERRORS='+JSON.stringify(errors))
-            if(errors.length)throw new Error(`Relevant browser console errors: ${errors.join(' | ')}`)
+            const info=await stat('test-results/media-kit/media-kit.pdf'); console.log('PDF_BYTES='+info.size); if(info.size<10000)throw new Error('PDF too small')
+            if(errors.length)throw new Error('Console errors: '+errors.join(' | '))
             await context.close()
-          }finally{
-            await browser.close()
-          }
+          } finally { await browser.close() }
           NODE
-
-      - name: Inspect generated PDF page count
-        shell: bash
+      - name: Inspect generated PDF structure and searchable text
         run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq poppler-utils
+          sudo apt-get update -qq && sudo apt-get install -y -qq poppler-utils
           pdfinfo apps/web/test-results/media-kit/media-kit.pdf | tee /tmp/pdfinfo.txt
-          test "$(awk '/^Pages:/ {print $2}' /tmp/pdfinfo.txt)" = "9"
-          pdftotext apps/web/test-results/media-kit/media-kit.pdf - | grep -q "PORTAL LANDER"
-
-      - name: Upload validation artifacts
+          test "$(awk '/^Pages:/ {print $2}' /tmp/pdfinfo.txt)" = 9
+          pdftotext apps/web/test-results/media-kit/media-kit.pdf /tmp/media-kit.txt
+          grep -q 'PORTAL LANDER' /tmp/media-kit.txt
+          test -s /tmp/media-kit.txt
+      - name: Upload runtime evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -208,5 +203,8 @@ jobs:
           path: |
             apps/web/test-results/media-kit
             apps/web/test-results/visual
-            /tmp/portallander-preview.log
+            /tmp/api.log
+            /tmp/preview.log
+            /tmp/pdfinfo.txt
+            /tmp/media-kit.txt
           if-no-files-found: warn

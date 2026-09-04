@@ -30,6 +30,16 @@ describe('site forms catalog',()=>{
     expect(collaborate?.routing.crm).toBeUndefined()
   })
 
+  it('publica o contato de Anuncie como intake comercial real do CRM',()=>{
+    const advertising=siteFormRegistry.find(form=>form.id==='advertising-inquiry')
+    expect(advertising?.slug).toBe('anuncie-contato')
+    expect(advertising?.purpose).toBe('advertising')
+    expect(advertising?.status).toBe('active')
+    expect(advertising?.routing.destination).toBe('crm')
+    expect(advertising?.routing.crm?.tags).toEqual(expect.arrayContaining(['anuncie','publicidade']))
+    expect(advertising?.fields.some(field=>field.key==='service'&&field.type==='select')).toBe(true)
+  })
+
   it('versiona explicitamente todo formulário publicado ou em rascunho',()=>{
     for(const form of siteFormRegistry)expect(form.version).toBeGreaterThanOrEqual(1)
   })

@@ -12,15 +12,15 @@ describe('admin navigation',()=>{
 
   it('preserva as rotas visíveis obrigatórias do shell unificado',()=>{
     const serialized=JSON.stringify(UNIFIED_ADMIN_NAV)
-    for(const route of ['/app/dashboard','/app/crm','/app/finance','/app/finance/invoices','/app/finance/accounting','/app/agenda','/app/chat','/app/rh','/app/site/conteudos','/app/site/midia','/app/site/paginas','/app/site/formularios','/app/site/midia-kit','/app/marketing','/app/settings'])expect(serialized).toContain(route)
+    for(const route of ['/app/dashboard','/app/crm','/app/finance','/app/finance/invoices','/app/finance/accounting','/app/agenda','/app/chat','/app/rh','/app/site/conteudos','/app/site/midia','/app/site/paginas','/app/site/formularios','/app/site/midia-kit','/app/marketing','/app/marketing/metricas','/app/settings'])expect(serialized).toContain(route)
     expect(serialized).not.toContain('/app/contracts')
     expect(serialized).not.toContain('/app/reports')
   })
 
-  it('expõe somente os seis submódulos aprovados de Marketing',()=>{
+  it('expõe os sete submódulos existentes de Marketing, incluindo Métricas',()=>{
     const marketing=UNIFIED_ADMIN_NAV.find(item=>isGroup(item)&&item.label==='Marketing')
-    expect(marketing&&isGroup(marketing)?marketing.children.map(child=>child[0]):[]).toEqual(['Visão Geral','Campanhas','Calendário','Tarefas','Briefings','IA Criativa'])
-    expect(marketing&&isGroup(marketing)?marketing.children.map(child=>child[2]):[]).toEqual(['/app/marketing','/app/marketing/campanhas','/app/marketing/calendario','/app/marketing/tarefas','/app/marketing/briefings','/app/marketing/ia-criativa'])
+    expect(marketing&&isGroup(marketing)?marketing.children.map(child=>child[0]):[]).toEqual(['Visão Geral','Campanhas','Calendário','Tarefas','Métricas','Briefings','IA Criativa'])
+    expect(marketing&&isGroup(marketing)?marketing.children.map(child=>child[2]):[]).toEqual(['/app/marketing','/app/marketing/campanhas','/app/marketing/calendario','/app/marketing/tarefas','/app/marketing/metricas','/app/marketing/briefings','/app/marketing/ia-criativa'])
   })
 
   it('mantém somente as três páginas permitidas no submenu Financeiro',()=>{

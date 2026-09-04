@@ -1,0 +1,212 @@
+name: Analytics Media Kit Validation
+
+on:
+  pull_request:
+    branches: [dev]
+    paths:
+      - 'apps/api/**'
+      - 'apps/web/**'
+      - '.github/workflows/validate-analytics-media-kit.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: portal
+          POSTGRES_PASSWORD: portal
+          POSTGRES_DB: portallander_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U portal -d portallander_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://portal:portal@127.0.0.1:5432/portallander_test
+      NODE_ENV: test
+      PORTAL_ADMIN_TOKEN: validation-admin-token
+    steps:
+      - name: Checkout PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Verify execution head
+        shell: bash
+        run: |
+          echo "HEAD=$(git rev-parse HEAD)"
+          test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha }}"
+          git status --short
+
+      - name: Setup Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Runtime inventory
+        shell: bash
+        run: |
+          node --version
+          npm --version
+          echo "Lockfiles:"
+          find . -maxdepth 2 -type f \( -name package-lock.json -o -name npm-shrinkwrap.json -o -name yarn.lock -o -name pnpm-lock.yaml \) -print
+          echo "Root package manager: npm (repository scripts/workflow)"
+          cat package.json
+
+      - name: Install monorepo dependencies
+        run: npm install
+
+      - name: Lint web
+        run: npm run lint
+
+      - name: Architecture boundaries
+        run: npm run check:architecture
+
+      - name: Typecheck web
+        run: npm run typecheck
+
+      - name: Unit tests web
+        run: npm test
+
+      - name: Validate API syntax
+        run: npm --workspace @portallander/api run build
+
+      - name: Unit tests API
+        run: npm --workspace @portallander/api test
+
+      - name: Build web
+        run: npm run build
+
+      - name: Apply prerequisite auth and media kit schema
+        shell: bash
+        run: |
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f apps/api/migrations/009_admin_auth.sql
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f apps/api/migrations/011_media_kit.sql
+
+      - name: Apply Analytics migration 018 twice
+        shell: bash
+        run: |
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f apps/api/migrations/018_analytics_metrics.sql
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f apps/api/migrations/018_analytics_metrics.sql
+
+      - name: Prove Analytics schema and constraints
+        shell: bash
+        run: |
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 <<'SQL'
+          \dt analytics_*
+          \di idx_analytics_*
+          insert into analytics_sync_runs(id,provider,provider_account_id,provider_property_id,status)
+          values('00000000-0000-0000-0000-000000000001','ga4','acct-test','prop-test','running');
+
+          insert into analytics_raw_metrics(id,sync_id,provider,provider_account_id,provider_property_id,provider_metric,value,unit,period_start,period_end,granularity,timezone,source_reference)
+          values('00000000-0000-0000-0000-000000000002','00000000-0000-0000-0000-000000000001','ga4','acct-test','prop-test','sessions',10,'count','2026-09-01T03:00:00Z','2026-09-02T03:00:00Z','day','America/Sao_Paulo','ga4:prop-test:20260901:sessions');
+
+          insert into analytics_metrics(id,raw_metric_id,sync_id,metric_key,value,unit,provider,provider_account_id,provider_property_id,scope_type,scope_id,period_start,period_end,granularity,timezone,source_type,source_reference,data_status,freshness_status,provenance,is_manual)
+          values('00000000-0000-0000-0000-000000000003','00000000-0000-0000-0000-000000000002','00000000-0000-0000-0000-000000000001','sessions',10,'count','ga4','acct-test','prop-test','portal','portal','2026-09-01T03:00:00Z','2026-09-02T03:00:00Z','day','America/Sao_Paulo','provider','ga4:prop-test:20260901:sessions','LIVE','FRESH','{"providerMetric":"sessions"}'::jsonb,false);
+
+          insert into analytics_metrics(id,metric_key,value,unit,scope_type,scope_id,period_start,period_end,granularity,timezone,source_type,source_reference,data_status,freshness_status,provenance,is_manual)
+          values('00000000-0000-0000-0000-000000000004','manual_audience',123,'count','portal','portal','2026-09-01T00:00:00Z','2026-10-01T00:00:00Z','month','America/Sao_Paulo','manual','manual:test:audience','MANUAL','UNKNOWN','{"enteredBy":"validation"}'::jsonb,true);
+          SQL
+
+          expect_fail(){
+            local label="$1"; shift
+            if psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -c "$*"; then
+              echo "EXPECTED FAILURE DID NOT OCCUR: $label" >&2
+              exit 1
+            else
+              echo "EXPECTED FAILURE CONFIRMED: $label"
+            fi
+          }
+
+          expect_fail invalid_period "insert into analytics_raw_metrics(provider,provider_account_id,provider_metric,period_start,period_end,granularity,source_reference) values('ga4','acct-test','sessions','2026-09-02','2026-09-01','day','invalid-period');"
+          expect_fail invalid_json_shape "insert into analytics_raw_metrics(provider,provider_account_id,provider_metric,period_start,period_end,granularity,dimensions,source_reference) values('ga4','acct-test','sessions','2026-09-01','2026-09-02','day','[]'::jsonb,'invalid-json');"
+          expect_fail duplicate_raw "insert into analytics_raw_metrics(provider,provider_account_id,provider_property_id,provider_metric,period_start,period_end,granularity,timezone,source_reference) values('ga4','acct-test','prop-test','sessions','2026-09-01T03:00:00Z','2026-09-02T03:00:00Z','day','America/Sao_Paulo','ga4:prop-test:20260901:sessions');"
+          expect_fail duplicate_normalized "insert into analytics_metrics(metric_key,value,unit,provider,provider_account_id,provider_property_id,scope_type,scope_id,period_start,period_end,granularity,timezone,source_type,source_reference,data_status,freshness_status,provenance,is_manual) values('sessions',11,'count','ga4','acct-test','prop-test','portal','portal','2026-09-01T03:00:00Z','2026-09-02T03:00:00Z','day','America/Sao_Paulo','provider','ga4:prop-test:20260901:sessions','LIVE','FRESH','{}'::jsonb,false);"
+          expect_fail invalid_manual_flag "insert into analytics_metrics(metric_key,value,unit,scope_type,scope_id,period_start,period_end,granularity,timezone,source_type,source_reference,data_status,freshness_status,provenance,is_manual) values('manual_bad',1,'count','portal','portal','2026-09-01','2026-10-01','month','UTC','manual','manual:bad','MANUAL','UNKNOWN','{}'::jsonb,false);"
+
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -c "select count(*) as raw_count from analytics_raw_metrics where source_reference='ga4:prop-test:20260901:sessions';"
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -c "select count(*) as normalized_count from analytics_metrics where source_reference='ga4:prop-test:20260901:sessions';"
+
+      - name: Install Chromium for Playwright
+        working-directory: apps/web
+        run: npx playwright install --with-deps chromium
+
+      - name: Start production preview
+        shell: bash
+        run: |
+          npm --workspace @portallander/web run preview -- --host 127.0.0.1 > /tmp/portallander-preview.log 2>&1 &
+          echo $! > /tmp/portallander-preview.pid
+          for i in {1..40}; do
+            if curl -fsS http://127.0.0.1:4173/portallander/ >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/portallander-preview.log
+          exit 1
+
+      - name: Existing visual audit
+        run: npm --workspace @portallander/web run test:visual
+
+      - name: Media Kit print/PDF smoke proof
+        working-directory: apps/web
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          import { chromium } from '@playwright/test'
+          import { mkdir, stat } from 'node:fs/promises'
+          const browser=await chromium.launch({headless:true})
+          try{
+            const context=await browser.newContext({viewport:{width:1440,height:1200}})
+            const page=await context.newPage()
+            const errors=[]
+            page.on('console',msg=>{if(msg.type()==='error')errors.push(msg.text())})
+            await page.goto('http://127.0.0.1:4173/portallander/#/app/site/midia-kit/preview',{waitUntil:'networkidle'})
+            await page.emulateMedia({media:'print'})
+            await page.evaluate(async()=>{if(document.fonts?.ready)await document.fonts.ready})
+            const sizes=await page.locator('.mk-page').evaluateAll(nodes=>nodes.map(node=>({w:node.getBoundingClientRect().width,h:node.getBoundingClientRect().height,scrollW:node.scrollWidth,scrollH:node.scrollHeight})))
+            console.log('MEDIA_KIT_PAGE_COUNT='+sizes.length)
+            console.log('MEDIA_KIT_PAGE_SIZES='+JSON.stringify(sizes))
+            if(sizes.length!==9)throw new Error(`Expected 9 media kit pages, found ${sizes.length}`)
+            if(sizes.some(item=>item.scrollW>item.w+2||item.scrollH>item.h+2))throw new Error('Media Kit page overflow detected')
+            const fonts=await page.evaluate(()=>({bebas:document.fonts?.check('16px "Bebas Neue"')??false,montserrat:document.fonts?.check('16px "Montserrat"')??false}))
+            console.log('FONTS='+JSON.stringify(fonts))
+            if(!fonts.bebas||!fonts.montserrat)throw new Error('Required fonts are not loaded')
+            await mkdir('test-results/media-kit',{recursive:true})
+            await page.screenshot({path:'test-results/media-kit/preview.png',fullPage:true})
+            await page.pdf({path:'test-results/media-kit/media-kit.pdf',format:'A4',printBackground:true,preferCSSPageSize:true})
+            const info=await stat('test-results/media-kit/media-kit.pdf')
+            console.log('PDF_BYTES='+info.size)
+            if(info.size<10000)throw new Error('Generated PDF is unexpectedly small')
+            console.log('CONSOLE_ERRORS='+JSON.stringify(errors))
+            if(errors.length)throw new Error(`Relevant browser console errors: ${errors.join(' | ')}`)
+            await context.close()
+          }finally{
+            await browser.close()
+          }
+          NODE
+
+      - name: Inspect generated PDF page count
+        shell: bash
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq poppler-utils
+          pdfinfo apps/web/test-results/media-kit/media-kit.pdf | tee /tmp/pdfinfo.txt
+          test "$(awk '/^Pages:/ {print $2}' /tmp/pdfinfo.txt)" = "9"
+          pdftotext apps/web/test-results/media-kit/media-kit.pdf - | grep -q "PORTAL LANDER"
+
+      - name: Upload validation artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: analytics-media-kit-validation
+          path: |
+            apps/web/test-results/media-kit
+            apps/web/test-results/visual
+            /tmp/portallander-preview.log
+          if-no-files-found: warn

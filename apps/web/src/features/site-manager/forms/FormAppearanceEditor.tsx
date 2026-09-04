@@ -1,5 +1,6 @@
 import type {FormAppearance,FormAppearancePreset} from './domain'
 import {getFormAppearancePreset,normalizeFormAppearance} from './appearance'
+import './form-appearance-editor.css'
 
 const presets:readonly [FormAppearancePreset,string][]=[['portal','Portal Lander'],['minimal','Minimal'],['editorial','Editorial'],['compact','Compacto'],['highlight','Destaque']]
 const n=(value:string)=>Number(value)

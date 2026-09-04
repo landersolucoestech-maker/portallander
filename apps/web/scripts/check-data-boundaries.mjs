@@ -70,9 +70,15 @@ for(const rel of ['features/crm/repository.ts','features/contracts/repository.ts
 }
 
 const main=await readFile(join(root,'main.tsx'),'utf8')
-if(!main.includes('setRuntimeDataProvider('))failures.push('main.tsx deve registrar explicitamente o provider de runtime atual.')
-if(!main.includes('withDevelopmentCmsOverrides(editorialBaseProvider)'))failures.push('main.tsx deve aplicar o overlay de desenvolvimento do CMS sobre o provider editorial atual.')
-if(!main.includes('editorialBaseProvider:ApplicationDataProvider=mockDataProvider'))failures.push('main.tsx deve preservar o MockDataProvider como fallback canônico do runtime.')
+if(!main.includes('let editorialBaseProvider:ApplicationDataProvider|null=null'))failures.push('main.tsx deve iniciar sem provider canônico implícito.')
+if(!main.includes("const demoDataEnabled=import.meta.env.DEV||import.meta.env.VITE_ENABLE_DEMO_DATA==='true'"))failures.push('main.tsx deve restringir demo data a DEV ou VITE_ENABLE_DEMO_DATA=true explícito.')
+if(!main.includes('if(!demoDataEnabled)return'))failures.push('main.tsx deve interromper o bootstrap de mocks quando demo data não estiver explicitamente habilitado.')
+if(!main.includes("import('./shared/data/mockDataProvider')"))failures.push('main.tsx deve carregar MockDataProvider somente por import dinâmico no bootstrap explícito de demo.')
+if(!main.includes('setRuntimeDataProvider(withDevelopmentCmsOverrides(editorialBaseProvider))'))failures.push('main.tsx deve registrar o provider somente após existir uma fonte explícita.')
+if(!main.includes('Dados operacionais indisponíveis.'))failures.push('main.tsx deve falhar fechado quando não existir provider real/configurado.')
+if(/import\s+\{?\s*mockDataProvider/.test(main))failures.push('main.tsx não pode importar MockDataProvider estaticamente no bundle de bootstrap de produção.')
+if(main.includes('setRuntimeDataProvider(mockDataProvider)'))failures.push('main.tsx não pode promover MockDataProvider diretamente como fallback canônico.')
+if(/catch[\s\S]{0,500}mockDataProvider/.test(main))failures.push('Falha de API não pode promover MockDataProvider como fallback silencioso.')
 
 const provider=await readFile(join(root,'shared/data/mockDataProvider.ts'),'utf8')
 if(!provider.includes("from '../../mocks'"))failures.push('Somente o MockDataProvider deve agregar a raiz global de mocks no runtime.')
@@ -83,4 +89,4 @@ if(failures.length){
  failures.forEach(item=>console.error(`- ${item}`))
  process.exit(1)
 }
-console.log('Data provider boundaries OK')
+console.log('Data provider boundaries OK — production is fail-closed; mock/demo requires explicit enablement.')

@@ -1,0 +1,197 @@
+name: Engineering OS Dev Validation
+
+on:
+  push:
+    branches: [dev]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: engineering-dev-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  repository-and-quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Verify canonical dev head
+        run: |
+          set -euo pipefail
+          test "$(git branch --show-current)" = "dev"
+          test "$(git rev-parse HEAD)" = "${GITHUB_SHA}"
+          test -z "$(git status --short)"
+          mkdir -p artifacts/engineering-audit
+          {
+            echo "repository=${GITHUB_REPOSITORY}"
+            echo "branch=$(git branch --show-current)"
+            echo "sha=$(git rev-parse HEAD)"
+            echo "tracked_files=$(git ls-files | wc -l | tr -d ' ')"
+            echo "workspace_fingerprint=$(git ls-files -s | sha256sum | awk '{print $1}')"
+          } | tee artifacts/engineering-audit/repository-identity.txt
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Artifact census and engineering policy
+        run: npm run audit:engineering
+      - name: Dependency manifest evidence
+        run: |
+          find . -maxdepth 3 \( -name package-lock.json -o -name pnpm-lock.yaml -o -name yarn.lock \) -print | sort | tee artifacts/engineering-audit/lockfiles.txt
+          node -e "const fs=require('fs'); const paths=['package.json','apps/web/package.json','apps/api/package.json','packages/shared/package.json']; for(const p of paths){if(fs.existsSync(p)){const j=JSON.parse(fs.readFileSync(p)); console.log(JSON.stringify({path:p,name:j.name,version:j.version,dependencies:j.dependencies||{},devDependencies:j.devDependencies||{}},null,2))}}" > artifacts/engineering-audit/dependency-manifests.json
+      - name: Install reproducibly
+        run: npm ci
+      - name: Dependency tree
+        run: npm ls --all --json > artifacts/engineering-audit/npm-ls.json
+      - name: Dependency vulnerability inventory
+        run: npm audit --json > artifacts/engineering-audit/npm-audit.json || true
+      - name: Web lint
+        run: npm run lint
+      - name: Web typecheck
+        run: npm run typecheck
+      - name: Architecture checks
+        run: npm run check:architecture
+      - name: Web unit tests
+        run: npm test
+      - name: API syntax build
+        run: npm --workspace @portallander/api run build
+      - name: API unit, RBAC, event recovery and agentic policy tests
+        run: npm --workspace @portallander/api test
+      - name: Production build without demo data
+        run: npm run build
+      - name: Upload repository evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: engineering-dev-repository-audit
+          path: artifacts/engineering-audit
+          if-no-files-found: error
+
+  postgres-runtime:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: portal
+          POSTGRES_PASSWORD: portal
+          POSTGRES_DB: portal_engineering_dev
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U portal -d portal_engineering_dev"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=10
+    env:
+      PGPASSWORD: portal
+      PGHOST: 127.0.0.1
+      PGPORT: 5432
+      PGUSER: portal
+      PGDATABASE: portal_engineering_dev
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify canonical dev head
+        run: |
+          test "$(git branch --show-current)" = "dev"
+          test "$(git rev-parse HEAD)" = "${GITHUB_SHA}"
+      - name: Provision Supabase Storage compatibility fixture
+        run: |
+          psql -v ON_ERROR_STOP=1 <<'SQL'
+          create schema if not exists storage;
+          create table if not exists storage.buckets(
+            id text primary key,
+            name text not null,
+            public boolean not null default false,
+            file_size_limit bigint,
+            allowed_mime_types text[]
+          );
+          SQL
+      - name: Apply all migrations in repository order
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/engineering-audit
+          : > artifacts/engineering-audit/migration-runtime.txt
+          for migration in $(find apps/api/migrations -maxdepth 1 -type f -name '*.sql' | sort -V); do
+            echo "APPLY $migration" | tee -a artifacts/engineering-audit/migration-runtime.txt
+            psql -v ON_ERROR_STOP=1 -f "$migration" 2>&1 | tee -a artifacts/engineering-audit/migration-runtime.txt
+          done
+      - name: Reapply idempotent Analytics migration
+        run: psql -v ON_ERROR_STOP=1 -f apps/api/migrations/018_analytics_metrics.sql
+      - name: Database and RLS inventory
+        run: |
+          psql -X -A -F ',' -v ON_ERROR_STOP=1 -c "select n.nspname as schema_name,c.relname as table_name,c.relrowsecurity as rls_enabled,c.relforcerowsecurity as rls_forced,coalesce((select count(*) from pg_policies p where p.schemaname=n.nspname and p.tablename=c.relname),0) as policy_count from pg_class c join pg_namespace n on n.oid=c.relnamespace where c.relkind='r' and n.nspname not in ('pg_catalog','information_schema') order by n.nspname,c.relname;" | tee artifacts/engineering-audit/database-rls-matrix.csv
+          psql -X -A -F ',' -v ON_ERROR_STOP=1 -c "select schemaname,tablename,policyname,permissive,roles,cmd,qual,with_check from pg_policies order by schemaname,tablename,policyname;" | tee artifacts/engineering-audit/database-policies.csv
+      - name: Integration event idempotency and recovery schema proof
+        run: |
+          psql -v ON_ERROR_STOP=1 <<'SQL' | tee artifacts/engineering-audit/integration-events-runtime.txt
+          insert into integration_events(provider,provider_event_id,event_type,payload)
+          values('google','engineering-dev-event-1','audit.test','{"source":"engineering-dev"}'::jsonb);
+          insert into integration_events(provider,provider_event_id,event_type,payload)
+          values('google','engineering-dev-event-1','audit.test','{"source":"duplicate"}'::jsonb)
+          on conflict(provider,provider_event_id) do nothing;
+          do $$
+          declare event_count integer;
+          begin
+            select count(*) into event_count from integration_events where provider='google' and provider_event_id='engineering-dev-event-1';
+            if event_count <> 1 then raise exception 'integration event idempotency failed: % rows', event_count; end if;
+          end $$;
+          select provider,provider_event_id,event_type,processed_at,processing_attempts,processing_error,next_attempt_at
+          from integration_events
+          where provider='google' and provider_event_id='engineering-dev-event-1';
+          SQL
+      - name: Upload database evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: engineering-dev-database-audit
+          path: artifacts/engineering-audit
+          if-no-files-found: warn
+
+  browser-runtime:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify canonical dev head
+        run: |
+          test "$(git branch --show-current)" = "dev"
+          test "$(git rev-parse HEAD)" = "${GITHUB_SHA}"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install reproducibly
+        run: npm ci
+      - name: Build explicit browser demo fixture
+        env:
+          VITE_ENABLE_DEMO_DATA: 'true'
+        run: npm run build
+      - name: Install Chromium
+        working-directory: apps/web
+        run: npx playwright install --with-deps chromium
+      - name: Start production preview
+        run: |
+          npm --workspace @portallander/web run preview -- --host 127.0.0.1 > /tmp/engineering-dev-preview.log 2>&1 &
+          for i in {1..60}; do
+            curl -fsS http://127.0.0.1:4173/portallander/ >/dev/null && exit 0
+            sleep 1
+          done
+          cat /tmp/engineering-dev-preview.log
+          exit 1
+      - name: Accessibility and responsive audits
+        working-directory: apps/web
+        run: npx playwright test e2e/accessibility.audit.ts e2e/responsive-matrix.audit.ts --reporter=line
+      - name: Existing browser regression suite
+        working-directory: apps/web
+        run: npx playwright test --reporter=line
+      - name: Upload browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: engineering-dev-browser-audit
+          path: |
+            apps/web/test-results
+            /tmp/engineering-dev-preview.log
+          if-no-files-found: warn

@@ -5,9 +5,11 @@ import {useAdminAuth} from '../../access/AdminAuthContext'
 import {AdminNotice,AdminShell} from '../../../shared/internal/AdminUi'
 import {SITE_MANAGER_NAV} from '../../../shared/internal/adminNavigation'
 import {getAdminSiteForm,publishAdminSiteForm,saveAdminSiteForm} from '../forms/adminClient'
+import {normalizeFormAppearance} from '../forms/appearance'
 import {listRuntimeSiteForms} from '../forms/catalog'
 import {formDraftRepository} from '../forms/draftRepository'
 import type {CollaborationPriority,FormConsentDefinition,FormDestination,FormFieldDefinition,FormFieldType,FormPurpose,SiteFormDefinition} from '../forms/domain'
+import {FormAppearanceEditor} from '../forms/FormAppearanceEditor'
 import {bootstrapPublishedSiteForms} from '../forms/runtimeClient'
 import {resolveSiteFormOptionSets} from '../forms/runtimeOptions'
 import {SiteFormRenderer} from '../forms/SiteFormRenderer'
@@ -28,6 +30,7 @@ const cloneForm=(form:SiteFormDefinition):SiteFormDefinition=>({
   fields:form.fields.map(field=>({...field,options:field.options?[...field.options]:undefined})),
   consents:form.consents.map(consent=>({...consent})),
   routing:{...form.routing,crm:form.routing.crm?{...form.routing.crm,tags:form.routing.crm.tags?[...form.routing.crm.tags]:undefined}:undefined,collaboration:form.routing.collaboration?{...form.routing.collaboration}:undefined},
+  appearance:normalizeFormAppearance(form.appearance),
 })
 const uid=(prefix:string)=>`${prefix}-${crypto.randomUUID()}`
 
@@ -35,7 +38,7 @@ function FormPreview({form,forceDraft=false}:{form:SiteFormDefinition;forceDraft
   const previewForm=forceDraft?{...form,status:'draft' as const}:form
   return <aside className="site-form-preview-panel" aria-label="Preview do formulário em tempo real">
     <div className="site-form-preview-sticky">
-      <header><span>PREVIEW EM TEMPO REAL</span><h2>{previewForm.name||'Formulário sem nome'}</h2><p>Este painel usa o mesmo renderer do formulário público e reage diretamente ao estado atual do editor.</p></header>
+      <header><span>PREVIEW EM TEMPO REAL</span><h2>{previewForm.name||'Formulário sem nome'}</h2><p>Este painel usa o mesmo renderer do formulário público e reage diretamente ao estado atual do editor, inclusive à aparência ainda não salva.</p></header>
       <div className="site-form-preview-meta"><span className={`status ${previewForm.status}`}>{previewForm.status==='active'?'Ativo':previewForm.status==='draft'?'Rascunho':'Inativo'}</span><small>/{previewForm.slug||'slug-do-formulario'}</small></div>
       <SiteFormRenderer form={previewForm} mode="preview" optionSets={resolveSiteFormOptionSets(previewForm)} submitLabel="Enviar"/>
     </div>
@@ -90,7 +93,7 @@ export function SiteFormEditorPage(){
     try{
       const next=persisted?await saveAdminSiteForm(source.id,draft):isLocalDraft?formDraftRepository.save({...draft,status:'draft',source:'custom'}):draft
       setSource(cloneForm(next));setDraft(cloneForm(next));setDirty(false)
-      setNotice(persisted?'Rascunho persistente salvo. Nenhuma alteração pública foi feita até a publicação.':'Rascunho salvo somente neste navegador.')
+      setNotice(persisted?'Rascunho persistente salvo. Aparência e estrutura permanecem versionadas sem alterar o runtime público até a publicação.':'Rascunho salvo somente neste navegador.')
       return next
     }catch(caught){setError(caught instanceof Error?caught.message:'Não foi possível salvar o rascunho.');return undefined}
     finally{setOperation('')}
@@ -128,13 +131,14 @@ export function SiteFormEditorPage(){
     return {...current,routing:{destination}}
   })}
   const patchDraft=(patch:Partial<SiteFormDefinition>)=>{markDirty();setDraft(current=>current&&({...current,...patch}))}
+  const patchAppearance=(appearance:NonNullable<SiteFormDefinition['appearance']>)=>{markDirty();setDraft(current=>current&&({...current,appearance}))}
   const busy=Boolean(operation)
   const canPublish=persisted&&(dirty||draft.status==='draft')
 
   return <AdminShell area="cms" items={SITE_MANAGER_NAV} header={{title:draft.name,description:`Definição do formulário do Site · versão ${draft.version}.`}}>
     <div className="site-form-editor">
       <div className="site-form-editor-top"><Link className="button outline" to="/app/site/formularios"><ArrowLeft size={15}/>Formulários</Link><div className="site-form-editor-actions"><button type="button" className="button outline" onClick={()=>void resetDraft()} disabled={busy||!dirty}>Descartar alterações</button><button type="button" className="button outline" onClick={()=>void saveDraft()} disabled={busy||(!persisted&&!isLocalDraft)}><Save size={15}/>{operation==='save'?'Salvando…':'Salvar rascunho'}</button>{persisted&&<button type="button" className="button" onClick={()=>void publishDraft()} disabled={busy||!canPublish}>{operation==='publish'?'Publicando…':'Publicar versão'}</button>}</div></div>
-      <AdminNotice title={persisted?'Editor persistente e versionado':isLocalDraft?'Rascunho local editável':'Definição de runtime'} description={persisted?'Alterações são salvas como uma nova versão de rascunho na API. Publicar torna essa versão imutável e ativa no runtime público; salvar sozinho nunca altera produção.':isLocalDraft?'Este formulário existe apenas neste navegador. O preview pode ser validado, mas nenhuma publicação é permitida sem uma sessão administrativa real.':'Esta definição vem do runtime público. Sem uma sessão administrativa, ela pode ser visualizada e testada, mas não é gravada no backend.'}/>
+      <AdminNotice title={persisted?'Editor persistente e versionado':isLocalDraft?'Rascunho local editável':'Definição de runtime'} description={persisted?'Alterações estruturais e visuais são salvas na mesma versão de rascunho. Publicar torna essa versão imutável e ativa no runtime público; salvar sozinho nunca altera produção.':isLocalDraft?'Este formulário existe apenas neste navegador. O preview pode ser validado, mas nenhuma publicação é permitida sem uma sessão administrativa real.':'Esta definição vem do runtime público. Sem uma sessão administrativa, ela pode ser visualizada e testada, mas não é gravada no backend.'}/>
       {notice&&<AdminNotice title="Operação concluída" description={notice}/>} 
       {error&&<AdminNotice title="Falha na operação" description={error}/>} 
 
@@ -150,6 +154,8 @@ export function SiteFormEditorPage(){
             <label className="site-form-span-2"><span>Mensagem após envio</span><input value={draft.successMessage} onChange={event=>patchDraft({successMessage:event.target.value})}/></label>
           </div></section>
 
+          <FormAppearanceEditor appearance={draft.appearance} onChange={patchAppearance}/>
+
           <section className="site-form-card"><header><div><h2>Roteamento</h2><p>Defina para onde cada submissão deve ser encaminhada depois da validação.</p></div></header><div className="site-form-grid">
             {draft.routing.destination==='crm'&&<><label><span>Origem do lead</span><input value={draft.routing.crm?.origin??'formulario_portal'} onChange={event=>{markDirty();setDraft({...draft,routing:{destination:'crm',crm:{...(draft.routing.crm??{origin:'formulario_portal'}),origin:event.target.value}}})}}/></label><label><span>Responsável padrão</span><input value={draft.routing.crm?.responsible??''} onChange={event=>{markDirty();setDraft({...draft,routing:{destination:'crm',crm:{...(draft.routing.crm??{origin:'formulario_portal'}),responsible:event.target.value}}})}} placeholder="Opcional"/></label><label className="site-form-span-2"><span>Tags automáticas</span><input value={(draft.routing.crm?.tags??[]).join(', ')} onChange={event=>{markDirty();setDraft({...draft,routing:{destination:'crm',crm:{...(draft.routing.crm??{origin:'formulario_portal'}),tags:event.target.value.split(',').map(value=>value.trim()).filter(Boolean)}}})}} placeholder="site, formulario, campanha"/></label></>}
             {draft.routing.destination==='content_collaborations'&&<label><span>Prioridade inicial</span><select value={draft.routing.collaboration?.defaultPriority??'normal'} onChange={event=>{markDirty();setDraft({...draft,routing:{destination:'content_collaborations',collaboration:{defaultStatus:'received',defaultPriority:event.target.value as CollaborationPriority}}})}}><option value="low">Baixa</option><option value="normal">Normal</option><option value="high">Alta</option></select></label>}
@@ -164,7 +170,7 @@ export function SiteFormEditorPage(){
 
           <section className="site-form-card"><header><div><h2>Consentimentos</h2><p>Registre textos que precisam ser aceitos e versionados.</p></div><button type="button" className="button outline" onClick={addConsent}><Plus size={15}/>Adicionar consentimento</button></header><div className="site-form-consents">{draft.consents.map(consent=><article key={consent.id} className="site-form-consent"><div className="site-form-field-grid"><label><span>Nome</span><input value={consent.label} onChange={event=>updateConsent(consent.id,{label:event.target.value})}/></label><label><span>Tipo</span><select value={consent.kind} onChange={event=>updateConsent(consent.id,{kind:event.target.value as FormConsentDefinition['kind']})}><option value="privacy">Privacidade</option><option value="marketing">Marketing</option><option value="terms">Termos</option><option value="content_rights">Direitos sobre conteúdo</option></select></label><label><span>Versão</span><input value={consent.version} onChange={event=>updateConsent(consent.id,{version:event.target.value})}/></label><label className="site-form-span-2"><span>Texto apresentado ao usuário</span><textarea rows={3} value={consent.text} onChange={event=>updateConsent(consent.id,{text:event.target.value})}/></label><label className="site-form-required"><input type="checkbox" checked={consent.required} onChange={event=>updateConsent(consent.id,{required:event.target.checked})}/><span>Aceite obrigatório</span></label></div><button type="button" className="site-form-delete" title="Excluir consentimento" onClick={()=>removeConsent(consent.id)}><Trash2 size={15}/></button></article>)}</div></section>
 
-          <section className="site-form-card"><header><div><h2>Resumo de publicação</h2><p>Validação estrutural do rascunho atual.</p></div></header><div className="site-form-summary"><span><b>v{draft.version}</b> versão</span><span><b>{draft.fields.length}</b> campos</span><span><b>{draft.fields.filter(field=>field.required).length}</b> obrigatórios</span><span><b>{draft.consents.length}</b> consentimentos</span><span><b>{draft.routing.destination}</b> destino</span></div></section>
+          <section className="site-form-card"><header><div><h2>Resumo de publicação</h2><p>Validação estrutural e visual do rascunho atual.</p></div></header><div className="site-form-summary"><span><b>v{draft.version}</b> versão</span><span><b>{draft.fields.length}</b> campos</span><span><b>{draft.fields.filter(field=>field.required).length}</b> obrigatórios</span><span><b>{draft.consents.length}</b> consentimentos</span><span><b>{draft.routing.destination}</b> destino</span><span><b>{normalizeFormAppearance(draft.appearance).preset}</b> aparência</span></div></section>
         </div>
         <FormPreview form={draft} forceDraft={!persisted&&draft.source==='custom'}/>
       </div>

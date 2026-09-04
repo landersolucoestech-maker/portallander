@@ -8,13 +8,25 @@ const clone=(draft:MediaKitDraft):MediaKitDraft=>structuredClone(draft)
 const normalize=(value:unknown):MediaKitDraft=>{
   if(!value||typeof value!=='object')return clone(defaultMediaKitDraft)
   const draft=value as Partial<MediaKitDraft>
+  const audience=draft.audience??defaultMediaKitDraft.audience
   return {
     version:typeof draft.version==='number'&&draft.version>0?draft.version:1,
     status:draft.status==='published'||draft.status==='inactive'?draft.status:'draft',
+    identity:{...defaultMediaKitDraft.identity,...(draft.identity??{})},
     institutional:{...defaultMediaKitDraft.institutional,...(draft.institutional??{})},
-    audience:{...defaultMediaKitDraft.audience,...(draft.audience??{})},
+    audience:{
+      ...defaultMediaKitDraft.audience,
+      ...audience,
+      metrics:Array.isArray(audience.metrics)?audience.metrics.map(item=>({...item})):[],
+      snapshot:Array.isArray(audience.snapshot)?audience.snapshot.map(item=>({...item,provenance:{...(item.provenance??{})}})):[],
+    },
+    inventory:{placements:Array.isArray(draft.inventory?.placements)?draft.inventory.placements.map(item=>({...item})):clone(defaultMediaKitDraft).inventory.placements},
+    newsletter:{...defaultMediaKitDraft.newsletter,...(draft.newsletter??{})},
+    social:{channelIds:Array.isArray(draft.social?.channelIds)?[...draft.social.channelIds]:[]},
     adFormats:Array.isArray(draft.adFormats)?draft.adFormats.map(item=>({...item})):[],
     commercial:{...defaultMediaKitDraft.commercial,...(draft.commercial??{})},
+    roadmap:{currentCapabilities:Array.isArray(draft.roadmap?.currentCapabilities)?[...draft.roadmap.currentCapabilities]:[],futureOpportunities:Array.isArray(draft.roadmap?.futureOpportunities)?[...draft.roadmap.futureOpportunities]:[]},
+    generationMetadata:{...defaultMediaKitDraft.generationMetadata,...(draft.generationMetadata??{})},
   }
 }
 

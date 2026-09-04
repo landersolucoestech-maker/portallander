@@ -35,6 +35,10 @@
   color:var(--form-help-color,#666);
   font-size:var(--form-help-size,12px);
 }
+.site-form-runtime.site-form-appearance .colabore-note,
+.site-form-runtime.site-form-appearance .site-form-preview-success{
+  color:var(--form-help-color,#666);
+}
 .site-form-runtime.site-form-appearance input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):not([type="file"]),
 .site-form-runtime.site-form-appearance textarea,
 .site-form-runtime.site-form-appearance .colabore-type-trigger{

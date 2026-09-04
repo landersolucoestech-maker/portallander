@@ -1,6 +1,7 @@
 import {createServer} from 'node:http'
 import {handleRequest} from './http.js'
 import {handleAgenticRequest} from './agenticHttp.js'
+import {handleAgendaRequest} from './agendaHttp.js'
 import {handleAnalyticsRequest} from './analyticsHttp.js'
 import {handleCrmRequest} from './crmHttp.js'
 import {handleIntegrationProviderRequest} from './integrationProviderHttp.js'
@@ -13,6 +14,7 @@ const port=Number(process.env.PORT||8787)
 const server=createServer((req,res)=>{
   void (async()=>{
     if(await handleAgenticRequest(req,res))return
+    if(await handleAgendaRequest(req,res))return
     if(await handleAnalyticsRequest(req,res))return
     if(await handleCrmRequest(req,res))return
     if(await handleIntegrationProviderRequest(req,res))return

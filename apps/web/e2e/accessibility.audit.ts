@@ -36,7 +36,7 @@ const semanticAudit=async(page:Page)=>page.evaluate(()=>{
  const imagesWithoutAlt=Array.from(document.images).filter(visible).filter(img=>!img.hasAttribute('alt')).slice(0,20).map(img=>({src:img.getAttribute('src'),className:img.className}))
  const ids=Array.from(document.querySelectorAll<HTMLElement>('[id]')).map(el=>el.id).filter(Boolean)
  const duplicateIds=[...new Set(ids.filter((id,index)=>ids.indexOf(id)!==index))].slice(0,20)
- const hiddenFocusable=Array.from(document.querySelectorAll('[aria-hidden="true"] button,[aria-hidden="true"] a[href],[aria-hidden="true"] input,[aria-hidden="true"] select,[aria-hidden="true"] textarea,[aria-hidden="true"] [tabindex]')).filter(el=>(el as HTMLElement).tabIndex>=0&&visible(el)).slice(0,20).map(el=>({tag:el.tagName,text:text(el).slice(0,80)}))
+ const hiddenFocusable=Array.from(document.querySelectorAll('[aria-hidden="true"] button,[aria-hidden="true"] a[href],[aria-hidden="true"] input,[aria-hidden="true"] select,[aria-hidden="true"] textarea,[aria-hidden="true"] [tabindex]')).filter(el=>!el.closest('[inert]')&&(el as HTMLElement).tabIndex>=0&&visible(el)).slice(0,20).map(el=>({tag:el.tagName,text:text(el).slice(0,80)}))
  const semanticMain=Array.from(document.querySelectorAll('main,[role="main"]')).filter(visible).length
  return {unnamed,unlabeledFields,imagesWithoutAlt,duplicateIds,hiddenFocusable,semanticMain}
 })

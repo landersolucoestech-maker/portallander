@@ -1,4 +1,4 @@
-import {BarChart3,CalendarDays,Clock,Lightbulb,Send,Sparkles,TrendingUp,UserRound} from 'lucide-react'
+import {BarChart3,CalendarDays,Clock,Lightbulb,Send,TrendingUp,UserRound} from 'lucide-react'
 import {useState} from 'react'
 import {Link} from 'react-router-dom'
 import type {MarketingSeed} from '../domain'

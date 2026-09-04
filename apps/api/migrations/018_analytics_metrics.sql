@@ -133,7 +133,7 @@ comment on table analytics_metrics is 'Shared normalized Analytics metrics with 
 do $$
 begin
   if to_regclass('public.integration_events') is not null then
-    comment on table integration_events is 'Durable provider/webhook event ledger; intentionally distinct from analytics metrics and behavioral events.';
+    execute $comment$comment on table integration_events is 'Durable provider/webhook event ledger; intentionally distinct from analytics metrics and behavioral events.'$comment$;
   end if;
 end
 $$;

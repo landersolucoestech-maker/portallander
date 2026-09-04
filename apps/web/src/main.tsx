@@ -2,7 +2,6 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { HashRouter } from 'react-router-dom'
-import App from './app/PortalApp'
 import {loadPublicEditorialSnapshot} from './features/editorial/apiClient'
 import {withDevelopmentCmsOverrides} from './features/site-manager/developmentCmsOverlay'
 import {contentDraftRepository} from './features/site-manager/contentDraftRepository'
@@ -68,7 +67,7 @@ async function bootstrapForms(){
   catch(error){console.warn('[Portal Lander] API de formulários indisponível; nenhuma definição mock foi promovida a produção.',error)}
 }
 
-function mountApp() {
+async function mountApp() {
   const root=document.getElementById('root')!
   if(!hasRuntimeDataProvider()){
     ReactDOM.createRoot(root).render(
@@ -76,6 +75,7 @@ function mountApp() {
     )
     return
   }
+  const {default:App}=await import('./app/PortalApp')
   ReactDOM.createRoot(root).render(
     <React.StrictMode><QueryClientProvider client={queryClient}><HashRouter><App/></HashRouter></QueryClientProvider></React.StrictMode>,
   )
@@ -92,8 +92,8 @@ void bootstrapExplicitDemoData().then(()=>Promise.all([
   waitForPublicFonts().catch(()=>undefined),
   bootstrapEditorialData(),
   bootstrapForms(),
-])).finally(() => {
+])).finally(async() => {
   document.documentElement.classList.remove('pl-fonts-loading')
   document.documentElement.classList.add('pl-fonts-ready')
-  mountApp()
+  await mountApp()
 })

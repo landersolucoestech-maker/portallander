@@ -66,7 +66,7 @@ export function MarketingMetrics({state}:{state:MarketingSeed}){
 
   return <>
     <div className="marketing-platform-tabs marketing-platform-tabs-exact"><button type="button" className={provider==='all'?'active':''} onClick={()=>setProvider('all')}><Globe2 size={14}/>Visão Geral</button>{providers.map(name=><button type="button" key={name} className={provider===name?'active':''} onClick={()=>setProvider(name)}><span className="marketing-platform-dot"/>{name}</button>)}</div>
-    <div className="marketing-metrics-period"><input type="month" value={period} onChange={event=>changePeriod(event.target.value)}/><small>Comparação automática com {previousMonth(period)} somente quando os dois períodos são semanticamente comparáveis.</small></div>
+    <div className="marketing-metrics-period"><input type="month" aria-label="Período das métricas" value={period} onChange={event=>changePeriod(event.target.value)}/><small>Comparação automática com {previousMonth(period)} somente quando os dois períodos são semanticamente comparáveis.</small></div>
     {error&&<div className="marketing-empty"><strong>Analytics indisponível</strong><p>{error} Nenhum valor mock foi usado como fallback.</p></div>}
     <div className="marketing-metric-strip marketing-metric-strip-exact">{[
       ['Alcance',valueLabel(totals.reach),'não somado/comparado entre observações incompatíveis',Users],

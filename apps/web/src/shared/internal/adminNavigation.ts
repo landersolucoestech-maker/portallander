@@ -1,4 +1,4 @@
-import {BookOpen,CalendarDays,ClipboardList,ContactRound,FileText,Images,Landmark,Layers3,LayoutDashboard,ListChecks,MessageCircle,Megaphone,Newspaper,ReceiptText,Settings,Sparkles,UsersRound} from 'lucide-react'
+import {BarChart3,BookOpen,CalendarDays,ClipboardList,ContactRound,FileText,Images,Landmark,Layers3,LayoutDashboard,ListChecks,MessageCircle,Megaphone,Newspaper,ReceiptText,Settings,Sparkles,UsersRound} from 'lucide-react'
 import type {AdminNavItem} from './AdminUi'
 
 export const UNIFIED_ADMIN_NAV:readonly AdminNavItem[]=[
@@ -24,6 +24,7 @@ export const UNIFIED_ADMIN_NAV:readonly AdminNavItem[]=[
     ['Campanhas',Megaphone,'/app/marketing/campanhas'],
     ['Calendário',CalendarDays,'/app/marketing/calendario'],
     ['Tarefas',ListChecks,'/app/marketing/tarefas'],
+    ['Métricas',BarChart3,'/app/marketing/metricas'],
     ['Briefings',ClipboardList,'/app/marketing/briefings'],
     ['IA Criativa',Sparkles,'/app/marketing/ia-criativa'],
   ]},

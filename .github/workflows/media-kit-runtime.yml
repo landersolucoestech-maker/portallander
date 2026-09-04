@@ -76,7 +76,9 @@ jobs:
               await livePreview.waitFor({state:'visible',timeout:15000})
               const liveDocument=livePreview.locator('.mk-document')
               if(await liveDocument.count()!==1)throw new Error('Live preview must render exactly one MediaKitDocument')
-              if(await livePreview.locator('[data-media-kit-page]').count()!==9)throw new Error('Live preview must preserve all 9 pages inside the shared MediaKitDocument')
+              await page.waitForFunction(()=>document.querySelector('[data-testid="media-kit-live-preview"]')?.querySelectorAll('[data-media-kit-page]').length===9)
+              const livePageCount=await livePreview.locator('[data-media-kit-page]').count()
+              if(livePageCount!==9)throw new Error(`Live preview must preserve all 9 pages inside the shared MediaKitDocument; found ${livePageCount}`)
               if(!await livePreview.locator('[data-preview-page="1"]').isVisible())throw new Error('Live preview must start with page 1 visible')
               if(await livePreview.locator('[data-preview-page="2"]').isVisible())throw new Error('Live preview must hide non-selected pages without removing them from the shared document')
               const titleInput=page.getByLabel('Título do documento')
@@ -122,6 +124,7 @@ jobs:
 
             try{
               await page.locator('[data-media-kit-page="1"]').waitFor({state:'attached',timeout:15000})
+              await page.waitForFunction(()=>document.querySelectorAll('.mk-preview-shell [data-media-kit-page]').length===9)
             }catch(error){
               console.log('PREVIEW_URL='+page.url())
               console.log('PREVIEW_HASH='+await page.evaluate(()=>location.hash))
@@ -143,12 +146,14 @@ jobs:
               ])
             })
 
-            const pages=page.locator('[data-media-kit-page]')
-            if(await pages.count()!==9)throw new Error(`Expected 9 document pages; found ${await pages.count()}`)
+            const pages=page.locator('.mk-preview-shell [data-media-kit-page]')
+            const pageCount=await pages.count()
+            if(pageCount!==9)throw new Error(`Expected 9 document pages; found ${pageCount}`)
             const numbers=await pages.evaluateAll(nodes=>nodes.map(node=>node.getAttribute('data-media-kit-page')))
             if(JSON.stringify(numbers)!==JSON.stringify(['1','2','3','4','5','6','7','8','9']))throw new Error(`Page order invalid: ${JSON.stringify(numbers)}`)
             const pageLabels=page.locator('.mk-preview-page-label')
-            if(await pageLabels.count()!==9)throw new Error('Preview page labels missing')
+            const pageLabelCount=await pageLabels.count()
+            if(pageLabelCount!==9)throw new Error(`Preview page labels missing; found ${pageLabelCount}`)
             const labelTexts=await pageLabels.allInnerTexts()
             if(JSON.stringify(labelTexts)!==JSON.stringify(Array.from({length:9},(_,index)=>`Página ${index+1} de 9`)))throw new Error(`Preview page labels invalid: ${JSON.stringify(labelTexts)}`)
 
@@ -197,9 +202,9 @@ jobs:
             await page.pdf({path:'test-results/media-kit/media-kit.pdf',format:'A4',printBackground:true,preferCSSPageSize:true,margin:{top:'0',right:'0',bottom:'0',left:'0'}})
             const pdf=await stat('test-results/media-kit/media-kit.pdf')
             if(pdf.size<10000)throw new Error('Generated PDF is unexpectedly small')
-            await writeFile('test-results/media-kit/runtime-summary.json',JSON.stringify({sha:process.env.GITHUB_SHA,editorOpened:true,livePreview:true,previewOpenedFromEditor:true,pageCount:9,pageOrder:numbers,keyboard:true,fonts,failedRequests,consoleErrors,pageErrors,pdfBytes:pdf.size},null,2))
+            await writeFile('test-results/media-kit/runtime-summary.json',JSON.stringify({sha:process.env.GITHUB_SHA,editorOpened:true,livePreview:true,previewOpenedFromEditor:true,pageCount,pageOrder:numbers,keyboard:true,fonts,failedRequests,consoleErrors,pageErrors,pdfBytes:pdf.size},null,2))
             console.log('MEDIA_KIT_FULL_PREVIEW=PASS')
-            console.log('PREVIEW_PAGE_COUNT=9')
+            console.log('PREVIEW_PAGE_COUNT='+pageCount)
             console.log('MEDIA_KIT_SHARED_RENDERER_PARITY=PASS')
             console.log('PDF_BYTES='+pdf.size)
             console.log('FAILED_REQUESTS='+JSON.stringify(failedRequests))

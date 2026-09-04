@@ -16,4 +16,15 @@
 .pl-center-link{display:flex;justify-content:center;margin-top:14px}.pl-center-link a,.pl-outline-button{border:1px solid #4a2224;color:#fff;text-decoration:none;padding:9px 22px;font-family:'Bebas Neue','Arial Narrow',sans-serif;font-size:12px;letter-spacing:.04em}.pl-outline-button{display:flex;justify-content:center;margin-top:12px}
 .pl-whatsapp{position:relative;overflow:hidden;padding-right:112px}.pl-whatsapp:after{content:'';position:absolute;right:-28px;bottom:-18px;width:145px;height:205px;border:1px solid #315b38;border-radius:22px;transform:rotate(-7deg);background:linear-gradient(180deg,#181818,#060606);box-shadow:0 0 0 7px #050505,0 0 26px rgba(0,255,80,.1)}.pl-whatsapp:before{content:'';position:absolute;right:8px;bottom:15px;width:92px;height:156px;z-index:2;background:linear-gradient(180deg,#132416,#08100a);border-radius:14px;box-shadow:inset 0 0 0 1px #315b38}.pl-phone-visual{position:absolute;right:18px;bottom:70px;z-index:3;width:74px;height:85px;display:flex;align-items:center;justify-content:center;color:#34d058;font-size:8px;font-weight:900;transform:rotate(-7deg)}
 
+/* Accessibility: keep the brand red for decorative identity while using an AA-safe action red. */
+.editorial-actions .portal-button{background:#e50914!important;border-color:#e50914!important}
+/* Editorial cards sit on a dark surface even when their configurable section uses dark text on a light canvas. */
+.pl-card{color:#fff}
+.pl-card .pl-card-body>p{color:#d1d1d1}
+.pl-card .pl-meta{color:#808080}
+/* This section heading is painted on the configured section surface, so its action follows the section foreground. */
+.official-ultimas-noticias .pl-section-head a{color:inherit}
+/* Generic legacy outline styles paint a white button; public empty states are dark. */
+.public-page .editorial-empty-state .button.outline{background:#111;color:#fff;border-color:#767676}
+
 @media(max-width:760px){.editorial-featured-image{left:50%!important;width:min(390px,84%)!important;bottom:-4%!important;transform:translateX(-50%) translateY(18px) scale(.94)!important}.pl-whatsapp{padding-right:96px}}

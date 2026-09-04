@@ -1,4 +1,6 @@
-import {beforeEach,describe,expect,it} from 'vitest'
+import {afterEach,beforeEach,describe,expect,it} from 'vitest'
+import {mockDataProvider} from '../../shared/data/mockDataProvider'
+import {resetRuntimeDataProvider,setRuntimeDataProvider} from '../../shared/data/runtimeDataProvider'
 import {contactProfiles,emptyContact,emptyLead,label,leadStatusOptions} from './domain'
 import {crmRepository} from './repository'
 
@@ -8,7 +10,12 @@ Object.defineProperty(globalThis,'window',{value:{dispatchEvent:()=>true},config
 Object.defineProperty(globalThis,'CustomEvent',{value:class{constructor(public type:string){}},configurable:true})
 
 describe('Portal Lander CRM domain',()=>{
- beforeEach(()=>localStorage.clear())
+ beforeEach(()=>{
+  localStorage.clear()
+  mockDataProvider.setScenario('success')
+  setRuntimeDataProvider(mockDataProvider)
+ })
+ afterEach(()=>resetRuntimeDataProvider())
  it('keeps contact classification config-driven',()=>{expect(contactProfiles.pessoa_fisica.fonte_editorial).toContain('Jornalista');expect(contactProfiles.pessoa_juridica.anunciante).toContain('Marca')})
  it('maps lead status labels',()=>expect(label(leadStatusOptions,'negociacao')).toBe('Negociação'))
  it('prevents stale updates with optimistic concurrency',()=>{const lead=crmRepository.createLead({...emptyLead(),name:'Marca Exemplo',phone:'11999999999'});const changed=crmRepository.updateLead(lead.id,{company:'Empresa A'},lead.updatedAt);expect(()=>crmRepository.updateLead(lead.id,{company:'Empresa B'},lead.updatedAt)).toThrow(/CONFLICT/);expect(changed.company).toBe('Empresa A')})

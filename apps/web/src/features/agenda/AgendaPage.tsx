@@ -16,7 +16,7 @@ const isInVisiblePeriod=(event:AgendaEvent,mode:AgendaViewMode,reference:Date)=>
 
 export default function AgendaPage(){
  const eventsQuery=useAgendaEvents(),createEvent=useCreateAgendaEvent(),updateEvent=useUpdateAgendaEvent(),{lookups,api}=useAgendaRuntime(),[todayTimestamp]=useState(()=>Date.now())
- const events=eventsQuery.data??[],participants=lookups.participants,locations=lookups.locations
+ const events=useMemo(()=>eventsQuery.data??[],[eventsQuery.data]),participants=lookups.participants,locations=lookups.locations
  const [view,setView]=useState<AgendaViewMode>('semana'),[reference,setReference]=useState(()=>new Date()),[search,setSearch]=useState(''),[typeFilter,setTypeFilter]=useState('all-type'),[statusFilter,setStatusFilter]=useState('all-status')
  const [form,setForm]=useState<{open:boolean;mode:'create'|'edit';event?:AgendaEvent}>({open:false,mode:'create'}),[viewEvent,setViewEvent]=useState<AgendaEvent|undefined>(),[saveError,setSaveError]=useState('')
  const visibleEvents=useMemo(()=>events.filter(event=>isInVisiblePeriod(event,view,reference)).filter(event=>typeFilter==='all-type'||event.type===typeFilter).filter(event=>statusFilter==='all-status'||event.status===statusFilter).filter(event=>{if(!search.trim())return true;const term=search.toLowerCase();const participantText=event.participantIds.map(id=>participants.find(item=>item.id===id)?.label??'').join(' ');return `${event.title} ${event.location} ${participantText}`.toLowerCase().includes(term)}),[events,view,reference,typeFilter,statusFilter,search,participants])

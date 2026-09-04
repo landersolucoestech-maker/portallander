@@ -7,17 +7,24 @@ const read=path=>readFile(new URL(path,root),'utf8')
 const exists=async path=>{try{await access(new URL(path,root),constants.F_OK);return true}catch{return false}}
 const failures=[]
 const warnings=[]
+const importsOf=source=>source.match(/@import\s+['"][^'"]+['"];?/g)??[]
+const assertCascadeTail=(source,expected,message)=>{
+ const imports=importsOf(source)
+ const tail=imports.slice(-expected.length)
+ if(tail.length!==expected.length||tail.some((value,index)=>value!==expected[index]))failures.push(message)
+ for(const item of expected)if(imports.filter(value=>value===item).length!==1)failures.push(`Camada de cascade deve aparecer exatamente uma vez: ${item}`)
+}
 
 const adminEntry=await read('src/styles/admin-entry.css')
-if(!adminEntry.trim().endsWith("@import './admin-design-system.css';"))failures.push('admin-design-system.css deve ser a última camada visual administrativa.')
+assertCascadeTail(adminEntry,["@import './admin-design-system.css';","@import './admin-accessibility.css';"],'Cascade administrativa deve terminar em admin-design-system.css → admin-accessibility.css; nenhuma folha arbitrária pode vir depois da camada final de acessibilidade.')
 if(!adminEntry.includes("@import './admin-access-system.css';"))failures.push('Páginas de acesso devem carregar o baseline tipográfico/interacional interno.')
 if(adminEntry.includes('admin-table-alignment.css'))failures.push('A camada global de alinhamento de tabelas não pode voltar; alinhamento deve ser semântico.')
 if(adminEntry.includes('admin-settings-pruning.css'))failures.push('Configurações não pode depender de pruning por CSS para esconder funcionalidades.')
-for(const path of ['src/styles/admin-design-system.css','src/styles/admin-access-system.css'])if(!(await exists(path)))failures.push(`Design system interno exige ${path}.`)
+for(const path of ['src/styles/admin-design-system.css','src/styles/admin-access-system.css','src/styles/admin-accessibility.css'])if(!(await exists(path)))failures.push(`Design system interno exige ${path}.`)
 
 const publicStyles=await read('src/styles/public-styles.css')
-if(!publicStyles.trim().endsWith("@import './public-layout-system.css';"))failures.push('public-layout-system.css deve ser a última camada de layout público.')
-if(!(await exists('src/styles/public-layout-system.css')))failures.push('Baseline público de viewport/responsividade é obrigatório.')
+assertCascadeTail(publicStyles,["@import './public-layout-system.css';","@import './public-corrections.css';"],'Cascade pública deve terminar em public-layout-system.css → public-corrections.css; nenhuma folha arbitrária pode vir depois da camada final de correções/a11y.')
+for(const path of ['src/styles/public-layout-system.css','src/styles/public-corrections.css'])if(!(await exists(path)))failures.push(`Baseline público exige ${path}.`)
 
 const indexHtml=await read('index.html')
 for(const font of ['Bebas+Neue','Montserrat'])if(!indexHtml.includes(font))failures.push(`Fonte carregada obrigatória ausente: ${font}.`)

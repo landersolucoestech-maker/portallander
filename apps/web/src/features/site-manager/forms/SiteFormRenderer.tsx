@@ -1,6 +1,8 @@
 import {CheckCircle2,Send,Upload} from 'lucide-react'
-import {useEffect,useMemo,useRef,useState,type FormEvent} from 'react'
-import type {FormFieldDefinition,SiteFormDefinition} from './domain'
+import {useEffect,useMemo,useRef,useState,type CSSProperties,type FormEvent} from 'react'
+import {normalizeFormAppearance} from './appearance'
+import type {FormAppearance,FormFieldDefinition,SiteFormDefinition} from './domain'
+import './site-form-appearance.css'
 
 export type SiteFormOption={value:string;label:string}
 export type SiteFormOptionSets=Record<string,readonly SiteFormOption[]>
@@ -34,9 +36,26 @@ function buildFieldBlocks(fields:readonly FormFieldDefinition[]):FieldBlock[]{
   return blocks
 }
 
+function appearanceStyle(appearance:FormAppearance):CSSProperties{
+  const shadow=appearance.container.shadow==='strong'?'0 24px 70px rgba(0,0,0,.18)':appearance.container.shadow==='soft'?'0 14px 40px rgba(0,0,0,.08)':'none'
+  const font=appearance.typography.font==='montserrat'?"'Montserrat',system-ui,sans-serif":"system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"
+  return {
+    '--form-container-width':`${appearance.container.width}%`,'--form-container-max':`${appearance.container.maxWidth}px`,'--form-container-padding':`${appearance.container.padding}px`,'--form-container-bg':appearance.container.background,'--form-container-border-style':appearance.container.border,'--form-container-border-color':appearance.container.borderColor,'--form-container-border-width':`${appearance.container.borderWidth}px`,'--form-container-radius':`${appearance.container.borderRadius}px`,'--form-container-shadow':shadow,
+    '--form-columns':String(appearance.layout.columns),'--form-column-gap':`${appearance.layout.columnGap}px`,'--form-row-gap':`${appearance.layout.rowGap}px`,'--form-font-family':font,
+    '--form-label-size':`${appearance.typography.labelSize}px`,'--form-label-weight':String(appearance.typography.labelWeight),'--form-label-color':appearance.typography.labelColor,'--form-help-size':`${appearance.typography.helpSize}px`,'--form-help-color':appearance.typography.helpColor,
+    '--form-field-height':`${appearance.fields.height}px`,'--form-field-bg':appearance.fields.background,'--form-field-text':appearance.fields.textColor,'--form-field-placeholder':appearance.fields.placeholderColor,'--form-field-border-color':appearance.fields.borderColor,'--form-field-border-width':`${appearance.fields.borderWidth}px`,'--form-field-radius':`${appearance.fields.borderRadius}px`,'--form-field-padding-x':`${appearance.fields.paddingX}px`,'--form-focus-color':appearance.fields.focusColor,'--form-focus-ring':`${appearance.fields.focusRing}px`,
+    '--form-textarea-min':`${appearance.textarea.minHeight}px`,'--form-textarea-resize':appearance.textarea.resize,
+    '--form-button-height':`${appearance.button.height}px`,'--form-button-width':appearance.button.width==='full'?'100%':'auto','--form-button-bg':appearance.button.background,'--form-button-fg':appearance.button.foreground,'--form-button-border-color':appearance.button.borderColor,'--form-button-border-width':`${appearance.button.borderWidth}px`,'--form-button-radius':`${appearance.button.borderRadius}px`,'--form-button-size':`${appearance.button.fontSize}px`,'--form-button-weight':String(appearance.button.fontWeight),'--form-button-hover':appearance.button.hoverBackground,
+    '--form-consent-color':appearance.consents.color,'--form-consent-gap':`${appearance.consents.gap}px`,'--form-consent-size':`${appearance.consents.fontSize}px`,
+    '--form-upload-bg':appearance.upload.background,'--form-upload-border-color':appearance.upload.borderColor,'--form-upload-border-width':`${appearance.upload.borderWidth}px`,'--form-upload-radius':`${appearance.upload.borderRadius}px`,'--form-upload-fg':appearance.upload.foreground,
+    '--form-success-bg':appearance.states.successBackground,'--form-success-fg':appearance.states.successForeground,'--form-error-bg':appearance.states.errorBackground,'--form-error-fg':appearance.states.errorForeground,'--form-state-border':appearance.states.borderColor,'--form-state-radius':`${appearance.states.borderRadius}px`,
+  } as CSSProperties
+}
+
 export function SiteFormRenderer({form,mode,optionSets={},onSubmit,submitLabel='Enviar',note}:SiteFormRendererProps){
   const ordered=useMemo(()=>[...form.fields].sort((a,b)=>a.order-b.order),[form.fields])
   const blocks=useMemo(()=>buildFieldBlocks(form.fields),[form.fields])
+  const appearance=useMemo(()=>normalizeFormAppearance(form.appearance),[form.appearance])
   const startedAt=useRef(0)
   const [selectValues,setSelectValues]=useState<Record<string,string>>({})
   const [openSelect,setOpenSelect]=useState<string|null>(null)
@@ -93,13 +112,14 @@ export function SiteFormRenderer({form,mode,optionSets={},onSubmit,submitLabel='
     return <label className="colabore-consent" key={field.id}><input required={field.required} type="checkbox" name={field.key}/><span>{field.label}{field.helpText?` — ${field.helpText}`:''}</span></label>
   }
 
-  return <form className={`colabore-form site-form-runtime site-form-runtime-${form.purpose}${mode==='preview'?' is-preview':''}`} onSubmit={submit}>
+  const buttonText=(appearance.button.text.trim()||submitLabel).toUpperCase()
+  return <form className={`colabore-form site-form-runtime site-form-appearance site-form-runtime-${form.purpose} site-form-collapse-${appearance.layout.responsiveCollapseAt}${mode==='preview'?' is-preview':''}`} data-form-align={appearance.container.align} data-form-shadow={appearance.container.shadow} data-button-align={appearance.button.align} style={appearanceStyle(appearance)} onSubmit={submit}>
     <div aria-hidden="true" style={{position:'absolute',left:'-10000px',width:1,height:1,overflow:'hidden'}}><label>Deixe este campo vazio<input name="_portal_hp" tabIndex={-1} autoComplete="off"/></label></div>
-    {state.kind==='error'&&<div className="colabore-success" role="alert"><div><b>Não foi possível enviar.</b><span>{state.message}</span></div></div>}
-    {state.kind==='success'&&<div className="colabore-success" role="status"><CheckCircle2 size={18}/><div><b>Formulário enviado.</b><span>{state.message}</span></div></div>}
+    {state.kind==='error'&&<div className="colabore-success is-error" role="alert"><div><b>Não foi possível enviar.</b><span>{state.message}</span></div></div>}
+    {state.kind==='success'&&<div className="colabore-success is-success" role="status"><CheckCircle2 size={18}/><div><b>Formulário enviado.</b><span>{state.message}</span></div></div>}
     {blocks.map((block,index)=>block.kind==='compact'?<div className="colabore-field-grid" key={`compact-${index}`}>{block.fields.map(renderCompact)}</div>:renderExpanded(block.field))}
     {form.consents.map(consent=><label className="colabore-consent" key={consent.id}><input required={consent.required} type="checkbox" name={`consent:${consent.id}`}/><span>{consent.text||consent.label}</span></label>)}
-    <button className="colabore-submit" type="submit" disabled={state.kind==='sending'||mode==='preview'}><Send size={17}/> {mode==='preview'?submitLabel.toUpperCase():state.kind==='sending'?'ENVIANDO...':submitLabel.toUpperCase()}</button>
+    <button className="colabore-submit" type="submit" disabled={state.kind==='sending'||mode==='preview'} style={{outlineColor:appearance.button.focusColor}}><Send size={17}/> {mode==='preview'?buttonText:state.kind==='sending'?'ENVIANDO...':buttonText}</button>
     {mode==='preview'&&<p className="site-form-preview-success">Após o envio: {form.successMessage||'Nenhuma mensagem configurada.'}</p>}
     {note&&<p className="colabore-note">{note}</p>}
   </form>

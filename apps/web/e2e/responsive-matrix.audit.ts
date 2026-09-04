@@ -4,9 +4,12 @@ const base='http://127.0.0.1:4173/portallander/'
 const requiredViewports=[
  {name:'mobile-min',width:320,height:720},
  {name:'mobile-small',width:375,height:812},
+ {name:'mobile-standard',width:390,height:844},
  {name:'mobile-large',width:414,height:896},
  {name:'tablet-small',width:768,height:1024},
  {name:'desktop-small',width:1024,height:768},
+ {name:'desktop-medium',width:1280,height:800},
+ {name:'desktop-large',width:1440,height:900},
  {name:'desktop-xl',width:1920,height:1080},
 ]
 const routes=[

@@ -55,7 +55,9 @@
 .app-shell .admin-notice p,
 .app-shell .admin-kpi>small,
 .app-shell .dashboard-stat-card small,
-.app-shell .dashboard-section-heading p{
+.app-shell .dashboard-section-heading p,
+.app-shell .unified-kpi-card small,
+.app-shell .unified-card-heading p{
   color:#667085!important;
 }
 

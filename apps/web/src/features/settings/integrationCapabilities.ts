@@ -53,9 +53,9 @@ export const INTEGRATION_CAPABILITIES:Record<IntegrationProviderId,IntegrationCa
     name:'Google',
     category:'Marketing & Analytics',
     description:'Google Analytics, Search Console, Google Ads e YouTube — tráfego, anúncios, SEO e desempenho de vídeos.',
-    state:'planned',
-    implementedCapabilities:[],
-    missingCapabilities:['OAuth Google','Google Analytics','Search Console','Google Ads','YouTube Data/Analytics','refresh de credenciais','sincronização e webhooks quando aplicável'],
+    state:'partial',
+    implementedCapabilities:['GA4 Data API read-only connector no backend','OAuth refresh server-side por credenciais de ambiente','account/property boundary explícito','sincronização diária com limite de 31 dias','ingestão raw→normalized no domínio compartilhado de Analytics','proveniência e sync ledger persistentes','endpoint administrativo autenticado para sync GA4'],
+    missingCapabilities:['validação runtime de credenciais/conta/property em ambiente autorizado','UI de conexão/reautorização OAuth Google','Search Console','Google Ads','YouTube Data/Analytics','Google AdSense','backfill automatizado e scheduler'],
   },
   spotify:{
     id:'spotify',

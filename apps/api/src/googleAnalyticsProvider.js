@@ -74,37 +74,43 @@ export function ga4DayPeriod(dateString,timeZone){
   return {periodStart:start,periodEnd:end}
 }
 
-async function jsonFetch(url,init={}){
-  let response
-  try{response=await fetch(url,{...init,signal:AbortSignal.timeout(REQUEST_TIMEOUT_MS)})}
-  catch(error){if(error?.name==='TimeoutError')throw new HttpError(504,'Google Analytics excedeu o tempo limite.','GA4_TIMEOUT');throw new HttpError(503,'Não foi possível conectar ao Google Analytics.','GA4_NETWORK_ERROR')}
-  const payload=await response.json().catch(()=>({}))
-  if(!response.ok){const detail=clean(payload?.error?.message||payload?.error_description||payload?.message);throw new HttpError(response.status>=500?502:response.status,detail||`Google respondeu ${response.status}.`,'GA4_REQUEST_FAILED',{providerStatus:response.status})}
-  return payload
+export function createGoogleAnalyticsProvider({env=process.env,fetchImpl=globalThis.fetch,timeoutMs=REQUEST_TIMEOUT_MS}={}){
+  if(typeof fetchImpl!=='function')throw new TypeError('GA4 fetch implementation is required.')
+
+  async function jsonFetch(url,init={}){
+    let response
+    try{response=await fetchImpl(url,{...init,signal:AbortSignal.timeout(timeoutMs)})}
+    catch(error){if(error?.name==='TimeoutError'||error?.name==='AbortError')throw new HttpError(504,'Google Analytics excedeu o tempo limite.','GA4_TIMEOUT');throw new HttpError(503,'Não foi possível conectar ao Google Analytics.','GA4_NETWORK_ERROR')}
+    const payload=await response.json().catch(()=>({}))
+    if(!response.ok){const detail=clean(payload?.error?.message||payload?.error_description||payload?.message);throw new HttpError(response.status>=500?502:response.status,detail||`Google respondeu ${response.status}.`,'GA4_REQUEST_FAILED',{providerStatus:response.status})}
+    return payload
+  }
+
+  function configuredOrThrow(){
+    const config=googleAnalyticsConfig(env)
+    if(!config.configured)throw new HttpError(503,'GA4 não está configurado. Defina credenciais OAuth, account/property IDs e timezone somente no backend.','GA4_NOT_CONFIGURED')
+    return config
+  }
+
+  async function accessToken(config){
+    const body=new URLSearchParams({client_id:config.clientId,client_secret:config.clientSecret,refresh_token:config.refreshToken,grant_type:'refresh_token'})
+    const payload=await jsonFetch(TOKEN_URL,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded',Accept:'application/json'},body})
+    const token=clean(payload?.access_token)
+    if(!token)throw new HttpError(502,'Google OAuth não retornou access token.','GA4_TOKEN_RESPONSE_INVALID')
+    return token
+  }
+
+  return {
+    configured(){return googleAnalyticsConfig(env).configured},
+    async runDailyReport(input={}){
+      const config=configuredOrThrow(),range=normalizeGa4Range(input),token=await accessToken(config)
+      const property=encodeURIComponent(config.propertyId)
+      const payload=await jsonFetch(`${DATA_API_BASE}/properties/${property}:runReport`,{
+        method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json',Accept:'application/json'},body:JSON.stringify({dateRanges:[{startDate:range.startDate,endDate:range.endDate}],dimensions:[{name:'date'}],metrics:GA4_METRIC_MAPPINGS.map(item=>({name:item.providerMetric})),keepEmptyRows:false,limit:'100000'}),
+      })
+      return {provider:'google-analytics',accountId:config.accountId,propertyId:config.propertyId,timezone:config.timezone,range,rows:Array.isArray(payload?.rows)?payload.rows:[],metricHeaders:Array.isArray(payload?.metricHeaders)?payload.metricHeaders:[]}
+    },
+  }
 }
 
-async function accessToken(config){
-  const body=new URLSearchParams({client_id:config.clientId,client_secret:config.clientSecret,refresh_token:config.refreshToken,grant_type:'refresh_token'})
-  const payload=await jsonFetch(TOKEN_URL,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded',Accept:'application/json'},body})
-  const token=clean(payload?.access_token)
-  if(!token)throw new HttpError(502,'Google OAuth não retornou access token.','GA4_TOKEN_RESPONSE_INVALID')
-  return token
-}
-
-function configuredOrThrow(){
-  const config=googleAnalyticsConfig()
-  if(!config.configured)throw new HttpError(503,'GA4 não está configurado. Defina credenciais OAuth, account/property IDs e timezone somente no backend.','GA4_NOT_CONFIGURED')
-  return config
-}
-
-export const googleAnalyticsProvider={
-  configured(){return googleAnalyticsConfig().configured},
-  async runDailyReport(input={}){
-    const config=configuredOrThrow(),range=normalizeGa4Range(input),token=await accessToken(config)
-    const property=encodeURIComponent(config.propertyId)
-    const payload=await jsonFetch(`${DATA_API_BASE}/properties/${property}:runReport`,{
-      method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json',Accept:'application/json'},body:JSON.stringify({dateRanges:[{startDate:range.startDate,endDate:range.endDate}],dimensions:[{name:'date'}],metrics:GA4_METRIC_MAPPINGS.map(item=>({name:item.providerMetric})),keepEmptyRows:false,limit:'100000'}),
-    })
-    return {provider:'google-analytics',accountId:config.accountId,propertyId:config.propertyId,timezone:config.timezone,range,rows:Array.isArray(payload?.rows)?payload.rows:[],metricHeaders:Array.isArray(payload?.metricHeaders)?payload.metricHeaders:[]}
-  },
-}
+export const googleAnalyticsProvider=createGoogleAnalyticsProvider()

@@ -42,7 +42,17 @@ const semanticAudit=async(page:Page)=>page.evaluate(()=>{
 })
 
 const contrastAudit=async(page:Page)=>page.evaluate(()=>{
- const visible=(el:HTMLElement)=>{const s=getComputedStyle(el),r=el.getBoundingClientRect();return s.display!=='none'&&s.visibility!=='hidden'&&s.opacity!=='0'&&r.width>0&&r.height>0}
+ const excluded=(el:HTMLElement)=>{
+  if(el.closest('[aria-hidden="true"],[hidden],[inert]'))return true
+  let cur:HTMLElement|null=el
+  while(cur){
+   const style=getComputedStyle(cur)
+   if(style.display==='none'||style.visibility==='hidden'||style.visibility==='collapse'||style.opacity==='0'||style.contentVisibility==='hidden')return true
+   cur=cur.parentElement
+  }
+  return false
+ }
+ const visible=(el:HTMLElement)=>{if(excluded(el))return false;const r=el.getBoundingClientRect();return r.width>0&&r.height>0}
  const rgba=(value:string)=>{const m=value.match(/rgba?\(([^)]+)\)/);if(!m)return null;const p=m[1].replaceAll(',',' ').replace('/',' ').split(/\s+/).filter(Boolean).map(Number);if(p.length<3||p.slice(0,3).some(Number.isNaN))return null;return{r:p[0],g:p[1],b:p[2],a:Number.isFinite(p[3])?p[3]:1}}
  const lum=(c:{r:number;g:number;b:number})=>{const f=(v:number)=>{v/=255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4};return .2126*f(c.r)+.7152*f(c.g)+.0722*f(c.b)}
  const ratio=(a:{r:number;g:number;b:number},b:{r:number;g:number;b:number})=>{const l1=lum(a),l2=lum(b);return(Math.max(l1,l2)+.05)/(Math.min(l1,l2)+.05)}

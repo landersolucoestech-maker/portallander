@@ -19,6 +19,8 @@ create table if not exists analytics_sync_runs (
   metadata jsonb not null default '{}'::jsonb,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
+  constraint analytics_sync_runs_provider_nonempty check (btrim(provider) <> ''),
+  constraint analytics_sync_runs_account_nonempty check (btrim(provider_account_id) <> ''),
   constraint analytics_sync_runs_cursor_object check (jsonb_typeof(cursor)='object'),
   constraint analytics_sync_runs_checkpoint_object check (jsonb_typeof(checkpoint)='object'),
   constraint analytics_sync_runs_metadata_object check (jsonb_typeof(metadata)='object')
@@ -52,6 +54,10 @@ create table if not exists analytics_raw_metrics (
   provider_payload jsonb not null default '{}'::jsonb,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
+  constraint analytics_raw_metrics_provider_nonempty check (btrim(provider) <> ''),
+  constraint analytics_raw_metrics_account_nonempty check (btrim(provider_account_id) <> ''),
+  constraint analytics_raw_metrics_metric_nonempty check (btrim(provider_metric) <> ''),
+  constraint analytics_raw_metrics_source_reference_nonempty check (btrim(source_reference) <> ''),
   constraint analytics_raw_metrics_period check (period_end > period_start),
   constraint analytics_raw_metrics_dimensions_object check (jsonb_typeof(dimensions)='object'),
   constraint analytics_raw_metrics_filters_object check (jsonb_typeof(filters)='object'),
@@ -94,12 +100,17 @@ create table if not exists analytics_metrics (
   is_manual boolean not null default false,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
+  constraint analytics_metrics_metric_key_nonempty check (btrim(metric_key) <> ''),
+  constraint analytics_metrics_source_reference_nonempty check (btrim(source_reference) <> ''),
   constraint analytics_metrics_period check (period_end > period_start),
   constraint analytics_metrics_dimensions_object check (jsonb_typeof(dimensions)='object'),
   constraint analytics_metrics_filters_object check (jsonb_typeof(filters)='object'),
   constraint analytics_metrics_provenance_object check (jsonb_typeof(provenance)='object'),
   constraint analytics_metrics_provider_source check (
-    source_type <> 'provider' or (provider is not null and provider_account_id is not null)
+    source_type <> 'provider' or (
+      provider is not null and btrim(provider) <> '' and
+      provider_account_id is not null and btrim(provider_account_id) <> ''
+    )
   ),
   constraint analytics_metrics_manual_flag check (
     (source_type='manual' and is_manual=true) or source_type<>'manual'
@@ -119,6 +130,12 @@ create index if not exists idx_analytics_metrics_sync
 comment on table analytics_sync_runs is 'Provider-specific Analytics synchronization ledger. Contains no provider secrets.';
 comment on table analytics_raw_metrics is 'Raw numeric provider metrics preserving provider semantics before normalization.';
 comment on table analytics_metrics is 'Shared normalized Analytics metrics with provenance for Marketing, Analytics UI and Media Kit consumers.';
-comment on table integration_events is 'Durable provider/webhook event ledger; intentionally distinct from analytics metrics and behavioral events.';
+do $$
+begin
+  if to_regclass('public.integration_events') is not null then
+    comment on table integration_events is 'Durable provider/webhook event ledger; intentionally distinct from analytics metrics and behavioral events.';
+  end if;
+end
+$$;
 
 commit;

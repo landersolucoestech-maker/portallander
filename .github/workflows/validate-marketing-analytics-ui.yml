@@ -1,0 +1,59 @@
+name: Marketing Analytics Browser Runtime Validation
+
+on:
+  pull_request:
+    branches: [dev]
+    paths:
+      - 'apps/web/src/features/analytics/**'
+      - 'apps/web/src/features/marketing/**'
+      - 'apps/web/e2e/analytics-marketing-runtime.audit.ts'
+      - '.github/workflows/validate-marketing-analytics-ui.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  analytics-ui:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Verify execution head
+        run: |
+          echo "HEAD=$(git rev-parse HEAD)"
+          test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha }}"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install monorepo dependencies
+        run: npm install
+      - name: Build production frontend with isolated Analytics base
+        env:
+          VITE_PORTAL_API_BASE_URL: http://127.0.0.1:4173
+        run: npm run build
+      - name: Install Chromium
+        working-directory: apps/web
+        run: npx playwright install --with-deps chromium
+      - name: Start production preview
+        run: |
+          npm --workspace @portallander/web run preview -- --host 127.0.0.1 > /tmp/marketing-analytics-preview.log 2>&1 &
+          for i in {1..40}; do
+            curl -fsS http://127.0.0.1:4173/portallander/ >/dev/null && exit 0
+            sleep 1
+          done
+          cat /tmp/marketing-analytics-preview.log
+          exit 1
+      - name: Prove deterministic Analytics UI states
+        working-directory: apps/web
+        env:
+          ANALYTICS_RUNTIME_SIMULATION: '1'
+        run: npx playwright test e2e/analytics-marketing-runtime.audit.ts --reporter=line
+      - name: Upload traces on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: marketing-analytics-runtime-failure
+          path: apps/web/test-results
+          if-no-files-found: ignore

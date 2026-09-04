@@ -102,34 +102,69 @@ jobs:
       - name: Prove Media Kit snapshot integrity
         run: node apps/api/scripts/validateMediaKitRuntime.mjs
 
-      - name: Check staging GA4 credential availability without disclosure
+      - name: Resolve staging GA4 credential aliases without disclosure
         env:
-          G_CLIENT: ${{ secrets.STAGING_GOOGLE_CLIENT_ID }}
-          G_SECRET: ${{ secrets.STAGING_GOOGLE_CLIENT_SECRET }}
-          G_REFRESH: ${{ secrets.STAGING_GOOGLE_REFRESH_TOKEN }}
-          G_ACCOUNT: ${{ secrets.STAGING_GOOGLE_ANALYTICS_ACCOUNT_ID }}
-          G_PROPERTY: ${{ secrets.STAGING_GOOGLE_ANALYTICS_PROPERTY_ID }}
-          G_TZ: ${{ secrets.STAGING_GOOGLE_ANALYTICS_TIMEZONE }}
+          STAGING_CLIENT: ${{ secrets.STAGING_GOOGLE_CLIENT_ID }}
+          STAGING_SECRET: ${{ secrets.STAGING_GOOGLE_CLIENT_SECRET }}
+          STAGING_REFRESH: ${{ secrets.STAGING_GOOGLE_REFRESH_TOKEN }}
+          STAGING_ACCOUNT: ${{ secrets.STAGING_GOOGLE_ANALYTICS_ACCOUNT_ID }}
+          STAGING_PROPERTY: ${{ secrets.STAGING_GOOGLE_ANALYTICS_PROPERTY_ID }}
+          STAGING_TZ: ${{ secrets.STAGING_GOOGLE_ANALYTICS_TIMEZONE }}
+          GENERIC_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GENERIC_CLIENT_VAR: ${{ vars.GOOGLE_CLIENT_ID }}
+          GENERIC_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GENERIC_REFRESH: ${{ secrets.GOOGLE_REFRESH_TOKEN }}
+          GENERIC_ACCOUNT_SECRET: ${{ secrets.GOOGLE_ANALYTICS_ACCOUNT_ID }}
+          GENERIC_ACCOUNT_VAR: ${{ vars.GOOGLE_ANALYTICS_ACCOUNT_ID }}
+          GENERIC_PROPERTY_SECRET: ${{ secrets.GOOGLE_ANALYTICS_PROPERTY_ID }}
+          GENERIC_PROPERTY_VAR: ${{ vars.GOOGLE_ANALYTICS_PROPERTY_ID }}
+          GA4_PROPERTY_SECRET: ${{ secrets.GA4_PROPERTY_ID }}
+          GA4_PROPERTY_VAR: ${{ vars.GA4_PROPERTY_ID }}
+          GA_PROPERTY_SECRET: ${{ secrets.GA_PROPERTY_ID }}
+          GA_PROPERTY_VAR: ${{ vars.GA_PROPERTY_ID }}
+          GENERIC_TZ_SECRET: ${{ secrets.GOOGLE_ANALYTICS_TIMEZONE }}
+          GENERIC_TZ_VAR: ${{ vars.GOOGLE_ANALYTICS_TIMEZONE }}
+        shell: bash
         run: |
-          all=1
-          for item in G_CLIENT G_SECRET G_REFRESH G_ACCOUNT G_PROPERTY G_TZ; do
-            if [ -n "${!item}" ]; then echo "$item=PRESENT"; else echo "$item=MISSING"; all=0; fi
-          done
-          echo "STAGING_GA4_COMPLETE=$all" >> "$GITHUB_ENV"
-      - name: Real read-only 1-day GA4 staging proof
+          set -euo pipefail
+          report(){ if [ -n "${!1:-}" ]; then echo "$1=PRESENT"; else echo "$1=MISSING"; fi; }
+          for key in STAGING_CLIENT STAGING_SECRET STAGING_REFRESH STAGING_ACCOUNT STAGING_PROPERTY STAGING_TZ GENERIC_CLIENT_SECRET GENERIC_CLIENT_VAR GENERIC_SECRET GENERIC_REFRESH GENERIC_ACCOUNT_SECRET GENERIC_ACCOUNT_VAR GENERIC_PROPERTY_SECRET GENERIC_PROPERTY_VAR GA4_PROPERTY_SECRET GA4_PROPERTY_VAR GA_PROPERTY_SECRET GA_PROPERTY_VAR GENERIC_TZ_SECRET GENERIC_TZ_VAR; do report "$key"; done
+          CLIENT="${STAGING_CLIENT:-${GENERIC_CLIENT_SECRET:-${GENERIC_CLIENT_VAR:-}}}"
+          SECRET="${STAGING_SECRET:-${GENERIC_SECRET:-}}"
+          REFRESH="${STAGING_REFRESH:-${GENERIC_REFRESH:-}}"
+          ACCOUNT="${STAGING_ACCOUNT:-${GENERIC_ACCOUNT_SECRET:-${GENERIC_ACCOUNT_VAR:-}}}"
+          PROPERTY="${STAGING_PROPERTY:-${GENERIC_PROPERTY_SECRET:-${GENERIC_PROPERTY_VAR:-${GA4_PROPERTY_SECRET:-${GA4_PROPERTY_VAR:-${GA_PROPERTY_SECRET:-${GA_PROPERTY_VAR:-}}}}}}}"
+          TZ="${STAGING_TZ:-${GENERIC_TZ_SECRET:-${GENERIC_TZ_VAR:-}}}"
+          complete=1
+          for value in "$CLIENT" "$SECRET" "$REFRESH" "$ACCOUNT" "$PROPERTY" "$TZ"; do [ -n "$value" ] || complete=0; done
+          echo "STAGING_GA4_COMPLETE=$complete" >> "$GITHUB_ENV"
+      - name: Real read-only 1-day GA4 staging proof and idempotency
         if: env.STAGING_GA4_COMPLETE == '1'
         env:
-          GOOGLE_CLIENT_ID: ${{ secrets.STAGING_GOOGLE_CLIENT_ID }}
-          GOOGLE_CLIENT_SECRET: ${{ secrets.STAGING_GOOGLE_CLIENT_SECRET }}
-          GOOGLE_REFRESH_TOKEN: ${{ secrets.STAGING_GOOGLE_REFRESH_TOKEN }}
-          GOOGLE_ANALYTICS_ACCOUNT_ID: ${{ secrets.STAGING_GOOGLE_ANALYTICS_ACCOUNT_ID }}
-          GOOGLE_ANALYTICS_PROPERTY_ID: ${{ secrets.STAGING_GOOGLE_ANALYTICS_PROPERTY_ID }}
-          GOOGLE_ANALYTICS_TIMEZONE: ${{ secrets.STAGING_GOOGLE_ANALYTICS_TIMEZONE }}
+          GOOGLE_CLIENT_ID: ${{ secrets.STAGING_GOOGLE_CLIENT_ID || secrets.GOOGLE_CLIENT_ID || vars.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.STAGING_GOOGLE_CLIENT_SECRET || secrets.GOOGLE_CLIENT_SECRET }}
+          GOOGLE_REFRESH_TOKEN: ${{ secrets.STAGING_GOOGLE_REFRESH_TOKEN || secrets.GOOGLE_REFRESH_TOKEN }}
+          GOOGLE_ANALYTICS_ACCOUNT_ID: ${{ secrets.STAGING_GOOGLE_ANALYTICS_ACCOUNT_ID || secrets.GOOGLE_ANALYTICS_ACCOUNT_ID || vars.GOOGLE_ANALYTICS_ACCOUNT_ID }}
+          GOOGLE_ANALYTICS_PROPERTY_ID: ${{ secrets.STAGING_GOOGLE_ANALYTICS_PROPERTY_ID || secrets.GOOGLE_ANALYTICS_PROPERTY_ID || vars.GOOGLE_ANALYTICS_PROPERTY_ID || secrets.GA4_PROPERTY_ID || vars.GA4_PROPERTY_ID || secrets.GA_PROPERTY_ID || vars.GA_PROPERTY_ID }}
+          GOOGLE_ANALYTICS_TIMEZONE: ${{ secrets.STAGING_GOOGLE_ANALYTICS_TIMEZONE || secrets.GOOGLE_ANALYTICS_TIMEZONE || vars.GOOGLE_ANALYTICS_TIMEZONE }}
         run: |
           node --input-type=module <<'NODE'
           import {googleAnalyticsSyncService} from './apps/api/src/googleAnalyticsSyncService.js'
           import {getPool} from './apps/api/src/db.js'
-          try { const result=await googleAnalyticsSyncService.syncRange({startDate:'2026-09-01',endDate:'2026-09-01'}); console.log(JSON.stringify({realStagingGa4:true,processed:result.processed,status:result.sync.status})) } finally { await getPool().end() }
+          const pool=getPool()
+          const counts=async()=>{
+            const raw=await pool.query("select count(*)::int as count from analytics_raw_metrics where provider='ga4' and provider_property_id=$1",[process.env.GOOGLE_ANALYTICS_PROPERTY_ID])
+            const normalized=await pool.query("select count(*)::int as count from analytics_metrics where provider='ga4' and provider_property_id=$1",[process.env.GOOGLE_ANALYTICS_PROPERTY_ID])
+            return {raw:raw.rows[0].count,normalized:normalized.rows[0].count}
+          }
+          try {
+            const first=await googleAnalyticsSyncService.syncRange({startDate:'2026-09-01',endDate:'2026-09-01'})
+            const afterFirst=await counts()
+            const second=await googleAnalyticsSyncService.syncRange({startDate:'2026-09-01',endDate:'2026-09-01'})
+            const afterSecond=await counts()
+            if(afterFirst.raw!==afterSecond.raw||afterFirst.normalized!==afterSecond.normalized)throw new Error('REAL_GA4_IDEMPOTENCY_FAILED')
+            console.log(JSON.stringify({realStagingGa4:true,firstStatus:first.sync.status,secondStatus:second.sync.status,firstProcessed:first.processed,secondProcessed:second.processed,rawStable:afterFirst.raw===afterSecond.raw,normalizedStable:afterFirst.normalized===afterSecond.normalized}))
+          } finally { await pool.end() }
           NODE
 
       - name: Start local API for authenticated HTTP proof

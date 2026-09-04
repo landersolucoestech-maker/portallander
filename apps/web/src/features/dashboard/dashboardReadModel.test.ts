@@ -17,11 +17,24 @@ describe('dashboard derived metrics',()=>{
   expect(data.pendingTasks.every(task=>task.status!=='concluida')).toBe(true)
  })
 
- it('derives the current month and future cutoff from the supplied clock instead of source constants',()=>{
-  const future=dashboardReadModel.snapshot(new Date('2027-02-15T10:30:00.000Z'))
-  expect(future.period.month).toBe('2027-02')
-  expect(future.period.generatedAt).toBe('2027-02-15T10:30:00.000Z')
-  expect(future.upcoming.every(item=>item.startsAt>='2027-02-15T10:30:00.000Z')).toBe(true)
-  expect(future.pendingTasks.every(item=>!item.deadline||item.deadline>='2027-02-15')).toBe(true)
+ it.each([
+  ['setembro/2026','2026-09-04T12:00:00.000Z','2026-09'],
+  ['dezembro/2026','2026-12-31T23:00:00.000Z','2026-12'],
+  ['janeiro/2027','2027-01-01T01:00:00.000Z','2027-01'],
+  ['fevereiro/2027','2027-02-15T10:30:00.000Z','2027-02'],
+ ])('derives %s from the supplied clock without source constants',(_label,clock,month)=>{
+  const now=new Date(clock)
+  const data=dashboardReadModel.snapshot(now)
+  expect(data.period.month).toBe(month)
+  expect(data.period.generatedAt).toBe(clock)
+  expect(data.upcoming.every(item=>item.startsAt>=clock)).toBe(true)
+  const today=clock.slice(0,10)
+  expect(data.pendingTasks.every(item=>!item.deadline||item.deadline>=today)).toBe(true)
+ })
+
+ it('does not embed the retired August 2026 cutoff in production calculations',()=>{
+  const january=dashboardReadModel.snapshot(new Date('2027-01-10T12:00:00.000Z'))
+  expect(january.period.month).toBe('2027-01')
+  expect(january.period.generatedAt).not.toContain('2026-08')
  })
 })

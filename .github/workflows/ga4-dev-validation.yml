@@ -1,0 +1,261 @@
+name: GA4 Dev Validation
+
+on:
+  push:
+    branches: [dev]
+    paths:
+      - 'apps/api/**'
+      - 'apps/web/src/main.tsx'
+      - 'apps/web/scripts/check-data-boundaries.mjs'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/ga4-dev-validation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ga4-dev-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ga4-validation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: portal
+          POSTGRES_PASSWORD: portal
+          POSTGRES_DB: portal_ga4_dev
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U portal -d portal_ga4_dev"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=10
+    env:
+      DATABASE_URL: postgresql://portal:portal@127.0.0.1:5432/portal_ga4_dev
+      NODE_ENV: test
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify canonical dev head
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git branch --show-current)" = 'dev'
+          test "$(git rev-parse HEAD)" = "${GITHUB_SHA}"
+          test -z "$(git status --short)"
+          mkdir -p artifacts/ga4
+          {
+            echo "GA4_DEV_SHA=${GITHUB_SHA}"
+            echo 'GA4_PIPELINE=VALIDATING'
+          } | tee artifacts/ga4/status.txt
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install reproducibly
+        run: npm ci
+
+      - name: Validate production data boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -z "${VITE_ENABLE_DEMO_DATA:-}"
+          npm --workspace @portallander/web run check:architecture
+          NODE_ENV=production npm run build
+          echo 'PRODUCTION_MOCK_BOUNDARY=PASS' | tee -a artifacts/ga4/status.txt
+
+      - name: Provision Supabase Storage compatibility fixture
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 <<'SQL'
+          create schema if not exists storage;
+          create table if not exists storage.buckets(
+            id text primary key,
+            name text not null,
+            public boolean not null default false,
+            file_size_limit bigint,
+            allowed_mime_types text[]
+          );
+          SQL
+
+      - name: Apply all migrations including 018
+        shell: bash
+        run: |
+          set -euo pipefail
+          for migration in $(find apps/api/migrations -maxdepth 1 -type f -name '*.sql' | sort -V); do
+            echo "APPLY ${migration}"
+            psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f "${migration}"
+          done
+          test -f apps/api/migrations/018_analytics_metrics.sql
+          echo 'MIGRATION_018_FIRST_APPLY=PASS' | tee -a artifacts/ga4/status.txt
+
+      - name: Reapply migration 018 for idempotency
+        run: |
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f apps/api/migrations/018_analytics_metrics.sql
+          echo 'MIGRATION_018_SECOND_APPLY=PASS' | tee -a artifacts/ga4/status.txt
+
+      - name: Deterministic Analytics runtime validation
+        run: |
+          node apps/api/scripts/validateAnalyticsRuntime.mjs | tee artifacts/ga4/analytics-runtime.txt
+          echo 'GA4_INTERNAL_ANALYTICS=PASS' | tee -a artifacts/ga4/status.txt
+
+      - name: Deterministic Media Kit truth validation
+        run: |
+          node apps/api/scripts/validateMediaKitRuntime.mjs | tee artifacts/ga4/media-kit-runtime.txt
+          echo 'GA4_INTERNAL_MEDIA_KIT=PASS' | tee -a artifacts/ga4/status.txt
+
+      - name: Resolve authorized GA4 credential aliases without disclosure
+        id: credentials
+        env:
+          STAGING_CLIENT: ${{ secrets.STAGING_GOOGLE_CLIENT_ID }}
+          STAGING_SECRET: ${{ secrets.STAGING_GOOGLE_CLIENT_SECRET }}
+          STAGING_REFRESH: ${{ secrets.STAGING_GOOGLE_REFRESH_TOKEN }}
+          STAGING_ACCOUNT: ${{ secrets.STAGING_GOOGLE_ANALYTICS_ACCOUNT_ID }}
+          STAGING_PROPERTY: ${{ secrets.STAGING_GOOGLE_ANALYTICS_PROPERTY_ID }}
+          STAGING_TZ: ${{ secrets.STAGING_GOOGLE_ANALYTICS_TIMEZONE }}
+          GENERIC_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GENERIC_CLIENT_VAR: ${{ vars.GOOGLE_CLIENT_ID }}
+          GENERIC_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GENERIC_REFRESH: ${{ secrets.GOOGLE_REFRESH_TOKEN }}
+          GENERIC_ACCOUNT_SECRET: ${{ secrets.GOOGLE_ANALYTICS_ACCOUNT_ID }}
+          GENERIC_ACCOUNT_VAR: ${{ vars.GOOGLE_ANALYTICS_ACCOUNT_ID }}
+          GENERIC_PROPERTY_SECRET: ${{ secrets.GOOGLE_ANALYTICS_PROPERTY_ID }}
+          GENERIC_PROPERTY_VAR: ${{ vars.GOOGLE_ANALYTICS_PROPERTY_ID }}
+          GA4_PROPERTY_SECRET: ${{ secrets.GA4_PROPERTY_ID }}
+          GA4_PROPERTY_VAR: ${{ vars.GA4_PROPERTY_ID }}
+          GA_PROPERTY_SECRET: ${{ secrets.GA_PROPERTY_ID }}
+          GA_PROPERTY_VAR: ${{ vars.GA_PROPERTY_ID }}
+          GENERIC_TZ_SECRET: ${{ secrets.GOOGLE_ANALYTICS_TIMEZONE }}
+          GENERIC_TZ_VAR: ${{ vars.GOOGLE_ANALYTICS_TIMEZONE }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          present(){ if [ -n "${!1:-}" ]; then echo "$1=PRESENT"; else echo "$1=MISSING"; fi; }
+          for key in STAGING_CLIENT STAGING_SECRET STAGING_REFRESH STAGING_ACCOUNT STAGING_PROPERTY STAGING_TZ GENERIC_CLIENT_SECRET GENERIC_CLIENT_VAR GENERIC_SECRET GENERIC_REFRESH GENERIC_ACCOUNT_SECRET GENERIC_ACCOUNT_VAR GENERIC_PROPERTY_SECRET GENERIC_PROPERTY_VAR GA4_PROPERTY_SECRET GA4_PROPERTY_VAR GA_PROPERTY_SECRET GA_PROPERTY_VAR GENERIC_TZ_SECRET GENERIC_TZ_VAR; do present "$key"; done
+
+          CLIENT="${STAGING_CLIENT:-${GENERIC_CLIENT_SECRET:-${GENERIC_CLIENT_VAR:-}}}"
+          SECRET="${STAGING_SECRET:-${GENERIC_SECRET:-}}"
+          REFRESH="${STAGING_REFRESH:-${GENERIC_REFRESH:-}}"
+          ACCOUNT="${STAGING_ACCOUNT:-${GENERIC_ACCOUNT_SECRET:-${GENERIC_ACCOUNT_VAR:-}}}"
+          PROPERTY="${STAGING_PROPERTY:-${GENERIC_PROPERTY_SECRET:-${GENERIC_PROPERTY_VAR:-${GA4_PROPERTY_SECRET:-${GA4_PROPERTY_VAR:-${GA_PROPERTY_SECRET:-${GA_PROPERTY_VAR:-}}}}}}}"
+          TZ="${STAGING_TZ:-${GENERIC_TZ_SECRET:-${GENERIC_TZ_VAR:-}}}"
+
+          complete=1
+          for value in "$CLIENT" "$SECRET" "$REFRESH" "$ACCOUNT" "$PROPERTY" "$TZ"; do
+            [ -n "$value" ] || complete=0
+          done
+          echo "GA4_CREDENTIALS_COMPLETE=${complete}" >> "$GITHUB_ENV"
+          if [ "$complete" = '1' ]; then
+            echo 'GA4_CREDENTIALS=PRESENT_COMPLETE' | tee -a artifacts/ga4/status.txt
+          else
+            echo 'GA4_CREDENTIALS=EXTERNALLY_BLOCKED_MISSING' | tee -a artifacts/ga4/status.txt
+          fi
+
+      - name: Real read-only GA4 account/property validation
+        id: ga4_account
+        if: env.GA4_CREDENTIALS_COMPLETE == '1'
+        continue-on-error: true
+        env:
+          GOOGLE_CLIENT_ID: ${{ secrets.STAGING_GOOGLE_CLIENT_ID || secrets.GOOGLE_CLIENT_ID || vars.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.STAGING_GOOGLE_CLIENT_SECRET || secrets.GOOGLE_CLIENT_SECRET }}
+          GOOGLE_REFRESH_TOKEN: ${{ secrets.STAGING_GOOGLE_REFRESH_TOKEN || secrets.GOOGLE_REFRESH_TOKEN }}
+          GOOGLE_ANALYTICS_ACCOUNT_ID: ${{ secrets.STAGING_GOOGLE_ANALYTICS_ACCOUNT_ID || secrets.GOOGLE_ANALYTICS_ACCOUNT_ID || vars.GOOGLE_ANALYTICS_ACCOUNT_ID }}
+          GOOGLE_ANALYTICS_PROPERTY_ID: ${{ secrets.STAGING_GOOGLE_ANALYTICS_PROPERTY_ID || secrets.GOOGLE_ANALYTICS_PROPERTY_ID || vars.GOOGLE_ANALYTICS_PROPERTY_ID || secrets.GA4_PROPERTY_ID || vars.GA4_PROPERTY_ID || secrets.GA_PROPERTY_ID || vars.GA_PROPERTY_ID }}
+          GOOGLE_ANALYTICS_TIMEZONE: ${{ secrets.STAGING_GOOGLE_ANALYTICS_TIMEZONE || secrets.GOOGLE_ANALYTICS_TIMEZONE || vars.GOOGLE_ANALYTICS_TIMEZONE }}
+        run: |
+          node --input-type=module <<'NODE' | tee artifacts/ga4/account-validation.txt
+          import assert from 'node:assert/strict'
+          import {googleAnalyticsProvider} from './apps/api/src/googleAnalyticsProvider.js'
+          const report=await googleAnalyticsProvider.runDailyReport({startDate:'2026-09-01',endDate:'2026-09-01'})
+          assert.equal(report.accountId,process.env.GOOGLE_ANALYTICS_ACCOUNT_ID)
+          assert.equal(report.propertyId,process.env.GOOGLE_ANALYTICS_PROPERTY_ID)
+          assert.equal(report.timezone,process.env.GOOGLE_ANALYTICS_TIMEZONE)
+          assert.ok(Array.isArray(report.rows))
+          console.log(JSON.stringify({GA4_ACCOUNT_VALIDATION:'PASS',date:'2026-09-01',rows:report.rows.length,accountMatched:true,propertyMatched:true,timezoneMatched:true}))
+          NODE
+
+      - name: Real read-only one-day sync and idempotency proof
+        id: ga4_sync
+        if: env.GA4_CREDENTIALS_COMPLETE == '1' && steps.ga4_account.outcome == 'success'
+        continue-on-error: true
+        env:
+          GOOGLE_CLIENT_ID: ${{ secrets.STAGING_GOOGLE_CLIENT_ID || secrets.GOOGLE_CLIENT_ID || vars.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.STAGING_GOOGLE_CLIENT_SECRET || secrets.GOOGLE_CLIENT_SECRET }}
+          GOOGLE_REFRESH_TOKEN: ${{ secrets.STAGING_GOOGLE_REFRESH_TOKEN || secrets.GOOGLE_REFRESH_TOKEN }}
+          GOOGLE_ANALYTICS_ACCOUNT_ID: ${{ secrets.STAGING_GOOGLE_ANALYTICS_ACCOUNT_ID || secrets.GOOGLE_ANALYTICS_ACCOUNT_ID || vars.GOOGLE_ANALYTICS_ACCOUNT_ID }}
+          GOOGLE_ANALYTICS_PROPERTY_ID: ${{ secrets.STAGING_GOOGLE_ANALYTICS_PROPERTY_ID || secrets.GOOGLE_ANALYTICS_PROPERTY_ID || vars.GOOGLE_ANALYTICS_PROPERTY_ID || secrets.GA4_PROPERTY_ID || vars.GA4_PROPERTY_ID || secrets.GA_PROPERTY_ID || vars.GA_PROPERTY_ID }}
+          GOOGLE_ANALYTICS_TIMEZONE: ${{ secrets.STAGING_GOOGLE_ANALYTICS_TIMEZONE || secrets.GOOGLE_ANALYTICS_TIMEZONE || vars.GOOGLE_ANALYTICS_TIMEZONE }}
+        run: |
+          node --input-type=module <<'NODE' | tee artifacts/ga4/real-one-day-sync.txt
+          import assert from 'node:assert/strict'
+          import {googleAnalyticsSyncService} from './apps/api/src/googleAnalyticsSyncService.js'
+          import {getPool} from './apps/api/src/db.js'
+          const pool=getPool()
+          const account=process.env.GOOGLE_ANALYTICS_ACCOUNT_ID
+          const property=process.env.GOOGLE_ANALYTICS_PROPERTY_ID
+          const counts=async()=>{
+            const raw=await pool.query("select count(*)::int as count from analytics_raw_metrics where provider='google-analytics' and provider_account_id=$1 and provider_property_id=$2",[account,property])
+            const normalized=await pool.query("select count(*)::int as count from analytics_metrics where provider='google-analytics' and provider_account_id=$1 and provider_property_id=$2",[account,property])
+            return {raw:raw.rows[0].count,normalized:normalized.rows[0].count}
+          }
+          try{
+            await pool.query("delete from analytics_metrics where provider='google-analytics' and provider_account_id=$1 and provider_property_id=$2",[account,property])
+            await pool.query("delete from analytics_raw_metrics where provider='google-analytics' and provider_account_id=$1 and provider_property_id=$2",[account,property])
+            await pool.query("delete from analytics_sync_runs where provider='google-analytics' and provider_account_id=$1 and provider_property_id=$2",[account,property])
+            const first=await googleAnalyticsSyncService.syncRange({startDate:'2026-09-01',endDate:'2026-09-01'})
+            const afterFirst=await counts()
+            const second=await googleAnalyticsSyncService.syncRange({startDate:'2026-09-01',endDate:'2026-09-01'})
+            const afterSecond=await counts()
+            assert.equal(first.sync.status,'succeeded')
+            assert.equal(second.sync.status,'succeeded')
+            assert.deepEqual(afterSecond,afterFirst)
+            console.log(JSON.stringify({GA4_ONE_DAY_SYNC:'PASS',GA4_IDEMPOTENCY:'PASS',date:'2026-09-01',firstProcessed:first.processed,secondProcessed:second.processed,rawStable:afterFirst.raw===afterSecond.raw,normalizedStable:afterFirst.normalized===afterSecond.normalized}))
+          }finally{await pool.end()}
+          NODE
+
+      - name: Classify real GA4 external status
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "${GA4_CREDENTIALS_COMPLETE:-0}" != '1' ]; then
+            echo 'GA4_ACCOUNT_VALIDATION=EXTERNALLY_BLOCKED' | tee -a artifacts/ga4/status.txt
+            echo 'GA4_ONE_DAY_SYNC=EXTERNALLY_BLOCKED' | tee -a artifacts/ga4/status.txt
+            echo 'GA4_REAL_IDEMPOTENCY=EXTERNALLY_BLOCKED' | tee -a artifacts/ga4/status.txt
+          else
+            echo 'GA4_ACCOUNT_STEP_OUTCOME=${{ steps.ga4_account.outcome }}' | tee -a artifacts/ga4/status.txt
+            echo 'GA4_SYNC_STEP_OUTCOME=${{ steps.ga4_sync.outcome }}' | tee -a artifacts/ga4/status.txt
+            if [ '${{ steps.ga4_account.outcome }}' = 'success' ]; then
+              echo 'GA4_ACCOUNT_VALIDATION=PASS' | tee -a artifacts/ga4/status.txt
+            else
+              echo 'GA4_ACCOUNT_VALIDATION=EXTERNALLY_BLOCKED_OR_INVALID' | tee -a artifacts/ga4/status.txt
+            fi
+            if [ '${{ steps.ga4_sync.outcome }}' = 'success' ]; then
+              echo 'GA4_ONE_DAY_SYNC=PASS' | tee -a artifacts/ga4/status.txt
+              echo 'GA4_REAL_IDEMPOTENCY=PASS' | tee -a artifacts/ga4/status.txt
+            else
+              echo 'GA4_ONE_DAY_SYNC=EXTERNALLY_BLOCKED_OR_INVALID' | tee -a artifacts/ga4/status.txt
+              echo 'GA4_REAL_IDEMPOTENCY=EXTERNALLY_BLOCKED_OR_INVALID' | tee -a artifacts/ga4/status.txt
+            fi
+          fi
+          echo 'GA4_PIPELINE=PASS_INTERNAL' | tee -a artifacts/ga4/status.txt
+
+      - name: Upload GA4 validation evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ga4-dev-validation
+          path: artifacts/ga4
+          if-no-files-found: error

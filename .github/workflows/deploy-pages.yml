@@ -25,7 +25,7 @@ jobs:
         with:
           node-version: 22
       - name: Install monorepo
-        run: npm install
+        run: npm ci
       - name: Lint web
         run: npm run lint
       - name: Architecture boundaries
@@ -50,8 +50,8 @@ jobs:
         with:
           node-version: 22
       - name: Install monorepo
-        run: npm install
-      - name: Build web
+        run: npm ci
+      - name: Production build without demo data
         run: npm run build
 
   visual-audit:
@@ -65,8 +65,10 @@ jobs:
         with:
           node-version: 22
       - name: Install monorepo
-        run: npm install
-      - name: Build web
+        run: npm ci
+      - name: Build explicit browser demo fixture
+        env:
+          VITE_ENABLE_DEMO_DATA: 'true'
         run: npm run build
       - name: Install Chromium
         working-directory: apps/web

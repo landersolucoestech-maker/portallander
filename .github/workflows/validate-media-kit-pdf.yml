@@ -1,0 +1,141 @@
+name: Media Kit PDF Runtime Validation
+
+on:
+  pull_request:
+    branches: [dev]
+    paths:
+      - 'apps/web/**'
+      - '.github/workflows/validate-media-kit-pdf.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  pdf-runtime:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Verify execution head
+        run: |
+          echo "HEAD=$(git rev-parse HEAD)"
+          test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha }}"
+          test -z "$(git status --short)"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install monorepo dependencies
+        run: npm install
+      - name: Build production frontend
+        run: npm run build
+      - name: Install Chromium and PDF inspection utilities
+        working-directory: apps/web
+        run: |
+          npx playwright install --with-deps chromium
+          command -v pdfinfo >/dev/null || (sudo apt-get update && sudo apt-get install -y poppler-utils)
+          command -v pdftotext >/dev/null || (sudo apt-get update && sudo apt-get install -y poppler-utils)
+          command -v pdftoppm >/dev/null || (sudo apt-get update && sudo apt-get install -y poppler-utils)
+      - name: Start production preview
+        run: |
+          npm --workspace @portallander/web run preview -- --host 127.0.0.1 > /tmp/media-kit-preview-server.log 2>&1 &
+          for i in {1..40}; do
+            curl -fsS http://127.0.0.1:4173/portallander/ >/dev/null && exit 0
+            sleep 1
+          done
+          cat /tmp/media-kit-preview-server.log
+          exit 1
+      - name: Validate public truth and generate A4 PDF
+        working-directory: apps/web
+        run: |
+          node --input-type=module <<'NODE'
+          import {chromium} from '@playwright/test'
+          import {mkdir,stat} from 'node:fs/promises'
+          const browser=await chromium.launch({headless:true})
+          try {
+            const context=await browser.newContext({viewport:{width:1440,height:1200}})
+            const page=await context.newPage()
+            const consoleErrors=[]
+            page.on('console',msg=>{if(msg.type()==='error')consoleErrors.push(msg.text())})
+
+            await page.goto('http://127.0.0.1:4173/portallander/#/anuncie',{waitUntil:'networkidle'})
+            const publicText=await page.locator('body').innerText()
+            if(!publicText.includes('Atendimento comercial em preparação'))throw new Error('/anuncie commercial preparation truth missing')
+            for(const url of ['instagram.com/portallander','tiktok.com/@portallander','youtube.com/@portallander','x.com/portallander']){
+              if((await page.content()).includes(url))throw new Error(`Mock social URL leaked: ${url}`)
+            }
+            console.log('PUBLIC_TRUTH=PASS')
+
+            await page.goto('http://127.0.0.1:4173/portallander/#/app/site/midia-kit/preview',{waitUntil:'domcontentloaded'})
+            await page.locator('.mk-page').first().waitFor({state:'attached',timeout:15000}).catch(async error=>{
+              console.log('CURRENT_HASH='+await page.evaluate(()=>location.hash))
+              console.log('BODY='+((await page.locator('body').innerText()).slice(0,1000)))
+              throw error
+            })
+            await page.emulateMedia({media:'print'})
+            await page.evaluate(async()=>{if(document.fonts)await document.fonts.ready})
+
+            const pageMetrics=await page.locator('.mk-page').evaluateAll(nodes=>nodes.map((node,index)=>{
+              const rect=node.getBoundingClientRect()
+              const style=getComputedStyle(node)
+              return {page:index+1,w:rect.width,h:rect.height,scrollW:node.scrollWidth,scrollH:node.scrollHeight,background:style.backgroundColor,color:style.color}
+            }))
+            console.log('MEDIA_KIT_PAGE_COUNT='+pageMetrics.length)
+            console.log('MEDIA_KIT_PAGE_METRICS='+JSON.stringify(pageMetrics))
+            if(pageMetrics.length!==9)throw new Error(`Expected 9 pages; found ${pageMetrics.length}`)
+            if(pageMetrics.some(item=>item.scrollW>item.w+2||item.scrollH>item.h+2))throw new Error('Media Kit overflow detected')
+
+            const fonts=await page.evaluate(()=>({
+              bebas:document.fonts?.check('16px "Bebas Neue"')??false,
+              montserrat:document.fonts?.check('16px "Montserrat"')??false,
+              status:document.fonts?.status??'unsupported'
+            }))
+            console.log('FONTS='+JSON.stringify(fonts))
+            if(!fonts.bebas||!fonts.montserrat)throw new Error('Required fonts not loaded')
+
+            const hiddenToolbar=await page.locator('.mk-preview-toolbar').evaluate(node=>getComputedStyle(node).display==='none')
+            console.log('PRINT_TOOLBAR_HIDDEN='+hiddenToolbar)
+            if(!hiddenToolbar)throw new Error('Browser-only toolbar is visible in print media')
+
+            await mkdir('test-results/media-kit',{recursive:true})
+            await page.screenshot({path:'test-results/media-kit/print-preview.png',fullPage:true})
+            await page.pdf({path:'test-results/media-kit/media-kit.pdf',format:'A4',printBackground:true,preferCSSPageSize:true,margin:{top:'0',right:'0',bottom:'0',left:'0'}})
+            const pdf=await stat('test-results/media-kit/media-kit.pdf')
+            console.log('PDF_BYTES='+pdf.size)
+            if(pdf.size<10000)throw new Error('Generated PDF is unexpectedly small')
+            if(consoleErrors.length)throw new Error('Console errors: '+consoleErrors.join(' | '))
+            await context.close()
+          } finally {
+            await browser.close()
+          }
+          NODE
+      - name: Inspect PDF page count and searchable text
+        working-directory: apps/web
+        run: |
+          pdfinfo test-results/media-kit/media-kit.pdf | tee test-results/media-kit/pdfinfo.txt
+          pages=$(awk '/^Pages:/ {print $2}' test-results/media-kit/pdfinfo.txt)
+          test "$pages" = "9"
+          pdftotext test-results/media-kit/media-kit.pdf test-results/media-kit/media-kit.txt
+          grep -q 'PORTAL LANDER' test-results/media-kit/media-kit.txt
+          grep -q 'NOSSA AUDIÊNCIA' test-results/media-kit/media-kit.txt
+          grep -q 'INVENTÁRIO PUBLICITÁRIO' test-results/media-kit/media-kit.txt
+          echo "PDF_PAGE_COUNT=$pages"
+          echo "PDF_SEARCHABLE_TEXT=PASS"
+      - name: Render PDF pages for visual evidence
+        working-directory: apps/web
+        run: |
+          mkdir -p test-results/media-kit/rendered
+          pdftoppm -png -r 110 test-results/media-kit/media-kit.pdf test-results/media-kit/rendered/page >/dev/null 2>&1
+          count=$(find test-results/media-kit/rendered -type f -name 'page-*.png' | wc -l)
+          echo "RENDERED_PAGE_IMAGES=$count"
+          test "$count" = "9"
+      - name: Upload Media Kit runtime evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: media-kit-pdf-runtime
+          path: |
+            apps/web/test-results/media-kit
+            /tmp/media-kit-preview-server.log
+          if-no-files-found: warn

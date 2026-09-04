@@ -1,0 +1,178 @@
+name: Analytics Media Kit Branch Validation
+
+on:
+  push:
+    branches:
+      - chore/analytics-media-kit-execution
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: chore/analytics-media-kit-execution
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Environment evidence
+        run: |
+          git rev-parse HEAD
+          node --version
+          npm --version
+          find . -maxdepth 2 \( -name package-lock.json -o -name pnpm-lock.yaml -o -name yarn.lock \) -print
+      - name: Install dependencies
+        run: npm install
+      - name: Web typecheck
+        run: npm run typecheck
+      - name: Web lint
+        run: npm run lint
+      - name: Architecture boundaries
+        run: npm run check:architecture
+      - name: Web unit tests
+        run: npm test
+      - name: API syntax build
+        run: npm --workspace @portallander/api run build
+      - name: API unit tests
+        run: npm --workspace @portallander/api test
+      - name: Web production build
+        run: npm run build
+
+  postgres-runtime:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: portal
+          POSTGRES_PASSWORD: portal
+          POSTGRES_DB: portal_validation
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U portal -d portal_validation"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=10
+    env:
+      PGPASSWORD: portal
+      PGHOST: 127.0.0.1
+      PGPORT: 5432
+      PGUSER: portal
+      PGDATABASE: portal_validation
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: chore/analytics-media-kit-execution
+      - name: Apply migration 018
+        run: psql -v ON_ERROR_STOP=1 -f apps/api/migrations/018_analytics_metrics.sql
+      - name: Schema evidence
+        run: |
+          psql -v ON_ERROR_STOP=1 -c "\\d+ analytics_sync_runs"
+          psql -v ON_ERROR_STOP=1 -c "\\d+ analytics_raw_metrics"
+          psql -v ON_ERROR_STOP=1 -c "\\d+ analytics_metrics"
+      - name: Constraint and idempotency proofs
+        run: |
+          psql -v ON_ERROR_STOP=1 <<'SQL'
+          insert into analytics_sync_runs(id,provider,provider_account_id,provider_property_id,status)
+          values('00000000-0000-0000-0000-000000000001','ga4','acct-test','prop-test','running');
+
+          insert into analytics_raw_metrics(id,sync_id,provider,provider_account_id,provider_property_id,provider_metric,value,period_start,period_end,granularity,timezone,source_reference)
+          values('00000000-0000-0000-0000-000000000002','00000000-0000-0000-0000-000000000001','ga4','acct-test','prop-test','sessions',42,'2026-09-01T03:00:00Z','2026-09-02T03:00:00Z','day','America/Sao_Paulo','ga4:prop-test:20260901:sessions');
+
+          insert into analytics_metrics(id,raw_metric_id,sync_id,metric_key,value,unit,provider,provider_account_id,provider_property_id,period_start,period_end,granularity,timezone,source_type,source_reference,data_status,provenance)
+          values('00000000-0000-0000-0000-000000000003','00000000-0000-0000-0000-000000000002','00000000-0000-0000-0000-000000000001','sessions',42,'count','ga4','acct-test','prop-test','2026-09-01T03:00:00Z','2026-09-02T03:00:00Z','day','America/Sao_Paulo','provider','ga4:prop-test:20260901:sessions','LIVE','{"providerMetric":"sessions"}'::jsonb);
+
+          insert into analytics_metrics(metric_key,value,unit,period_start,period_end,granularity,timezone,source_type,source_reference,data_status,provenance,is_manual)
+          values('manual_metric',10,'count','2026-09-01T00:00:00Z','2026-10-01T00:00:00Z','month','America/Sao_Paulo','manual','manual:test:1','MANUAL','{"enteredBy":"validation"}'::jsonb,true);
+
+          do $$
+          begin
+            begin
+              insert into analytics_raw_metrics(provider,provider_account_id,provider_metric,value,period_start,period_end,granularity,source_reference)
+              values('ga4','acct-test','sessions',1,'2026-09-02','2026-09-01','day','invalid-period');
+              raise exception 'invalid raw period unexpectedly accepted';
+            exception when check_violation then null; end;
+
+            begin
+              insert into analytics_raw_metrics(provider,provider_account_id,provider_metric,value,period_start,period_end,granularity,dimensions,source_reference)
+              values('ga4','acct-test','sessions',1,'2026-09-01','2026-09-02','day','[]'::jsonb,'invalid-json-shape');
+              raise exception 'invalid dimensions unexpectedly accepted';
+            exception when check_violation then null; end;
+
+            begin
+              insert into analytics_raw_metrics(provider,provider_account_id,provider_metric,value,period_start,period_end,granularity,source_reference)
+              values('ga4','acct-test','sessions',99,'2026-09-01T03:00:00Z','2026-09-02T03:00:00Z','day','ga4:prop-test:20260901:sessions');
+              raise exception 'duplicate raw source unexpectedly accepted';
+            exception when unique_violation then null; end;
+
+            begin
+              insert into analytics_metrics(metric_key,value,unit,period_start,period_end,granularity,source_type,source_reference,data_status,provenance,is_manual)
+              values('manual_bad',1,'count','2026-09-01','2026-10-01','month','manual','manual:bad','MANUAL','{}'::jsonb,false);
+              raise exception 'invalid manual flag unexpectedly accepted';
+            exception when check_violation then null; end;
+
+            begin
+              insert into analytics_metrics(metric_key,value,unit,provider,provider_account_id,period_start,period_end,granularity,source_type,source_reference,data_status,provenance)
+              values('sessions',99,'count','ga4','acct-test','2026-09-01T03:00:00Z','2026-09-02T03:00:00Z','day','provider','ga4:prop-test:20260901:sessions','LIVE','{}'::jsonb);
+              raise exception 'duplicate normalized metric unexpectedly accepted';
+            exception when unique_violation then null; end;
+          end $$;
+
+          insert into analytics_raw_metrics(provider,provider_account_id,provider_property_id,provider_metric,value,period_start,period_end,granularity,timezone,source_reference)
+          values('ga4','acct-test','prop-test','sessions',84,'2026-09-01T03:00:00Z','2026-09-02T03:00:00Z','day','America/Sao_Paulo','ga4:prop-test:20260901:sessions')
+          on conflict(provider,provider_account_id,source_reference) do update set value=excluded.value,updated_at=now();
+
+          insert into analytics_metrics(metric_key,value,unit,provider,provider_account_id,provider_property_id,period_start,period_end,granularity,timezone,source_type,source_reference,data_status,provenance)
+          values('sessions',84,'count','ga4','acct-test','prop-test','2026-09-01T03:00:00Z','2026-09-02T03:00:00Z','day','America/Sao_Paulo','provider','ga4:prop-test:20260901:sessions','LIVE','{"providerMetric":"sessions"}'::jsonb)
+          on conflict(source_type,source_reference,metric_key,period_start,period_end,scope_type,scope_id) do update set value=excluded.value,updated_at=now();
+
+          do $$
+          declare raw_count int; metric_count int; raw_value numeric; metric_value numeric;
+          begin
+            select count(*),max(value) into raw_count,raw_value from analytics_raw_metrics where source_reference='ga4:prop-test:20260901:sessions';
+            select count(*),max(value) into metric_count,metric_value from analytics_metrics where source_reference='ga4:prop-test:20260901:sessions' and metric_key='sessions';
+            if raw_count<>1 or metric_count<>1 or raw_value<>84 or metric_value<>84 then
+              raise exception 'idempotency proof failed raw_count=% metric_count=% raw_value=% metric_value=%',raw_count,metric_count,raw_value,metric_value;
+            end if;
+          end $$;
+          SQL
+      - name: Repeat-safe migration proof
+        run: psql -v ON_ERROR_STOP=1 -f apps/api/migrations/018_analytics_metrics.sql
+
+  visual-runtime:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: chore/analytics-media-kit-execution
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install
+      - name: Build web
+        run: npm run build
+      - name: Install Chromium
+        working-directory: apps/web
+        run: npx playwright install --with-deps chromium
+      - name: Start preview
+        run: |
+          npm --workspace @portallander/web run preview -- --host 127.0.0.1 > /tmp/portal-preview.log 2>&1 &
+          for i in {1..40}; do
+            if curl -fsS http://127.0.0.1:4173/portallander/ >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/portal-preview.log
+          exit 1
+      - name: Existing visual audit
+        run: npm --workspace @portallander/web run test:visual
+      - name: Upload visual evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: analytics-media-kit-visual
+          path: apps/web/test-results/visual
+          if-no-files-found: warn

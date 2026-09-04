@@ -5,6 +5,7 @@ import type {MediaKitDraft} from '../mediaKitDomain'
 import {mediaKitRepository} from '../mediaKitRepository'
 import {MediaKitDocument} from './MediaKitDocument'
 import './media-kit-preview.css'
+import './media-kit-preview-accessibility.css'
 
 export function MediaKitPreviewPage(){
  const navigate=useNavigate()

@@ -284,7 +284,7 @@ export function HeroSection({
         <strong className="editorial-ticker-label">{ticker.label}</strong>
         <div className="editorial-ticker-viewport">
           <div className={`editorial-ticker-track ${ticker.direction === 'ltr' ? 'direction-ltr' : 'direction-rtl'} ${ticker.loop ? 'is-running' : 'is-static'} ${ticker.pauseOnHover ? 'pause-on-hover' : ''}`}>
-            {(ticker.loop ? [0, 1] : [0]).map(group => <div className="editorial-ticker-group" aria-hidden={group === 1 ? true : undefined} key={group}>
+            {(ticker.loop ? [0, 1] : [0]).map(group => <div className="editorial-ticker-group" aria-hidden={group === 1 ? true : undefined} inert={group === 1 ? true : undefined} key={group}>
               {tickerSequence.map((item, index) => <Fragment key={`${group}-${item.id}-${index}`}>
                 <SmartLink to={item.url || '/'} external={item.external} className="editorial-ticker-item">{item.text}</SmartLink>
                 <span className="editorial-ticker-separator" aria-hidden="true">{ticker.separator}</span>

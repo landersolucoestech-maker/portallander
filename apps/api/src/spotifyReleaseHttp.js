@@ -1,9 +1,7 @@
-import {timingSafeEqual} from 'node:crypto'
-import {authService} from './authService.js'
 import {HttpError} from './editorialService.js'
+import {requireAdmin} from './http.js'
 import {spotifyReleaseService} from './spotifyReleaseService.js'
 
-const SESSION_COOKIE_NAME=String(process.env.PORTAL_SESSION_COOKIE_NAME||'portal_lander_session').trim()||'portal_lander_session'
 const MAX_JSON_BYTES=64*1024
 
 const send=(res,status,value,headers={})=>{const body=JSON.stringify(value);res.writeHead(status,{'content-type':'application/json; charset=utf-8','cache-control':'no-store',...headers});res.end(body)}
@@ -15,18 +13,11 @@ function corsHeaders(req){
   if(!allow)return {}
   return {'access-control-allow-origin':origin,'access-control-allow-credentials':'true','vary':'Origin','access-control-allow-methods':'GET,POST,PUT,DELETE,OPTIONS','access-control-allow-headers':'Content-Type,Authorization,X-Request-Id'}
 }
-function readCookie(req,name){for(const part of String(req.headers.cookie||'').split(';')){const index=part.indexOf('=');if(index<1)continue;const key=part.slice(0,index).trim();if(key!==name)continue;const value=part.slice(index+1).trim();try{return decodeURIComponent(value)}catch{return value}}return ''}
-function safeEqual(a,b){const left=Buffer.from(a),right=Buffer.from(b);return left.length===right.length&&timingSafeEqual(left,right)}
 function publicAppRedirect(returnTo,status){
   const path=`${returnTo}${returnTo.includes('?')?'&':'?'}spotify=${encodeURIComponent(status)}`
   const configured=String(process.env.PORTAL_PUBLIC_APP_URL||'').trim()
   if(!configured)return path
   try{return new URL(path,new URL(configured.endsWith('/')?configured:`${configured}/`)).toString()}catch{throw new HttpError(503,'PORTAL_PUBLIC_APP_URL possui formato inválido.','PUBLIC_APP_URL_INVALID')}
-}
-async function requireAdmin(req){
-  const expected=process.env.PORTAL_ADMIN_TOKEN||'',header=String(req.headers.authorization||''),bearer=header.startsWith('Bearer ')?header.slice(7):''
-  if(expected&&bearer&&safeEqual(bearer,expected))return
-  if(!await authService.session(readCookie(req,SESSION_COOKIE_NAME)))throw new HttpError(401,'Sessão administrativa inválida ou expirada.','ADMIN_UNAUTHORIZED')
 }
 async function readJson(req){let total=0,raw='';for await(const chunk of req){total+=chunk.length;if(total>MAX_JSON_BYTES)throw new HttpError(413,'Payload excede o limite permitido.','PAYLOAD_TOO_LARGE');raw+=chunk}if(!raw)return {};try{return JSON.parse(raw)}catch{throw new HttpError(400,'JSON inválido.','INVALID_JSON')}}
 

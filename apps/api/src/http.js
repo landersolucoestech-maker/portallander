@@ -68,7 +68,7 @@ function sessionCookie(token,{expiresAt,clear=false}={}){
   return parts.join('; ')
 }
 
-async function requireAdmin(req){
+export async function requireAdmin(req){
   const expected=process.env.PORTAL_ADMIN_TOKEN||''
   const header=String(req.headers.authorization||'')
   const bearer=header.startsWith('Bearer ')?header.slice(7):''

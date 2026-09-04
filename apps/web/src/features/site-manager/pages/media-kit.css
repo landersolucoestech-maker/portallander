@@ -1,2 +1,1 @@
-.site-media-kit-editor{margin-top:16px}.site-media-kit-actions{justify-content:flex-end}
-@media(max-width:640px){.site-media-kit-actions{justify-content:stretch}}
+.site-media-kit-editor{margin-top:16px;grid-template-columns:minmax(0,1fr) minmax(420px,.82fr);align-items:start}.site-media-kit-editor>:not(.site-media-kit-live-preview){grid-column:1}.site-media-kit-actions{justify-content:flex-end}@media(max-width:1180px){.site-media-kit-editor{grid-template-columns:1fr}.site-media-kit-editor>:not(.site-media-kit-live-preview){grid-column:1}.site-media-kit-live-preview{grid-column:1}}@media(max-width:640px){.site-media-kit-actions{justify-content:stretch}}

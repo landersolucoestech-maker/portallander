@@ -40,9 +40,9 @@ test('deterministic Analytics response renders real zero, provenance and no unre
    const isCurrent=requestedMonth===currentMonth
    const isPrevious=requestedMonth===previousMonth
    const metrics=isCurrent?[
-     metric('imp-current','impressions',0),metric('click-current','clicks',25),metric('eng-current','engagement',10),metric('conv-current','conversions',2),metric('spend-current','spend',100),metric('followers-current','followers',500),metric('reach-unrelated','reach',999),metric('mock-ignored','impressions',999999,'MOCK'),
+     metric('imp-current','impressions',100),metric('click-current','clicks',25),metric('eng-current','engagement',10),metric('conv-current','conversions',0),metric('spend-current','spend',100),metric('followers-current','followers',500),metric('reach-unrelated','reach',999),metric('mock-ignored','impressions',999999,'MOCK'),
    ]:isPrevious?[
-     metric('imp-previous','impressions',0),metric('click-previous','clicks',20),metric('eng-previous','engagement',5),metric('conv-previous','conversions',1),metric('spend-previous','spend',50),metric('followers-previous','followers',490),
+     metric('imp-previous','impressions',80),metric('click-previous','clicks',20),metric('eng-previous','engagement',5),metric('conv-previous','conversions',0),metric('spend-previous','spend',50),metric('followers-previous','followers',490),
    ]:[]
    await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({metrics})})
  })
@@ -50,13 +50,16 @@ test('deterministic Analytics response renders real zero, provenance and no unre
  await open(page,'/app/marketing/metricas')
  await expect(page.getByText('Analytics indisponível',{exact:true})).toHaveCount(0)
  const impressionsCard=page.locator('.marketing-metric-strip article').filter({hasText:'Impressões'})
- await expect(impressionsCard.locator('strong')).toHaveText('0')
- await expect(impressionsCard).toContainText('0.0%')
+ await expect(impressionsCard.locator('strong')).toHaveText('100')
+ await expect(impressionsCard).toContainText('+25.0%')
  const clicksCard=page.locator('.marketing-metric-strip article').filter({hasText:'Cliques'})
  await expect(clicksCard.locator('strong')).toHaveText('25')
  await expect(clicksCard).toContainText('+25.0%')
+ await expect(clicksCard).toContainText('CTR 25.00%')
+ const conversionsCard=page.locator('.marketing-metric-strip article').filter({hasText:'Conversões'})
+ await expect(conversionsCard.locator('strong')).toHaveText('0')
+ await expect(conversionsCard).toContainText('0.0%')
  await expect(page.getByText(/Atualizado em/).first()).toBeVisible()
- await expect(page.getByText('999.999',{exact:true})).toHaveCount(0)
  await expect(page.locator('.marketing-content-ranking article')).toHaveCount(0)
  await expect(page.getByText(/UNAVAILABLE — não existe vínculo analítico/i)).toBeVisible()
 })

@@ -49,6 +49,7 @@ jobs:
         working-directory: apps/web
         env:
           ANALYTICS_RUNTIME_SIMULATION: '1'
+          ANALYTICS_RUNTIME_REQUIRED: '1'
         run: npx playwright test e2e/analytics-marketing-runtime.audit.ts --reporter=line
       - name: Upload traces on failure
         if: failure()

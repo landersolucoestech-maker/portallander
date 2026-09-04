@@ -1,0 +1,74 @@
+name: Runtime Config Presence Probe
+
+on:
+  push:
+    branches: [chore/analytics-media-kit-execution]
+    paths:
+      - '.github/workflows/probe-runtime-config.yml'
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  config-presence:
+    runs-on: ubuntu-latest
+    env:
+      S_STAGING_CLIENT: ${{ secrets.STAGING_GOOGLE_CLIENT_ID }}
+      S_STAGING_SECRET: ${{ secrets.STAGING_GOOGLE_CLIENT_SECRET }}
+      S_STAGING_REFRESH: ${{ secrets.STAGING_GOOGLE_REFRESH_TOKEN }}
+      S_STAGING_ACCOUNT: ${{ secrets.STAGING_GOOGLE_ANALYTICS_ACCOUNT_ID }}
+      S_STAGING_PROPERTY: ${{ secrets.STAGING_GOOGLE_ANALYTICS_PROPERTY_ID }}
+      S_STAGING_TZ: ${{ secrets.STAGING_GOOGLE_ANALYTICS_TIMEZONE }}
+      S_CLIENT: ${{ secrets.GOOGLE_CLIENT_ID }}
+      S_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+      S_REFRESH: ${{ secrets.GOOGLE_REFRESH_TOKEN }}
+      S_ACCOUNT: ${{ secrets.GOOGLE_ANALYTICS_ACCOUNT_ID }}
+      S_PROPERTY: ${{ secrets.GOOGLE_ANALYTICS_PROPERTY_ID }}
+      S_GA4_PROPERTY: ${{ secrets.GA4_PROPERTY_ID }}
+      S_GA_PROPERTY: ${{ secrets.GA_PROPERTY_ID }}
+      S_TZ: ${{ secrets.GOOGLE_ANALYTICS_TIMEZONE }}
+      V_CLIENT: ${{ vars.GOOGLE_CLIENT_ID }}
+      V_ACCOUNT: ${{ vars.GOOGLE_ANALYTICS_ACCOUNT_ID }}
+      V_PROPERTY: ${{ vars.GOOGLE_ANALYTICS_PROPERTY_ID }}
+      V_GA4_PROPERTY: ${{ vars.GA4_PROPERTY_ID }}
+      V_GA_PROPERTY: ${{ vars.GA_PROPERTY_ID }}
+      V_TZ: ${{ vars.GOOGLE_ANALYTICS_TIMEZONE }}
+    steps:
+      - name: Inventory authorized config names only
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo 'REPOSITORY_SECRET_NAMES:'
+          gh api "repos/$GITHUB_REPOSITORY/actions/secrets" --jq '.secrets[].name' 2>/dev/null | sort || true
+          echo 'REPOSITORY_VARIABLE_NAMES:'
+          gh api "repos/$GITHUB_REPOSITORY/actions/variables" --jq '.variables[].name' 2>/dev/null | sort || true
+          echo 'ENVIRONMENT_NAMES:'
+          mapfile -t environments < <(gh api "repos/$GITHUB_REPOSITORY/environments" --jq '.environments[].name' 2>/dev/null | sort || true)
+          if ((${#environments[@]}==0)); then echo NONE; fi
+          for environment in "${environments[@]}"; do
+            echo "ENVIRONMENT=$environment"
+            encoded=$(python -c 'import sys,urllib.parse;print(urllib.parse.quote(sys.argv[1],safe=""))' "$environment")
+            echo 'ENVIRONMENT_SECRET_NAMES:'
+            gh api "repos/$GITHUB_REPOSITORY/environments/$encoded/secrets" --jq '.secrets[].name' 2>/dev/null | sort || true
+            echo 'ENVIRONMENT_VARIABLE_NAMES:'
+            gh api "repos/$GITHUB_REPOSITORY/environments/$encoded/variables" --jq '.variables[].name' 2>/dev/null | sort || true
+          done
+
+      - name: Resolve GA4 aliases without disclosure
+        shell: bash
+        run: |
+          set -euo pipefail
+          present(){ if [ -n "${!1:-}" ]; then echo "$1=PRESENT"; else echo "$1=MISSING"; fi; }
+          for key in S_STAGING_CLIENT S_STAGING_SECRET S_STAGING_REFRESH S_STAGING_ACCOUNT S_STAGING_PROPERTY S_STAGING_TZ S_CLIENT S_SECRET S_REFRESH S_ACCOUNT S_PROPERTY S_GA4_PROPERTY S_GA_PROPERTY S_TZ V_CLIENT V_ACCOUNT V_PROPERTY V_GA4_PROPERTY V_GA_PROPERTY V_TZ; do present "$key"; done
+          CLIENT="${S_STAGING_CLIENT:-${S_CLIENT:-${V_CLIENT:-}}}"
+          SECRET="${S_STAGING_SECRET:-${S_SECRET:-}}"
+          REFRESH="${S_STAGING_REFRESH:-${S_REFRESH:-}}"
+          ACCOUNT="${S_STAGING_ACCOUNT:-${S_ACCOUNT:-${V_ACCOUNT:-}}}"
+          PROPERTY="${S_STAGING_PROPERTY:-${S_PROPERTY:-${S_GA4_PROPERTY:-${S_GA_PROPERTY:-${V_PROPERTY:-${V_GA4_PROPERTY:-${V_GA_PROPERTY:-}}}}}}}"
+          TZ="${S_STAGING_TZ:-${S_TZ:-${V_TZ:-}}}"
+          complete=1
+          for value in "$CLIENT" "$SECRET" "$REFRESH" "$ACCOUNT" "$PROPERTY" "$TZ"; do [ -n "$value" ] || complete=0; done
+          echo "GA4_ALIAS_SET_COMPLETE=$complete"

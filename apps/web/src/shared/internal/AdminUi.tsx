@@ -32,12 +32,11 @@ function PageHeader({context,header,actions}:{context:string;header?:PageHeaderC
   const [loggingOut,setLoggingOut]=useState(false)
   const notificationsRef=useRef<HTMLDivElement>(null)
   const accountRef=useRef<HTMLDivElement>(null)
-  const fallbackUser=appReadModel.currentUser()
   const user=auth.status==='authenticated'&&auth.user?{
     initials:initials(auth.user.displayName),
     name:auth.user.displayName,
     roleLabel:adminRoleLabel(auth.user.role),
-  }:fallbackUser
+  }:appReadModel.currentUser()
   const notifications=auth.status==='authenticated'?[]:appReadModel.notificationsForCurrentUser()
 
   useEffect(()=>{

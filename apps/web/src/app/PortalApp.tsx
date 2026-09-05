@@ -2,11 +2,11 @@ import { lazy, Suspense, useMemo, type ReactNode } from 'react'
 import { Link, Navigate, useLocation } from 'react-router-dom'
 import { renderPublicSpecialPage } from './publicSpecialPageRegistry'
 import { editorialReadModel } from '../features/editorial/repository'
-import { PublicHome } from '../pages/home/PublicHome'
 import { PageContainer,PageSection,PageShell } from '../shared/public/PublicPageArchitecture'
 import { PublicNotFound } from '../shared/public/PublicNotFound'
 
 const InternalApp=lazy(()=>import('./InternalApp'))
+const PublicHome=lazy(()=>import('../pages/home/PublicHome').then(module=>({default:module.PublicHome})))
 const AnunciePage=lazy(()=>import('../pages/anuncie/AnunciePage').then(module=>({default:module.AnunciePage})))
 const EditorialContentPage=lazy(()=>import('../features/editorial/components/EditorialContentPage').then(module=>({default:module.EditorialContentPage})))
 const EditorialListingPage=lazy(()=>import('../features/editorial/components/EditorialListingPage').then(module=>({default:module.EditorialListingPage})))
@@ -21,7 +21,7 @@ export default function PortalApp(){
   const path=location.pathname
   const segments=useMemo(()=>path.split('/').filter(Boolean).map(decodeURIComponent),[path])
 
-  if(path==='/')return <PublicHome/>
+  if(path==='/')return deferred(<PublicHome/>)
   if(path==='/_preview/home')return deferred(<HomePreviewPage/>)
   if(path==='/anuncie')return deferred(<AnunciePage/>)
   if(path.startsWith('/app'))return deferred(<InternalApp/>)

@@ -2,29 +2,75 @@ import {expect,test} from '@playwright/test'
 
 const webBase=process.env.E2E_WEB_BASE_URL||'http://127.0.0.1:4173'
 const apiBase=process.env.E2E_API_BASE_URL||'http://127.0.0.1:8787'
-const title='E2E Editorial Candidate'
+const titleA='E2E Editorial Candidate A'
+const titleB='E2E Editorial Candidate B'
 
-test('browser cura candidato real e converte somente em draft persistido',async({page})=>{
+test('browser production-data isola destino por candidato e converte somente A em draft persistido',async({page})=>{
   const request=page.context().request
-  const login=await request.post(`${apiBase}/api/auth/login`,{data:{email:'e2e-content-ingestion@example.com',password:'E2EContent!123'}})
-  expect(login.ok()).toBeTruthy()
+  const mockRequests:string[]=[],pageErrors:string[]=[],consoleErrors:string[]=[]
+  page.on('request',requestEvent=>{const url=requestEvent.url();if(/mockDataProvider|mockSeedLifecycle|\/mocks[-./]/i.test(url))mockRequests.push(url)})
+  page.on('pageerror',error=>pageErrors.push(error.message))
+  page.on('console',message=>{if(message.type()==='error')consoleErrors.push(message.text())})
+
+  await page.goto(`${webBase}/#/app/login`)
+  console.log('E2E_PRODUCTION_BOOTSTRAP='+JSON.stringify({url:page.url(),body:(await page.locator('body').innerText()).replace(/\s+/g,' ').slice(0,600),pageErrors,consoleErrors,mockRequests}))
+  expect(pageErrors).toEqual([])
+  await expect(page.getByRole('heading',{name:'Entrar na área interna'})).toBeVisible()
+  await page.getByLabel('E-mail').fill('e2e-content-ingestion@example.com')
+  await page.getByLabel('Senha').fill('E2EContent!123')
+  const loginResponse=page.waitForResponse(response=>response.url()===`${apiBase}/api/auth/login`&&response.request().method()==='POST')
+  await page.getByRole('button',{name:'Entrar'}).click()
+  expect((await loginResponse).ok()).toBeTruthy()
+  await expect(page).toHaveURL(/#\/app\/dashboard$/)
+  const session=await request.get(`${apiBase}/api/auth/session`)
+  expect(session.ok()).toBeTruthy()
+  expect(await session.json()).toMatchObject({authenticated:true,user:{role:'owner'}})
+
   await page.goto(`${webBase}/#/app/site/conteudos`)
-  await expect(page.getByText(title,{exact:true})).toBeVisible()
-  const row=()=>page.getByRole('row').filter({hasText:title})
-  await row().getByRole('button',{name:'Revisar'}).click()
-  await expect(row().getByText('reviewing',{exact:true})).toBeVisible()
-  await row().getByRole('button',{name:'Aprovar'}).click()
-  await expect(row().getByText('approved',{exact:true})).toBeVisible()
-  await row().getByRole('button',{name:'Criar rascunho'}).click()
-  await expect(row().getByText('converted',{exact:true})).toBeVisible()
-  await expect(row().getByRole('link',{name:'Abrir rascunho'})).toBeVisible()
+  await expect(page.getByText('Persistência editorial conectada',{exact:true})).toBeVisible()
+  await expect(page.getByText(titleA,{exact:true})).toBeVisible()
+  await expect(page.getByText(titleB,{exact:true})).toBeVisible()
+  const rowA=()=>page.getByRole('row').filter({hasText:titleA})
+  const rowB=()=>page.getByRole('row').filter({hasText:titleB})
+  await rowA().getByRole('button',{name:'Revisar'}).click()
+  await expect(rowA().getByText('reviewing',{exact:true})).toBeVisible()
+  await rowA().getByRole('button',{name:'Aprovar'}).click()
+  await expect(rowA().getByText('approved',{exact:true})).toBeVisible()
+  await expect(rowB().getByText('approved',{exact:true})).toBeVisible()
+
+  const destinationA=()=>rowA().getByRole('combobox',{name:`Página de destino do rascunho para ${titleA}`})
+  const destinationB=()=>rowB().getByRole('combobox',{name:`Página de destino do rascunho para ${titleB}`})
+  const createA=()=>rowA().getByRole('button',{name:'Criar rascunho'})
+  const createB=()=>rowB().getByRole('button',{name:'Criar rascunho'})
+  await expect(destinationA()).toHaveValue('')
+  await expect(destinationB()).toHaveValue('')
+  await expect(createA()).toBeDisabled()
+  await expect(createB()).toBeDisabled()
+  const optionValues=await destinationA().locator('option').evaluateAll(options=>options.map(option=>(option as HTMLOptionElement).value).filter(Boolean))
+  expect(optionValues.length).toBeGreaterThan(0)
+  await destinationA().selectOption(optionValues[0])
+  await expect(createA()).toBeEnabled()
+  await expect(destinationB()).toHaveValue('')
+  await expect(createB()).toBeDisabled()
+
+  await createA().click()
+  await expect(rowA().getByText('converted',{exact:true})).toBeVisible()
+  await expect(rowA().getByRole('link',{name:'Abrir rascunho'})).toBeVisible()
+  await expect(rowB().getByText('approved',{exact:true})).toBeVisible()
+  await expect(destinationB()).toHaveValue('')
+  await expect(createB()).toBeDisabled()
+  await destinationB().selectOption(optionValues[0])
+  await expect(createB()).toBeEnabled()
 
   const contents=await request.get(`${apiBase}/api/editorial/contents`)
   expect(contents.ok()).toBeTruthy()
   const payload=await contents.json() as {contents:Array<{title:string;status:string;active:boolean;publishedAt?:string}>}
-  const draft=payload.contents.find(item=>item.title===title)
+  const draft=payload.contents.find(item=>item.title===titleA)
   expect(draft).toBeTruthy()
   expect(draft?.status).toBe('draft')
   expect(draft?.active).toBe(false)
   expect(draft?.publishedAt).toBeUndefined()
+  expect(payload.contents.find(item=>item.title===titleB)).toBeUndefined()
+  expect(mockRequests).toEqual([])
+  expect(pageErrors).toEqual([])
 })

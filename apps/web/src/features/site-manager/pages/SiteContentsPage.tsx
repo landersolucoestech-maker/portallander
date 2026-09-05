@@ -55,7 +55,7 @@ export function SiteContentsPage(){
   const localPageDrafts=useMemo(()=>{void localRevision;return sitePageRepository.listDraftPages()},[localRevision])
   const hiddenPageIds=useMemo(()=>{void localRevision;return new Set(sitePageRepository.listHiddenPageIds())},[localRevision])
   const pageOverrides=useMemo(()=>new Map(localPageDrafts.filter(page=>page.overridesSystem).map(page=>[page.id,page])),[localPageDrafts])
-  const localSystemPages=useMemo(()=>editorialReadModel.pages.filter(page=>page.type==='editorial'&&!hiddenPageIds.has(page.id)),[hiddenPageIds])
+  const localSystemPages=useMemo(()=>persisted?[]:editorialReadModel.pages.filter(page=>page.type==='editorial'&&!hiddenPageIds.has(page.id)),[persisted,hiddenPageIds])
   const persistedPages=persisted?remotePages.filter(page=>page.type==='editorial'):localSystemPages
   const newLocalPages=localPageDrafts.filter(page=>!page.overridesSystem)
   const defaultPageId=persistedPages[0]?.id??(!persisted?newLocalPages[0]?.id:'')??''

@@ -80,6 +80,18 @@ if(/import\s+\{?\s*mockDataProvider/.test(main))failures.push('main.tsx não pod
 if(main.includes('setRuntimeDataProvider(mockDataProvider)'))failures.push('main.tsx não pode promover MockDataProvider diretamente como fallback canônico.')
 if(/catch[\s\S]{0,500}mockDataProvider/.test(main))failures.push('Falha de API não pode promover MockDataProvider como fallback silencioso.')
 
+const portalApp=await readFile(join(root,'app/PortalApp.tsx'),'utf8')
+if(/import\s+\{\s*PublicHome\s*\}\s+from/.test(portalApp))failures.push('PortalApp não pode importar PublicHome eager: /app deve montar sem inicializar o grafo de dados públicos.')
+if(!portalApp.includes("const PublicHome=lazy(()=>import('../pages/home/PublicHome')"))failures.push('PortalApp deve carregar PublicHome de forma lazy para isolar o bootstrap administrativo do provider público.')
+
+const dashboardPage=await readFile(join(root,'features/dashboard/DashboardPage.tsx'),'utf8')
+for(const required of ['crmAdminClient.listLeads()','financeAdminClient.listTransactions()','agendaAdminClient.list()','listAdminEditorialContents()'])if(!dashboardPage.includes(required))failures.push(`Dashboard autenticado deve compor a API real: ${required}`)
+if(!dashboardPage.includes("const data=authenticated?adminDashboard.data:dashboardReadModel.snapshot()"))failures.push('Dashboard deve reservar dashboardReadModel/runtime provider ao modo não autenticado de desenvolvimento.')
+if(!dashboardPage.includes('pendingTasks:null'))failures.push('Dashboard autenticado deve representar Marketing sem fonte persistente como indisponível, não como fixture ou zero inventado.')
+
+const activityHook=await readFile(join(root,'features/dashboard/hooks/useActivityHistory.ts'),'utf8')
+if(!activityHook.includes("mode==='api'?dashboardApi.getAdminActivity"))failures.push('Histórico do Dashboard autenticado deve usar a API editorial real.')
+
 const provider=await readFile(join(root,'shared/data/mockDataProvider.ts'),'utf8')
 if(!provider.includes("from '../../mocks'"))failures.push('Somente o MockDataProvider deve agregar a raiz global de mocks no runtime.')
 for(const removedWorkspaceToken of ['mockWorkspaces','workspaces:','WorkspaceDescriptor'])if(provider.includes(removedWorkspaceToken))failures.push(`MockDataProvider não pode reintroduzir arquitetura de workspaces: ${removedWorkspaceToken}`)
@@ -89,4 +101,4 @@ if(failures.length){
  failures.forEach(item=>console.error(`- ${item}`))
  process.exit(1)
 }
-console.log('Data provider boundaries OK — production is fail-closed; mock/demo requires explicit enablement.')
+console.log('Data provider boundaries OK — public production is fail-closed; authenticated admin uses real API; mock/demo requires explicit enablement.')

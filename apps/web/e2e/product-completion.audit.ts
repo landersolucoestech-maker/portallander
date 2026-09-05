@@ -20,7 +20,9 @@ async function cssVariable(locator:Locator,name:string){
 async function setColorInput(locator:Locator,value:string){
   await locator.evaluate((node,next)=>{
     const input=node as HTMLInputElement
-    input.value=next
+    const nativeSetter=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value')?.set
+    if(!nativeSetter)throw new Error('Native HTMLInputElement value setter is unavailable.')
+    nativeSetter.call(input,next)
     input.dispatchEvent(new Event('input',{bubbles:true}))
     input.dispatchEvent(new Event('change',{bubbles:true}))
   },value)

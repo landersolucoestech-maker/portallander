@@ -7,10 +7,13 @@ on:
       - 'apps/api/**'
       - 'apps/web/src/main.tsx'
       - 'apps/web/src/features/editorial/**'
+      - 'apps/web/src/features/marketing/**'
       - 'apps/web/src/features/settings/**'
       - 'apps/web/src/features/site-manager/**'
+      - 'apps/web/src/shared/data/**'
       - 'apps/web/src/shared/internal/AdminUi.tsx'
       - 'apps/web/e2e/content-ingestion.fullstack.audit.ts'
+      - 'apps/web/e2e/public-production-data.fullstack.audit.ts'
       - 'package.json'
       - 'package-lock.json'
       - '.github/workflows/content-ingestion-runtime.yml'
@@ -20,10 +23,13 @@ on:
       - 'apps/api/**'
       - 'apps/web/src/main.tsx'
       - 'apps/web/src/features/editorial/**'
+      - 'apps/web/src/features/marketing/**'
       - 'apps/web/src/features/settings/**'
       - 'apps/web/src/features/site-manager/**'
+      - 'apps/web/src/shared/data/**'
       - 'apps/web/src/shared/internal/AdminUi.tsx'
       - 'apps/web/e2e/content-ingestion.fullstack.audit.ts'
+      - 'apps/web/e2e/public-production-data.fullstack.audit.ts'
       - 'package.json'
       - 'package-lock.json'
       - '.github/workflows/content-ingestion-runtime.yml'
@@ -39,7 +45,7 @@ concurrency:
 jobs:
   content-ingestion-runtime:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 35
     services:
       postgres:
         image: postgres:16
@@ -59,6 +65,7 @@ jobs:
       NODE_ENV: test
       PORTAL_ALLOWED_ORIGINS: http://127.0.0.1:4173
       PORTAL_IP_HASH_SECRET: editorial-ingestion-ci-ip-hash-secret
+      PORTAL_ADMIN_TOKEN: marketing-metrics-runtime-legacy-token
       VITE_PORTAL_API_BASE_URL: http://127.0.0.1:8787
       E2E_WEB_BASE_URL: http://127.0.0.1:4173/portallander
       E2E_API_BASE_URL: http://127.0.0.1:8787
@@ -89,16 +96,32 @@ jobs:
             echo "APPLY ${migration}"
             psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f "${migration}"
           done
+      - name: Prove migration 029 is rerunnable and preserves the source catalog
+        run: |
+          set -euo pipefail
+          before="$(psql "$DATABASE_URL" -Atc "select count(*) from integration_sources")"
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f apps/api/migrations/029_editorial_source_catalog.sql >/tmp/migration-029-rerun.log
+          after="$(psql "$DATABASE_URL" -Atc "select count(*) from integration_sources")"
+          test "$before" = "$after"
+          psql "$DATABASE_URL" -Atc "select source_key||':'||provider||':'||enabled||':'||last_status from integration_sources where source_key='music-business-worldwide'" | grep '^music-business-worldwide:rss:true:never_synced$'
+          psql "$DATABASE_URL" -Atc "select source_key||':'||enabled||':'||(feed_url is null)||':'||(configuration->>'catalogStatus') from integration_sources where source_key='billboard-brasil'" | grep '^billboard-brasil:false:true:requires_configuration$'
+          psql "$DATABASE_URL" -Atc "select source_key||':'||enabled||':'||(configuration->>'catalogStatus') from integration_sources where source_key='billboard-global'" | grep '^billboard-global:false:requires_official_confirmation$'
+          for source in gdelt-music-br youtube-music-br ecad-official promusica-official ubc-official abramus-official ifpi-official; do
+            psql "$DATABASE_URL" -Atc "select count(*) from integration_sources where source_key='${source}'" | grep '^1$'
+          done
+          echo "MIGRATION_029_IDEMPOTENT=PASS"
+          echo "SOURCE_CATALOG_028_PRESERVED=PASS"
       - name: Backend syntax and unit tests
         run: |
           npm --workspace @portallander/api run build
           npm --workspace @portallander/api test
       - name: PostgreSQL ingestion, deduplication, curation and RBAC proof
         run: node apps/api/scripts/verify-content-ingestion-runtime.mjs
-      - name: Real RSS source to PostgreSQL candidate proof
+      - name: Real MBW RSS to PostgreSQL candidate and dedup proof
         run: node apps/api/scripts/verify-real-editorial-source-sync.mjs
-      - name: Frontend lint, typecheck and architecture
+      - name: Frontend unit, lint, typecheck and architecture
         run: |
+          npm --workspace @portallander/web test
           npm --workspace @portallander/web run lint
           npm --workspace @portallander/web run typecheck
           npm --workspace @portallander/web run check:architecture
@@ -118,10 +141,12 @@ jobs:
             echo 'Production bundle contains demo/mock runtime references.' >&2
             exit 1
           fi
-          echo 'EDITORIAL_PRODUCTION_API_BASE=PASS_RUNTIME'
-          echo 'EDITORIAL_PRODUCTION_MOCK_REFERENCES=0'
-      - name: Prepare browser-to-PostgreSQL fixture
-        run: node apps/api/scripts/prepare-content-ingestion-e2e.mjs
+          echo 'PUBLIC_PRODUCTION_API_BASE=PASS_RUNTIME'
+          echo 'PUBLIC_PRODUCTION_MOCK_REFERENCES=0'
+      - name: Prepare persisted browser fixtures
+        run: |
+          node apps/api/scripts/prepare-public-production-e2e.mjs
+          node apps/api/scripts/prepare-content-ingestion-e2e.mjs
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
       - name: Start API and real production-data frontend
@@ -132,6 +157,10 @@ jobs:
           curl -fsS http://127.0.0.1:8787/health
           for attempt in $(seq 1 30); do curl -fsS http://127.0.0.1:4173/portallander/ >/dev/null && break; sleep 1; done
           curl -fsS http://127.0.0.1:4173/portallander/ >/dev/null
+      - name: Public production API to PostgreSQL browser proof
+        run: cd apps/web && npx playwright test e2e/public-production-data.fullstack.audit.ts --reporter=line
+      - name: Marketing metrics RBAC, periods, real DB data and CORS proof
+        run: node apps/api/scripts/verify-marketing-metrics-runtime.mjs
       - name: Browser production-data to API to PostgreSQL curation proof
         run: cd apps/web && npx playwright test e2e/content-ingestion.fullstack.audit.ts --reporter=line
       - name: Prove candidate isolation and draft was not auto-published
@@ -141,7 +170,15 @@ jobs:
           psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -Atc "select status||':'||active||':'||(published_at is null) from editorial_contents where title='E2E Editorial Candidate A'" | grep '^draft:false:true$'
           psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -Atc "select status||':'||(editorial_content_id is null) from content_import_candidates where title='E2E Editorial Candidate B'" | grep '^approved:true$'
           psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -Atc "select count(*) from editorial_contents where title='E2E Editorial Candidate B'" | grep '^0$'
-      - name: Live free-provider connectivity
+      - name: Public production fail-closed with API actually unavailable
+        run: |
+          set -euo pipefail
+          kill "$(cat /tmp/portal-api.pid)"
+          for attempt in $(seq 1 20); do if ! curl -fsS http://127.0.0.1:8787/health >/dev/null 2>&1; then break; fi; sleep 0.25; done
+          ! curl -fsS http://127.0.0.1:8787/health >/dev/null 2>&1
+          cd apps/web
+          E2E_PUBLIC_EXPECT_FAIL_CLOSED=1 npx playwright test e2e/public-production-data.fullstack.audit.ts --reporter=line
+      - name: Live free-provider connectivity diagnostic
         id: providers
         continue-on-error: true
         run: node apps/api/scripts/verify-editorial-provider-connectivity.mjs
@@ -151,6 +188,7 @@ jobs:
           mkdir -p artifacts/content-ingestion
           cp /tmp/portal-api.log artifacts/content-ingestion/api.log 2>/dev/null || true
           cp /tmp/portal-web.log artifacts/content-ingestion/web.log 2>/dev/null || true
+          cp /tmp/migration-029-rerun.log artifacts/content-ingestion/migration-029-rerun.log 2>/dev/null || true
           echo "PROVIDER_CONNECTIVITY_OUTCOME=${{ steps.providers.outcome }}" > artifacts/content-ingestion/status.txt
       - name: Upload evidence
         if: always()

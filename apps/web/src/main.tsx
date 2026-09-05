@@ -8,6 +8,7 @@ import {contentDraftRepository} from './features/site-manager/contentDraftReposi
 import {sitePageRepository} from './features/site-manager/pageRepository'
 import {bootstrapPublishedSiteForms} from './features/site-manager/forms/runtimeClient'
 import {withEditorialSnapshot} from './shared/data/editorialOverlayDataProvider'
+import {createPublicApiDataProvider} from './shared/data/publicApiDataProvider'
 import type {ApplicationDataProvider} from './shared/data/dataProvider'
 import {hasRuntimeDataProvider,setRuntimeDataProvider} from './shared/data/runtimeDataProvider'
 import {scenarioController} from './shared/data/scenarioController'
@@ -57,7 +58,16 @@ async function waitForPublicFonts() {
 async function bootstrapEditorialData(){
   try{
     const snapshot=await loadPublicEditorialSnapshot()
-    if(snapshot&&editorialBaseProvider){editorialBaseProvider=withEditorialSnapshot(editorialBaseProvider,snapshot);applyDevelopmentCmsPreview()}
+    if(!snapshot)return
+    if(editorialBaseProvider){
+      editorialBaseProvider=withEditorialSnapshot(editorialBaseProvider,snapshot)
+      applyDevelopmentCmsPreview()
+      return
+    }
+    if(!demoDataEnabled&&!attributableAdminApiRuntime()){
+      editorialBaseProvider=createPublicApiDataProvider(snapshot)
+      setRuntimeDataProvider(editorialBaseProvider)
+    }
   }catch(error){
     console.warn('[Portal Lander] API editorial indisponível; nenhuma fonte real foi substituída por mock.',error)
   }
@@ -72,7 +82,7 @@ async function mountApp() {
   const root=document.getElementById('root')!
   if(!hasRuntimeDataProvider()&&!attributableAdminApiRuntime()){
     ReactDOM.createRoot(root).render(
-      <React.StrictMode><main role="main" className="runtime-data-unavailable"><h1>Portal Lander</h1><p>Dados operacionais indisponíveis.</p><p>O provider real ainda não foi configurado para este ambiente.</p></main></React.StrictMode>,
+      <React.StrictMode><main role="main" className="runtime-data-unavailable"><h1>Portal Lander</h1><p>Dados operacionais indisponíveis.</p><p>A API pública ou o banco de dados não estão disponíveis para este ambiente.</p></main></React.StrictMode>,
     )
     return
   }

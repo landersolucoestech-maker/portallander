@@ -1,7 +1,8 @@
 import {expect,test} from '@playwright/test'
 
-const webBase=process.env.E2E_WEB_BASE_URL||'http://127.0.0.1:4173'
-const apiBase=process.env.E2E_API_BASE_URL||'http://127.0.0.1:8787'
+const webBase=process.env.E2E_WEB_BASE_URL?.trim()
+const apiBase=process.env.E2E_API_BASE_URL?.trim()
+if(!webBase||!apiBase)throw new Error('Production-data audit requires explicit E2E_WEB_BASE_URL and E2E_API_BASE_URL.')
 const titleA='E2E Editorial Candidate A'
 const titleB='E2E Editorial Candidate B'
 

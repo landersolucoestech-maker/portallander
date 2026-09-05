@@ -60,7 +60,7 @@ jobs:
       PORTAL_ALLOWED_ORIGINS: http://127.0.0.1:4173
       PORTAL_IP_HASH_SECRET: editorial-ingestion-ci-ip-hash-secret
       VITE_PORTAL_API_BASE_URL: http://127.0.0.1:8787
-      E2E_WEB_BASE_URL: http://127.0.0.1:4173
+      E2E_WEB_BASE_URL: http://127.0.0.1:4173/portallander
       E2E_API_BASE_URL: http://127.0.0.1:8787
       YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
     steps:
@@ -118,8 +118,8 @@ jobs:
           NODE_ENV=production VITE_ENABLE_DEMO_DATA='' npm --workspace @portallander/web run preview -- --host 127.0.0.1 --port 4173 >/tmp/portal-web.log 2>&1 & echo $! >/tmp/portal-web.pid
           for attempt in $(seq 1 30); do curl -fsS http://127.0.0.1:8787/health >/dev/null && break; sleep 1; done
           curl -fsS http://127.0.0.1:8787/health
-          for attempt in $(seq 1 30); do curl -fsS http://127.0.0.1:4173/ >/dev/null && break; sleep 1; done
-          curl -fsS http://127.0.0.1:4173/ >/dev/null
+          for attempt in $(seq 1 30); do curl -fsS http://127.0.0.1:4173/portallander/ >/dev/null && break; sleep 1; done
+          curl -fsS http://127.0.0.1:4173/portallander/ >/dev/null
       - name: Browser production-data to API to PostgreSQL curation proof
         run: cd apps/web && npx playwright test e2e/content-ingestion.fullstack.audit.ts --reporter=line
       - name: Prove candidate isolation and draft was not auto-published

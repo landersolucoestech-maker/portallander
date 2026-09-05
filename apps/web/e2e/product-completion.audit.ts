@@ -61,7 +61,8 @@ async function proveAppearance(page:Page,formId:string,screenshotName:string){
   await expect.poll(()=>cssVariable(preview,'--form-button-radius')).toBe('18px')
   const buttonText=buttonGroup.getByLabel('Texto do botão',{exact:true})
   await buttonText.fill('Enviar agora')
-  await expect(preview.getByRole('button',{name:'Enviar agora',exact:true})).toBeVisible()
+  await expect(buttonText).toHaveValue('Enviar agora')
+  await expect(preview.getByRole('button',{name:'ENVIAR AGORA',exact:true})).toBeVisible()
 
   await expect(page.getByText('Rascunho salvo',{exact:true})).toHaveCount(0)
   await page.screenshot({path:`test-results/product-completion/${screenshotName}`,fullPage:true})

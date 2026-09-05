@@ -113,6 +113,7 @@ jobs:
         run: cd apps/web && npx playwright test e2e/content-ingestion.fullstack.audit.ts --reporter=line
       - name: Prove draft was not auto-published
         run: |
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -Atc "select c.status||':'||(c.editorial_content_id is not null)||':'||e.status||':'||e.active||':'||(e.published_at is null) from content_import_candidates c join editorial_contents e on e.id=c.editorial_content_id where c.title='E2E Editorial Candidate'" | grep '^converted:true:draft:false:true$'
           psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -Atc "select status||':'||active||':'||(published_at is null) from editorial_contents where title='E2E Editorial Candidate'" | grep '^draft:false:true$'
       - name: Live free-provider connectivity
         id: providers

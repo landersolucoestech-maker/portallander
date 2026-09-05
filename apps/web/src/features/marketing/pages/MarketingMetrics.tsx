@@ -15,14 +15,15 @@ function metricLabel(metric:MetricValue|undefined,kind:'number'|'percent'|'durat
  return compact(metric.value)
 }
 
-export function MarketingMetrics({state:_state}:{state:MarketingSeed}){
+export function MarketingMetrics({state}:{state:MarketingSeed}){
+ void state
  const [range,setRange]=useState<MarketingMetricsRange>('30d'),[startDate,setStartDate]=useState(''),[endDate,setEndDate]=useState(''),[data,setData]=useState<MarketingMetricsResponse|null>(null),[loading,setLoading]=useState(true),[error,setError]=useState('')
- const load=()=>{if(range==='custom'&&(!startDate||!endDate))return;setLoading(true);setError('');void loadMarketingMetrics({range,startDate,endDate}).then(setData).catch(caught=>{setData(null);setError(caught instanceof Error?caught.message:'Métricas indisponíveis.')}).finally(()=>setLoading(false))}
- useEffect(()=>{if(range==='custom')return;load()},[range])
+ const load=(nextRange:MarketingMetricsRange=range)=>{if(nextRange==='custom'&&(!startDate||!endDate))return;setLoading(true);setError('');void loadMarketingMetrics({range:nextRange,startDate,endDate}).then(setData).catch(caught=>{setData(null);setError(caught instanceof Error?caught.message:'Métricas indisponíveis.')}).finally(()=>setLoading(false))}
+ useEffect(()=>{let active=true;void loadMarketingMetrics({range:'30d'}).then(value=>{if(active)setData(value)}).catch(caught=>{if(active){setData(null);setError(caught instanceof Error?caught.message:'Métricas indisponíveis.')}}).finally(()=>{if(active)setLoading(false)});return()=>{active=false}},[])
  const ga4=data?.ga4,overview=ga4?.overview||{},gaAvailable=ga4?.status==='available'
  return <>
-  <div className="marketing-platform-tabs marketing-platform-tabs-exact" aria-label="Período das métricas">{presets.map(([id,label])=><button type="button" key={id} className={range===id?'active':''} onClick={()=>setRange(id)}><Globe2 size={14}/>{label}</button>)}<button type="button" onClick={load} disabled={loading}><RefreshCw size={14}/>{loading?'Atualizando…':'Atualizar'}</button></div>
-  {range==='custom'&&<div className="marketing-metrics-period"><label>De <input type="date" value={startDate} onChange={event=>setStartDate(event.target.value)}/></label><label>Até <input type="date" value={endDate} onChange={event=>setEndDate(event.target.value)}/></label><button type="button" className="button" onClick={load} disabled={!startDate||!endDate||loading}>Aplicar período</button></div>}
+  <div className="marketing-platform-tabs marketing-platform-tabs-exact" aria-label="Período das métricas">{presets.map(([id,label])=><button type="button" key={id} className={range===id?'active':''} onClick={()=>{setRange(id);if(id!=='custom')load(id)}}><Globe2 size={14}/>{label}</button>)}<button type="button" onClick={()=>load()} disabled={loading}><RefreshCw size={14}/>{loading?'Atualizando…':'Atualizar'}</button></div>
+  {range==='custom'&&<div className="marketing-metrics-period"><label>De <input type="date" value={startDate} onChange={event=>setStartDate(event.target.value)}/></label><label>Até <input type="date" value={endDate} onChange={event=>setEndDate(event.target.value)}/></label><button type="button" className="button" onClick={()=>load('custom')} disabled={!startDate||!endDate||loading}>Aplicar período</button></div>}
   {data&&<div className="marketing-metrics-period"><small>Período real: {data.range.startDate} → {data.range.endDate} · timezone {data.range.timezone}. Atualizado em {new Date(data.generatedAt).toLocaleString('pt-BR')}.</small></div>}
   {error&&<div className="marketing-empty" role="alert"><strong>Métricas indisponíveis</strong><p>{error} Nenhum mock ou número substituto foi utilizado.</p></div>}
   {ga4&&ga4.status!=='available'&&<div className="marketing-empty"><strong>GA4 NÃO CONFIGURADO / INDISPONÍVEL</strong><p>{ga4.message||ga4.reason||'Não existe leitura GA4 válida neste ambiente.'} Métricas editoriais e conversões persistidas continuam independentes.</p></div>}

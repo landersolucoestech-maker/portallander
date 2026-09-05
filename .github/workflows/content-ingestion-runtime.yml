@@ -1,0 +1,122 @@
+name: Editorial Ingestion Runtime Proof
+
+on:
+  push:
+    branches: [dev]
+    paths:
+      - 'apps/api/**'
+      - 'apps/web/src/features/editorial/**'
+      - 'apps/web/src/features/settings/**'
+      - 'apps/web/src/features/site-manager/**'
+      - 'apps/web/e2e/content-ingestion.fullstack.audit.ts'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/content-ingestion-runtime.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: content-ingestion-runtime-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  content-ingestion-runtime:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: portal
+          POSTGRES_PASSWORD: portal
+          POSTGRES_DB: portal_content_ingestion
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U portal -d portal_content_ingestion"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=10
+    env:
+      DATABASE_URL: postgresql://portal:portal@127.0.0.1:5432/portal_content_ingestion
+      NODE_ENV: test
+      PORTAL_ALLOWED_ORIGINS: http://127.0.0.1:4173
+      VITE_PORTAL_API_BASE_URL: http://127.0.0.1:8787
+      E2E_WEB_BASE_URL: http://127.0.0.1:4173
+      E2E_API_BASE_URL: http://127.0.0.1:8787
+      YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install reproducibly
+        run: npm ci
+      - name: Provision Supabase Storage compatibility fixture
+        run: |
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 <<'SQL'
+          create schema if not exists storage;
+          create table if not exists storage.buckets(
+            id text primary key,
+            name text not null,
+            public boolean not null default false,
+            file_size_limit bigint,
+            allowed_mime_types text[]
+          );
+          SQL
+      - name: Apply all migrations
+        run: |
+          set -euo pipefail
+          for migration in $(find apps/api/migrations -maxdepth 1 -type f -name '*.sql' | sort -V); do
+            echo "APPLY ${migration}"
+            psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f "${migration}"
+          done
+      - name: Backend syntax and unit tests
+        run: |
+          npm --workspace @portallander/api run build
+          npm --workspace @portallander/api test
+      - name: PostgreSQL ingestion, deduplication, curation and RBAC proof
+        run: node apps/api/scripts/verify-content-ingestion-runtime.mjs
+      - name: Frontend lint, typecheck, architecture and build
+        run: |
+          npm --workspace @portallander/web run lint
+          npm --workspace @portallander/web run typecheck
+          npm --workspace @portallander/web run check:architecture
+          npm --workspace @portallander/web run build
+      - name: Prepare browser-to-PostgreSQL fixture
+        run: node apps/api/scripts/prepare-content-ingestion-e2e.mjs
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Start API and real production-data frontend
+        run: |
+          PORT=8787 node apps/api/src/index.js >/tmp/portal-api.log 2>&1 & echo $! >/tmp/portal-api.pid
+          npm --workspace @portallander/web run preview -- --host 127.0.0.1 --port 4173 >/tmp/portal-web.log 2>&1 & echo $! >/tmp/portal-web.pid
+          for attempt in $(seq 1 30); do curl -fsS http://127.0.0.1:8787/health >/dev/null && break; sleep 1; done
+          curl -fsS http://127.0.0.1:8787/health
+          for attempt in $(seq 1 30); do curl -fsS http://127.0.0.1:4173/ >/dev/null && break; sleep 1; done
+          curl -fsS http://127.0.0.1:4173/ >/dev/null
+      - name: Browser to API to PostgreSQL curation proof
+        run: cd apps/web && npx playwright test e2e/content-ingestion.fullstack.audit.ts --reporter=line
+      - name: Prove draft was not auto-published
+        run: |
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -Atc "select status||':'||active||':'||(published_at is null) from editorial_contents where title='E2E Editorial Candidate'" | grep '^draft:false:true$'
+      - name: Live free-provider connectivity
+        id: providers
+        continue-on-error: true
+        run: node apps/api/scripts/verify-editorial-provider-connectivity.mjs
+      - name: Capture diagnostics
+        if: always()
+        run: |
+          mkdir -p artifacts/content-ingestion
+          cp /tmp/portal-api.log artifacts/content-ingestion/api.log 2>/dev/null || true
+          cp /tmp/portal-web.log artifacts/content-ingestion/web.log 2>/dev/null || true
+          echo "PROVIDER_CONNECTIVITY_OUTCOME=${{ steps.providers.outcome }}" > artifacts/content-ingestion/status.txt
+      - name: Upload evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: content-ingestion-runtime
+          path: artifacts/content-ingestion
+          if-no-files-found: warn

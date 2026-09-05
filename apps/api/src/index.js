@@ -4,6 +4,7 @@ import {handleAgenticRequest} from './agenticHttp.js'
 import {handleAgendaRequest} from './agendaHttp.js'
 import {handleAnalyticsRequest} from './analyticsHttp.js'
 import {handleChatRequest} from './chatHttp.js'
+import {handleContentIngestionRequest} from './contentIngestionHttp.js'
 import {handleCrmRequest} from './crmHttp.js'
 import {handleFinanceRequest} from './financeHttp.js'
 import {handleIntegrationProviderRequest} from './integrationProviderHttp.js'
@@ -21,6 +22,7 @@ const server=createServer((req,res)=>{
     if(await handleAgendaRequest(req,res))return
     if(await handleAnalyticsRequest(req,res))return
     if(await handleChatRequest(req,res))return
+    if(await handleContentIngestionRequest(req,res))return
     if(await handleCrmRequest(req,res))return
     if(await handleFinanceRequest(req,res))return
     if(await handleIntegrationProviderRequest(req,res))return

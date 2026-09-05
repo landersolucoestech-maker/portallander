@@ -8,6 +8,7 @@ import {editorialReadModel} from '../../editorial/repository'
 import {AdminNotice,AdminShell} from '../../../shared/internal/AdminUi'
 import {TableRowActionMenu} from '../../../shared/internal/TableRowActionMenu'
 import {SITE_MANAGER_NAV} from '../../../shared/internal/adminNavigation'
+import {ImportCandidatesPanel} from '../components/ImportCandidatesPanel'
 import {contentDraftRepository} from '../contentDraftRepository'
 import {sitePageRepository} from '../pageRepository'
 
@@ -103,5 +104,6 @@ export function SiteContentsPage(){
     {error&&<AdminNotice title="Falha na operação" description={error}/>} 
 
     <div className="tableview-surface cms-tableview-surface"><section className="table-card"><table><thead><tr><th>Conteúdo</th><th>Página</th><th>Slug</th><th>Status</th><th>Autor</th><th>Atualização</th><th>Ações</th></tr></thead><tbody>{contents.map(content=><tr key={content.id}><td><div className="table-primary"><span className="table-avatar"><FileText size={15}/></span><div><b>{content.title}</b><small>{content.summary||'Sem resumo'}</small></div></div></td><td>{pageTitle(content.pageId)}</td><td>/{content.slug}</td><td><span className={`status ${content.status}`}>{content.status}</span></td><td>{content.author||'—'}</td><td>{new Date(content.updatedAt).toLocaleDateString('pt-BR')}</td><td><TableRowActionMenu label={content.title} onEdit={()=>navigate(`/app/site/conteudos/${content.id}`)} onView={persisted?()=>void togglePublication(content):undefined} viewLabel={isPublicContent(content)?'Retirar do ar':'Publicar'} onDelete={()=>persisted?void removeRemote(content):removeLocal(content)}/></td></tr>)}</tbody></table></section></div>
+    <ImportCandidatesPanel enabled={persisted}/>
   </AdminShell>
 }

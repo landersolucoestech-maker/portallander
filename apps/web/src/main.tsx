@@ -17,6 +17,7 @@ import {installAutoTablePagination} from './shared/internal/autoTablePagination'
 import './styles/public-styles.css'
 
 const demoDataEnabled=import.meta.env.DEV||import.meta.env.VITE_ENABLE_DEMO_DATA==='true'
+const attributableAdminApiRuntime=()=>!demoDataEnabled&&Boolean(String(import.meta.env.VITE_PORTAL_API_BASE_URL??'').trim())&&window.location.hash.startsWith('#/app')
 let editorialBaseProvider:ApplicationDataProvider|null=null
 
 const applyDevelopmentCmsPreview=()=>{
@@ -69,7 +70,7 @@ async function bootstrapForms(){
 
 async function mountApp() {
   const root=document.getElementById('root')!
-  if(!hasRuntimeDataProvider()){
+  if(!hasRuntimeDataProvider()&&!attributableAdminApiRuntime()){
     ReactDOM.createRoot(root).render(
       <React.StrictMode><main role="main" className="runtime-data-unavailable"><h1>Portal Lander</h1><p>Dados operacionais indisponíveis.</p><p>O provider real ainda não foi configurado para este ambiente.</p></main></React.StrictMode>,
     )

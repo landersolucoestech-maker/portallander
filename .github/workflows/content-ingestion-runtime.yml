@@ -5,9 +5,11 @@ on:
     branches: [dev]
     paths:
       - 'apps/api/**'
+      - 'apps/web/src/main.tsx'
       - 'apps/web/src/features/editorial/**'
       - 'apps/web/src/features/settings/**'
       - 'apps/web/src/features/site-manager/**'
+      - 'apps/web/src/shared/internal/AdminUi.tsx'
       - 'apps/web/e2e/content-ingestion.fullstack.audit.ts'
       - 'package.json'
       - 'package-lock.json'
@@ -16,9 +18,11 @@ on:
     branches: [dev]
     paths:
       - 'apps/api/**'
+      - 'apps/web/src/main.tsx'
       - 'apps/web/src/features/editorial/**'
       - 'apps/web/src/features/settings/**'
       - 'apps/web/src/features/site-manager/**'
+      - 'apps/web/src/shared/internal/AdminUi.tsx'
       - 'apps/web/e2e/content-ingestion.fullstack.audit.ts'
       - 'package.json'
       - 'package-lock.json'
@@ -91,11 +95,18 @@ jobs:
           npm --workspace @portallander/api test
       - name: PostgreSQL ingestion, deduplication, curation and RBAC proof
         run: node apps/api/scripts/verify-content-ingestion-runtime.mjs
-      - name: Frontend lint, typecheck, architecture and build
+      - name: Frontend lint, typecheck and architecture
         run: |
           npm --workspace @portallander/web run lint
           npm --workspace @portallander/web run typecheck
           npm --workspace @portallander/web run check:architecture
+      - name: Build production frontend without demo data
+        env:
+          NODE_ENV: production
+          VITE_ENABLE_DEMO_DATA: ''
+        run: |
+          set -euo pipefail
+          test -z "${VITE_ENABLE_DEMO_DATA:-}"
           npm --workspace @portallander/web run build
       - name: Prepare browser-to-PostgreSQL fixture
         run: node apps/api/scripts/prepare-content-ingestion-e2e.mjs
@@ -104,17 +115,20 @@ jobs:
       - name: Start API and real production-data frontend
         run: |
           PORT=8787 node apps/api/src/index.js >/tmp/portal-api.log 2>&1 & echo $! >/tmp/portal-api.pid
-          npm --workspace @portallander/web run preview -- --host 127.0.0.1 --port 4173 >/tmp/portal-web.log 2>&1 & echo $! >/tmp/portal-web.pid
+          NODE_ENV=production VITE_ENABLE_DEMO_DATA='' npm --workspace @portallander/web run preview -- --host 127.0.0.1 --port 4173 >/tmp/portal-web.log 2>&1 & echo $! >/tmp/portal-web.pid
           for attempt in $(seq 1 30); do curl -fsS http://127.0.0.1:8787/health >/dev/null && break; sleep 1; done
           curl -fsS http://127.0.0.1:8787/health
           for attempt in $(seq 1 30); do curl -fsS http://127.0.0.1:4173/ >/dev/null && break; sleep 1; done
           curl -fsS http://127.0.0.1:4173/ >/dev/null
-      - name: Browser to API to PostgreSQL curation proof
+      - name: Browser production-data to API to PostgreSQL curation proof
         run: cd apps/web && npx playwright test e2e/content-ingestion.fullstack.audit.ts --reporter=line
-      - name: Prove draft was not auto-published
+      - name: Prove candidate isolation and draft was not auto-published
         run: |
-          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -Atc "select c.status||':'||(c.editorial_content_id is not null)||':'||e.status||':'||e.active||':'||(e.published_at is null) from content_import_candidates c join editorial_contents e on e.id=c.editorial_content_id where c.title='E2E Editorial Candidate'" | grep '^converted:true:draft:false:true$'
-          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -Atc "select status||':'||active||':'||(published_at is null) from editorial_contents where title='E2E Editorial Candidate'" | grep '^draft:false:true$'
+          set -euo pipefail
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -Atc "select c.status||':'||(c.editorial_content_id is not null)||':'||e.status||':'||e.active||':'||(e.published_at is null) from content_import_candidates c join editorial_contents e on e.id=c.editorial_content_id where c.title='E2E Editorial Candidate A'" | grep '^converted:true:draft:false:true$'
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -Atc "select status||':'||active||':'||(published_at is null) from editorial_contents where title='E2E Editorial Candidate A'" | grep '^draft:false:true$'
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -Atc "select status||':'||(editorial_content_id is null) from content_import_candidates where title='E2E Editorial Candidate B'" | grep '^approved:true$'
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -Atc "select count(*) from editorial_contents where title='E2E Editorial Candidate B'" | grep '^0$'
       - name: Live free-provider connectivity
         id: providers
         continue-on-error: true

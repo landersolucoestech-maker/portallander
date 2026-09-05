@@ -182,7 +182,8 @@ jobs:
             })
 
             await visit('#/app/marketing/metricas','03-development-marketing-metrics.png',async()=>{
-              await page.getByText('Marketing → Métricas',{exact:true}).waitFor({state:'visible',timeout:15000})
+              await page.getByRole('heading',{name:'Métricas',exact:true}).waitFor({state:'visible',timeout:15000})
+              await page.getByText('Performance de marketing por plataforma',{exact:true}).waitFor({state:'visible',timeout:15000})
               for(const label of ['Hoje','7 dias','30 dias','90 dias'])await page.getByText(label,{exact:true}).first().waitFor({state:'visible',timeout:15000})
             })
 

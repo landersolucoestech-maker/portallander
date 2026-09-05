@@ -1,4 +1,6 @@
+import { listAdminEditorialContents,listAdminEditorialPages } from '../editorial/adminClient'
 import { editorialReadModel } from '../editorial/repository'
+import type { EditorialContent,EditorialPage } from '../editorial/model'
 import type { EditorialActivity, PortalDashboard, PortalDashboardItem } from './types'
 
 const toItem=(content:(typeof editorialReadModel.contents)[number]):PortalDashboardItem=>{
@@ -17,6 +19,16 @@ const toItem=(content:(typeof editorialReadModel.contents)[number]):PortalDashbo
     updatedAt:content.updatedAt,
   }
 }
+
+const toAdminActivity=(content:EditorialContent,pages:EditorialPage[]):EditorialActivity=>({
+  id:`${content.id}:${content.publishedAt?'published':'updated'}`,
+  action:content.publishedAt?'published':'updated',
+  title:content.title,
+  category:content.tags[0]??'Sem categoria',
+  occurred_at:content.publishedAt??content.updatedAt,
+  pageSlug:pages.find(page=>page.id===content.pageId)?.slug??'',
+  slug:content.slug,
+})
 
 function sameMonth(raw:string|undefined,now:Date){
   if(!raw)return false
@@ -56,5 +68,12 @@ export const dashboardApi={
         pageSlug:editorialReadModel.getPageById(content.pageId)?.slug??'',
         slug:content.slug,
       }))
+  },
+  async getAdminActivity(limit:number):Promise<EditorialActivity[]>{
+    const [contents,pages]=await Promise.all([listAdminEditorialContents(),listAdminEditorialPages()])
+    return [...contents]
+      .sort((a,b)=>(b.publishedAt??b.updatedAt).localeCompare(a.publishedAt??a.updatedAt))
+      .slice(0,limit)
+      .map(content=>toAdminActivity(content,pages))
   },
 }

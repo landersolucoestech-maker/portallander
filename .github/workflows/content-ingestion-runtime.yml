@@ -95,6 +95,8 @@ jobs:
           npm --workspace @portallander/api test
       - name: PostgreSQL ingestion, deduplication, curation and RBAC proof
         run: node apps/api/scripts/verify-content-ingestion-runtime.mjs
+      - name: Real RSS source to PostgreSQL candidate proof
+        run: node apps/api/scripts/verify-real-editorial-source-sync.mjs
       - name: Frontend lint, typecheck and architecture
         run: |
           npm --workspace @portallander/web run lint

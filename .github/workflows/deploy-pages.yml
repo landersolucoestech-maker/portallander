@@ -152,14 +152,25 @@ jobs:
             const url=`${base}${hash}`
             const response=await page.goto(url,{waitUntil:'domcontentloaded'})
             if(!response?.ok())throw new Error(`HTTP ${response?.status()??'NO_RESPONSE'} for ${url}`)
-            await verify()
-            await page.screenshot({path:`test-results/deployed/${fileName}`,fullPage:true})
-            console.log(`DEPLOY_BROWSER_PASS ${url}`)
+            console.log(`DEPLOY_HTTP ${response.status()} ${url}`)
+            console.log(`DEPLOY_CURRENT_URL ${page.url()}`)
+            console.log(`DEPLOY_TITLE ${JSON.stringify(await page.title())}`)
+            try{
+              await verify()
+              await page.screenshot({path:`test-results/deployed/${fileName}`,fullPage:true})
+              console.log(`DEPLOY_BROWSER_PASS ${url}`)
+            }catch(error){
+              const body=(await page.locator('body').innerText()).slice(0,5000)
+              console.log(`DEPLOY_BODY ${JSON.stringify(body)}`)
+              await page.screenshot({path:`test-results/deployed/diagnostic-${fileName}`,fullPage:true})
+              throw error
+            }
           }
 
           try{
             await visit('','01-development-home.png',async()=>{
-              await page.getByText('O QUE ESTÁ PEGANDO AGORA.',{exact:false}).waitFor({state:'visible',timeout:15000})
+              await page.locator('main[aria-label="Seções da Página Inicial"]').waitFor({state:'visible',timeout:15000})
+              await page.getByRole('region',{name:'Em Destaque'}).waitFor({state:'visible',timeout:15000})
               const body=await page.locator('body').innerText()
               if(body.includes('Dados operacionais indisponíveis.'))throw new Error('Development Pages rendered the production fail-closed screen.')
             })

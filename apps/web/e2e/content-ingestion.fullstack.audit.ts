@@ -9,8 +9,19 @@ test('browser production-data isola destino por candidato e converte somente A e
   const request=page.context().request
   const mockRequests:string[]=[]
   page.on('request',requestEvent=>{const url=requestEvent.url();if(/mockDataProvider|mockSeedLifecycle|\/mocks[-./]/i.test(url))mockRequests.push(url)})
-  const login=await request.post(`${apiBase}/api/auth/login`,{data:{email:'e2e-content-ingestion@example.com',password:'E2EContent!123'}})
-  expect(login.ok()).toBeTruthy()
+
+  await page.goto(`${webBase}/#/app/login`)
+  await expect(page.getByRole('heading',{name:'Entrar na área interna'})).toBeVisible()
+  await page.getByLabel('E-mail').fill('e2e-content-ingestion@example.com')
+  await page.getByLabel('Senha').fill('E2EContent!123')
+  const loginResponse=page.waitForResponse(response=>response.url()===`${apiBase}/api/auth/login`&&response.request().method()==='POST')
+  await page.getByRole('button',{name:'Entrar'}).click()
+  expect((await loginResponse).ok()).toBeTruthy()
+  await expect(page).toHaveURL(/#\/app\/dashboard$/)
+  const session=await request.get(`${apiBase}/api/auth/session`)
+  expect(session.ok()).toBeTruthy()
+  expect(await session.json()).toMatchObject({authenticated:true,user:{role:'owner'}})
+
   await page.goto(`${webBase}/#/app/site/conteudos`)
   await expect(page.getByText('Persistência editorial conectada',{exact:true})).toBeVisible()
   await expect(page.getByText(titleA,{exact:true})).toBeVisible()

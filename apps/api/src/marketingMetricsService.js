@@ -5,7 +5,7 @@ import {googleAnalyticsConfig,googleAnalyticsProvider,normalizeGa4ReportRange} f
 const CACHE_TTL_MS=60_000
 const cache=new Map()
 const clean=value=>String(value??'').trim()
-const number=value=>{const parsed=Number(value);return Number.isFinite(parsed)?parsed:null}
+const number=value=>{if(value===null||value===undefined||value==='')return null;const parsed=Number(value);return Number.isFinite(parsed)?parsed:null}
 const dateText=date=>date.toISOString().slice(0,10)
 
 function todayInTimezone(timeZone){
@@ -32,6 +32,7 @@ function metricValue(report,index){return number(metricRow(report)?.[index]?.val
 function dimensionValue(row,index){return clean(row?.dimensionValues?.[index]?.value)}
 function reportMetricValue(row,index){return number(row?.metricValues?.[index]?.value)}
 function statusFor(value){return value===null?'empty':'available'}
+function reportingMetric(row,index){const value=row?reportMetricValue(row,index):null;return {value,status:statusFor(value)}}
 
 async function loadGa4(range,{provider=googleAnalyticsProvider,env=process.env}={}){
   const config=googleAnalyticsConfig(env)
@@ -42,18 +43,14 @@ async function loadGa4(range,{provider=googleAnalyticsProvider,env=process.env}=
   const overviewResult=settled[0]
   if(overviewResult.status==='rejected')return {status:'error',reason:overviewResult.reason?.code||'GA4_REQUEST_FAILED',message:overviewResult.reason instanceof Error?overviewResult.reason.message:'Falha ao consultar GA4.',overview:{},acquisition:[],pages:[],returningUsers:null}
   const report=overviewResult.value
-  const values={
-    users:metricValue(report,0),newUsers:metricValue(report,1),sessions:metricValue(report,2),pageviews:metricValue(report,3),pageviewsPerUser:metricValue(report,4),engagementRate:metricValue(report,5),averageSessionDuration:metricValue(report,6),
-  }
+  const values={users:metricValue(report,0),newUsers:metricValue(report,1),sessions:metricValue(report,2),pageviews:metricValue(report,3),pageviewsPerUser:metricValue(report,4),engagementRate:metricValue(report,5),averageSessionDuration:metricValue(report,6)}
   const returning=settled[3].status==='fulfilled'?settled[3].value.rows.find(row=>dimensionValue(row,0).toLowerCase()==='returning'):null
   const acquisition=settled[1].status==='fulfilled'?settled[1].value.rows.map(row=>({channel:dimensionValue(row,0)||'Unassigned',sessions:reportMetricValue(row,0),users:reportMetricValue(row,1)})):[]
   const pages=settled[2].status==='fulfilled'?settled[2].value.rows.map(row=>({path:dimensionValue(row,0),title:dimensionValue(row,1),pageviews:reportMetricValue(row,0),users:reportMetricValue(row,1)})):[]
   return {status:'available',provider:'google-analytics',propertyId:config.propertyId,overview:Object.fromEntries(Object.entries(values).map(([key,value])=>[key,{value,status:statusFor(value)}])),acquisition,pages,returningUsers:reportingMetric(returning,0),partial:{acquisition:settled[1].status==='rejected',content:settled[2].status==='rejected',returning:settled[3].status==='rejected'}}
 }
-function reportingMetric(row,index){const value=row?reportMetricValue(row,index):null;return {value,status:statusFor(value)}}
 
-async function loadEditorial(range){
-  const pool=getPool()
+async function loadEditorial(range,pool){
   const [countsResult,periodResult,latestResult]=await Promise.all([
     pool.query(`select status,count(*)::int as count from editorial_contents group by status`),
     pool.query(`select count(*)::int as count from editorial_contents where status='published' and active=true and published_at >= $1::date and published_at < ($2::date + interval '1 day')`,[range.startDate,range.endDate]),
@@ -63,16 +60,16 @@ async function loadEditorial(range){
   return {status:'available',counts:{published:counts.published||0,drafts:counts.draft||0,archived:counts.archived||0,publishedInPeriod:Number(periodResult.rows[0]?.count)||0},latest:latestResult.rows.map(row=>({id:row.id,title:row.title,slug:row.slug,pageSlug:row.page_slug,pageTitle:row.page_title,publishedAt:row.published_at?.toISOString?.()??row.published_at??null}))}
 }
 
-async function loadConversions(range){
-  const {rows}=await getPool().query(`select f.slug,f.name,f.purpose,count(*)::int as count from form_submissions s join site_forms f on f.id=s.form_id where s.processing_status='accepted' and s.submitted_at >= $1::date and s.submitted_at < ($2::date + interval '1 day') group by f.slug,f.name,f.purpose order by count desc,f.name`,[range.startDate,range.endDate])
+async function loadConversions(range,pool){
+  const {rows}=await pool.query(`select f.slug,f.name,f.purpose,count(*)::int as count from form_submissions s join site_forms f on f.id=s.form_id where s.processing_status='accepted' and s.submitted_at >= $1::date and s.submitted_at < ($2::date + interval '1 day') group by f.slug,f.name,f.purpose order by count desc,f.name`,[range.startDate,range.endDate])
   return {status:'available',total:rows.reduce((sum,row)=>sum+Number(row.count),0),forms:rows.map(row=>({slug:row.slug,name:row.name,purpose:row.purpose,count:Number(row.count)}))}
 }
 
-export function createMarketingMetricsService({ga4Provider=googleAnalyticsProvider,env=process.env,cacheStore=cache}={}){
+export function createMarketingMetricsService({ga4Provider=googleAnalyticsProvider,env=process.env,cacheStore=cache,pool=getPool()}={}){
   return {async overview(input={}){
     const range=resolveMarketingMetricsRange(input,env),key=`${range.startDate}:${range.endDate}`,cached=cacheStore.get(key)
     if(cached&&Date.now()-cached.createdAt<CACHE_TTL_MS)return cached.value
-    const [ga4,editorial,conversions]=await Promise.all([loadGa4(range,{provider:ga4Provider,env}),loadEditorial(range),loadConversions(range)])
+    const [ga4,editorial,conversions]=await Promise.all([loadGa4(range,{provider:ga4Provider,env}),loadEditorial(range,pool),loadConversions(range,pool)])
     const value={range,ga4,editorial,conversions,generatedAt:new Date().toISOString()}
     cacheStore.set(key,{createdAt:Date.now(),value})
     return value

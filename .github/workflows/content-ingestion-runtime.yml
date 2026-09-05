@@ -54,6 +54,7 @@ jobs:
       DATABASE_URL: postgresql://portal:portal@127.0.0.1:5432/portal_content_ingestion
       NODE_ENV: test
       PORTAL_ALLOWED_ORIGINS: http://127.0.0.1:4173
+      PORTAL_IP_HASH_SECRET: editorial-ingestion-ci-ip-hash-secret
       VITE_PORTAL_API_BASE_URL: http://127.0.0.1:8787
       E2E_WEB_BASE_URL: http://127.0.0.1:4173
       E2E_API_BASE_URL: http://127.0.0.1:8787

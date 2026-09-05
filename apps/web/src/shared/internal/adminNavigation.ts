@@ -1,4 +1,4 @@
-import {BarChart3,BookOpen,CalendarDays,ClipboardList,ContactRound,FileText,Images,Landmark,Layers3,LayoutDashboard,ListChecks,MessageCircle,Megaphone,Newspaper,ReceiptText,Settings,Sparkles,UsersRound} from 'lucide-react'
+import {BarChart3,BookOpen,CalendarDays,ClipboardList,ContactRound,FileText,Globe2,Images,Landmark,Layers3,LayoutDashboard,ListChecks,MessageCircle,Megaphone,Newspaper,ReceiptText,Settings,Sparkles,UsersRound} from 'lucide-react'
 import type {AdminNavItem} from './AdminUi'
 
 export const UNIFIED_ADMIN_NAV:readonly AdminNavItem[]=[
@@ -14,6 +14,7 @@ export const UNIFIED_ADMIN_NAV:readonly AdminNavItem[]=[
   ['RH',UsersRound,'/app/rh'],
   {label:'Site',icon:Layers3,to:'/app/site',children:[
     ['Conteúdos',FileText,'/app/site/conteudos'],
+    ['Candidatos editoriais',Sparkles,'/app/site/conteudos/importados'],
     ['Mídias',Images,'/app/site/midia'],
     ['Páginas',Layers3,'/app/site/paginas'],
     ['Formulários',ClipboardList,'/app/site/formularios'],
@@ -28,7 +29,10 @@ export const UNIFIED_ADMIN_NAV:readonly AdminNavItem[]=[
     ['Briefings',ClipboardList,'/app/marketing/briefings'],
     ['IA Criativa',Sparkles,'/app/marketing/ia-criativa'],
   ]},
-  ['Configurações',Settings,'/app/settings'],
+  {label:'Configurações',icon:Settings,to:'/app/settings',children:[
+    ['Configurações',Settings,'/app/settings'],
+    ['Fontes editoriais',Globe2,'/app/settings/integracoes/editoriais'],
+  ]},
 ]
 
 export const SITE_MANAGER_NAV=UNIFIED_ADMIN_NAV

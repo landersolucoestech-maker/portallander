@@ -16,6 +16,7 @@ const RHPage=lazy(()=>import('../features/rh/RHPage'))
 const MarketingPage=lazy(()=>import('../features/marketing/MarketingPage'))
 const ReportsPage=lazy(()=>import('../features/reports/ReportsPage'))
 const SettingsPage=lazy(()=>import('../features/settings/SettingsPage'))
+const EditorialSourcesPage=lazy(()=>import('../features/settings/EditorialSourcesPage'))
 const FinanceMainPage=lazy(()=>import('../features/finance/FinanceMainPage'))
 const FinanceInvoicesPage=lazy(()=>import('../features/finance/FinanceInvoicesPage'))
 const FinanceAccountingPage=lazy(()=>import('../features/finance/FinanceAccountingPage'))
@@ -52,6 +53,7 @@ function InternalRoutes(){return <Suspense fallback={null}><Routes>
   <Route path="/app/marketing/*" element={protectedRoute(<MarketingPage/>)}/>
   <Route path="/app/reports" element={protectedRoute(<ReportsPage/>)}/>
   <Route path="/app/relatorios" element={<Navigate to="/app/reports" replace/>}/>
+  <Route path="/app/settings/integracoes/editoriais" element={protectedRoute(<EditorialSourcesPage/>)}/>
   <Route path="/app/settings" element={protectedRoute(<SettingsPage/>)}/>
   <Route path="/app/configuracoes" element={<Navigate to="/app/settings" replace/>}/>
   <Route path="/app/finance" element={protectedRoute(<FinanceMainPage/>)}/>

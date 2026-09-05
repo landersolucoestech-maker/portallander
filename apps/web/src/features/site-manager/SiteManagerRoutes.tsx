@@ -15,6 +15,7 @@ const SectionConfigurationPage=lazy(()=>import('./pages/SectionConfigurationPage
 const SiteCollaborationsPage=lazy(()=>import('./pages/SiteCollaborationsPage').then(module=>({default:module.SiteCollaborationsPage})))
 const SiteContentEditorPage=lazy(()=>import('./pages/SiteContentEditorPage').then(module=>({default:module.SiteContentEditorPage})))
 const SiteContentsPage=lazy(()=>import('./pages/SiteContentsPage').then(module=>({default:module.SiteContentsPage})))
+const ImportCandidatesPage=lazy(()=>import('./pages/ImportCandidatesPage'))
 const SiteFormEditorPage=lazy(()=>import('./pages/SiteFormEditorPage').then(module=>({default:module.SiteFormEditorPage})))
 const SiteFormsPage=lazy(()=>import('./pages/SiteFormsPage').then(module=>({default:module.SiteFormsPage})))
 const SiteManagerDashboardPage=lazy(()=>import('./pages/SiteManagerDashboardPage').then(module=>({default:module.SiteManagerDashboardPage})))
@@ -53,6 +54,7 @@ export default function SiteManagerRoutes(){
     <Route path="configuracoes" element={<Navigate to="/app/settings" replace/>}/>
     <Route path="conteudos" element={<SiteContentsPage/>}/>
     <Route path="conteudos/colaboracoes" element={<SiteCollaborationsPage/>}/>
+    <Route path="conteudos/importados" element={<ImportCandidatesPage/>}/>
     <Route path="conteudos/:contentId" element={<SiteContentEditorPage/>}/>
     <Route path="formularios" element={<SiteFormsPage/>}/>
     <Route path="formularios/:formId" element={<SiteFormEditorPage/>}/>

@@ -1,0 +1,24 @@
+import {useEffect,useState} from 'react'
+import {Plus,RefreshCw,Save} from 'lucide-react'
+import {AdminNotice,AdminShell} from '../../shared/internal/AdminUi'
+import {UNIFIED_ADMIN_NAV} from '../../shared/internal/adminNavigation'
+import {createIntegrationSource,listIntegrationSources,syncIntegrationSource,updateIntegrationSource,type IntegrationSource} from '../editorial/editorialIngestionClient'
+import './settings.css'
+
+type Draft={name:string;feedUrl:string;category:string;country:string;language:string}
+const emptyDraft:Draft={name:'',feedUrl:'',category:'Mercado Musical',country:'BR',language:'pt'}
+
+export default function EditorialSourcesPage(){
+ const [sources,setSources]=useState<IntegrationSource[]>([]),[loading,setLoading]=useState(true),[error,setError]=useState(''),[draft,setDraft]=useState<Draft>(emptyDraft),[saving,setSaving]=useState('')
+ const load=async()=>{setLoading(true);setError('');try{setSources(await listIntegrationSources())}catch(e){setError(e instanceof Error?e.message:'Não foi possível carregar as fontes.')}finally{setLoading(false)}}
+ useEffect(()=>{void load()},[])
+ const patch=async(source:IntegrationSource,input:Partial<IntegrationSource>)=>{setSaving(source.id);setError('');try{await updateIntegrationSource(source.id,input);await load()}catch(e){setError(e instanceof Error?e.message:'Não foi possível atualizar a fonte.')}finally{setSaving('')}}
+ const sync=async(source:IntegrationSource)=>{setSaving(source.id);setError('');try{await syncIntegrationSource(source.id);await load()}catch(e){setError(e instanceof Error?e.message:'Não foi possível sincronizar a fonte.')}finally{setSaving('')}}
+ const create=async()=>{setSaving('new');setError('');try{await createIntegrationSource({provider:'rss',sourceType:'news',...draft,enabled:false,syncFrequencyMinutes:60});setDraft(emptyDraft);await load()}catch(e){setError(e instanceof Error?e.message:'Não foi possível cadastrar o feed.')}finally{setSaving('')}}
+ return <AdminShell area="settings" items={UNIFIED_ADMIN_NAV} header={{title:'Fontes editoriais',description:'Configure fontes externas de descoberta sem publicar conteúdo automaticamente.'}}>
+  {loading&&<AdminNotice title="Carregando integrações" description="Consultando as fontes editoriais persistidas na API."/>}
+  {error&&<AdminNotice title="Falha na operação" description={error}/>} 
+  <section className="settings-card"><header><div><h2>Adicionar RSS / Atom</h2><p>O feed nasce desabilitado. A URL é validada no backend antes de qualquer fetch.</p></div></header><div className="settings-card-body"><div className="settings-grid"><label className="settings-field"><span>Nome</span><input value={draft.name} onChange={e=>setDraft({...draft,name:e.target.value})}/></label><label className="settings-field"><span>Feed URL</span><input value={draft.feedUrl} onChange={e=>setDraft({...draft,feedUrl:e.target.value})} placeholder="https://exemplo.com/feed.xml"/></label><label className="settings-field"><span>Categoria</span><input value={draft.category} onChange={e=>setDraft({...draft,category:e.target.value})}/></label><label className="settings-field"><span>País</span><input value={draft.country} onChange={e=>setDraft({...draft,country:e.target.value})}/></label><label className="settings-field"><span>Idioma</span><input value={draft.language} onChange={e=>setDraft({...draft,language:e.target.value})}/></label></div><div className="settings-actions"><button className="settings-primary" type="button" onClick={()=>void create()} disabled={!draft.name||!draft.feedUrl||saving==='new'}><Plus size={14}/>Cadastrar fonte</button></div></div></section>
+  <section className="settings-card"><header><div><h2>Fontes configuradas</h2><p>GDELT, YouTube, RSS/Atom e fontes oficiais usam o mesmo pipeline de candidatos.</p></div></header><div className="settings-card-body"><div className="settings-integration-list">{sources.map(source=><article key={source.id}><div className="settings-integration-logo">{source.provider==='youtube'?'YT':source.provider==='gdelt'?'GD':'FEED'}</div><div className="settings-integration-copy"><strong>{source.name}</strong><p>{source.provider} • {source.category||'Sem categoria'} • {source.lastStatus}{source.lastError?` • ${source.lastError}`:''}</p><small>Último sync: {source.lastSyncAt?new Date(source.lastSyncAt).toLocaleString('pt-BR'):'—'} • novos {source.lastImportedCount} • duplicados {source.lastDuplicateCount}</small></div><button type="button" className="settings-outline" disabled={saving===source.id} onClick={()=>void patch(source,{enabled:!source.enabled})}><Save size={13}/>{source.enabled?'Desabilitar':'Habilitar'}</button><button type="button" className="settings-outline" disabled={!source.enabled||saving===source.id} onClick={()=>void sync(source)}><RefreshCw size={13}/>Sincronizar</button></article>)}</div></div></section>
+ </AdminShell>
+}

@@ -14,7 +14,10 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "jsx": "react-jsx"
+    "jsx": "react-jsx",
+    "paths": {
+      "@portallander/mockup": ["../../packages/mockup/src/index.ts"]
+    }
   },
-  "include": ["src"]
+  "include": ["src", "../../packages/mockup/src"]
 }

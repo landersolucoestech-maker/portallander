@@ -54,11 +54,27 @@ jobs:
       - name: Install monorepo
         run: npm ci
       - name: Production build without demo data
+        env:
+          VITE_ENABLE_DEMO_DATA: ''
+          VITE_MOCKUP_SCENARIO: ''
         run: npm run build
+      - name: Prove production mockup runtime references are zero
+        run: |
+          if grep -R -E "mockup/full|mockup:source:|mockup:candidate:" apps/web/dist >/tmp/mockup-production-hits.txt; then
+            cat /tmp/mockup-production-hits.txt
+            echo "PRODUCTION MOCKUP REFERENCES != 0"
+            exit 1
+          fi
+          echo "PRODUCTION MOCKUP REFERENCES = 0"
       - name: Build Pages development demo
         env:
           VITE_ENABLE_DEMO_DATA: 'true'
+          VITE_MOCKUP_SCENARIO: 'full'
         run: npm run build
+      - name: Prove full mockup is present in development artifact
+        run: |
+          grep -R "mockup:source:mbw" apps/web/dist >/dev/null
+          echo "DEVELOPMENT MOCKUP SCENARIO = full"
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
@@ -79,6 +95,7 @@ jobs:
       - name: Build explicit browser demo fixture
         env:
           VITE_ENABLE_DEMO_DATA: 'true'
+          VITE_MOCKUP_SCENARIO: 'full'
         run: npm run build
       - name: Install Chromium
         working-directory: apps/web
@@ -154,8 +171,6 @@ jobs:
             if(response && !response.ok())throw new Error(`HTTP ${response.status()} for ${url}`)
             if(response)console.log(`DEPLOY_HTTP ${response.status()} ${url}`)
             else console.log(`DEPLOY_HTTP SAME_DOCUMENT ${url}`)
-            console.log(`DEPLOY_CURRENT_URL ${page.url()}`)
-            console.log(`DEPLOY_TITLE ${JSON.stringify(await page.title())}`)
             try{
               await verify()
               await page.screenshot({path:`test-results/deployed/${fileName}`,fullPage:true})
@@ -175,39 +190,40 @@ jobs:
               const body=await page.locator('body').innerText()
               if(body.includes('Dados operacionais indisponíveis.'))throw new Error('Development Pages rendered the production fail-closed screen.')
             })
-
-            await visit('#/app/login','02-development-admin.png',async()=>{
+            await visit('#/app/login','02-development-dashboard.png',async()=>{
               await page.waitForURL(/#\/app\/dashboard/, {timeout:15000})
               await page.getByText('Dashboard',{exact:true}).first().waitFor({state:'visible',timeout:15000})
             })
-
-            await visit('#/app/marketing/metricas','03-development-marketing-metrics.png',async()=>{
-              await page.getByRole('heading',{name:'Métricas',exact:true}).waitFor({state:'visible',timeout:15000})
-              await page.getByText('Performance de marketing por plataforma',{exact:true}).waitFor({state:'visible',timeout:15000})
-              for(const label of ['Hoje','7 dias','30 dias','90 dias'])await page.getByText(label,{exact:true}).first().waitFor({state:'visible',timeout:15000})
+            await visit('#/app/marketing/metricas','09-marketing-metrics-restored.png',async()=>{
+              await page.getByText('Visão Geral',{exact:true}).first().waitFor({state:'visible',timeout:15000})
+              for(const label of ['Alcance','Impressões','Cliques','Engajamento','Conversões','Seguidores'])await page.getByText(label,{exact:true}).first().waitFor({state:'visible',timeout:15000})
+              await page.getByText('Top Conteúdos',{exact:true}).waitFor({state:'visible',timeout:15000})
+              const body=await page.locator('body').innerText()
+              if(body.includes('Métricas indisponíveis'))throw new Error('Original Metrics module did not receive development data.')
             })
-
-            await visit('#/app/settings','04-development-integrations.png',async()=>{
+            await visit('#/app/settings','11-integrations-with-mockup-data.png',async()=>{
               await page.getByRole('tab',{name:'Integrações',exact:true}).click()
               await page.getByRole('heading',{name:'Descoberta editorial',exact:true}).waitFor({state:'visible',timeout:15000})
-              await page.getByRole('heading',{name:'Fontes configuradas',exact:true}).waitFor({state:'visible',timeout:15000})
               const body=await page.locator('body').innerText()
-              for(const source of ['Music Business Worldwide','Billboard','Billboard Brasil','GDELT','YouTube','ECAD','Pro-Música Brasil','UBC','ABRAMUS','IFPI']){
-                console.log(`DEPLOY_SOURCE_VISIBLE ${source}=${body.includes(source)}`)
-              }
-              const alert=page.getByRole('alert')
-              if(await alert.count())console.log(`DEPLOY_INTEGRATION_STATE ${JSON.stringify(await alert.first().innerText())}`)
+              for(const source of ['Music Business Worldwide','Billboard','Billboard Brasil','GDELT','YouTube','ECAD','Pro-Música Brasil','UBC','ABRAMUS','IFPI'])if(!body.includes(source))throw new Error(`Mockup source not visible: ${source}`)
+              if(body.includes('Falha HTTP 404'))throw new Error('Editorial integrations still depend on unavailable Pages API.')
             })
-
-            await visit('#/app/site/conteudos','05-development-content-candidates.png',async()=>{
+            await visit('#/app/site/conteudos','14-candidates.png',async()=>{
               await page.getByText('Candidatos editoriais',{exact:false}).first().waitFor({state:'visible',timeout:15000})
+              await page.getByText('Candidate A',{exact:false}).first().waitFor({state:'visible',timeout:15000})
+              await page.getByText('Candidate B',{exact:false}).first().waitFor({state:'visible',timeout:15000})
             })
-
+            await visit('#/app/site/midia-kit','18-media-kit.png',async()=>{
+              await page.getByText('Mídia Kit',{exact:true}).first().waitFor({state:'visible',timeout:15000})
+              await page.getByText('Alcance',{exact:true}).first().waitFor({state:'visible',timeout:15000})
+            })
+            await visit('#/app/site/midia-kit/preview','19-media-kit-preview.png',async()=>{
+              await page.getByLabel('Preview do Mídia Kit').waitFor({state:'visible',timeout:15000})
+              await page.getByText('NOSSA AUDIÊNCIA',{exact:true}).waitFor({state:'visible',timeout:15000})
+            })
             if(pageErrors.length)throw new Error(`Browser page errors: ${pageErrors.join(' | ')}`)
             console.log(`DEVELOPMENT_DEPLOY_URL ${base}`)
-          }finally{
-            await browser.close()
-          }
+          }finally{await browser.close()}
           NODE
       - name: Upload deployed browser evidence
         if: always()

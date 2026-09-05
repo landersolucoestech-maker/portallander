@@ -1,0 +1,48 @@
+export type MockupScenarioName='full'|'empty'|'errors'
+
+const metric=(id:string,metricKey:string,value:number,provider:string,scopeId='portal')=>({
+ id,metricKey,value,unit:'count',provider,providerAccountId:null,providerPropertyId:null,scopeType:'portal',scopeId,
+ periodStart:'2026-08-01T00:00:00.000Z',periodEnd:'2026-09-01T00:00:00.000Z',granularity:'month',timezone:'America/Sao_Paulo',dimensions:{},filters:{},
+ sourceType:'provider' as const,sourceReference:`mockup/full:${provider}:${metricKey}`,collectedAt:'2026-09-01T12:00:00.000Z',providerUpdatedAt:'2026-09-01T11:55:00.000Z',normalizedAt:'2026-09-01T12:00:00.000Z',freshnessStatus:'FRESH' as const,dataStatus:'CACHED' as const,syncId:'mockup:analytics:2026-08',provenance:{environment:'development',scenario:'full'},isEstimated:false,isManual:false,
+})
+
+const previousMetric=(row:ReturnType<typeof metric>)=>({...row,id:`${row.id}:prev`,value:Math.round(row.value*0.88),periodStart:'2026-07-01T00:00:00.000Z',periodEnd:'2026-08-01T00:00:00.000Z',sourceReference:`${row.sourceReference}:previous`})
+const currentMetrics=[
+ metric('mockup:analytics:instagram:reach','reach',268000,'Instagram'),metric('mockup:analytics:instagram:impressions','impressions',415000,'Instagram'),metric('mockup:analytics:instagram:clicks','clicks',12600,'Instagram'),metric('mockup:analytics:instagram:engagement','engagement',28400,'Instagram'),metric('mockup:analytics:instagram:conversions','conversions',2150,'Instagram'),metric('mockup:analytics:instagram:followers','followers',48200,'Instagram'),metric('mockup:analytics:instagram:spend','spend',3900,'Instagram'),
+ metric('mockup:analytics:tiktok:reach','reach',312000,'TikTok'),metric('mockup:analytics:tiktok:impressions','impressions',522000,'TikTok'),metric('mockup:analytics:tiktok:clicks','clicks',15200,'TikTok'),metric('mockup:analytics:tiktok:engagement','engagement',51700,'TikTok'),metric('mockup:analytics:tiktok:conversions','conversions',1730,'TikTok'),metric('mockup:analytics:tiktok:followers','followers',39600,'TikTok'),metric('mockup:analytics:tiktok:spend','spend',2800,'TikTok'),
+ metric('mockup:analytics:youtube:reach','reach',189000,'YouTube'),metric('mockup:analytics:youtube:impressions','impressions',344000,'YouTube'),metric('mockup:analytics:youtube:clicks','clicks',7400,'YouTube'),metric('mockup:analytics:youtube:engagement','engagement',16100,'YouTube'),metric('mockup:analytics:youtube:conversions','conversions',1040,'YouTube'),metric('mockup:analytics:youtube:followers','followers',22100,'YouTube'),metric('mockup:analytics:youtube:spend','spend',2100,'YouTube'),
+]
+const analyticsMetrics=[...currentMetrics,...currentMetrics.map(previousMetric)]
+
+const sources=[
+ {id:'mockup:source:mbw',sourceKey:'music-business-worldwide',provider:'rss' as const,name:'Music Business Worldwide',sourceType:'news',category:'Mercado Musical',country:'GB',language:'en',url:'https://www.musicbusinessworldwide.com/',feedUrl:'https://www.musicbusinessworldwide.com/feed/',enabled:true,configuration:{catalogStatus:'confirmed'},syncFrequencyMinutes:60,lastSyncAt:'2026-09-05T18:00:00.000Z',nextSyncAt:'2026-09-05T19:00:00.000Z',lastStatus:'success',lastImportedCount:8,lastError:'',createdAt:'2026-08-20T12:00:00.000Z',updatedAt:'2026-09-05T18:00:00.000Z'},
+ {id:'mockup:source:billboard',sourceKey:'billboard',provider:'official_source' as const,name:'Billboard',sourceType:'news',category:'Mercado Musical',country:'US',language:'en',url:'https://www.billboard.com/',feedUrl:'',enabled:false,configuration:{catalogStatus:'requires_official_confirmation'},syncFrequencyMinutes:120,lastSyncAt:null,nextSyncAt:null,lastStatus:'disabled',lastImportedCount:0,lastError:'',createdAt:'2026-08-20T12:00:00.000Z',updatedAt:'2026-09-05T18:00:00.000Z'},
+ {id:'mockup:source:billboard-brasil',sourceKey:'billboard-brasil',provider:'official_source' as const,name:'Billboard Brasil',sourceType:'news',category:'Mercado Musical',country:'BR',language:'pt-BR',url:'https://billboard.com.br/',feedUrl:'',enabled:false,configuration:{catalogStatus:'requires_configuration'},syncFrequencyMinutes:120,lastSyncAt:null,nextSyncAt:null,lastStatus:'disabled',lastImportedCount:0,lastError:'',createdAt:'2026-08-20T12:00:00.000Z',updatedAt:'2026-09-05T18:00:00.000Z'},
+ {id:'mockup:source:gdelt',sourceKey:'gdelt',provider:'gdelt' as const,name:'GDELT',sourceType:'news',category:'Notícias',country:'GLOBAL',language:'multi',url:'https://www.gdeltproject.org/',feedUrl:'',enabled:true,configuration:{catalogStatus:'implemented'},syncFrequencyMinutes:60,lastSyncAt:'2026-09-05T17:40:00.000Z',nextSyncAt:'2026-09-05T18:40:00.000Z',lastStatus:'success',lastImportedCount:14,lastError:'',createdAt:'2026-08-20T12:00:00.000Z',updatedAt:'2026-09-05T17:40:00.000Z'},
+ {id:'mockup:source:youtube',sourceKey:'youtube',provider:'youtube' as const,name:'YouTube',sourceType:'video',category:'Audiovisual',country:'GLOBAL',language:'multi',url:'https://www.youtube.com/',feedUrl:'',enabled:true,configuration:{catalogStatus:'reused_integration'},syncFrequencyMinutes:60,lastSyncAt:'2026-09-05T17:30:00.000Z',nextSyncAt:'2026-09-05T18:30:00.000Z',lastStatus:'success',lastImportedCount:5,lastError:'',createdAt:'2026-08-20T12:00:00.000Z',updatedAt:'2026-09-05T17:30:00.000Z'},
+ ...['ECAD','Pro-Música Brasil','UBC','ABRAMUS','IFPI'].map((name,index)=>({id:`mockup:source:official:${index+1}`,sourceKey:name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-'),provider:'official_source' as const,name,sourceType:'official',category:'Mercado Musical',country:name==='IFPI'?'GLOBAL':'BR',language:name==='IFPI'?'en':'pt-BR',url:'',feedUrl:'',enabled:false,configuration:{catalogStatus:'requires_configuration'},syncFrequencyMinutes:240,lastSyncAt:null,nextSyncAt:null,lastStatus:'disabled',lastImportedCount:0,lastError:'',createdAt:'2026-08-20T12:00:00.000Z',updatedAt:'2026-09-05T18:00:00.000Z'})),
+]
+const providerStatus={rss:{implemented:true,configured:true,enabled:1,total:3,lastSyncAt:'2026-09-05T18:00:00.000Z'},gdelt:{implemented:true,configured:true,enabled:1,total:1,lastSyncAt:'2026-09-05T17:40:00.000Z'},youtube:{implemented:true,configured:true,enabled:1,total:1,lastSyncAt:'2026-09-05T17:30:00.000Z',reused:true,managedBy:'Google/YouTube integration'},official_source:{implemented:true,configured:false,enabled:0,total:5,lastSyncAt:null}}
+const syncRuns=[
+ {id:'mockup:run:mbw:001',sourceId:'mockup:source:mbw',provider:'rss',startedAt:'2026-09-05T17:59:00.000Z',finishedAt:'2026-09-05T18:00:00.000Z',status:'success',received:12,created:8,duplicates:2,ignored:2,errors:0,errorSummary:'',metadata:{scenario:'full'}},
+ {id:'mockup:run:gdelt:001',sourceId:'mockup:source:gdelt',provider:'gdelt',startedAt:'2026-09-05T17:39:00.000Z',finishedAt:'2026-09-05T17:40:00.000Z',status:'success',received:25,created:14,duplicates:6,ignored:5,errors:0,errorSummary:'',metadata:{scenario:'full'}},
+]
+const candidates=[
+ ['a','Music Business Worldwide','new','Mercado Musical',null],['b','GDELT','reviewing','Notícias',null],['c','YouTube','approved','Cultura',null],['d','Music Business Worldwide','converted','Mercado Musical','mock-content-draft-001'],['e','GDELT','rejected','Notícias',null],['f','YouTube','ignored','Cultura',null],
+].map(([key,sourceName,status,category,editorialContentId],index)=>({id:`mockup:candidate:${key}`,provider:sourceName==='GDELT'?'gdelt':sourceName==='YouTube'?'youtube':'rss',sourceId:sourceName==='GDELT'?'mockup:source:gdelt':sourceName==='YouTube'?'mockup:source:youtube':'mockup:source:mbw',sourceName,externalId:`demo-${key}`,canonicalUrl:`https://example.invalid/mockup/candidate-${key}`,normalizedUrl:`https://example.invalid/mockup/candidate-${key}`,title:`Candidate ${String(key).toUpperCase()} — pauta demonstrativa ${index+1}`,description:'Conteúdo fictício para desenvolvimento visual do Portal Lander.',imageUrl:'',author:'Redação demonstrativa',publishedAt:'2026-09-04T12:00:00.000Z',discoveredAt:'2026-09-05T12:00:00.000Z',language:'pt-BR',country:'BR',sourceType:'news',suggestedCategory:category,suggestedTags:['mockup','desenvolvimento'],detectedEntities:{},relevanceScore:88-index*5,relevanceReasons:['Cenário visual determinístico'],duplicateKey:`mockup-${key}`,provenance:[{provider:'mockup',sourceName,url:`https://example.invalid/mockup/candidate-${key}`}],rawMetadata:{scenario:'full'},status:status as 'new'|'reviewing'|'approved'|'rejected'|'ignored'|'converted',reviewedAt:status==='new'?null:'2026-09-05T14:00:00.000Z',reviewedBy:status==='new'?null:'mockup:user:editor',editorialContentId,createdAt:'2026-09-05T12:00:00.000Z',updatedAt:'2026-09-05T14:00:00.000Z'}))
+
+const full={name:'full' as const,analytics:{metrics:analyticsMetrics},integrations:{sources,providerStatus,syncRuns,candidates}}
+const empty={name:'empty' as const,analytics:{metrics:[]},integrations:{sources:[],providerStatus:{},syncRuns:[],candidates:[]}}
+const errors={name:'errors' as const,analytics:{metrics:[]},integrations:{sources:[],providerStatus:{},syncRuns:[],candidates:[]},errors:{analytics:'Analytics indisponível no cenário errors.',integrations:'Integrações indisponíveis no cenário errors.'}}
+const registry={full,empty,errors}
+
+export type MockupScenario=typeof full|typeof empty|typeof errors
+export const mockupRegistry={
+ names:Object.freeze(Object.keys(registry) as MockupScenarioName[]),
+ getScenario(name:string|undefined):MockupScenario{
+  const key=(name||'full') as MockupScenarioName
+  if(!(key in registry))throw new Error(`Unknown mockup scenario: ${String(name)}`)
+  return structuredClone(registry[key])
+ },
+}
+export const getMockupScenario=(name?:string)=>mockupRegistry.getScenario(name)

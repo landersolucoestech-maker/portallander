@@ -1,4 +1,6 @@
 const apiBase=(import.meta.env.VITE_PORTAL_API_BASE_URL||'').replace(/\/$/,'')
+const demoDataEnabled=import.meta.env.DEV||import.meta.env.VITE_ENABLE_DEMO_DATA==='true'
+const mockupScenario=()=>String(import.meta.env.VITE_MOCKUP_SCENARIO||'full')
 
 export type EditorialSourceProvider='rss'|'gdelt'|'youtube'|'official_source'
 export type EditorialSource={id:string;sourceKey:string;provider:EditorialSourceProvider;name:string;sourceType:string;category:string;country:string;language:string;url:string;feedUrl:string;enabled:boolean;configuration:Record<string,unknown>;syncFrequencyMinutes:number;lastSyncAt:string|null;nextSyncAt:string|null;lastStatus:string;lastImportedCount:number;lastError:string;createdAt:string|null;updatedAt:string|null}
@@ -11,19 +13,38 @@ export class ContentIngestionClientError extends Error{constructor(message:strin
 async function read(response:Response){try{return await response.json()}catch{return {}}}
 async function request<T>(path:string,init:RequestInit={}):Promise<T>{let response:Response;try{response=await fetch(`${apiBase}${path}`,{credentials:'include',...init})}catch{throw new ContentIngestionClientError('Não foi possível alcançar a API editorial.','EDITORIAL_INGESTION_NETWORK_ERROR',0)}const payload=await read(response),body=payload&&typeof payload==='object'?payload as Record<string,unknown>:{};if(!response.ok)throw new ContentIngestionClientError(String(body.message||`Falha HTTP ${response.status}.`),String(body.code||'EDITORIAL_INGESTION_REQUEST_FAILED'),response.status,body.details);return payload as T}
 const json=(method:string,body?:unknown):RequestInit=>({method,headers:{'content-type':'application/json'},...(body===undefined?{}:{body:JSON.stringify(body)})})
+const clone=<T>(value:T):T=>structuredClone(value)
+type DemoState={sources:EditorialSource[];providers:Record<string,EditorialProviderStatus>;runs:EditorialSyncRun[];candidates:ImportCandidate[]}
+let demoStatePromise:Promise<DemoState>|null=null
+async function demoState(){
+ if(!demoStatePromise)demoStatePromise=(async()=>{
+  const {getMockupScenario}=await import('@portallander/mockup')
+  const scenario=getMockupScenario(mockupScenario())
+  if('errors' in scenario&&scenario.errors.integrations)throw new ContentIngestionClientError(scenario.errors.integrations,'MOCKUP_SCENARIO_ERROR',503)
+  return {
+   sources:scenario.integrations.sources.map(row=>({...row,configuration:{...row.configuration}})) as EditorialSource[],
+   providers:clone(scenario.integrations.providerStatus) as Record<string,EditorialProviderStatus>,
+   runs:scenario.integrations.syncRuns.map(row=>({...row,metadata:{...row.metadata}})) as EditorialSyncRun[],
+   candidates:scenario.integrations.candidates.map(row=>({...row,suggestedTags:[...row.suggestedTags],relevanceReasons:[...row.relevanceReasons],detectedEntities:{...row.detectedEntities},provenance:row.provenance.map(item=>({...item})),rawMetadata:{...row.rawMetadata}})) as ImportCandidate[],
+  }
+ })()
+ return demoStatePromise
+}
+const now='2026-09-05T18:00:00.000Z'
+async function reviewCandidate(id:string,status:ImportCandidateStatus){const state=await demoState(),candidate=state.candidates.find(item=>item.id===id);if(!candidate)throw new ContentIngestionClientError('Candidato não encontrado.','MOCKUP_NOT_FOUND',404);candidate.status=status;candidate.reviewedAt=now;candidate.reviewedBy='mockup:user:editor';candidate.updatedAt=now;return clone(candidate)}
 
 export const contentIngestionClient={
- providerStatus:()=>request<{providers:Record<string,EditorialProviderStatus>}>('/api/integrations/editorial/provider-status'),
- listSources:()=>request<{sources:EditorialSource[]}>('/api/integrations/editorial/sources').then(value=>value.sources),
- createSource:(input:Partial<EditorialSource>)=>request<{source:EditorialSource}>('/api/integrations/editorial/sources',json('POST',input)).then(value=>value.source),
- updateSource:(id:string,input:Partial<EditorialSource>)=>request<{source:EditorialSource}>(`/api/integrations/editorial/sources/${encodeURIComponent(id)}`,json('PATCH',input)).then(value=>value.source),
- syncSource:(id:string)=>request<{run:EditorialSyncRun}>(`/api/integrations/editorial/sources/${encodeURIComponent(id)}/sync`,json('POST')).then(value=>value.run),
- syncDue:()=>request<{results:Array<{sourceId:string;ok:boolean;run?:EditorialSyncRun;error?:string}>}>('/api/integrations/editorial/sync-due',json('POST')),
- listSyncRuns:(sourceId?:string)=>request<{runs:EditorialSyncRun[]}>(`/api/integrations/editorial/sync-runs${sourceId?`?sourceId=${encodeURIComponent(sourceId)}`:''}`).then(value=>value.runs),
- listCandidates:(filters:{status?:ImportCandidateStatus;provider?:string;limit?:number}={})=>{const params=new URLSearchParams();if(filters.status)params.set('status',filters.status);if(filters.provider)params.set('provider',filters.provider);if(filters.limit)params.set('limit',String(filters.limit));return request<{candidates:ImportCandidate[]}>(`/api/editorial/import-candidates${params.size?`?${params}`:''}`).then(value=>value.candidates)},
- reviewCandidate:(id:string)=>request<{candidate:ImportCandidate}>(`/api/editorial/import-candidates/${encodeURIComponent(id)}/review`,json('POST')).then(value=>value.candidate),
- approveCandidate:(id:string)=>request<{candidate:ImportCandidate}>(`/api/editorial/import-candidates/${encodeURIComponent(id)}/approve`,json('POST')).then(value=>value.candidate),
- rejectCandidate:(id:string)=>request<{candidate:ImportCandidate}>(`/api/editorial/import-candidates/${encodeURIComponent(id)}/reject`,json('POST')).then(value=>value.candidate),
- ignoreCandidate:(id:string)=>request<{candidate:ImportCandidate}>(`/api/editorial/import-candidates/${encodeURIComponent(id)}/ignore`,json('POST')).then(value=>value.candidate),
- convertCandidate:(id:string,pageId:string)=>request<{candidate:ImportCandidate;content:{id:string;status:string;active:boolean}}>(`/api/editorial/import-candidates/${encodeURIComponent(id)}/convert`,json('POST',{pageId})),
+ async providerStatus(){if(!demoDataEnabled)return request<{providers:Record<string,EditorialProviderStatus>}>('/api/integrations/editorial/provider-status');return {providers:clone((await demoState()).providers)}},
+ async listSources(){if(!demoDataEnabled)return request<{sources:EditorialSource[]}>('/api/integrations/editorial/sources').then(value=>value.sources);return clone((await demoState()).sources)},
+ async createSource(input:Partial<EditorialSource>){if(!demoDataEnabled)return request<{source:EditorialSource}>('/api/integrations/editorial/sources',json('POST',input)).then(value=>value.source);const state=await demoState();const source:EditorialSource={id:`mockup:source:custom:${state.sources.length+1}`,sourceKey:`custom-${state.sources.length+1}`,provider:input.provider||'rss',name:input.name||'Nova fonte',sourceType:input.sourceType||'news',category:input.category||'',country:input.country||'',language:input.language||'',url:input.url||'',feedUrl:input.feedUrl||'',enabled:Boolean(input.enabled),configuration:{...(input.configuration||{})},syncFrequencyMinutes:input.syncFrequencyMinutes||60,lastSyncAt:null,nextSyncAt:null,lastStatus:'never',lastImportedCount:0,lastError:'',createdAt:now,updatedAt:now};state.sources.push(source);return clone(source)},
+ async updateSource(id:string,input:Partial<EditorialSource>){if(!demoDataEnabled)return request<{source:EditorialSource}>(`/api/integrations/editorial/sources/${encodeURIComponent(id)}`,json('PATCH',input)).then(value=>value.source);const state=await demoState(),index=state.sources.findIndex(item=>item.id===id);if(index<0)throw new ContentIngestionClientError('Fonte não encontrada.','MOCKUP_NOT_FOUND',404);state.sources[index]={...state.sources[index],...input,id,configuration:{...state.sources[index].configuration,...(input.configuration||{})},updatedAt:now};return clone(state.sources[index])},
+ async syncSource(id:string){if(!demoDataEnabled)return request<{run:EditorialSyncRun}>(`/api/integrations/editorial/sources/${encodeURIComponent(id)}/sync`,json('POST')).then(value=>value.run);const state=await demoState(),source=state.sources.find(item=>item.id===id);if(!source)throw new ContentIngestionClientError('Fonte não encontrada.','MOCKUP_NOT_FOUND',404);const run:EditorialSyncRun={id:`mockup:run:session:${state.runs.length+1}`,sourceId:id,provider:source.provider,startedAt:now,finishedAt:now,status:'success',received:6,created:3,duplicates:2,ignored:1,errors:0,errorSummary:'',metadata:{scenario:mockupScenario()}};state.runs.unshift(run);source.lastSyncAt=now;source.lastStatus='success';source.lastImportedCount=3;return clone(run)},
+ async syncDue(){if(!demoDataEnabled)return request<{results:Array<{sourceId:string;ok:boolean;run?:EditorialSyncRun;error?:string}>}>('/api/integrations/editorial/sync-due',json('POST'));const state=await demoState();return {results:state.sources.filter(source=>source.enabled).map(source=>({sourceId:source.id,ok:true}))}},
+ async listSyncRuns(sourceId?:string){if(!demoDataEnabled)return request<{runs:EditorialSyncRun[]}>(`/api/integrations/editorial/sync-runs${sourceId?`?sourceId=${encodeURIComponent(sourceId)}`:''}`).then(value=>value.runs);const rows=(await demoState()).runs;return clone(sourceId?rows.filter(row=>row.sourceId===sourceId):rows)},
+ async listCandidates(filters:{status?:ImportCandidateStatus;provider?:string;limit?:number}={}){if(!demoDataEnabled){const params=new URLSearchParams();if(filters.status)params.set('status',filters.status);if(filters.provider)params.set('provider',filters.provider);if(filters.limit)params.set('limit',String(filters.limit));return request<{candidates:ImportCandidate[]}>(`/api/editorial/import-candidates${params.size?`?${params}`:''}`).then(value=>value.candidates)}let rows=(await demoState()).candidates;if(filters.status)rows=rows.filter(row=>row.status===filters.status);if(filters.provider)rows=rows.filter(row=>row.provider===filters.provider);return clone(rows.slice(0,filters.limit||rows.length))},
+ reviewCandidate:(id:string)=>demoDataEnabled?reviewCandidate(id,'reviewing'):request<{candidate:ImportCandidate}>(`/api/editorial/import-candidates/${encodeURIComponent(id)}/review`,json('POST')).then(value=>value.candidate),
+ approveCandidate:(id:string)=>demoDataEnabled?reviewCandidate(id,'approved'):request<{candidate:ImportCandidate}>(`/api/editorial/import-candidates/${encodeURIComponent(id)}/approve`,json('POST')).then(value=>value.candidate),
+ rejectCandidate:(id:string)=>demoDataEnabled?reviewCandidate(id,'rejected'):request<{candidate:ImportCandidate}>(`/api/editorial/import-candidates/${encodeURIComponent(id)}/reject`,json('POST')).then(value=>value.candidate),
+ ignoreCandidate:(id:string)=>demoDataEnabled?reviewCandidate(id,'ignored'):request<{candidate:ImportCandidate}>(`/api/editorial/import-candidates/${encodeURIComponent(id)}/ignore`,json('POST')).then(value=>value.candidate),
+ async convertCandidate(id:string,pageId:string){if(!demoDataEnabled)return request<{candidate:ImportCandidate;content:{id:string;status:string;active:boolean}}>(`/api/editorial/import-candidates/${encodeURIComponent(id)}/convert`,json('POST',{pageId}));const candidate=await reviewCandidate(id,'converted');candidate.editorialContentId=candidate.editorialContentId||`mock-content-${id.split(':').at(-1)}`;const state=await demoState(),stored=state.candidates.find(item=>item.id===id);if(stored)stored.editorialContentId=candidate.editorialContentId;return {candidate,content:{id:candidate.editorialContentId,status:'draft',active:false}}},
 }

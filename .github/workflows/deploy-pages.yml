@@ -151,8 +151,9 @@ jobs:
           async function visit(hash,fileName,verify){
             const url=`${base}${hash}`
             const response=await page.goto(url,{waitUntil:'domcontentloaded'})
-            if(!response?.ok())throw new Error(`HTTP ${response?.status()??'NO_RESPONSE'} for ${url}`)
-            console.log(`DEPLOY_HTTP ${response.status()} ${url}`)
+            if(response && !response.ok())throw new Error(`HTTP ${response.status()} for ${url}`)
+            if(response)console.log(`DEPLOY_HTTP ${response.status()} ${url}`)
+            else console.log(`DEPLOY_HTTP SAME_DOCUMENT ${url}`)
             console.log(`DEPLOY_CURRENT_URL ${page.url()}`)
             console.log(`DEPLOY_TITLE ${JSON.stringify(await page.title())}`)
             try{

@@ -108,6 +108,16 @@ jobs:
           set -euo pipefail
           test -z "${VITE_ENABLE_DEMO_DATA:-}"
           npm --workspace @portallander/web run build
+      - name: Prove production bundle uses real API and no demo chunks
+        run: |
+          set -euo pipefail
+          grep -R -F "$VITE_PORTAL_API_BASE_URL" apps/web/dist >/dev/null
+          if grep -R -E 'mockDataProvider|mockSeedLifecycle' apps/web/dist >/dev/null; then
+            echo 'Production bundle contains demo/mock runtime references.' >&2
+            exit 1
+          fi
+          echo 'EDITORIAL_PRODUCTION_API_BASE=PASS_RUNTIME'
+          echo 'EDITORIAL_PRODUCTION_MOCK_REFERENCES=0'
       - name: Prepare browser-to-PostgreSQL fixture
         run: node apps/api/scripts/prepare-content-ingestion-e2e.mjs
       - name: Install Chromium

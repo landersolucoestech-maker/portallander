@@ -7,10 +7,14 @@ const titleB='E2E Editorial Candidate B'
 
 test('browser production-data isola destino por candidato e converte somente A em draft persistido',async({page})=>{
   const request=page.context().request
-  const mockRequests:string[]=[]
+  const mockRequests:string[]=[],pageErrors:string[]=[],consoleErrors:string[]=[]
   page.on('request',requestEvent=>{const url=requestEvent.url();if(/mockDataProvider|mockSeedLifecycle|\/mocks[-./]/i.test(url))mockRequests.push(url)})
+  page.on('pageerror',error=>pageErrors.push(error.message))
+  page.on('console',message=>{if(message.type()==='error')consoleErrors.push(message.text())})
 
   await page.goto(`${webBase}/#/app/login`)
+  console.log('E2E_PRODUCTION_BOOTSTRAP='+JSON.stringify({url:page.url(),body:(await page.locator('body').innerText()).replace(/\s+/g,' ').slice(0,600),pageErrors,consoleErrors,mockRequests}))
+  expect(pageErrors).toEqual([])
   await expect(page.getByRole('heading',{name:'Entrar na área interna'})).toBeVisible()
   await page.getByLabel('E-mail').fill('e2e-content-ingestion@example.com')
   await page.getByLabel('Senha').fill('E2EContent!123')
@@ -68,4 +72,5 @@ test('browser production-data isola destino por candidato e converte somente A e
   expect(draft?.publishedAt).toBeUndefined()
   expect(payload.contents.find(item=>item.title===titleB)).toBeUndefined()
   expect(mockRequests).toEqual([])
+  expect(pageErrors).toEqual([])
 })

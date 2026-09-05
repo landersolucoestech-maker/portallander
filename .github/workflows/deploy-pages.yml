@@ -108,9 +108,98 @@ jobs:
     environment:
       name: pages-dev
       url: ${{ steps.deployment.outputs.page_url }}
+    outputs:
+      page_url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     needs: build
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+  deployed-browser-smoke:
+    runs-on: ubuntu-latest
+    needs: deploy
+    env:
+      DEPLOY_URL: ${{ needs.deploy.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install monorepo
+        run: npm ci
+      - name: Install Chromium
+        working-directory: apps/web
+        run: npx playwright install --with-deps chromium
+      - name: Validate published development URL in Chromium
+        working-directory: apps/web
+        run: |
+          mkdir -p test-results/deployed
+          node --input-type=module <<'NODE'
+          import {chromium} from '@playwright/test'
+
+          const base=process.env.DEPLOY_URL
+          if(!base)throw new Error('DEPLOY_URL was not provided by deploy-pages.')
+          const browser=await chromium.launch({headless:true})
+          const page=await browser.newPage({viewport:{width:1440,height:1000}})
+          const pageErrors=[]
+          page.on('pageerror',error=>pageErrors.push(error.message))
+
+          async function visit(hash,fileName,verify){
+            const url=`${base}${hash}`
+            const response=await page.goto(url,{waitUntil:'domcontentloaded'})
+            if(!response?.ok())throw new Error(`HTTP ${response?.status()??'NO_RESPONSE'} for ${url}`)
+            await verify()
+            await page.screenshot({path:`test-results/deployed/${fileName}`,fullPage:true})
+            console.log(`DEPLOY_BROWSER_PASS ${url}`)
+          }
+
+          try{
+            await visit('','01-development-home.png',async()=>{
+              await page.getByText('O QUE ESTÁ PEGANDO AGORA.',{exact:false}).waitFor({state:'visible',timeout:15000})
+              const body=await page.locator('body').innerText()
+              if(body.includes('Dados operacionais indisponíveis.'))throw new Error('Development Pages rendered the production fail-closed screen.')
+            })
+
+            await visit('#/app/login','02-development-admin.png',async()=>{
+              await page.waitForURL(/#\/app\/dashboard/, {timeout:15000})
+              await page.getByText('Dashboard',{exact:true}).first().waitFor({state:'visible',timeout:15000})
+            })
+
+            await visit('#/app/marketing/metricas','03-development-marketing-metrics.png',async()=>{
+              await page.getByText('Marketing → Métricas',{exact:true}).waitFor({state:'visible',timeout:15000})
+              for(const label of ['Hoje','7 dias','30 dias','90 dias'])await page.getByText(label,{exact:true}).first().waitFor({state:'visible',timeout:15000})
+            })
+
+            await visit('#/app/settings','04-development-integrations.png',async()=>{
+              await page.getByRole('tab',{name:'Integrações',exact:true}).click()
+              await page.getByRole('heading',{name:'Descoberta editorial',exact:true}).waitFor({state:'visible',timeout:15000})
+              await page.getByRole('heading',{name:'Fontes configuradas',exact:true}).waitFor({state:'visible',timeout:15000})
+              const body=await page.locator('body').innerText()
+              for(const source of ['Music Business Worldwide','Billboard','Billboard Brasil','GDELT','YouTube','ECAD','Pro-Música Brasil','UBC','ABRAMUS','IFPI']){
+                console.log(`DEPLOY_SOURCE_VISIBLE ${source}=${body.includes(source)}`)
+              }
+              const alert=page.getByRole('alert')
+              if(await alert.count())console.log(`DEPLOY_INTEGRATION_STATE ${JSON.stringify(await alert.first().innerText())}`)
+            })
+
+            await visit('#/app/site/conteudos','05-development-content-candidates.png',async()=>{
+              await page.getByText('Candidatos editoriais',{exact:false}).first().waitFor({state:'visible',timeout:15000})
+            })
+
+            if(pageErrors.length)throw new Error(`Browser page errors: ${pageErrors.join(' | ')}`)
+            console.log(`DEVELOPMENT_DEPLOY_URL ${base}`)
+          }finally{
+            await browser.close()
+          }
+          NODE
+      - name: Upload deployed browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: development-deploy-browser-evidence
+          path: apps/web/test-results/deployed
+          if-no-files-found: warn

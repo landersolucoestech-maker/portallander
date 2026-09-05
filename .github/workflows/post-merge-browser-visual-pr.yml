@@ -84,15 +84,17 @@ jobs:
           done
           cat /tmp/post-merge-browser-preview.log
           exit 1
-      - name: Prove demo suite excludes production-data audit only
+      - name: Prove demo suite excludes production-data audits
         working-directory: apps/web
         run: |
           set -euo pipefail
           npx playwright test --list --reporter=line | tee /tmp/post-merge-browser-test-list.txt
-          if grep -F 'content-ingestion.fullstack.audit.ts' /tmp/post-merge-browser-test-list.txt; then
-            echo 'Production-data ingestion audit leaked into demo suite.' >&2
-            exit 1
-          fi
+          for audit in content-ingestion.fullstack.audit.ts public-production-data.fullstack.audit.ts; do
+            if grep -F "$audit" /tmp/post-merge-browser-test-list.txt; then
+              echo "Production-data audit leaked into demo suite: ${audit}" >&2
+              exit 1
+            fi
+          done
           grep -F 'product-completion.audit.ts' /tmp/post-merge-browser-test-list.txt >/dev/null
           grep -F 'visual.audit.ts' /tmp/post-merge-browser-test-list.txt >/dev/null
       - name: Target Lead capture and Colabore regression

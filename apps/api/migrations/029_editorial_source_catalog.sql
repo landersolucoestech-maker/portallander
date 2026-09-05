@@ -1,0 +1,11 @@
+insert into integration_sources(source_key,provider,name,source_type,category,country,language,url,feed_url,enabled,configuration,sync_frequency_minutes,last_status)
+values
+  ('music-business-worldwide','rss','Music Business Worldwide','industry_news','Negócios','GB','en','https://www.musicbusinessworldwide.com/','https://www.musicbusinessworldwide.com/feed/',true,'{"catalogStatus":"verified_feed","discoveryMethod":"official_rss","minRelevanceScore":15}'::jsonb,60,'never_synced'),
+  ('pitchfork-news','rss','Pitchfork — News','music_news','Atualidades','US','en','https://pitchfork.com/news/','https://pitchfork.com/feed/feed-news/rss',false,'{"catalogStatus":"verified_feed","discoveryMethod":"official_rss","minRelevanceScore":15}'::jsonb,60,'disabled'),
+  ('digital-music-news','rss','Digital Music News','industry_news','Mercado Musical','US','en','https://www.digitalmusicnews.com/','https://www.digitalmusicnews.com/feed/',false,'{"catalogStatus":"verified_feed","discoveryMethod":"public_rss","minRelevanceScore":15}'::jsonb,60,'disabled'),
+  ('nme-news','rss','NME — Music News','music_news','Atualidades','GB','en','https://www.nme.com/music/news','https://www.nme.com/music/news?alt=rss',false,'{"catalogStatus":"requires_runtime_validation","discoveryMethod":"public_feed_endpoint","minRelevanceScore":15}'::jsonb,60,'disabled'),
+  ('billboard-global','rss','Billboard','music_industry_news','Mercado Musical','US','en','https://www.billboard.com/','https://www.billboard.com/feed/',false,'{"catalogStatus":"requires_official_confirmation","discoveryMethod":"feed_candidate","minRelevanceScore":15,"copyrightMode":"editorial_lead_only"}'::jsonb,60,'disabled'),
+  ('billboard-brasil','rss','Billboard Brasil','music_news','Mercado Musical','BR','pt-BR','https://billboard.com.br/',null,false,'{"catalogStatus":"requires_configuration","discoveryMethod":"sitemap_manual","sitemapUrl":"https://billboard.com.br/sitemap/","minRelevanceScore":15,"copyrightMode":"editorial_lead_only"}'::jsonb,120,'configuration_required')
+on conflict(source_key) do nothing;
+
+comment on column integration_sources.configuration is 'Non-secret source behavior and catalog verification metadata. External content is discovery-only and never grants republication rights.';

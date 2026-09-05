@@ -14,6 +14,10 @@ export const GA4_METRIC_MAPPINGS=Object.freeze([
   {providerMetric:'engagementRate',metricKey:'engagement_rate',unit:'ratio'},
 ])
 
+export const GA4_PORTAL_OVERVIEW_METRICS=Object.freeze([
+  'activeUsers','newUsers','sessions','screenPageViews','screenPageViewsPerUser','engagementRate','averageSessionDuration',
+])
+
 const clean=value=>String(value??'').trim()
 
 export function googleAnalyticsConfig(env=process.env){
@@ -41,6 +45,14 @@ export function normalizeGa4Range({startDate,endDate}={}){
   if(end.date<start.date)throw new HttpError(400,'endDate deve ser igual ou posterior a startDate.','GA4_RANGE_INVALID')
   const days=Math.floor((end.date-start.date)/86_400_000)+1
   if(days>31)throw new HttpError(400,'Cada sincronização GA4 está limitada a 31 dias.','GA4_RANGE_TOO_LARGE')
+  return {startDate:start.text,endDate:end.text,days}
+}
+
+export function normalizeGa4ReportRange({startDate,endDate}={}){
+  const start=parseDate(startDate,'startDate'),end=parseDate(endDate,'endDate')
+  if(end.date<start.date)throw new HttpError(400,'endDate deve ser igual ou posterior a startDate.','GA4_RANGE_INVALID')
+  const days=Math.floor((end.date-start.date)/86_400_000)+1
+  if(days>366)throw new HttpError(400,'Consultas de Métricas estão limitadas a 366 dias.','GA4_REPORT_RANGE_TOO_LARGE')
   return {startDate:start.text,endDate:end.text,days}
 }
 
@@ -100,11 +112,24 @@ export function createGoogleAnalyticsProvider({env=process.env,fetchImpl=globalT
     return token
   }
 
+  async function runReport({startDate,endDate,dimensions=[],metrics=[],limit=10000,orderBys=[]}={}){
+    const config=configuredOrThrow(),range=normalizeGa4ReportRange({startDate,endDate}),token=await accessToken(config),property=encodeURIComponent(config.propertyId)
+    if(!Array.isArray(metrics)||!metrics.length)throw new HttpError(400,'Relatório GA4 exige ao menos uma métrica.','GA4_REPORT_METRICS_REQUIRED')
+    const payload=await jsonFetch(`${DATA_API_BASE}/properties/${property}:runReport`,{
+      method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json',Accept:'application/json'},body:JSON.stringify({dateRanges:[{startDate:range.startDate,endDate:range.endDate}],dimensions:dimensions.map(name=>({name})),metrics:metrics.map(name=>({name})),keepEmptyRows:false,limit:String(Math.max(1,Math.min(100000,Number(limit)||10000))),...(orderBys.length?{orderBys}:{})}),
+    })
+    return {provider:'google-analytics',accountId:config.accountId,propertyId:config.propertyId,timezone:config.timezone,range,rows:Array.isArray(payload?.rows)?payload.rows:[],dimensionHeaders:Array.isArray(payload?.dimensionHeaders)?payload.dimensionHeaders:[],metricHeaders:Array.isArray(payload?.metricHeaders)?payload.metricHeaders:[],rowCount:Number(payload?.rowCount)||0}
+  }
+
   return {
     configured(){return googleAnalyticsConfig(env).configured},
+    runReport,
+    async runPortalOverview(input={}){return runReport({...input,metrics:GA4_PORTAL_OVERVIEW_METRICS})},
+    async runAcquisition(input={}){return runReport({...input,dimensions:['sessionDefaultChannelGroup'],metrics:['sessions','activeUsers'],limit:50,orderBys:[{metric:{metricName:'sessions'},desc:true}]})},
+    async runContentPerformance(input={}){return runReport({...input,dimensions:['pagePath','pageTitle'],metrics:['screenPageViews','activeUsers'],limit:50,orderBys:[{metric:{metricName:'screenPageViews'},desc:true}]})},
+    async runNewVsReturning(input={}){return runReport({...input,dimensions:['newVsReturning'],metrics:['activeUsers'],limit:10})},
     async runDailyReport(input={}){
-      const config=configuredOrThrow(),range=normalizeGa4Range(input),token=await accessToken(config)
-      const property=encodeURIComponent(config.propertyId)
+      const config=configuredOrThrow(),range=normalizeGa4Range(input),token=await accessToken(config),property=encodeURIComponent(config.propertyId)
       const payload=await jsonFetch(`${DATA_API_BASE}/properties/${property}:runReport`,{
         method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json',Accept:'application/json'},body:JSON.stringify({dateRanges:[{startDate:range.startDate,endDate:range.endDate}],dimensions:[{name:'date'}],metrics:GA4_METRIC_MAPPINGS.map(item=>({name:item.providerMetric})),keepEmptyRows:false,limit:'100000'}),
       })

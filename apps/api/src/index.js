@@ -8,6 +8,7 @@ import {handleContentIngestionRequest} from './contentIngestionHttp.js'
 import {handleCrmRequest} from './crmHttp.js'
 import {handleFinanceRequest} from './financeHttp.js'
 import {handleIntegrationProviderRequest} from './integrationProviderHttp.js'
+import {handleMarketingMetricsRequest} from './marketingMetricsHttp.js'
 import {handleNewsletterRequest} from './newsletterHttp.js'
 import {handlePageSectionRequest} from './pageSectionHttp.js'
 import {handleRhRequest} from './rhHttp.js'
@@ -26,6 +27,7 @@ const server=createServer((req,res)=>{
     if(await handleCrmRequest(req,res))return
     if(await handleFinanceRequest(req,res))return
     if(await handleIntegrationProviderRequest(req,res))return
+    if(await handleMarketingMetricsRequest(req,res))return
     if(await handleNewsletterRequest(req,res))return
     if(await handleRhRequest(req,res))return
     if(await handleSettingsRequest(req,res))return

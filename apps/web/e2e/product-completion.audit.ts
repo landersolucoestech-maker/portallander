@@ -6,7 +6,6 @@ async function openRoute(page:Page,route:string){
   await page.goto(`${base}#${route}`,{waitUntil:'domcontentloaded'})
   await page.locator('#root').waitFor({state:'attached'})
   await page.waitForFunction(()=>document.querySelector('#root')?.childElementCount!==0)
-  await page.waitForTimeout(120)
 }
 
 async function assertNoHorizontalOverflow(page:Page){
@@ -44,7 +43,11 @@ async function proveAppearance(page:Page,formId:string,screenshotName:string){
   await expect.poll(()=>cssVariable(preview,'--form-container-width')).toBe('82%')
   await layoutGroup.getByLabel('Raio',{exact:true}).fill('24')
   await expect.poll(()=>cssVariable(preview,'--form-container-radius')).toBe('24px')
-  await layoutGroup.getByLabel('Colunas',{exact:true}).selectOption('2')
+  const columns=appearance.getByRole('combobox',{name:'Colunas',exact:true})
+  await expect(columns).toBeVisible()
+  await columns.selectOption('1')
+  await expect.poll(()=>cssVariable(preview,'--form-columns')).toBe('1')
+  await columns.selectOption('2')
   await expect.poll(()=>cssVariable(preview,'--form-columns')).toBe('2')
 
   const buttonGroup=appearance.locator('details').filter({hasText:'Botão'})

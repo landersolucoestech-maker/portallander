@@ -65,11 +65,12 @@ async function loadConversions(range,pool){
   return {status:'available',total:rows.reduce((sum,row)=>sum+Number(row.count),0),forms:rows.map(row=>({slug:row.slug,name:row.name,purpose:row.purpose,count:Number(row.count)}))}
 }
 
-export function createMarketingMetricsService({ga4Provider=googleAnalyticsProvider,env=process.env,cacheStore=cache,pool=getPool()}={}){
+export function createMarketingMetricsService({ga4Provider=googleAnalyticsProvider,env=process.env,cacheStore=cache,pool=null,poolResolver=getPool}={}){
   return {async overview(input={}){
     const range=resolveMarketingMetricsRange(input,env),key=`${range.startDate}:${range.endDate}`,cached=cacheStore.get(key)
     if(cached&&Date.now()-cached.createdAt<CACHE_TTL_MS)return cached.value
-    const [ga4,editorial,conversions]=await Promise.all([loadGa4(range,{provider:ga4Provider,env}),loadEditorial(range,pool),loadConversions(range,pool)])
+    const runtimePool=pool||poolResolver()
+    const [ga4,editorial,conversions]=await Promise.all([loadGa4(range,{provider:ga4Provider,env}),loadEditorial(range,runtimePool),loadConversions(range,runtimePool)])
     const value={range,ga4,editorial,conversions,generatedAt:new Date().toISOString()}
     cacheStore.set(key,{createdAt:Date.now(),value})
     return value

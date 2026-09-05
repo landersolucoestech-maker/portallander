@@ -12,13 +12,24 @@ on:
       - 'package.json'
       - 'package-lock.json'
       - '.github/workflows/content-ingestion-runtime.yml'
+  pull_request:
+    branches: [dev]
+    paths:
+      - 'apps/api/**'
+      - 'apps/web/src/features/editorial/**'
+      - 'apps/web/src/features/settings/**'
+      - 'apps/web/src/features/site-manager/**'
+      - 'apps/web/e2e/content-ingestion.fullstack.audit.ts'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/content-ingestion-runtime.yml'
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: content-ingestion-runtime-${{ github.ref }}
+  group: content-ingestion-runtime-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:

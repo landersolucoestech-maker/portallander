@@ -1,0 +1,154 @@
+name: Post-merge Browser Visual PR Validation
+
+on:
+  pull_request:
+    branches: [dev]
+    paths:
+      - 'apps/web/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/engineering-dev-validation.yml'
+      - '.github/workflows/deploy-pages.yml'
+      - '.github/workflows/post-merge-browser-visual-pr.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: post-merge-browser-visual-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install reproducibly
+        run: npm ci
+      - name: Frontend lint
+        run: npm run lint
+      - name: Frontend typecheck
+        run: npm run typecheck
+      - name: Architecture checks
+        run: npm run check:architecture
+      - name: Frontend unit tests
+        run: npm test
+      - name: API syntax build
+        run: npm --workspace @portallander/api run build
+      - name: API unit tests
+        run: npm --workspace @portallander/api test
+
+  build:
+    runs-on: ubuntu-latest
+    needs: quality
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install reproducibly
+        run: npm ci
+      - name: Production build without demo data
+        env:
+          NODE_ENV: production
+          VITE_ENABLE_DEMO_DATA: ''
+        run: npm run build
+
+  browser-runtime:
+    runs-on: ubuntu-latest
+    needs: quality
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install reproducibly
+        run: npm ci
+      - name: Build explicit browser demo fixture
+        env:
+          VITE_ENABLE_DEMO_DATA: 'true'
+        run: npm run build
+      - name: Install Chromium
+        working-directory: apps/web
+        run: npx playwright install --with-deps chromium
+      - name: Start production preview
+        run: |
+          npm --workspace @portallander/web run preview -- --host 127.0.0.1 > /tmp/post-merge-browser-preview.log 2>&1 &
+          for i in {1..60}; do
+            curl -fsS http://127.0.0.1:4173/portallander/ >/dev/null && exit 0
+            sleep 1
+          done
+          cat /tmp/post-merge-browser-preview.log
+          exit 1
+      - name: Prove demo suite excludes production-data audit only
+        working-directory: apps/web
+        run: |
+          set -euo pipefail
+          npx playwright test --list --reporter=line | tee /tmp/post-merge-browser-test-list.txt
+          if grep -F 'content-ingestion.fullstack.audit.ts' /tmp/post-merge-browser-test-list.txt; then
+            echo 'Production-data ingestion audit leaked into demo suite.' >&2
+            exit 1
+          fi
+          grep -F 'product-completion.audit.ts' /tmp/post-merge-browser-test-list.txt >/dev/null
+          grep -F 'visual.audit.ts' /tmp/post-merge-browser-test-list.txt >/dev/null
+      - name: Target Lead capture and Colabore regression
+        working-directory: apps/web
+        run: npx playwright test e2e/product-completion.audit.ts --grep 'Lead capture exposes|Colabore exposes' --reporter=line
+      - name: Accessibility and responsive audits
+        working-directory: apps/web
+        run: npx playwright test e2e/accessibility.audit.ts e2e/responsive-matrix.audit.ts --reporter=line
+      - name: Complete demo browser regression suite
+        working-directory: apps/web
+        run: npx playwright test --reporter=line
+      - name: Upload browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: post-merge-browser-pr-audit
+          path: |
+            apps/web/test-results
+            /tmp/post-merge-browser-preview.log
+            /tmp/post-merge-browser-test-list.txt
+          if-no-files-found: warn
+
+  visual-audit:
+    runs-on: ubuntu-latest
+    needs: quality
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install reproducibly
+        run: npm ci
+      - name: Build explicit browser demo fixture
+        env:
+          VITE_ENABLE_DEMO_DATA: 'true'
+        run: npm run build
+      - name: Install Chromium
+        working-directory: apps/web
+        run: npx playwright install --with-deps chromium
+      - name: Start production preview
+        run: |
+          npm --workspace @portallander/web run preview -- --host 127.0.0.1 > /tmp/post-merge-visual-preview.log 2>&1 &
+          for i in {1..60}; do
+            curl -fsS http://127.0.0.1:4173/portallander/ >/dev/null && exit 0
+            sleep 1
+          done
+          cat /tmp/post-merge-visual-preview.log
+          exit 1
+      - name: Complete visual audit suite
+        run: npm --workspace @portallander/web run test:visual
+      - name: Upload visual evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: post-merge-visual-pr-audit
+          path: |
+            apps/web/test-results/visual
+            /tmp/post-merge-visual-preview.log
+          if-no-files-found: warn

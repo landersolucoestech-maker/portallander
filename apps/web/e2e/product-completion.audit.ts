@@ -6,7 +6,6 @@ async function openRoute(page:Page,route:string){
   await page.goto(`${base}#${route}`,{waitUntil:'domcontentloaded'})
   await page.locator('#root').waitFor({state:'attached'})
   await page.waitForFunction(()=>document.querySelector('#root')?.childElementCount!==0)
-  await page.waitForTimeout(120)
 }
 
 async function assertNoHorizontalOverflow(page:Page){
@@ -21,7 +20,9 @@ async function cssVariable(locator:Locator,name:string){
 async function setColorInput(locator:Locator,value:string){
   await locator.evaluate((node,next)=>{
     const input=node as HTMLInputElement
-    input.value=next
+    const nativeSetter=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value')?.set
+    if(!nativeSetter)throw new Error('Native HTMLInputElement value setter is unavailable.')
+    nativeSetter.call(input,next)
     input.dispatchEvent(new Event('input',{bubbles:true}))
     input.dispatchEvent(new Event('change',{bubbles:true}))
   },value)
@@ -44,7 +45,11 @@ async function proveAppearance(page:Page,formId:string,screenshotName:string){
   await expect.poll(()=>cssVariable(preview,'--form-container-width')).toBe('82%')
   await layoutGroup.getByLabel('Raio',{exact:true}).fill('24')
   await expect.poll(()=>cssVariable(preview,'--form-container-radius')).toBe('24px')
-  await layoutGroup.getByLabel('Colunas',{exact:true}).selectOption('2')
+  const columns=appearance.getByRole('combobox',{name:'Colunas',exact:true})
+  await expect(columns).toBeVisible()
+  await columns.selectOption('1')
+  await expect.poll(()=>cssVariable(preview,'--form-columns')).toBe('1')
+  await columns.selectOption('2')
   await expect.poll(()=>cssVariable(preview,'--form-columns')).toBe('2')
 
   const buttonGroup=appearance.locator('details').filter({hasText:'Botão'})
@@ -56,7 +61,8 @@ async function proveAppearance(page:Page,formId:string,screenshotName:string){
   await expect.poll(()=>cssVariable(preview,'--form-button-radius')).toBe('18px')
   const buttonText=buttonGroup.getByLabel('Texto do botão',{exact:true})
   await buttonText.fill('Enviar agora')
-  await expect(preview.getByRole('button',{name:'Enviar agora',exact:true})).toBeVisible()
+  await expect(buttonText).toHaveValue('Enviar agora')
+  await expect(preview.getByRole('button',{name:'ENVIAR AGORA',exact:true})).toBeVisible()
 
   await expect(page.getByText('Rascunho salvo',{exact:true})).toHaveCount(0)
   await page.screenshot({path:`test-results/product-completion/${screenshotName}`,fullPage:true})

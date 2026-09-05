@@ -1,0 +1,176 @@
+name: Editorial Ingestion Validation
+
+on:
+  pull_request:
+    branches: [dev]
+    paths:
+      - 'apps/api/**'
+      - 'apps/web/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/editorial-ingestion-validation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: editorial-ingestion-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  editorial-ingestion:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: portal
+          POSTGRES_PASSWORD: portal
+          POSTGRES_DB: portal_editorial_ingestion
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U portal -d portal_editorial_ingestion"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=10
+    env:
+      DATABASE_URL: postgresql://portal:portal@127.0.0.1:5432/portal_editorial_ingestion
+      PGPASSWORD: portal
+      PGHOST: 127.0.0.1
+      PGPORT: 5432
+      PGUSER: portal
+      PGDATABASE: portal_editorial_ingestion
+      NODE_ENV: test
+      PORT: 8787
+      PORTAL_ALLOWED_ORIGINS: http://127.0.0.1:4173
+      PORTAL_PUBLIC_APP_URL: http://127.0.0.1:4173
+      ADMIN_BOOTSTRAP_EMAIL: editorial-proof@portal.test
+      ADMIN_BOOTSTRAP_NAME: Editorial Proof Owner
+      EDITORIAL_PROOF_ADMIN_EMAIL: editorial-proof@portal.test
+      EDITORIAL_PROOF_WEB_URL: http://127.0.0.1:4173
+      VITE_PORTAL_API_BASE_URL: http://127.0.0.1:8787
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install reproducibly
+        run: npm ci
+
+      - name: Create ephemeral admin credential
+        shell: bash
+        run: |
+          set -euo pipefail
+          proof_password="$(openssl rand -hex 24)"
+          echo "ADMIN_BOOTSTRAP_PASSWORD=${proof_password}" >> "$GITHUB_ENV"
+          echo "EDITORIAL_PROOF_ADMIN_PASSWORD=${proof_password}" >> "$GITHUB_ENV"
+
+      - name: Provision Supabase Storage compatibility fixture
+        run: |
+          psql -v ON_ERROR_STOP=1 <<'SQL'
+          create schema if not exists storage;
+          create table if not exists storage.buckets(
+            id text primary key,
+            name text not null,
+            public boolean not null default false,
+            file_size_limit bigint,
+            allowed_mime_types text[]
+          );
+          SQL
+
+      - name: Apply all migrations
+        shell: bash
+        run: |
+          set -euo pipefail
+          for migration in $(find apps/api/migrations -maxdepth 1 -type f -name '*.sql' | sort -V); do
+            echo "APPLY ${migration}"
+            psql -v ON_ERROR_STOP=1 -f "${migration}"
+          done
+          test -f apps/api/migrations/028_editorial_ingestion.sql
+
+      - name: Backend ingestion unit tests
+        run: node --test apps/api/src/editorialSignals.test.js apps/api/src/externalSourceProviders.test.js
+
+      - name: Existing web unit tests
+        run: npm test
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Architecture checks
+        run: npm run check:architecture
+
+      - name: Production build with real API boundary
+        env:
+          VITE_PORTAL_API_BASE_URL: http://127.0.0.1:8787
+        run: npm run build
+
+      - name: Seed PostgreSQL proof candidate
+        run: node apps/api/scripts/seed-editorial-ingestion-proof.mjs
+
+      - name: Start real API and built frontend
+        shell: bash
+        run: |
+          set -euo pipefail
+          node apps/api/src/index.js > /tmp/portal-api.log 2>&1 &
+          echo $! > /tmp/portal-api.pid
+          npm --workspace @portallander/web run preview -- --host 127.0.0.1 --port 4173 > /tmp/portal-web.log 2>&1 &
+          echo $! > /tmp/portal-web.pid
+          for attempt in $(seq 1 40); do
+            if curl --fail --silent http://127.0.0.1:8787/health >/dev/null && curl --fail --silent http://127.0.0.1:4173/ >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/portal-api.log || true
+          cat /tmp/portal-web.log || true
+          exit 1
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Browser to API to PostgreSQL proof
+        working-directory: apps/web
+        run: npx playwright test e2e/editorial-ingestion-runtime.audit.ts --reporter=line
+
+      - name: Prove conversion remained draft-only in PostgreSQL
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql -v ON_ERROR_STOP=1 <<'SQL'
+          do $$
+          declare
+            candidate record;
+            content record;
+          begin
+            select * into candidate from content_import_candidates where title='Prova full-stack — mercado musical brasileiro 2026' order by created_at desc limit 1;
+            if candidate.id is null or candidate.status <> 'converted' or candidate.editorial_content_id is null then
+              raise exception 'candidate was not converted by the browser flow';
+            end if;
+            select * into content from editorial_contents where id=candidate.editorial_content_id;
+            if content.id is null then raise exception 'editorial draft not found'; end if;
+            if content.status <> 'draft' then raise exception 'content status is %, expected draft', content.status; end if;
+            if content.active then raise exception 'converted draft must not be active'; end if;
+            if content.published_at is not null then raise exception 'converted draft must not be published'; end if;
+          end $$;
+          SQL
+
+      - name: Show service logs on failure
+        if: failure()
+        shell: bash
+        run: |
+          echo '--- API ---'
+          cat /tmp/portal-api.log || true
+          echo '--- WEB ---'
+          cat /tmp/portal-web.log || true

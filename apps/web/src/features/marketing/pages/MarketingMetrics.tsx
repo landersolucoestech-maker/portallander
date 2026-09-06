@@ -42,17 +42,18 @@ export function MarketingMetrics({state,periodStart,periodEnd,previousPeriodStar
   const [period,setPeriod]=useState(()=>new Date().toISOString().slice(0,7))
   const [metrics,setMetrics]=useState<AnalyticsMetric[]>([])
   const [previousMetrics,setPreviousMetrics]=useState<AnalyticsMetric[]>([])
-  const [loading,setLoading]=useState(true)
+  const [settledRequest,setSettledRequest]=useState('')
   const [error,setError]=useState('')
+  const currentRange=useMemo(()=>periodStart&&periodEnd?{periodStart,periodEnd}:monthRange(period),[period,periodStart,periodEnd])
+  const previousRange=useMemo(()=>previousPeriodStart&&previousPeriodEnd?{periodStart:previousPeriodStart,periodEnd:previousPeriodEnd}:monthRange(previousMonth(period)),[period,previousPeriodStart,previousPeriodEnd])
+  const requestKey=`${currentRange.periodStart??''}|${currentRange.periodEnd??''}|${previousRange.periodStart??''}|${previousRange.periodEnd??''}`
+  const loading=settledRequest!==requestKey
 
   useEffect(()=>{
     let active=true
-    setLoading(true);setError('')
-    const currentRange=periodStart&&periodEnd?{periodStart,periodEnd}:monthRange(period)
-    const previousRange=previousPeriodStart&&previousPeriodEnd?{periodStart:previousPeriodStart,periodEnd:previousPeriodEnd}:monthRange(previousMonth(period))
-    Promise.all([analyticsClient.metrics({...currentRange,limit:500}),analyticsClient.metrics({...previousRange,limit:500})]).then(([current,previous])=>{if(active){setMetrics(current.metrics.filter(metric=>metric.dataStatus!=='MOCK'));setPreviousMetrics(previous.metrics.filter(metric=>metric.dataStatus!=='MOCK'))}}).catch(caught=>{if(active){setMetrics([]);setPreviousMetrics([]);setError(caught instanceof Error?caught.message:'Analytics indisponível.')}}).finally(()=>{if(active)setLoading(false)})
+    Promise.all([analyticsClient.metrics({...currentRange,limit:500}),analyticsClient.metrics({...previousRange,limit:500})]).then(([current,previous])=>{if(active){setMetrics(current.metrics.filter(metric=>metric.dataStatus!=='MOCK'));setPreviousMetrics(previous.metrics.filter(metric=>metric.dataStatus!=='MOCK'));setError('')}}).catch(caught=>{if(active){setMetrics([]);setPreviousMetrics([]);setError(caught instanceof Error?caught.message:'Analytics indisponível.')}}).finally(()=>{if(active)setSettledRequest(requestKey)})
     return()=>{active=false}
-  },[period,periodStart,periodEnd,previousPeriodStart,previousPeriodEnd])
+  },[currentRange,previousRange,requestKey])
 
   const providers=useMemo(()=>Array.from(new Set(metrics.map(metric=>metric.provider).filter((value):value is string=>Boolean(value)))).sort(),[metrics])
   const base=useMemo(()=>metrics.filter(metric=>provider==='all'||metric.provider===provider),[metrics,provider])
@@ -66,13 +67,13 @@ export function MarketingMetrics({state,periodStart,periodEnd,previousPeriodStar
   const ranked=useMemo(()=>buildContentReachRanking(state.contents,base),[state.contents,base])
   const comparisons={impressions:comparisonLabel(comparePeriods(totals.impressions,previousTotals.impressions)),clicks:comparisonLabel(comparePeriods(totals.clicks,previousTotals.clicks)),engagement:comparisonLabel(comparePeriods(totals.engagement,previousTotals.engagement)),conversions:comparisonLabel(comparePeriods(totals.conversions,previousTotals.conversions)),spend:comparisonLabel(comparePeriods(totals.spend,previousTotals.spend)),ctr:comparisonLabel(comparePeriods(ctr,previousCtr))}
 
-  const changePeriod=(next:string)=>{setLoading(true);setError('');setPeriod(next)}
+  const changePeriod=(next:string)=>{setError('');setPeriod(next)}
 
   return <>
     <div className="marketing-platform-tabs marketing-platform-tabs-exact"><button type="button" className={provider==='all'?'active':''} onClick={()=>setProvider('all')}><Globe2 size={14}/>Visão Geral</button>{providers.map(name=><button type="button" key={name} className={provider===name?'active':''} onClick={()=>setProvider(name)}><span className="marketing-platform-dot"/>{name}</button>)}</div>
     {!hidePeriodControl&&<div className="marketing-metrics-period"><input type="month" aria-label="Período das métricas" value={period} onChange={event=>changePeriod(event.target.value)}/><small>Comparação automática com {previousMonth(period)} somente quando os dois períodos são semanticamente comparáveis.</small></div>}
     {hidePeriodControl&&<div className="marketing-metrics-period"><small>Período compartilhado definido pela página global de Métricas · comparação com período anterior equivalente.</small></div>}
-    {error&&<div className="marketing-empty"><strong>Analytics indisponível</strong><p>{error} Nenhum valor mock foi usado como fallback.</p></div>}
+    {!loading&&error&&<div className="marketing-empty"><strong>Analytics indisponível</strong><p>{error} Nenhum valor mock foi usado como fallback.</p></div>}
     <div className="marketing-metric-strip marketing-metric-strip-exact">{[
       ['Alcance',valueLabel(totals.reach),'não somado/comparado entre observações incompatíveis',Users],
       ['Impressões',valueLabel(totals.impressions),comparisons.impressions,BarChart3],

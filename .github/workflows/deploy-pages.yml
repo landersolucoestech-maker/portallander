@@ -176,9 +176,19 @@ jobs:
           const browser=await chromium.launch({headless:true})
           const page=await browser.newPage({viewport:{width:1440,height:1000}})
           const pageErrors=[]
+          let metricsInstagramFollowers=''
           let mediaKitEditorFollowers=''
           page.on('pageerror',error=>pageErrors.push(error.message))
 
+          const normalizedMetricNumber=value=>{
+            const raw=String(value??'').trim().toLowerCase().replace(/\s+/g,' ')
+            if(!raw||raw.includes('indisponível')||raw.includes('carregando'))return null
+            const multiplier=raw.includes('mil')?1_000:raw.includes('mi')?1_000_000:1
+            const numeric=raw.replace(/mi|mil/g,'').replace(/r\$/g,'').replace(/%/g,'').trim()
+            const canonical=multiplier===1?numeric.replace(/\./g,'').replace(',','.'):numeric.replace(/\./g,'').replace(',','.')
+            const parsed=Number(canonical)
+            return Number.isFinite(parsed)?parsed*multiplier:null
+          }
           async function stableSurface(){
             await page.locator('main').first().waitFor({state:'visible',timeout:15000})
           }
@@ -209,6 +219,19 @@ jobs:
             if(!body.includes('CRM → Leads')||!body.includes('Site → Conteúdos → Colaborações recebidas'))throw new Error('Canonical form destinations are missing.')
             return count
           }
+          async function assertSocialSource(tabName,testId){
+            await page.getByRole('tab',{name:tabName,exact:true}).click()
+            const source=page.getByTestId(testId)
+            await source.waitFor({state:'visible',timeout:15000})
+            await source.getByText(`Resumo · ${tabName}`,{exact:true}).waitFor({state:'visible',timeout:15000})
+            const body=await source.innerText()
+            for(const forbidden of ['Metric key','Account ID','Property ID','Scope'])if(body.includes(forbidden))throw new Error(`${tabName} still exposes technical manual field: ${forbidden}`)
+            const followers=source.locator('.marketing-metric-strip article').filter({hasText:'Seguidores'}).first()
+            await followers.waitFor({state:'visible',timeout:15000})
+            const value=(await followers.locator('strong').innerText()).trim()
+            if(normalizedMetricNumber(value)===null)throw new Error(`${tabName} followers not populated in development full: ${value}`)
+            return value
+          }
 
           try{
             await visit('','01-home.png',async()=>{
@@ -234,7 +257,13 @@ jobs:
               const marketingButton=marketingGroup.getByRole('button',{name:/Marketing/})
               if((await marketingButton.getAttribute('aria-expanded'))!=='true')await marketingButton.click()
               if(await marketingGroup.getByRole('link',{name:'Métricas',exact:true}).count())throw new Error('Marketing still owns Metrics as submenu.')
-              for(const label of ['Visão Geral','Site','Redes Sociais','Conteúdo','Conversões'])await page.getByRole('tab',{name:label,exact:true}).waitFor({state:'visible',timeout:15000})
+              const tablist=page.getByRole('tablist',{name:'Fontes de Métricas'})
+              const tabs=tablist.getByRole('tab')
+              if(await tabs.count()!==5)throw new Error(`Metrics tab count ${(await tabs.count())} != 5`)
+              const labels=(await tabs.allInnerTexts()).map(value=>value.trim())
+              const expected=['Visão Geral','Site','Instagram','TikTok','YouTube']
+              if(JSON.stringify(labels)!==JSON.stringify(expected))throw new Error(`Unexpected Metrics tabs: ${JSON.stringify(labels)}`)
+              for(const legacy of ['Redes Sociais','Conteúdo','Conversões'])if(await tablist.getByRole('tab',{name:legacy,exact:true}).count())throw new Error(`Legacy Metrics tab still present: ${legacy}`)
               const period=page.getByLabel('Período global das métricas')
               await period.selectOption('7d')
               await page.getByRole('tab',{name:'Site',exact:true}).click()
@@ -242,24 +271,26 @@ jobs:
               await site.waitFor({state:'visible',timeout:15000})
               const siteBody=await site.innerText()
               for(const label of ['Usuários','Novos usuários','Usuários recorrentes','Sessões','Visualizações','Views / usuário','Taxa de engajamento','Tempo médio','Canais de aquisição','Páginas mais acessadas'])if(!siteBody.includes(label))throw new Error(`Site metric missing from development full: ${label}`)
-              if(await period.inputValue()!=='7d')throw new Error('Global Metrics period was not preserved after tab change.')
-              await page.getByRole('tab',{name:'Redes Sociais',exact:true}).click()
-              const social=page.getByTestId('metrics-social-tab')
-              await social.waitFor({state:'visible',timeout:15000})
-              const socialBody=await social.innerText()
-              for(const label of ['Alcance','Impressões','Cliques','Engajamento','Conversões','Seguidores','Top Conteúdos'])if(!socialBody.includes(label))throw new Error(`Restored social metric missing: ${label}`)
-              for(const forbidden of ['Metric key','Account ID','Property ID','Scope'])if(socialBody.includes(forbidden))throw new Error(`Social analytics still exposes technical manual field: ${forbidden}`)
-              await page.getByRole('tab',{name:'Conteúdo',exact:true}).click()
-              const content=page.getByTestId('metrics-content-tab')
+              const content=page.getByTestId('metrics-site-content')
+              const conversions=page.getByTestId('metrics-site-conversions')
               await content.waitFor({state:'visible',timeout:15000})
-              const contentBody=await content.innerText()
-              for(const label of ['Publicados','Rascunhos','Arquivados','Top Conteúdos'])if(!contentBody.includes(label))throw new Error(`Editorial metric missing: ${label}`)
-              await page.getByRole('tab',{name:'Conversões',exact:true}).click()
-              const conversions=page.getByTestId('metrics-conversions-tab')
               await conversions.waitFor({state:'visible',timeout:15000})
+              const contentBody=await content.innerText()
               const conversionBody=await conversions.innerText()
-              for(const label of ['Contato Comercial','Colabore','Anuncie'])if(!conversionBody.includes(label))throw new Error(`Conversion context missing: ${label}`)
+              for(const label of ['Publicados','Rascunhos','Arquivados','Top Conteúdos'])if(!contentBody.includes(label))throw new Error(`Editorial metric missing inside Site: ${label}`)
+              for(const label of ['Contato Comercial','Colabore','Anuncie','CRM','content_collaborations'])if(!conversionBody.includes(label))throw new Error(`Conversion context missing inside Site: ${label}`)
+              if(await period.inputValue()!=='7d')throw new Error('Global Metrics period was not preserved on Site.')
+              metricsInstagramFollowers=await assertSocialSource('Instagram','metrics-instagram-tab')
+              if(await period.inputValue()!=='7d')throw new Error('Global Metrics period was not preserved on Instagram.')
+              await assertSocialSource('TikTok','metrics-tiktok-tab')
+              if(await period.inputValue()!=='7d')throw new Error('Global Metrics period was not preserved on TikTok.')
+              await assertSocialSource('YouTube','metrics-youtube-tab')
+              if(await period.inputValue()!=='7d')throw new Error('Global Metrics period was not preserved on YouTube.')
+              await page.getByRole('tab',{name:'Visão Geral',exact:true}).click()
+              if(await period.inputValue()!=='7d')throw new Error('Global Metrics period was not preserved after cycling all sources.')
               console.log('PAGES_GLOBAL_METRICS=PASS')
+              console.log('PAGES_METRICS_SOURCE_TABS=PASS')
+              console.log('PAGES_METRICS_SHARED_PERIOD=PASS')
             })
             await visit('#/app/marketing/metricas?tab=site','09b-metrics-legacy-redirect.png',async()=>{
               await page.waitForURL(/#\/app\/metricas\?tab=site$/,{timeout:15000})
@@ -325,14 +356,22 @@ jobs:
               for(const forbidden of ['Adicionar métrica','Metric key','Account ID','Property ID'])if(await automatic.getByText(forbidden,{exact:true}).count())throw new Error(`Media Kit still requires technical manual metric input: ${forbidden}`)
               const instagramFollowers=automatic.locator('[data-media-kit-metric="Instagram:followers"]')
               await instagramFollowers.waitFor({state:'visible',timeout:15000})
-              mediaKitEditorFollowers=await instagramFollowers.getByLabel('Valor').inputValue()
-              const provider=await instagramFollowers.getByLabel('Provider').inputValue()
-              const account=await instagramFollowers.getByLabel('Conta').inputValue()
-              const updated=await instagramFollowers.getByLabel('Atualizado em').inputValue()
-              const status=await instagramFollowers.getByLabel('Status').inputValue()
-              if(mediaKitEditorFollowers!=='48.200')throw new Error(`Unexpected Pages Instagram followers: ${mediaKitEditorFollowers}`)
-              if(provider!=='Instagram'||account!=='mockup:account:instagram:portal-lander')throw new Error(`Pages provenance mismatch: ${provider}/${account}`)
-              if(!updated||updated==='Data indisponível'||!status.includes('FRESH'))throw new Error('Pages automatic metric freshness/status missing')
+              mediaKitEditorFollowers=(await instagramFollowers.getByLabel('Valor').inputValue()).trim()
+              const provider=(await instagramFollowers.getByLabel('Provider').inputValue()).trim()
+              const account=(await instagramFollowers.getByLabel('Conta').inputValue()).trim()
+              const updated=(await instagramFollowers.getByLabel('Atualizado em').inputValue()).trim()
+              const status=(await instagramFollowers.getByLabel('Status').inputValue()).trim()
+              const metricsValue=normalizedMetricNumber(metricsInstagramFollowers)
+              const mediaKitValue=normalizedMetricNumber(mediaKitEditorFollowers)
+              if(provider!=='Instagram'||!account)throw new Error(`Pages provenance mismatch: ${provider}/${account}`)
+              if(!updated||updated==='Data indisponível'||!status)throw new Error('Pages automatic metric freshness/status missing')
+              if(metricsValue===null||mediaKitValue===null||metricsValue!==mediaKitValue)throw new Error(`Pages Metrics / Media Kit mismatch: ${metricsInstagramFollowers} != ${mediaKitEditorFollowers}`)
+              console.log(`PAGES_CANONICAL_PROVIDER=${provider}`)
+              console.log(`PAGES_CANONICAL_ACCOUNT=${account}`)
+              console.log('PAGES_CANONICAL_METRIC=followers')
+              console.log(`PAGES_METRICS_VALUE=${metricsInstagramFollowers}`)
+              console.log(`PAGES_MEDIA_KIT_VALUE=${mediaKitEditorFollowers}`)
+              console.log('PAGES_METRICS_MEDIA_KIT_PARITY=PASS')
               console.log('PAGES_MEDIA_KIT_AUTOMATIC_METRICS=PASS')
             })
             await visit('#/app/site/midia-kit/preview','21-media-kit-preview.png',async()=>{

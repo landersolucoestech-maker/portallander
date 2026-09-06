@@ -5,6 +5,8 @@ on:
     branches: [dev]
     paths:
       - 'apps/web/**'
+      - 'packages/mockup/**'
+      - 'packages/shared/**'
       - '.github/workflows/media-kit-runtime.yml'
       - 'package-lock.json'
       - 'package.json'
@@ -22,6 +24,7 @@ jobs:
       - name: Verify dev execution head
         run: |
           echo "HEAD=$(git rev-parse HEAD)"
+          test "${GITHUB_REF_NAME}" = "dev"
           test "$(git branch --show-current)" = "dev"
           test "$(git rev-parse HEAD)" = "${GITHUB_SHA}"
           test -z "$(git status --short)"
@@ -33,6 +36,7 @@ jobs:
       - name: Build explicit browser fixture
         env:
           VITE_ENABLE_DEMO_DATA: 'true'
+          VITE_MOCKUP_SCENARIO: 'full'
         run: npm run build
       - name: Install Chromium and PDF utilities
         working-directory: apps/web
@@ -70,8 +74,32 @@ jobs:
 
             await page.goto('http://127.0.0.1:4173/portallander/#/app/site/midia-kit',{waitUntil:'domcontentloaded'})
             const previewAction=page.getByRole('button',{name:'Preview completo',exact:true})
+            let editorFollowerValue=''
             try{
               await previewAction.waitFor({state:'visible',timeout:15000})
+              const automaticSection=page.getByTestId('media-kit-automatic-metrics')
+              await automaticSection.waitFor({state:'visible',timeout:15000})
+              for(const forbidden of ['Adicionar métrica','Metric key','Account ID','Property ID']){
+                if(await automaticSection.getByText(forbidden,{exact:true}).count())throw new Error(`Technical manual metric field leaked into primary Media Kit flow: ${forbidden}`)
+              }
+              const instagramFollowers=automaticSection.locator('[data-media-kit-metric="Instagram:followers"]')
+              await instagramFollowers.waitFor({state:'visible',timeout:15000})
+              editorFollowerValue=await instagramFollowers.getByLabel('Valor').inputValue()
+              const editorProvider=await instagramFollowers.getByLabel('Provider').inputValue()
+              const editorAccount=await instagramFollowers.getByLabel('Conta').inputValue()
+              const editorUpdated=await instagramFollowers.getByLabel('Atualizado em').inputValue()
+              const editorStatus=await instagramFollowers.getByLabel('Status').inputValue()
+              if(editorFollowerValue!=='48.200')throw new Error(`Unexpected Instagram followers in Media Kit editor: ${editorFollowerValue}`)
+              if(editorProvider!=='Instagram')throw new Error(`Unexpected Media Kit provider: ${editorProvider}`)
+              if(editorAccount!=='mockup:account:instagram:portal-lander')throw new Error(`Unexpected Media Kit account provenance: ${editorAccount}`)
+              if(!editorUpdated||editorUpdated==='Data indisponível')throw new Error('Automatic metric freshness timestamp missing in Media Kit editor')
+              if(!editorStatus.includes('CACHED')||!editorStatus.includes('FRESH'))throw new Error(`Automatic metric status/freshness missing: ${editorStatus}`)
+              console.log('MEDIA_KIT_AUTOMATIC_METRICS=PASS')
+              console.log('MEDIA_KIT_MANUAL_TECHNICAL_ENTRY_REQUIRED=NO')
+              console.log('MEDIA_KIT_INSTAGRAM_FOLLOWERS='+editorFollowerValue)
+              console.log('MEDIA_KIT_PROVIDER_PROVENANCE='+editorProvider)
+              console.log('MEDIA_KIT_ACCOUNT_PROVENANCE='+editorAccount)
+
               const livePreview=page.getByTestId('media-kit-live-preview')
               await livePreview.waitFor({state:'visible',timeout:15000})
               const liveDocument=livePreview.locator('.mk-document')
@@ -79,6 +107,11 @@ jobs:
               await page.waitForFunction(()=>document.querySelector('[data-testid="media-kit-live-preview"]')?.querySelectorAll('[data-media-kit-page]').length===9)
               const livePageCount=await livePreview.locator('[data-media-kit-page]').count()
               if(livePageCount!==9)throw new Error(`Live preview must preserve all 9 pages inside the shared MediaKitDocument; found ${livePageCount}`)
+              const liveInstagramFollowers=livePreview.locator('.mk-metric-grid article').filter({hasText:'Seguidores'}).filter({hasText:'Instagram'})
+              await liveInstagramFollowers.waitFor({state:'attached',timeout:15000})
+              const liveFollowerValue=(await liveInstagramFollowers.locator('strong').innerText()).trim()
+              if(liveFollowerValue!==editorFollowerValue)throw new Error(`Editor/live preview automatic metric mismatch: ${editorFollowerValue} != ${liveFollowerValue}`)
+              console.log('MEDIA_KIT_EDITOR_LIVE_METRIC_PARITY=PASS')
               if(!await livePreview.locator('[data-preview-page="1"]').isVisible())throw new Error('Live preview must start with page 1 visible')
               if(await livePreview.locator('[data-preview-page="2"]').isVisible())throw new Error('Live preview must hide non-selected pages without removing them from the shared document')
               const titleInput=page.getByLabel('Título do documento')
@@ -137,6 +170,12 @@ jobs:
               await page.screenshot({path:'test-results/media-kit/preview-failure.png',fullPage:true})
               throw error
             }
+
+            const fullPreviewInstagramFollowers=page.locator('.mk-preview-shell .mk-metric-grid article').filter({hasText:'Seguidores'}).filter({hasText:'Instagram'})
+            await fullPreviewInstagramFollowers.waitFor({state:'attached',timeout:15000})
+            const fullPreviewFollowerValue=(await fullPreviewInstagramFollowers.locator('strong').innerText()).trim()
+            if(fullPreviewFollowerValue!==editorFollowerValue)throw new Error(`Editor/full preview automatic metric mismatch: ${editorFollowerValue} != ${fullPreviewFollowerValue}`)
+            console.log('MEDIA_KIT_EDITOR_PREVIEW_METRIC_PARITY=PASS')
 
             await page.evaluate(async()=>{
               if(!document.fonts)return
@@ -202,7 +241,7 @@ jobs:
             await page.pdf({path:'test-results/media-kit/media-kit.pdf',format:'A4',printBackground:true,preferCSSPageSize:true,margin:{top:'0',right:'0',bottom:'0',left:'0'}})
             const pdf=await stat('test-results/media-kit/media-kit.pdf')
             if(pdf.size<10000)throw new Error('Generated PDF is unexpectedly small')
-            await writeFile('test-results/media-kit/runtime-summary.json',JSON.stringify({sha:process.env.GITHUB_SHA,editorOpened:true,livePreview:true,previewOpenedFromEditor:true,pageCount,pageOrder:numbers,keyboard:true,fonts,failedRequests,consoleErrors,pageErrors,pdfBytes:pdf.size},null,2))
+            await writeFile('test-results/media-kit/runtime-summary.json',JSON.stringify({sha:process.env.GITHUB_SHA,editorOpened:true,livePreview:true,previewOpenedFromEditor:true,pageCount,pageOrder:numbers,keyboard:true,fonts,automaticInstagramFollowers:editorFollowerValue,failedRequests,consoleErrors,pageErrors,pdfBytes:pdf.size},null,2))
             console.log('MEDIA_KIT_FULL_PREVIEW=PASS')
             console.log('PREVIEW_PAGE_COUNT='+pageCount)
             console.log('MEDIA_KIT_SHARED_RENDERER_PARITY=PASS')
@@ -226,8 +265,12 @@ jobs:
           grep -q 'PORTAL LANDER' test-results/media-kit/media-kit.txt
           grep -q 'NOSSA AUDIÊNCIA' test-results/media-kit/media-kit.txt
           grep -q 'INVENTÁRIO PUBLICITÁRIO' test-results/media-kit/media-kit.txt
+          grep -q 'Seguidores' test-results/media-kit/media-kit.txt
+          grep -q '48.200' test-results/media-kit/media-kit.txt
+          grep -q 'Instagram' test-results/media-kit/media-kit.txt
           echo "PDF_PAGE_COUNT=$pages"
           echo "PDF_SEARCHABLE_TEXT=PASS"
+          echo "MEDIA_KIT_AUTOMATIC_METRIC_PDF_PARITY=PASS"
           echo "MEDIA_KIT_PDF=PASS"
       - name: Render all PDF pages
         working-directory: apps/web

@@ -167,7 +167,7 @@ test.describe('Portal Lander product completion',()=>{
 
     await expect(dashboard).toBeVisible()
     await expect(kpiRegion.locator('[data-dashboard-kpi]')).toHaveCount(5)
-    for(const label of ['Novos Leads','Negociações','Faturamento (Mês)','Conteúdos Publicados','Visitas / Site'])await expect(kpiRegion.getByText(label,{exact:true})).toBeVisible()
+    for(const label of ['Novos Leads','Negociações','Faturamento (Mês)','Conteúdos Publicados','Visitas no Site'])await expect(kpiRegion.getByText(label,{exact:true})).toBeVisible()
     for(const region of [analytics,recent,leads,featured,pending])await expect(region).toBeVisible()
     await expect(page.getByRole('heading',{name:'Performance',exact:true})).toBeVisible()
     await expect(page.getByRole('heading',{name:'Atividades Recentes',exact:true})).toBeVisible()

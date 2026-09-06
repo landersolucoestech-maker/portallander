@@ -1,4 +1,5 @@
 import {adminApiBase} from '../access/authClient'
+import {loadDevelopmentMetricsOverview} from './client'
 
 export type MetricsRange='today'|'7d'|'30d'|'90d'|'custom'
 export type Availability='available'|'empty'
@@ -15,10 +16,7 @@ type ApiError={message?:string}
 const demoDataEnabled=import.meta.env.DEV||import.meta.env.VITE_ENABLE_DEMO_DATA==='true'
 
 export async function loadMetrics(input:{range:MetricsRange;startDate?:string;endDate?:string}):Promise<MetricsResponse>{
- if(demoDataEnabled){
-  const {getMockupMetricsOverview}=await import('@portallander/mockup')
-  return getMockupMetricsOverview(input) as MetricsResponse
- }
+ if(demoDataEnabled)return loadDevelopmentMetricsOverview<MetricsResponse>(input)
  const base=adminApiBase()
  if(!base)throw new Error('A API administrativa de Métricas não está configurada.')
  const params=new URLSearchParams({range:input.range})

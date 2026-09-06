@@ -2,8 +2,9 @@ import {createHmac,randomUUID} from 'node:crypto'
 import {getPool,withTransaction} from './db.js'
 import {HttpError} from './editorialService.js'
 import {removePrivateAttachment,storePrivateAttachment} from './storage.js'
+import {resolveSystemFormSlug} from '../../../packages/shared/systemFormCatalog.js'
 
-const COLLAB_TYPES=new Set(['noticia','video','foto','pauta'])
+const COLLAB_TYPES=new Set(['noticia','video','foto','pauta','publicidade','patrocinio','parceria_comercial','conteudo_patrocinado'])
 const COLLAB_PRIORITIES=new Set(['low','normal','high'])
 const LEAD_ORIGINS=new Set(['site','formulario_portal','whatsapp','email','instagram','facebook','linkedin','indicacao','prospeccao_ativa','evento','parceiro','campanha','google','outro'])
 const LEAD_TYPES=new Set(['empresa_marca','agencia_publicidade','assessoria_imprensa','agencia_comunicacao','anunciante','patrocinador','produtora','organizador_evento','artista_personalidade','criador_influenciador','parceiro_comercial','prestador_servico','instituicao','outro'])
@@ -13,6 +14,8 @@ const ensure=(condition,status,message,code,details)=>{if(!condition)throw new H
 const asObject=value=>value&&typeof value==='object'&&!Array.isArray(value)?value:{}
 const asArray=value=>Array.isArray(value)?value:[]
 const text=value=>value===undefined||value===null?'':String(value).trim()
+
+export function resolveCanonicalFormSlug(value){return resolveSystemFormSlug(value)||text(value)}
 
 export function hashClientIp(ip){
   const secret=String(process.env.PORTAL_IP_HASH_SECRET||'')
@@ -29,14 +32,15 @@ export function validateAntiSpamSignal(value,now=Date.now()){
 }
 
 async function getPublishedForm(slug,requestedVersion){
-  const values=[slug],versionClause=requestedVersion?`and v.version=$2`:''
+  const canonicalSlug=resolveCanonicalFormSlug(slug)
+  const values=[canonicalSlug],versionClause=requestedVersion?`and v.version=$2`:''
   if(requestedVersion)values.push(Number(requestedVersion))
   const {rows}=await getPool().query(`
     select f.id as form_id,f.key,f.name,f.slug,f.purpose,f.status,f.source,
            v.id as form_version_id,v.version,v.fields,v.consents,v.routing,v.success_message,v.published_at
       from site_forms f
       join site_form_versions v on v.form_id=f.id
-     where f.slug=$1 and f.status='active' and v.published_at is not null ${versionClause}
+     where f.slug=$1 and f.status='active' and f.retired_at is null and v.published_at is not null ${versionClause}
      order by v.version desc
      limit 1`,values)
   ensure(rows.length,404,'Formulário ativo/publicado não encontrado.','FORM_NOT_FOUND')
@@ -121,12 +125,13 @@ export const formService={
     await enforceRateLimit(ipHash)
     const normalizedFiles=normalizeSubmissionFiles(form,files)
     const validated=validateSubmission(form,asObject(payload),asArray(acceptedConsentIds),normalizedFiles)
+    const normalizedSource=asObject(source)
     const submissionId=randomUUID(),uploaded=[]
     try{
       for(const file of normalizedFiles)uploaded.push({...await storePrivateAttachment(submissionId,file),fieldKey:file.fieldKey})
       return await withTransaction(async client=>{
         await client.query(`insert into form_submissions(id,form_id,form_version_id,payload,source,processing_status,routing_results,request_id,spam_score,ip_hash,user_agent) values($1,$2,$3,$4,$5,'validating','{}'::jsonb,$6,0,$7,$8)`,[
-          submissionId,form.form_id,form.form_version_id,JSON.stringify(validated.payload),JSON.stringify(asObject(source)),requestId||null,ipHash,userAgent||'',
+          submissionId,form.form_id,form.form_version_id,JSON.stringify(validated.payload),JSON.stringify(normalizedSource),requestId||null,ipHash,userAgent||'',
         ])
         const consentSnapshot=[]
         for(const consent of form.consents){
@@ -145,10 +150,10 @@ export const formService={
         }
         const routing=asObject(form.routing),results={}
         if(routing.destination==='content_collaborations')results.collaborationId=await routeToCollaboration(client,submissionId,validated.payload,routing)
-        else if(routing.destination==='crm')results.crmLeadId=await routeToCrm(client,submissionId,validated.payload,asObject(source),routing)
+        else if(routing.destination==='crm')results.crmLeadId=await routeToCrm(client,submissionId,validated.payload,normalizedSource,routing)
         else if(!['none','internal','marketing'].includes(String(routing.destination||'none')))throw new HttpError(500,'Destino de formulário não suportado.','FORM_ROUTING_INVALID')
         await client.query(`update form_submissions set processing_status='accepted',routing_results=$2,processed_at=now() where id=$1`,[submissionId,JSON.stringify(results)])
-        return {id:submissionId,formId:form.form_id,formVersionId:form.form_version_id,submittedAt:new Date().toISOString(),payload:validated.payload,source:asObject(source),consentSnapshot,attachmentIds,processingStatus:'accepted',routingResults:results,successMessage:form.success_message}
+        return {id:submissionId,formId:form.form_id,formVersionId:form.form_version_id,submittedAt:new Date().toISOString(),payload:validated.payload,source:normalizedSource,consentSnapshot,attachmentIds,processingStatus:'accepted',routingResults:results,successMessage:form.success_message}
       })
     }catch(error){
       await Promise.all(uploaded.map(item=>removePrivateAttachment(item.storageKey)))

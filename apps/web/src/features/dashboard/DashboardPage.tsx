@@ -102,7 +102,7 @@ function pipelineGradient(entries:Array<[string,number]>,total:number){
 export default function DashboardPage(){
  const {status}=useAdminAuth()
  const authenticated=status==='authenticated'
- const adminDashboard=useQuery({queryKey:['dashboard','authenticated','executive'],queryFn:()=>loadAuthenticatedDashboard(),enabled:authenticated,staleTime:10_000})
+ const adminDashboard=useQuery({queryKey:['dashboard','authenticated','reference'],queryFn:()=>loadAuthenticatedDashboard(),enabled:authenticated,staleTime:10_000})
  const analytics=useQuery({queryKey:['dashboard','analytics','30d'],queryFn:loadDashboardAnalytics,staleTime:30_000,refetchOnWindowFocus:false,retry:1})
  const activity=useActivityHistory(8)
  const data=authenticated?adminDashboard.data:dashboardReadModel.snapshot()
@@ -137,48 +137,48 @@ export default function DashboardPage(){
   <main className="unified-dashboard" aria-busy={activity.isLoading||analytics.isLoading||adminDashboard.isLoading}>
    <section className="dashboard-kpi-grid" data-testid="dashboard-kpi-region" aria-label="Indicadores principais">
     <article className="dashboard-kpi-card" data-dashboard-kpi="new-leads">
-     <span className="dashboard-kpi-icon is-crm"><UsersRound size={18}/></span>
+     <span className="dashboard-kpi-icon is-crm"><UsersRound size={20}/></span>
      <div><span>Novos Leads</span><strong>{displayNumber(data.availability.crm,data.crmSummary.newLeads,value=>String(value))}</strong><small>{data.availability.crm?`${data.crmSummary.total} leads no pipeline`:'Fonte CRM indisponível'}</small></div>
     </article>
     <article className="dashboard-kpi-card" data-dashboard-kpi="negotiations">
-     <span className="dashboard-kpi-icon is-sales"><Handshake size={18}/></span>
+     <span className="dashboard-kpi-icon is-sales"><Handshake size={20}/></span>
      <div><span>Negociações</span><strong>{displayNumber(data.availability.crm,data.crmSummary.negotiations,value=>String(value))}</strong><small>{data.availability.crm?`${data.crmSummary.followUps.overdue} follow-up${data.crmSummary.followUps.overdue===1?'':'s'} vencido${data.crmSummary.followUps.overdue===1?'':'s'}`:'Fonte CRM indisponível'}</small></div>
     </article>
     <article className="dashboard-kpi-card" data-dashboard-kpi="revenue">
-     <span className="dashboard-kpi-icon is-finance"><CircleDollarSign size={18}/></span>
+     <span className="dashboard-kpi-icon is-finance"><CircleDollarSign size={20}/></span>
      <div><span>Faturamento (Mês)</span><strong>{displayNumber(data.availability.finance,data.financeSummary.monthRevenue,money)}</strong><small>{data.availability.finance?'Receitas pagas no período':'Fonte financeira indisponível'}</small></div>
     </article>
     <article className="dashboard-kpi-card" data-dashboard-kpi="published-content">
-     <span className="dashboard-kpi-icon is-content"><Newspaper size={18}/></span>
+     <span className="dashboard-kpi-icon is-content"><Newspaper size={20}/></span>
      <div><span>Conteúdos Publicados</span><strong>{displayNumber(data.availability.editorial,data.editorialCounts.publishedThisMonth,value=>String(value))}</strong><small>{data.availability.editorial?`${data.editorialCounts.published} publicados no total`:'Fonte editorial indisponível'}</small></div>
     </article>
     <article className="dashboard-kpi-card" data-dashboard-kpi="website">
-     <span className="dashboard-kpi-icon is-analytics"><Eye size={18}/></span>
-     <div><span>Visitas / Site</span><strong>{channelValue(website)}</strong><small>{website?.value===null?'Métrica não disponível':`${website?.metricLabel??'Pageviews'} · 30 dias`}</small></div>
+     <span className="dashboard-kpi-icon is-analytics"><Eye size={20}/></span>
+     <div><span>Visitas no Site</span><strong>{channelValue(website)}</strong><small>{website?.value===null?'Métrica não disponível':`${website?.metricLabel??'Pageviews'} · 30 dias`}</small></div>
     </article>
    </section>
 
    <section className="dashboard-reference-row" aria-label="Performance e atividades">
     <section className="dashboard-reference-panel dashboard-analytics-panel" data-testid="dashboard-analytics-region" aria-labelledby="dashboard-performance-title">
      <header className="dashboard-panel-heading">
-      <div><h2 id="dashboard-performance-title">Performance</h2><p>Leitura multicanal compacta do período canônico.</p></div>
-      <Link to="/app/metricas">Ver métricas <ArrowUpRight size={13}/></Link>
+      <div><h2 id="dashboard-performance-title">Performance</h2><p>Website e redes sociais no período canônico.</p></div>
+      <Link to="/app/metricas">Ver métricas <ArrowUpRight size={14}/></Link>
      </header>
      <div className="dashboard-channel-tabs" data-testid="dashboard-channel-tabs" role="tablist" aria-label="Canais de performance">
       {channels.map(channel=><button key={channel.key} type="button" role="tab" aria-selected={selectedChannel===channel.key} onClick={()=>setSelectedChannel(channel.key)}>{channel.label}</button>)}
      </div>
-     <div className="dashboard-analytics-summary">
-      <div><span>{activeChannel.label}</span><strong>{channelValue(activeChannel)}</strong><small>{activeChannel.metricLabel}</small></div>
-      <div className={`dashboard-source-badge ${activeChannel.source.toLowerCase()}`}>{sourceLabel(activeChannel.source)}</div>
-      <div><span>Provider</span><strong>{activeChannel.provider}</strong><small>{activeChannel.accountId??'Conta não identificada'}</small></div>
+     <div className="dashboard-performance-context" data-testid="dashboard-performance-context">
+      <span><strong>{activeChannel.label}</strong> · {activeChannel.metricLabel}</span>
+      <span className="dashboard-performance-provenance"><span className={`dashboard-source-badge ${activeChannel.source.toLowerCase()}`}>{sourceLabel(activeChannel.source)}</span><span>{activeChannel.provider}{activeChannel.accountId?` · ${activeChannel.accountId}`:''}</span></span>
      </div>
      {selectedChannel==='site'?<div className="dashboard-chart-stage" data-testid="dashboard-website-chart">
+      <div className="dashboard-chart-pulse"><strong>{channelValue(activeChannel)}</strong><span>{activeChannel.metricLabel}</span></div>
       {chartPoints.length>=2?<><svg viewBox="0 0 100 100" preserveAspectRatio="none" role="img" aria-label="Evolução recente de pageviews do Website">
        <polygon points={`0,100 ${chartCoordinates} 100,100`} className="dashboard-chart-area"/>
        <polyline points={chartCoordinates} className="dashboard-chart-line"/>
-      </svg><div className="dashboard-chart-labels">{chartPoints.map(point=><span key={point.date}>{point.label}</span>)}</div></>:<div className="dashboard-chart-unavailable"><BarChart3 size={22}/><strong>SÉRIE TEMPORAL INDISPONÍVEL</strong><p>O KPI continua exibindo o snapshot canônico quando disponível; nenhum zero foi fabricado para preencher o gráfico.</p></div>}
+      </svg><div className="dashboard-chart-labels">{chartPoints.map(point=><span key={point.date}>{point.label}</span>)}</div></>:<div className="dashboard-chart-unavailable"><BarChart3 size={24}/><strong>SÉRIE TEMPORAL INDISPONÍVEL</strong><p>O snapshot canônico continua visível quando disponível; nenhum zero ou linha artificial foi criado para preencher o gráfico.</p></div>}
      </div>:<div className="dashboard-channel-detail" data-testid={`dashboard-channel-detail-${selectedChannel}`}>
-      <BarChart3 size={24}/><div><strong>{activeChannel.value===null?'MÉTRICA NÃO DISPONÍVEL':`${activeChannel.metricLabel}: ${compact(activeChannel.value)}`}</strong><p>Este resumo não soma providers incompatíveis nem cria uma série que a fonte não entregou.</p><small>Atualizado em {formatDate(activeChannel.updatedAt)}</small></div>
+      <BarChart3 size={28}/><div><span>{activeChannel.metricLabel}</span><strong>{activeChannel.value===null?'MÉTRICA NÃO DISPONÍVEL':compact(activeChannel.value)}</strong><small>Atualizado em {formatDate(activeChannel.updatedAt)}</small></div>
      </div>}
      {(analytics.data?.errors.overview||analytics.data?.errors.metrics)&&<p className="dashboard-analytics-note">Uma ou mais fontes Analytics não responderam. Os canais afetados permanecem como INDISPONÍVEL.</p>}
     </section>
@@ -186,10 +186,10 @@ export default function DashboardPage(){
     <aside className="dashboard-reference-panel dashboard-recent-panel" data-testid="dashboard-recent-activity" aria-labelledby="dashboard-recent-title">
      <header className="dashboard-panel-heading">
       <div><h2 id="dashboard-recent-title">Atividades Recentes</h2><p>Movimentações editoriais confirmadas.</p></div>
-      <Link to="/app/site/conteudos">Ver todas <ArrowUpRight size={13}/></Link>
+      <Link to="/app/site/conteudos">Ver todas <ArrowUpRight size={14}/></Link>
      </header>
      <div className="dashboard-recent-list">
-      {activity.isLoading?<div className="dashboard-empty-inline">Carregando movimentações…</div>:recentActivity.length?recentActivity.map(item=><article key={item.id}><span className="dashboard-row-icon"><FileText size={14}/></span><div><strong>{item.title}</strong><p>{item.action==='published'?'Publicado':'Atualizado'} · {item.category}</p></div><time dateTime={item.occurred_at}>{formatDate(item.occurred_at)}</time></article>):<div className="dashboard-empty-inline"><strong>Nenhuma atividade recente</strong><p>Não há eventos editoriais legítimos para exibir nesta carga.</p></div>}
+      {activity.isLoading?<div className="dashboard-empty-inline">Carregando movimentações…</div>:recentActivity.length?recentActivity.map(item=><article key={item.id}><span className="dashboard-row-icon"><FileText size={15}/></span><div><strong>{item.title}</strong><p>{item.action==='published'?'Publicado':'Atualizado'} · {item.category}</p></div><time dateTime={item.occurred_at}>{formatDate(item.occurred_at)}</time></article>):<div className="dashboard-empty-inline"><strong>Nenhuma atividade recente</strong><p>Não há eventos editoriais legítimos para exibir nesta carga.</p></div>}
      </div>
     </aside>
    </section>
@@ -198,7 +198,7 @@ export default function DashboardPage(){
     <section className="dashboard-reference-panel dashboard-leads-panel" data-testid="dashboard-lead-distribution" aria-labelledby="dashboard-leads-title">
      <header className="dashboard-panel-heading">
       <div><h2 id="dashboard-leads-title">Distribuição de Leads</h2><p>Breakdown do pipeline canônico.</p></div>
-      <Link to="/app/crm">Abrir CRM <ArrowUpRight size={13}/></Link>
+      <Link to="/app/crm">Abrir CRM <ArrowUpRight size={14}/></Link>
      </header>
      {data.availability.crm&&pipelineEntries.length?<div className="dashboard-lead-distribution-body">
       <div className="dashboard-lead-ring" style={ringStyle} aria-label={`${data.crmSummary.total} leads no pipeline`}><div><span>Total</span><strong>{data.crmSummary.total}</strong></div></div>
@@ -209,11 +209,11 @@ export default function DashboardPage(){
     <section className="dashboard-reference-panel dashboard-featured-panel" data-testid="dashboard-featured-content" aria-labelledby="dashboard-featured-title">
      <header className="dashboard-panel-heading">
       <div><h2 id="dashboard-featured-title">Conteúdos em Destaque</h2><p>Publicações editoriais recentes.</p></div>
-      <Link to="/app/site/conteudos">Ver todos <ArrowUpRight size={13}/></Link>
+      <Link to="/app/site/conteudos">Ver todos <ArrowUpRight size={14}/></Link>
      </header>
      <div className="dashboard-featured-list">
       {data.availability.editorial&&data.featuredContents.length?data.featuredContents.map(item=><article key={item.id}>
-       <div className="dashboard-featured-thumb">{item.coverImage?<img src={item.coverImage} alt=""/>:<FileText size={18}/>}</div>
+       <div className="dashboard-featured-thumb">{item.coverImage?<img src={item.coverImage} alt=""/>:<FileText size={20}/>}</div>
        <div><strong>{item.title}</strong><time dateTime={item.publishedAt??item.updatedAt}>{formatDate(item.publishedAt??item.updatedAt)}</time><small>{item.tags.slice(0,2).join(' · ')||'Editorial'}</small></div>
       </article>):<div className="dashboard-empty-inline"><strong>Nenhum conteúdo publicado</strong><p>O painel permanece vazio sem inventar destaque.</p></div>}
      </div>
@@ -223,7 +223,7 @@ export default function DashboardPage(){
      <header className="dashboard-panel-heading"><div><h2 id="dashboard-pending-title">Pendências</h2><p>Atenção derivada de fontes reais.</p></div></header>
      {domainErrorCount>0&&<p className="dashboard-source-warning">{domainErrorCount} fonte{domainErrorCount===1?'':'s'} operacional{domainErrorCount===1?'':'is'} indisponível{domainErrorCount===1?'':'eis'} nesta carga.</p>}
      <div className="dashboard-pending-list">
-      {attention.length?attention.slice(0,4).map(item=><article key={item.id} data-attention-kind={item.kind}><span className="dashboard-attention-mark"/><div><strong>{item.title}</strong><p>{item.detail}</p>{item.dueAt&&<time dateTime={item.dueAt}>{formatDate(item.dueAt)}</time>}</div><Link to={item.href} aria-label={`Abrir ${item.title}`}><ArrowUpRight size={14}/></Link></article>):<div className="dashboard-empty-inline"><strong>Nenhuma pendência acionável</strong><p>As fontes disponíveis não indicam condição que exija ação agora.</p></div>}
+      {attention.length?attention.slice(0,4).map(item=><article key={item.id} data-attention-kind={item.kind}><span className="dashboard-attention-mark"/><div><strong>{item.title}</strong><p>{item.detail}</p>{item.dueAt&&<time dateTime={item.dueAt}>{formatDate(item.dueAt)}</time>}</div><Link to={item.href} aria-label={`Abrir ${item.title}`}><ArrowUpRight size={15}/></Link></article>):<div className="dashboard-empty-inline"><strong>Nenhuma pendência acionável</strong><p>As fontes disponíveis não indicam condição que exija ação agora.</p></div>}
      </div>
     </section>
    </section>

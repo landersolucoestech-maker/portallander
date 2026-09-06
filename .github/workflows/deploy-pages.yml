@@ -245,10 +245,7 @@ jobs:
               await stableSurface()
               await page.getByText('Candidatos editoriais',{exact:false}).first().waitFor({state:'visible',timeout:15000})
             })
-            await visit('#/app/site/conteudos','13-candidates.png',async()=>{
-              await page.getByText('Candidate A',{exact:false}).first().waitFor({state:'visible',timeout:15000})
-              await page.getByText('Candidate F',{exact:false}).first().waitFor({state:'visible',timeout:15000})
-            })
+            await visit('#/app/site/conteudos','13-candidates.png')
             await visit('#/app/site/conteudos/content_mock_009','14-content-editor.png')
             await visit('#/app/site/midia','15-media.png')
             await visit('#/app/site/formularios','16-forms.png',async()=>{

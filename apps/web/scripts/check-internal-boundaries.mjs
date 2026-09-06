@@ -12,7 +12,8 @@ const publicStyles=await read('src/styles/public-styles.css')
 for(const forbidden of ['admin-system','admin-entry','admin-header','admin-dashboard','admin-brand','admin-responsive','admin-accessibility','admin-access.css','header-brand-manager.css','brand-assets-manager.css'])if(publicStyles.includes(forbidden))failures.push(`public-styles.css não pode carregar stylesheet administrativo: ${forbidden}`)
 
 const main=await read('src/main.tsx')
-requireTokens('main.tsx',main,['QueryClientProvider','<HashRouter><App/></HashRouter>','purgeRemovedModuleStorage'])
+requireTokens('main.tsx',main,['QueryClientProvider','<HashRouter><App/></HashRouter>','purgeRemovedModuleStorage',"import('./shared/data/mockDataProvider')"])
+if(/import\s+\{?\s*mockDataProvider/.test(main))failures.push('main.tsx não pode importar MockDataProvider estaticamente no bootstrap de produção.')
 
 const internalApp=await read('src/app/InternalApp.tsx')
 requireModuleSources('InternalApp.tsx',internalApp,[
@@ -105,11 +106,10 @@ forbidTokens('dataProvider.ts',dataProvider,['WorkspaceDescriptor','workspaces()
 const apiDataProvider=await read('src/shared/data/apiDataProvider.ts')
 forbidTokens('apiDataProvider.ts',apiDataProvider,["['identity']['workspaces']",'snapshot.identity.workspaces','workspaces:'])
 const mockDataProvider=await read('src/shared/data/mockDataProvider.ts')
-forbidTokens('mockDataProvider.ts',mockDataProvider,['mockWorkspaces','workspaces:'])
+forbidTokens('mockDataProvider.ts',mockDataProvider,['mockWorkspaces','workspaces:',"from '../../mocks'"])
+requireTokens('mockDataProvider.ts',mockDataProvider,["from '@portallander/mockup'"])
 const appReadModel=await read('src/shared/data/appReadModel.ts')
 forbidTokens('appReadModel.ts',appReadModel,['workspaces()','.identity.workspaces'])
-const identityMocks=await read('src/mocks/identity/index.ts')
-forbidTokens('mocks/identity/index.ts',identityMocks,['WorkspaceDescriptor','mockWorkspaces','workspace_admin','workspace_site','workspace_archive','/app/workspaces'])
 
 const accountPage=await read('src/features/access/AccountPages.tsx')
 requireTokens('AccountPages.tsx',accountPage,['UNIFIED_ADMIN_NAV','useAdminAuth','sessionUser.displayName'])
@@ -142,14 +142,16 @@ requireTokens('finance/hooks.ts',financeHooks,['financeAdminClient','status===\'
 const financeAdminClient=await read('src/features/finance/adminClient.ts')
 requireTokens('finance/adminClient.ts',financeAdminClient,['/api/finance/transactions','/api/finance/invoices','/api/finance/categories','/api/finance/rules',"credentials:'include'"])
 
-const mockArchitectureFiles=[
- 'src/mocks/README.md','src/mocks/index.ts','src/mocks/manifest.ts',
- 'src/mocks/identity/index.ts','src/mocks/notifications/index.ts','src/mocks/crm/index.ts','src/mocks/contracts/index.ts','src/mocks/finance/index.ts','src/mocks/editorial/index.ts','src/mocks/home/index.ts','src/mocks/advertising/index.ts','src/mocks/agenda/index.ts','src/mocks/dashboard/index.ts','src/mocks/collaboration/index.ts','src/mocks/branding/index.ts','src/mocks/shared/index.ts','src/mocks/scenarios/index.ts'
-]
-for(const path of mockArchitectureFiles)if(!(await exists(path)))failures.push(`Arquitetura global de mock data exige ${path}.`)
-const mockManifest=await read('src/mocks/manifest.ts')
-for(const domain of ['identity','notifications','crm','contracts','finance','editorial','home','advertising','agenda','dashboard','collaboration','branding','shared','scenarios'])if(!mockManifest.includes(`'${domain}'`))failures.push(`Manifesto global de mocks deve registrar domínio: ${domain}`)
-for(const required of ['uiMayImportRawMocks:false','crossDomainIds:true','metricsMustBeDerived:true','scenariosCentralized:true','providerBoundaryRequired:true'])if(!mockManifest.includes(required))failures.push(`Manifesto global de mocks deve preservar regra: ${required}`)
+if(await exists('src/mocks'))failures.push('src/mocks deve permanecer removido; dados reutilizáveis de desenvolvimento pertencem a @portallander/mockup.')
+for(const required of [
+ '../../packages/mockup/package.json',
+ '../../packages/mockup/src/index.ts',
+ '../../packages/mockup/src/registry.ts',
+])if(!(await exists(required)))failures.push(`Arquitetura global de mock data exige ${required}.`)
+
+const mediaKitPage=await read('src/features/site-manager/pages/MediaKitPage.tsx')
+requireTokens('MediaKitPage.tsx',mediaKitPage,['data-testid="media-kit-automatic-metrics"','Audiência e métricas com proveniência','Métrica','Valor','Provider','Conta','Atualizado em','Status','Compatibilidade de dados manuais legados'])
+for(const forbidden of ['Adicionar métrica','Metric key','Account ID','Property ID'])if(mediaKitPage.includes(forbidden))failures.push(`Mídia Kit não pode exigir configuração técnica manual no fluxo principal: ${forbidden}`)
 
 if(failures.length){console.error('Falha nos boundaries da aplicação:');failures.forEach(item=>console.error(`- ${item}`));process.exit(1)}
-console.log('Application boundaries OK — administração unificada com autenticação protegida e sem arquitetura de workspaces')
+console.log('Application boundaries OK — administração unificada; @portallander/mockup canônico; Mídia Kit automático; sem arquitetura legada de workspaces ou src/mocks')

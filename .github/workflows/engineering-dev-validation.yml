@@ -98,6 +98,11 @@ jobs:
         run: |
           test "$(git branch --show-current)" = "dev"
           test "$(git rev-parse HEAD)" = "${GITHUB_SHA}"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install runtime dependencies
+        run: npm ci
       - name: Provision Supabase Storage compatibility fixture
         run: |
           psql -v ON_ERROR_STOP=1 <<'SQL'
@@ -110,15 +115,38 @@ jobs:
             allowed_mime_types text[]
           );
           SQL
-      - name: Apply all migrations in repository order
+      - name: Apply all migrations in repository order with Forms legacy fixtures
         run: |
           set -euo pipefail
           mkdir -p artifacts/engineering-audit
           : > artifacts/engineering-audit/migration-runtime.txt
           for migration in $(find apps/api/migrations -maxdepth 1 -type f -name '*.sql' | sort -V); do
+            if [[ "$migration" == *"/030_canonical_system_forms.sql" ]]; then
+              psql -v ON_ERROR_STOP=1 <<'SQL' | tee -a artifacts/engineering-audit/migration-runtime.txt
+          insert into form_submissions(form_id,form_version_id,payload,source,processing_status,routing_results,request_id)
+          select f.id,v.id,
+                 '{"name":"Legacy Advertising","email":"legacy-ad@example.test","service":"banner_publicitario"}'::jsonb,
+                 '{"page":"/anuncie"}'::jsonb,
+                 'accepted','{"crmLeadId":"legacy-crm-proof"}'::jsonb,'forms-proof-legacy-ad'
+          from site_forms f
+          join site_form_versions v on v.form_id=f.id and v.version=1
+          where f.key='advertising-inquiry';
+
+          insert into form_submissions(form_id,form_version_id,payload,source,processing_status,routing_results,request_id)
+          select f.id,v.id,
+                 '{"name":"Legacy Ambiguous","email":"legacy-ambiguous@example.test"}'::jsonb,
+                 '{}'::jsonb,
+                 'accepted','{}'::jsonb,'forms-proof-legacy-ambiguous'
+          from site_forms f
+          join site_form_versions v on v.form_id=f.id and v.version=1
+          where f.key='advertising-inquiry';
+          SQL
+            fi
             echo "APPLY $migration" | tee -a artifacts/engineering-audit/migration-runtime.txt
             psql -v ON_ERROR_STOP=1 -f "$migration" 2>&1 | tee -a artifacts/engineering-audit/migration-runtime.txt
           done
+      - name: Canonical Forms migration, API and routing proof
+        run: node apps/api/scripts/forms-runtime-proof.mjs | tee artifacts/engineering-audit/forms-runtime-proof.json
       - name: Reapply idempotent Analytics migration
         run: psql -v ON_ERROR_STOP=1 -f apps/api/migrations/018_analytics_metrics.sql
       - name: Database and RLS inventory
@@ -167,6 +195,7 @@ jobs:
       - name: Build explicit browser demo fixture
         env:
           VITE_ENABLE_DEMO_DATA: 'true'
+          VITE_MOCKUP_SCENARIO: 'full'
         run: npm run build
       - name: Install Chromium
         working-directory: apps/web

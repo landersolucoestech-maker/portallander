@@ -2,10 +2,11 @@ import {beforeEach,describe,expect,it} from 'vitest'
 import type {AnalyticsProviderStatus} from '../analytics/domain'
 import type {AgendaEvent} from '../agenda/domain'
 import type {Lead} from '../crm/domain'
+import type {EditorialContent} from '../editorial/model'
 import type {FinanceTransaction} from '../finance/domain'
 import {mockDataProvider} from '../../shared/data/mockDataProvider'
 import {setRuntimeDataProvider} from '../../shared/data/runtimeDataProvider'
-import {dashboardReadModel,deriveOperationalAttention} from './dashboardReadModel'
+import {dashboardReadModel,deriveFeaturedContents,deriveOperationalAttention} from './dashboardReadModel'
 
 describe('dashboard derived metrics',()=>{
  beforeEach(()=>{mockDataProvider.setScenario('success');setRuntimeDataProvider(mockDataProvider)})
@@ -18,9 +19,23 @@ describe('dashboard derived metrics',()=>{
   expect(Object.values(data.pipeline).reduce((sum,value)=>sum+value,0)).toBe(mockDataProvider.crm.state().leads.length)
   expect(data.revenueByCategory.reduce((sum,[,value])=>sum+value,0)).toBeGreaterThan(0)
   expect(data.editorialCounts.drafts+data.editorialCounts.published+data.editorialCounts.archived).toBe(mockDataProvider.editorial.contents().length)
+  expect(data.featuredContents.length).toBeLessThanOrEqual(3)
   expect(data.pendingTasks.every(task=>task.status!=='concluida')).toBe(true)
   expect(data.financeSummary.monthRevenue).toBe(data.monthRevenue)
   expect(data.crmSummary.pipeline).toEqual(data.pipeline)
+ })
+
+ it('selects featured content from canonical published editorial records instead of cloning activity history',()=>{
+  const makeContent=(id:string,status:EditorialContent['status'],active:boolean,publishedAt:string):EditorialContent=>({
+   id,pageId:'page-noticias',title:`Conteúdo ${id}`,slug:`conteudo-${id}`,summary:'Resumo',body:[],author:'Portal Lander',status,active,tags:['notícias'],media:[],seo:{},createdAt:'2026-09-01T00:00:00.000Z',updatedAt:publishedAt,publishedAt,
+  })
+  const featured=deriveFeaturedContents([
+   makeContent('old','published',true,'2026-09-01T10:00:00.000Z'),
+   makeContent('draft','draft',true,'2026-09-06T10:00:00.000Z'),
+   makeContent('inactive','published',false,'2026-09-06T11:00:00.000Z'),
+   makeContent('latest','published',true,'2026-09-06T12:00:00.000Z'),
+  ])
+  expect(featured.map(item=>item.id)).toEqual(['latest','old'])
  })
 
  it.each([

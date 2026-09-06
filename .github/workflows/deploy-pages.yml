@@ -198,6 +198,17 @@ jobs:
               throw error
             }
           }
+          async function canonicalFormsCount(){
+            const rows=page.locator('.site-forms-table tbody tr')
+            await rows.first().waitFor({state:'visible',timeout:15000})
+            const count=await rows.count()
+            if(count!==2)throw new Error(`ADMIN SYSTEM FORM COUNT ${count} != 2`)
+            const body=await page.locator('.site-forms-table').innerText()
+            if(!body.includes('Contato Comercial')||!body.includes('Colabore / Anuncie'))throw new Error('Canonical system form names are missing.')
+            if(body.includes('Captação de Leads')||body.includes('Contato Comercial · Anuncie'))throw new Error('Legacy system form still appears as an administrative row.')
+            if(!body.includes('CRM → Leads')||!body.includes('Site → Conteúdos → Colaborações recebidas'))throw new Error('Canonical form destinations are missing.')
+            return count
+          }
 
           try{
             await visit('','01-home.png',async()=>{
@@ -240,8 +251,36 @@ jobs:
             })
             await visit('#/app/site/conteudos/content_mock_009','14-content-editor.png')
             await visit('#/app/site/midia','15-media.png')
-            await visit('#/app/site/formularios','16-forms.png')
-            await visit('#/app/site/midia-kit','17-media-kit.png',async()=>{
+            await visit('#/app/site/formularios','16-forms.png',async()=>{
+              const initial=await canonicalFormsCount()
+              console.log(`ADMIN SYSTEM FORM COUNT INITIAL = ${initial}`)
+              await page.reload({waitUntil:'domcontentloaded'})
+              const refreshed=await canonicalFormsCount()
+              console.log(`ADMIN SYSTEM FORM COUNT REFRESH = ${refreshed}`)
+              await page.goto(`${base}#/app/dashboard`,{waitUntil:'domcontentloaded'})
+              await page.getByText('Dashboard',{exact:true}).first().waitFor({state:'visible',timeout:15000})
+              await page.goto(`${base}#/app/site/formularios`,{waitUntil:'domcontentloaded'})
+              const renavigated=await canonicalFormsCount()
+              console.log(`ADMIN SYSTEM FORM COUNT RENAVIGATION = ${renavigated}`)
+              if(initial!==2||refreshed!==2||renavigated!==2)throw new Error('Canonical form count was not stable across refresh/renavigation.')
+              console.log('PAGES_CANONICAL_FORMS=PASS')
+            })
+            await visit('#/contato','17-public-contato.png',async()=>{
+              await page.locator('.site-form-runtime-lead_capture').waitFor({state:'visible',timeout:15000})
+              if(await page.locator('.pl-contact-form').count())throw new Error('/contato still renders legacy mailto intake form.')
+              console.log('PAGES_CONTACT_CANONICAL_FORM=PASS')
+            })
+            await visit('#/colabore','18-public-colabore.png',async()=>{
+              await page.locator('.site-form-runtime-editorial_submission').waitFor({state:'visible',timeout:15000})
+              console.log('PAGES_COLABORE_CANONICAL_FORM=PASS')
+            })
+            await visit('#/anuncie','19-public-anuncie.png',async()=>{
+              await page.locator('.site-form-runtime-editorial_submission').waitFor({state:'visible',timeout:15000})
+              const body=await page.locator('body').innerText()
+              if(body.includes('registrada no CRM como novo lead comercial'))throw new Error('/anuncie still claims CRM Lead routing.')
+              console.log('PAGES_ANUNCIE_CANONICAL_FORM=PASS')
+            })
+            await visit('#/app/site/midia-kit','20-media-kit.png',async()=>{
               await page.getByText('Mídia Kit',{exact:true}).first().waitFor({state:'visible',timeout:15000})
               await page.getByTestId('media-kit-live-preview').waitFor({state:'visible',timeout:15000})
               const automatic=page.getByTestId('media-kit-automatic-metrics')
@@ -259,7 +298,7 @@ jobs:
               if(!updated||updated==='Data indisponível'||!status.includes('FRESH'))throw new Error('Pages automatic metric freshness/status missing')
               console.log('PAGES_MEDIA_KIT_AUTOMATIC_METRICS=PASS')
             })
-            await visit('#/app/site/midia-kit/preview','18-media-kit-preview.png',async()=>{
+            await visit('#/app/site/midia-kit/preview','21-media-kit-preview.png',async()=>{
               await page.getByLabel('Preview do Mídia Kit').waitFor({state:'visible',timeout:15000})
               await page.getByText('NOSSA AUDIÊNCIA',{exact:true}).waitFor({state:'visible',timeout:15000})
               const instagramFollowers=page.locator('.mk-preview-shell .mk-metric-grid article').filter({hasText:'Seguidores'}).filter({hasText:'Instagram'})

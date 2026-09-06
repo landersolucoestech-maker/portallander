@@ -15,6 +15,7 @@ export const formPublicService={
         order by x.version desc
         limit 1
       ) v on true
+      where f.retired_at is null and f.status='active'
       order by f.name asc`)
     return rows.map(row=>{
       const meta=asObject(row.definition_meta)

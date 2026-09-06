@@ -1,9 +1,10 @@
 export type MockupScenarioName='full'|'empty'|'errors'
 
+const mockAccountId=(provider:string)=>provider==='Instagram'?'mockup:account:instagram:portal-lander':provider==='TikTok'?'mockup:account:tiktok:portal-lander':provider==='YouTube'?'mockup:channel:youtube:portal-lander':`mockup:account:${provider.toLowerCase().replace(/[^a-z0-9]+/g,'-')}:portal-lander`
 const metric=(id:string,metricKey:string,value:number,provider:string,scopeId='portal')=>({
- id,metricKey,value,unit:'count',provider,providerAccountId:null,providerPropertyId:null,scopeType:'portal',scopeId,
+ id,metricKey,value,unit:'count',provider,providerAccountId:mockAccountId(provider),providerPropertyId:null,scopeType:'portal',scopeId,
  periodStart:'2026-08-01T00:00:00.000Z',periodEnd:'2026-09-01T00:00:00.000Z',granularity:'month',timezone:'America/Sao_Paulo',dimensions:{},filters:{},
- sourceType:'provider' as const,sourceReference:`mockup/full:${provider}:${metricKey}`,collectedAt:'2026-09-01T12:00:00.000Z',providerUpdatedAt:'2026-09-01T11:55:00.000Z',normalizedAt:'2026-09-01T12:00:00.000Z',freshnessStatus:'FRESH' as const,dataStatus:'CACHED' as const,syncId:'mockup:analytics:2026-08',provenance:{environment:'development',scenario:'full'},isEstimated:false,isManual:false,
+ sourceType:'provider' as const,sourceReference:`mockup/full:${provider}:${metricKey}`,collectedAt:'2026-09-01T12:00:00.000Z',providerUpdatedAt:'2026-09-01T11:55:00.000Z',normalizedAt:'2026-09-01T12:00:00.000Z',freshnessStatus:'FRESH' as const,dataStatus:'CACHED' as const,syncId:'mockup:analytics:2026-08',provenance:{environment:'development',scenario:'full',automatic:true},isEstimated:false,isManual:false,
 })
 
 const previousMetric=(row:ReturnType<typeof metric>)=>({...row,id:`${row.id}:prev`,value:Math.round(row.value*0.88),periodStart:'2026-07-01T00:00:00.000Z',periodEnd:'2026-08-01T00:00:00.000Z',sourceReference:`${row.sourceReference}:previous`})

@@ -1,0 +1,82 @@
+name: Temporary Mockup Dataset Promotion
+
+on:
+  push:
+    branches: [dev]
+
+permissions:
+  contents: write
+
+jobs:
+  promote:
+    if: ${{ !contains(github.event.head_commit.message, '[mockup-promoted]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: dev
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install monorepo
+        run: npm ci
+      - name: Promote reusable mock values into package
+        shell: bash
+        run: |
+          cat > /tmp/promote-mockup.ts <<'TS'
+          import fs from 'node:fs'
+          import path from 'node:path'
+          import { pathToFileURL } from 'node:url'
+
+          const root=process.cwd()
+          const source=path.join(root,'apps/web/src/mocks/index.ts')
+          const mod=await import(pathToFileURL(source).href)
+          const runtimeEntries=Object.entries(mod)
+            .filter(([name,value])=>/^mock[A-Z0-9_]/.test(name)&&typeof value!=='function')
+            .sort(([a],[b])=>a.localeCompare(b))
+          const payload=Object.fromEntries(runtimeEntries)
+          const json=JSON.stringify(payload,null,2)
+          if(!json) throw new Error('Could not serialize reusable mock datasets')
+
+          const generatedDir=path.join(root,'packages/mockup/src/generated')
+          fs.mkdirSync(generatedDir,{recursive:true})
+          fs.writeFileSync(path.join(generatedDir,'runtimeData.ts'),`// Generated once from the pre-existing apps/web/src/mocks datasets during canonical promotion.\n// Runtime source of truth after promotion: @portallander/mockup.\nexport const generatedRuntimeData: Record<string, any> = ${json}\n`)
+          const exportLines=runtimeEntries.map(([name])=>`export const ${name}: any = generatedRuntimeData.${name}`)
+          fs.writeFileSync(path.join(generatedDir,'runtimeExports.ts'),`import {generatedRuntimeData} from './runtimeData'\n${exportLines.join('\n')}\n`)
+
+          const indexPath=path.join(root,'packages/mockup/src/index.ts')
+          let index=fs.readFileSync(indexPath,'utf8')
+          if(!index.includes("./generated/runtimeExports")) index += "export * from './generated/runtimeExports'\n"
+          fs.writeFileSync(indexPath,index)
+
+          const providerPath=path.join(root,'apps/web/src/shared/data/mockDataProvider.ts')
+          let provider=fs.readFileSync(providerPath,'utf8')
+          provider=provider.replace("from '../../mocks'","from '@portallander/mockup'")
+          fs.writeFileSync(providerPath,provider)
+
+          const names=runtimeEntries.map(([name])=>name)
+          fs.writeFileSync(path.join(root,'packages/mockup/src/generated/export-names.txt'),names.join('\n')+'\n')
+          console.log(`PROMOTED_RUNTIME_EXPORTS=${runtimeEntries.length}`)
+          TS
+          npx --yes tsx /tmp/promote-mockup.ts
+          echo '--- Remaining imports that reference mock modules outside apps/web/src/mocks ---'
+          grep -RInE "from ['\"][^'\"]*mocks|import\(['\"][^'\"]*mocks" apps/web/src --exclude-dir=mocks || true
+      - name: Verify promoted source compiles
+        run: |
+          npm run lint
+          npm run check:architecture
+          npm run typecheck
+          npm test -- --run
+      - name: Commit promotion
+        shell: bash
+        run: |
+          git config user.name "Portal Lander Automation"
+          git config user.email "actions@users.noreply.github.com"
+          git add packages/mockup/src/generated packages/mockup/src/index.ts apps/web/src/shared/data/mockDataProvider.ts
+          if git diff --cached --quiet; then
+            echo 'No promotion changes to commit.'
+            exit 0
+          fi
+          git commit -m "refactor(mockup): promote reusable runtime datasets [mockup-promoted]"
+          git push origin HEAD:dev

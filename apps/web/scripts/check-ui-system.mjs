@@ -39,8 +39,12 @@ for(const forbidden of ["['cadastro-publico'","['billing'",'<PublicRegistration'
 for(const required of ["['empresa'","['automacoes'","['seguranca'","['integracoes'","['usuarios'",'role="tablist"','useModalA11y'])if(!settings.includes(required))failures.push(`Configurações deve preservar: ${required}`)
 const settingsDomain=await read('src/features/settings/domain.ts')
 for(const forbidden of ['cadastro-publico','billing','SettingsPlan','SettingsBilling','SettingsInvoice','publicRegistration'])if(settingsDomain.includes(forbidden))failures.push(`Contratos de Settings reintroduziram estrutura comercial removida: ${forbidden}`)
-const settingsMock=await read('src/mocks/settings/index.ts')
-for(const forbidden of ['plans:','billing:','publicRegistration:','ONErpm','DistroKid','Symphonic','SoundOn','MusicPro','SomVibe','ECAD','ABRAMUS','UBC'])if(settingsMock.includes(forbidden))failures.push(`Mock de Settings reintroduziu dado removido: ${forbidden}`)
+const mockupRuntime=await read('../../packages/mockup/src/generated/runtimeData.ts')
+const settingsStart=mockupRuntime.indexOf('"mockSettingsSeed"')
+const settingsEnd=mockupRuntime.indexOf('"mockSocialChannels"',settingsStart)
+if(settingsStart<0||settingsEnd<0)failures.push('Mockup canônico deve preservar mockSettingsSeed antes de mockSocialChannels.')
+const settingsMock=settingsStart>=0&&settingsEnd>settingsStart?mockupRuntime.slice(settingsStart,settingsEnd):''
+for(const forbidden of ['plans:','billing:','publicRegistration:','ONErpm','DistroKid','Symphonic','SoundOn','MusicPro','SomVibe','ECAD','ABRAMUS','UBC'])if(settingsMock.includes(forbidden))failures.push(`Mock canônico de Settings reintroduziu dado removido: ${forbidden}`)
 
 const adminUi=await read('src/shared/internal/AdminUi.tsx')
 for(const required of ['to="/app/settings"','<span>Configurações</span>','aria-label="Abrir menu da conta"'])if(!adminUi.includes(required))failures.push(`Account Menu deve preservar: ${required}`)

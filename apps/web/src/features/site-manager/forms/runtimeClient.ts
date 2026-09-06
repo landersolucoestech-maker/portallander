@@ -7,8 +7,8 @@ const mockupScenario=()=>String(import.meta.env.VITE_MOCKUP_SCENARIO||'full').tr
 
 export async function bootstrapPublishedSiteForms(){
   if(demoDataEnabled){
-    const {getMockupSystemForms}=await import('@portallander/mockup')
-    setRuntimeSiteForms(getMockupSystemForms(mockupScenario()) as SiteFormDefinition[])
+    const {getDevelopmentSystemForms}=await import('../../../shared/data/mockDataProvider')
+    setRuntimeSiteForms(getDevelopmentSystemForms(mockupScenario()) as SiteFormDefinition[])
     return true
   }
   const base=apiBase()

@@ -165,7 +165,7 @@ test.describe('Portal Lander product completion',()=>{
     await expect(page.getByText('MÉTRICA NÃO DISPONÍVEL',{exact:true})).toBeVisible()
 
     const routes:[string,RegExp][]=[
-      ['Ver Métricas',/\/app\/marketing\/metricas$/],
+      ['Ver Métricas',/\/app\/metricas$/],
       ['Ver todas',/\/app\/site\/conteudos$/],
       ['Ver agenda',/\/app\/agenda$/],
       ['Abrir CRM',/\/app\/crm$/],

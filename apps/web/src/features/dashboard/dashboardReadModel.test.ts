@@ -1,7 +1,11 @@
 import {beforeEach,describe,expect,it} from 'vitest'
+import type {AnalyticsProviderStatus} from '../analytics/domain'
+import type {AgendaEvent} from '../agenda/domain'
+import type {Lead} from '../crm/domain'
+import type {FinanceTransaction} from '../finance/domain'
 import {mockDataProvider} from '../../shared/data/mockDataProvider'
 import {setRuntimeDataProvider} from '../../shared/data/runtimeDataProvider'
-import {dashboardReadModel} from './dashboardReadModel'
+import {dashboardReadModel,deriveOperationalAttention} from './dashboardReadModel'
 
 describe('dashboard derived metrics',()=>{
  beforeEach(()=>{mockDataProvider.setScenario('success');setRuntimeDataProvider(mockDataProvider)})
@@ -15,6 +19,8 @@ describe('dashboard derived metrics',()=>{
   expect(data.revenueByCategory.reduce((sum,[,value])=>sum+value,0)).toBeGreaterThan(0)
   expect(data.editorialCounts.drafts+data.editorialCounts.published+data.editorialCounts.archived).toBe(mockDataProvider.editorial.contents().length)
   expect(data.pendingTasks.every(task=>task.status!=='concluida')).toBe(true)
+  expect(data.financeSummary.monthRevenue).toBe(data.monthRevenue)
+  expect(data.crmSummary.pipeline).toEqual(data.pipeline)
  })
 
  it.each([
@@ -36,5 +42,25 @@ describe('dashboard derived metrics',()=>{
   const january=dashboardReadModel.snapshot(new Date('2027-01-10T12:00:00.000Z'))
   expect(january.period.month).toBe('2027-01')
   expect(january.period.generatedAt).not.toContain('2026-08')
+ })
+
+ it('derives overdue CRM and finance attention without a notification feed',()=>{
+  const lead={id:'l1',status:'negociacao',nextFollowUp:'2026-09-05'} as Lead
+  const transaction={id:'f1',type:'receita',status:'pendente',dueDate:'2026-09-04',date:'2026-08-01',amount:900} as FinanceTransaction
+  const attention=deriveOperationalAttention({leads:[lead],transactions:[transaction],events:[]},new Date('2026-09-06T12:00:00.000Z'))
+  expect(attention.map(item=>item.id)).toContain('crm:overdue-followups')
+  expect(attention.map(item=>item.id)).toContain('finance:overdue')
+ })
+
+ it('derives provider stale/error and immediate agenda attention from real contracts',()=>{
+  const providers=[{provider:'Instagram',providerAccountId:'ig',providerPropertyId:null,lastSyncAt:'2026-09-05T12:00:00.000Z',lastSuccessAt:'2026-09-04T12:00:00.000Z',lastStatus:'error',lastError:'token expired',freshnessStatus:'STALE'}] as AnalyticsProviderStatus[]
+  const event={id:'e1',title:'Reunião comercial',startsAt:'2026-09-06T18:00:00.000Z',status:'agendado'} as AgendaEvent
+  const attention=deriveOperationalAttention({leads:[],transactions:[],events:[event],providers},new Date('2026-09-06T12:00:00.000Z'))
+  expect(attention[0]?.id).toContain('analytics:Instagram')
+  expect(attention.map(item=>item.id)).toContain('agenda:e1')
+ })
+
+ it('returns no fake attention when no source condition is met',()=>{
+  expect(deriveOperationalAttention({leads:[],transactions:[],events:[],providers:[]},new Date('2026-09-06T12:00:00.000Z'))).toEqual([])
  })
 })

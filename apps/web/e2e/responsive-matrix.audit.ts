@@ -20,7 +20,7 @@ const routes=[
  {route:'/app/dashboard',internal:true},
  {route:'/app/site/midia-kit',internal:true},
  {route:'/app/site/midia-kit/preview',internal:false},
- {route:'/app/marketing/metricas',internal:true},
+ {route:'/app/metricas',internal:true},
 ]
 const safeName=(route:string)=>route==='/'?'home':route.replace(/^\//,'').replaceAll('/','-')
 async function openRoute(page:Page,route:string){await page.goto(`${base}#${route}`,{waitUntil:'domcontentloaded'});await page.locator('#root').waitFor({state:'attached'});await page.waitForFunction(()=>document.querySelector('#root')?.childElementCount!==0);await page.evaluate(async()=>{try{if(document.fonts)await Promise.race([document.fonts.ready,new Promise(resolve=>setTimeout(resolve,1200))])}catch{/* rendering remains testable */}});await page.waitForTimeout(120)}
@@ -56,9 +56,29 @@ async function assertNoViewportRegression(page:Page,internal:boolean){
  if(internal){await expect(page.locator('.app-shell')).toBeVisible();await expect(page.locator('.workspace-main')).toBeVisible()}
 }
 
+async function assertDashboardHierarchy(page:Page){
+ await expect(page.getByTestId('dashboard-executive-summary')).toBeVisible()
+ await expect(page.getByTestId('dashboard-operational-attention')).toBeVisible()
+ const multichannel=page.getByTestId('dashboard-multichannel')
+ await expect(multichannel).toBeVisible()
+ for(const channel of ['Website','Instagram','TikTok','YouTube'])await expect(multichannel.getByText(channel,{exact:true})).toBeVisible()
+ const positions=await page.evaluate(()=>({
+  executive:document.querySelector('[data-testid="dashboard-executive-summary"]')?.getBoundingClientRect().top??Infinity,
+  multichannel:document.querySelector('[data-testid="dashboard-multichannel"]')?.getBoundingClientRect().top??Infinity,
+  content:document.querySelector('[data-testid="dashboard-content-activity"]')?.getBoundingClientRect().top??Infinity,
+ }))
+ expect(positions.executive).toBeLessThan(positions.multichannel)
+ expect(positions.multichannel).toBeLessThan(positions.content)
+}
+
 for(const viewport of requiredViewports){
  test.describe(`required breakpoint ${viewport.width}x${viewport.height}`,()=>{
   test.use({viewport:{width:viewport.width,height:viewport.height}})
-  for(const item of routes)test(`${item.internal?'internal':'public'} ${item.route}`,async({page})=>{await openRoute(page,item.route);await assertNoViewportRegression(page,item.internal);await page.screenshot({path:`test-results/visual/required-${viewport.name}-${safeName(item.route)}.png`,fullPage:true})})
+  for(const item of routes)test(`${item.internal?'internal':'public'} ${item.route}`,async({page})=>{
+   await openRoute(page,item.route)
+   await assertNoViewportRegression(page,item.internal)
+   if(item.route==='/app/dashboard')await assertDashboardHierarchy(page)
+   await page.screenshot({path:`test-results/visual/required-${viewport.name}-${safeName(item.route)}.png`,fullPage:true})
+  })
  })
 }

@@ -1,100 +1,198 @@
 import {useQuery} from '@tanstack/react-query'
-import {CircleDollarSign,Eye,FileText,Handshake,Newspaper,UsersRound,Wallet} from 'lucide-react'
-import {useEffect,useMemo,useState} from 'react'
-import {useNavigate} from 'react-router-dom'
+import {ArrowUpRight,BarChart3,CalendarDays,CircleDollarSign,Clock3,FileText,Handshake,Landmark,Newspaper,UsersRound} from 'lucide-react'
+import {useMemo} from 'react'
+import {Link} from 'react-router-dom'
 import {AdminShell} from '../../shared/internal/AdminUi'
 import {UNIFIED_ADMIN_NAV} from '../../shared/internal/adminNavigation'
 import {useAdminAuth} from '../access/adminAuthState'
 import {agendaAdminClient} from '../agenda/adminClient'
 import {analyticsClient} from '../analytics/client'
+import {loadMetrics} from '../analytics/metricsClient'
 import {crmAdminClient} from '../crm/adminClient'
 import {listAdminEditorialContents} from '../editorial/adminClient'
 import {financeAdminClient} from '../finance/adminClient'
-import {lastSevenDayRange,resolveDashboardPageviews,type DashboardVisitSeries} from './dashboardAnalytics'
-import {dashboardReadModel} from './dashboardReadModel'
+import {lastThirtyDayRange,resolveMultichannelPulses,type DashboardAnalyticsSource} from './dashboardAnalytics'
+import {dashboardReadModel,deriveAgendaSummary,deriveCrmSummary,deriveEditorialSummary,deriveFinanceSummary,deriveOperationalAttention,deriveProviderAttention} from './dashboardReadModel'
 import {useActivityHistory} from './hooks/useActivityHistory'
 import '../../styles/admin-dashboard-unified.css'
 
 const money=(value:number)=>value.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})
 const compact=(value:number)=>new Intl.NumberFormat('pt-BR',{notation:'compact',maximumFractionDigits:1}).format(value)
-function formatDate(raw:string|undefined){if(!raw)return '—';const date=new Date(raw);return Number.isFinite(date.getTime())?date.toLocaleDateString('pt-BR'):'—'}
-function formatTaskDate(raw:string|undefined){if(!raw)return 'Sem prazo';const date=new Date(`${raw}T12:00:00`);return Number.isFinite(date.getTime())?date.toLocaleDateString('pt-BR'):'Sem prazo'}
-const pipelineLabels:Record<string,string>={novo:'Novos',contato_realizado:'Contato realizado',qualificado:'Qualificados',proposta:'Propostas',negociacao:'Negociação',fechado:'Fechados',perdido:'Perdidos'}
-const sourceLabel=(source:DashboardVisitSeries['source'])=>source==='REAL'?'DADO REAL':source==='MANUAL_IDENTIFIED'?'MANUAL IDENTIFICADO':'INDISPONÍVEL'
 const monthKey=(now:Date)=>`${now.getUTCFullYear()}-${String(now.getUTCMonth()+1).padStart(2,'0')}`
+const formatDate=(raw:string|undefined)=>{if(!raw)return '—';const date=new Date(raw);return Number.isFinite(date.getTime())?date.toLocaleDateString('pt-BR'):'—'}
+const pipelineLabels:Record<string,string>={novo:'Novos',contato_realizado:'Contato realizado',qualificado:'Qualificados',proposta:'Propostas',negociacao:'Negociação',fechado:'Fechados',perdido:'Perdidos'}
+const developmentAnalytics=import.meta.env.DEV||import.meta.env.VITE_ENABLE_DEMO_DATA==='true'
+
+function settledValue<T>(result:PromiseSettledResult<T>,fallback:T){return result.status==='fulfilled'?result.value:fallback}
+function settledError(result:PromiseSettledResult<unknown>){return result.status==='rejected'?(result.reason instanceof Error?result.reason.message:String(result.reason)):''}
 
 async function loadAuthenticatedDashboard(now=new Date()){
- const [leads,transactions,events,contents]=await Promise.all([
+ const [leadsResult,transactionsResult,eventsResult,contentsResult]=await Promise.allSettled([
   crmAdminClient.listLeads(),
   financeAdminClient.listTransactions(),
   agendaAdminClient.list(),
   listAdminEditorialContents(),
  ])
- const month=monthKey(now),nowIso=now.toISOString()
- const paidRevenue=transactions.filter(item=>item.type==='receita'&&item.status==='pago')
- const monthRevenue=paidRevenue.filter(item=>item.date.startsWith(month)).reduce((sum,item)=>sum+item.amount,0)
- const receivable=transactions.filter(item=>item.type==='receita'&&(item.status==='pendente'||item.status==='vencido')).reduce((sum,item)=>sum+item.amount,0)
- const pipeline=leads.reduce<Record<string,number>>((acc,item)=>{acc[item.status]=(acc[item.status]??0)+1;return acc},{})
- const upcoming=events.filter(item=>!['cancelado','concluido','realizado'].includes(item.status)&&item.startsAt>=nowIso).sort((a,b)=>a.startsAt.localeCompare(b.startsAt)).slice(0,5)
- const editorialCounts={drafts:contents.filter(item=>item.status==='draft').length,published:contents.filter(item=>item.status==='published').length,archived:contents.filter(item=>item.status==='archived').length,publishedThisMonth:contents.filter(item=>item.status==='published'&&item.publishedAt?.startsWith(month)).length}
- return {period:{month,generatedAt:nowIso},monthRevenue,receivable,pipeline,upcoming,pendingTasks:null,editorialCounts}
+ const leads=settledValue(leadsResult,[])
+ const transactions=settledValue(transactionsResult,[])
+ const events=settledValue(eventsResult,[])
+ const contents=settledValue(contentsResult,[])
+ const financeSummary=deriveFinanceSummary(transactions,now)
+ const crmSummary=deriveCrmSummary(leads,now)
+ const agendaSummary=deriveAgendaSummary(events,now)
+ const editorialCounts=deriveEditorialSummary(contents,now)
+ const domainErrors:Record<string,string>={}
+ if(leadsResult.status==='rejected')domainErrors.crm=settledError(leadsResult)
+ if(transactionsResult.status==='rejected')domainErrors.finance=settledError(transactionsResult)
+ if(eventsResult.status==='rejected')domainErrors.agenda=settledError(eventsResult)
+ if(contentsResult.status==='rejected')domainErrors.editorial=settledError(contentsResult)
+ return {
+  period:{month:monthKey(now),generatedAt:now.toISOString()},
+  financeSummary,
+  crmSummary,
+  editorialCounts,
+  upcoming:agendaSummary.upcoming,
+  attention:deriveOperationalAttention({leads,transactions,events},now),
+  availability:{finance:transactionsResult.status==='fulfilled',crm:leadsResult.status==='fulfilled',editorial:contentsResult.status==='fulfilled',agenda:eventsResult.status==='fulfilled'},
+  domainErrors,
+ }
 }
 
+async function loadDashboardAnalytics(){
+ const range=lastThirtyDayRange()
+ const [overviewResult,metricsResult,statusResult]=await Promise.allSettled([
+  loadMetrics({range:'30d'}),
+  analyticsClient.metrics({...range,limit:500}),
+  analyticsClient.providerStatus(),
+ ])
+ return {
+  overview:overviewResult.status==='fulfilled'?overviewResult.value:null,
+  metrics:metricsResult.status==='fulfilled'?metricsResult.value.metrics:[],
+  providers:statusResult.status==='fulfilled'?statusResult.value.providers:[],
+  errors:{
+   overview:overviewResult.status==='rejected'?settledError(overviewResult):'',
+   metrics:metricsResult.status==='rejected'?settledError(metricsResult):'',
+   providers:statusResult.status==='rejected'?settledError(statusResult):'',
+  },
+ }
+}
+
+function sourceLabel(source:DashboardAnalyticsSource){
+ if(source==='REAL')return 'DADO REAL'
+ if(source==='MANUAL_IDENTIFIED')return 'MANUAL IDENTIFICADO'
+ if(source==='DEVELOPMENT')return 'DADO DE DESENVOLVIMENTO'
+ return 'INDISPONÍVEL'
+}
+function displayNumber(available:boolean,value:number,formatter:(value:number)=>string=compact){return available?formatter(value):'INDISPONÍVEL'}
+
 export default function DashboardPage(){
- const navigate=useNavigate()
  const {status}=useAdminAuth()
  const authenticated=status==='authenticated'
- const adminDashboard=useQuery({queryKey:['dashboard','authenticated'],queryFn:()=>loadAuthenticatedDashboard(),enabled:authenticated,staleTime:10_000})
- const activity=useActivityHistory(8)
+ const adminDashboard=useQuery({queryKey:['dashboard','authenticated','executive'],queryFn:()=>loadAuthenticatedDashboard(),enabled:authenticated,staleTime:10_000})
+ const analytics=useQuery({queryKey:['dashboard','analytics','30d'],queryFn:loadDashboardAnalytics,staleTime:30_000,refetchOnWindowFocus:false,retry:1})
+ const activity=useActivityHistory(6)
  const data=authenticated?adminDashboard.data:dashboardReadModel.snapshot()
- const [visits,setVisits]=useState<DashboardVisitSeries>({points:[],source:'UNAVAILABLE',updatedAt:null})
- const [visitsLoading,setVisitsLoading]=useState(true)
- const [visitsError,setVisitsError]=useState('')
 
- useEffect(()=>{
-  let active=true
-  const range=lastSevenDayRange()
-  analyticsClient.metrics({...range,metricKey:'pageviews',granularity:'day',limit:50}).then(response=>{if(active)setVisits(resolveDashboardPageviews(response.metrics))}).catch(caught=>{if(active){setVisits({points:[],source:'UNAVAILABLE',updatedAt:null});setVisitsError(caught instanceof Error?caught.message:'Analytics indisponível.')}}).finally(()=>{if(active)setVisitsLoading(false)})
-  return()=>{active=false}
- },[])
-
- const chart=useMemo(()=>{
-  const values=visits.points.map(point=>point.value),max=Math.max(1,...values)
-  const divisor=Math.max(1,visits.points.length-1)
-  const points=visits.points.map((point,index)=>`${index*(100/divisor)},${100-(point.value/max)*92}`).join(' ')
-  return {max,points}
- },[visits.points])
+ const channels=useMemo(()=>resolveMultichannelPulses(analytics.data?.overview??null,analytics.data?.metrics??[],developmentAnalytics),[analytics.data])
+ const attention=useMemo(()=>{
+  const combined=[...(data?.attention??[]),...deriveProviderAttention(analytics.data?.providers??[])]
+  return [...new Map(combined.map(item=>[item.id,item])).values()].sort((a,b)=>a.priority-b.priority||(a.dueAt??'9999').localeCompare(b.dueAt??'9999')||a.id.localeCompare(b.id)).slice(0,5)
+ },[data?.attention,analytics.data?.providers])
 
  if(!data){
-  return <AdminShell area="crm" items={UNIFIED_ADMIN_NAV} header={{title:'DASHBOARD',description:'Visão Geral'}}><section className="unified-dashboard">{adminDashboard.isError?<div className="unified-dashboard-unavailable" role="alert"><strong>DADOS OPERACIONAIS INDISPONÍVEIS</strong><p>{adminDashboard.error instanceof Error?adminDashboard.error.message:'A API administrativa não pôde carregar o Dashboard.'}</p><button type="button" onClick={()=>void adminDashboard.refetch()}>Tentar novamente</button></div>:<div className="unified-dashboard-empty" role="status">Consultando dados administrativos reais…</div>}</section></AdminShell>
+  return <AdminShell area="crm" items={UNIFIED_ADMIN_NAV} header={{title:'DASHBOARD',description:'Visão Geral'}}><section className="unified-dashboard">{adminDashboard.isError?<div className="dashboard-load-state" role="alert"><strong>DADOS OPERACIONAIS INDISPONÍVEIS</strong><p>{adminDashboard.error instanceof Error?adminDashboard.error.message:'A API administrativa não pôde carregar o Dashboard.'}</p><button type="button" onClick={()=>void adminDashboard.refetch()}>Tentar novamente</button></div>:<div className="dashboard-load-state" role="status">Consultando dados administrativos reais…</div>}</section></AdminShell>
  }
 
- const totalLeads=Object.values(data.pipeline).reduce((sum,total)=>sum+total,0)
- const newLeads=data.pipeline.novo??0
- const negotiations=data.pipeline.negociacao??0
- const leadEntries=Object.entries(data.pipeline).filter(([,total])=>total>0).slice(0,5)
- const recentContent=(activity.data??[]).slice(0,3)
- const pendingTasks=data.pendingTasks
+ const pipelineEntries=Object.entries(data.crmSummary.pipeline).filter(([,total])=>total>0).sort(([,a],[,b])=>b-a).slice(0,5)
+ const recentActivity=(activity.data??[]).slice(0,4)
+ const domainErrorCount=Object.keys(data.domainErrors).length
 
  return <AdminShell area="crm" items={UNIFIED_ADMIN_NAV} header={{title:'DASHBOARD',description:`Visão Geral · ${data.period.month}`}}>
-  <section className="unified-dashboard" aria-busy={activity.isLoading||visitsLoading||adminDashboard.isLoading}>
-   <div className="unified-dashboard-kpis">
-    <article className="unified-kpi-card"><span className="unified-kpi-icon"><UsersRound size={18}/></span><div><span>Novos Leads</span><strong>{newLeads}</strong><small>{totalLeads} leads no total · DERIVED FROM REAL DATA</small></div></article>
-    <article className="unified-kpi-card"><span className="unified-kpi-icon"><Handshake size={18}/></span><div><span>Negociações</span><strong>{negotiations}</strong><small>oportunidades em negociação · DERIVED</small></div></article>
-    <article className="unified-kpi-card"><span className="unified-kpi-icon"><FileText size={18}/></span><div><span>Site · Publicações</span><strong>{data.editorialCounts.published}</strong><small>{data.editorialCounts.publishedThisMonth} publicadas no mês atual</small></div></article>
-    <article className="unified-kpi-card"><span className="unified-kpi-icon"><Wallet size={18}/></span><div><span>A Receber</span><strong>{money(data.receivable)}</strong><small>receitas pendentes · DERIVED</small></div></article>
-    <article className="unified-kpi-card"><span className="unified-kpi-icon"><CircleDollarSign size={18}/></span><div><span>Faturamento (Mês)</span><strong>{money(data.monthRevenue)}</strong><small>receitas pagas em {data.period.month}</small></div></article>
+  <main className="unified-dashboard" aria-busy={activity.isLoading||analytics.isLoading||adminDashboard.isLoading}>
+   <section className="dashboard-executive-board" data-testid="dashboard-executive-summary" aria-labelledby="dashboard-executive-title">
+    <div className="dashboard-executive-summary">
+     <header className="dashboard-section-heading">
+      <div><span className="dashboard-eyebrow">P0 · visão executiva</span><h2 id="dashboard-executive-title">Resumo executivo</h2><p>Financeiro, comercial e operação editorial em uma leitura única.</p></div>
+      <span className="dashboard-period">{data.period.month}</span>
+     </header>
+     <div className="dashboard-domain-groups">
+      <section className="dashboard-domain-group">
+       <div className="dashboard-domain-title"><span><Landmark size={17}/>Financeiro</span><Link to="/app/finance" aria-label="Abrir Financeiro">Detalhar <ArrowUpRight size={13}/></Link></div>
+       <div className="dashboard-inline-stats">
+        <p><span>Faturamento do mês</span><strong>{displayNumber(data.availability.finance,data.financeSummary.monthRevenue,money)}</strong><small>receitas pagas</small></p>
+        <p><span>A receber</span><strong>{displayNumber(data.availability.finance,data.financeSummary.receivable,money)}</strong><small>{data.availability.finance?`${data.financeSummary.overdueCount} vencido${data.financeSummary.overdueCount===1?'':'s'}`:'fonte indisponível'}</small></p>
+       </div>
+      </section>
+      <section className="dashboard-domain-group">
+       <div className="dashboard-domain-title"><span><Handshake size={17}/>Comercial</span><Link to="/app/crm" aria-label="Abrir CRM">Detalhar <ArrowUpRight size={13}/></Link></div>
+       <div className="dashboard-inline-stats">
+        <p><span>Novos leads</span><strong>{displayNumber(data.availability.crm,data.crmSummary.newLeads,value=>String(value))}</strong><small>{data.availability.crm?`${data.crmSummary.total} no pipeline`:'fonte indisponível'}</small></p>
+        <p><span>Negociações</span><strong>{displayNumber(data.availability.crm,data.crmSummary.negotiations,value=>String(value))}</strong><small>{data.availability.crm?`${data.crmSummary.followUps.overdue} follow-up vencido${data.crmSummary.followUps.overdue===1?'':'s'}`:'fonte indisponível'}</small></p>
+       </div>
+      </section>
+      <section className="dashboard-domain-group">
+       <div className="dashboard-domain-title"><span><Newspaper size={17}/>Conteúdo</span><Link to="/app/site/conteudos" aria-label="Abrir Conteúdos">Detalhar <ArrowUpRight size={13}/></Link></div>
+       <div className="dashboard-inline-stats">
+        <p><span>Publicados</span><strong>{displayNumber(data.availability.editorial,data.editorialCounts.published,value=>String(value))}</strong><small>conteúdos ativos</small></p>
+        <p><span>No mês</span><strong>{displayNumber(data.availability.editorial,data.editorialCounts.publishedThisMonth,value=>String(value))}</strong><small>{data.availability.editorial?`${data.editorialCounts.drafts} rascunho${data.editorialCounts.drafts===1?'':'s'}`:'fonte indisponível'}</small></p>
+       </div>
+      </section>
+     </div>
+    </div>
+    <aside className="dashboard-operational-attention" data-testid="dashboard-operational-attention" aria-labelledby="dashboard-attention-title">
+     <header className="dashboard-section-heading compact"><div><span className="dashboard-eyebrow">P0 · ação</span><h2 id="dashboard-attention-title">Atenção operacional</h2><p>Somente condições derivadas das fontes conectadas.</p></div></header>
+     {domainErrorCount>0&&<p className="dashboard-source-warning">{domainErrorCount} fonte{domainErrorCount===1?'':'s'} operacional{domainErrorCount===1?'':'is'} indisponível{domainErrorCount===1?'':'eis'} nesta carga.</p>}
+     <div className="dashboard-attention-list">
+      {attention.length?attention.map(item=><article key={item.id} data-attention-kind={item.kind}><span className="dashboard-attention-mark"/><div><strong>{item.title}</strong><p>{item.detail}</p>{item.dueAt&&<time dateTime={item.dueAt}>{formatDate(item.dueAt)}</time>}</div><Link to={item.href} aria-label={`Abrir ${item.title}`}><ArrowUpRight size={14}/></Link></article>):<div className="dashboard-empty-inline"><strong>Nenhum item acionável agora</strong><p>Não há condição derivada que exija atenção imediata nas fontes disponíveis.</p></div>}
+     </div>
+    </aside>
+   </section>
+
+   <section className="dashboard-multichannel" data-testid="dashboard-multichannel" aria-labelledby="dashboard-multichannel-title">
+    <header className="dashboard-section-heading">
+     <div><span className="dashboard-eyebrow">P1 · analytics</span><h2 id="dashboard-multichannel-title">Performance multicanal</h2><p>Pulse de 30 dias. A análise aprofundada permanece no módulo Métricas.</p></div>
+     <Link className="dashboard-section-link" to="/app/metricas">Ver Métricas <ArrowUpRight size={13}/></Link>
+    </header>
+    <div className="dashboard-channel-grid">
+     {channels.map(channel=><article className="dashboard-channel" key={channel.key} data-channel={channel.key}>
+      <div className="dashboard-channel-heading"><span>{channel.label}</span><small className={`dashboard-source ${channel.source.toLowerCase()}`}>{sourceLabel(channel.source)}</small></div>
+      <strong>{channel.value===null?'INDISPONÍVEL':compact(channel.value)}</strong>
+      <p>{channel.metricLabel}</p>
+      <small>{channel.accountId??channel.provider}</small>
+      <Link to={channel.href} aria-label={`Abrir Métricas de ${channel.label}`}>Abrir detalhe <ArrowUpRight size={12}/></Link>
+     </article>)}
+    </div>
+    {(analytics.data?.errors.overview||analytics.data?.errors.metrics)&&<p className="dashboard-analytics-note">Uma ou mais fontes Analytics não responderam. Os canais afetados permanecem como INDISPONÍVEL; nenhum zero ou fallback fictício foi aplicado.</p>}
+   </section>
+
+   <div className="dashboard-operational-grid">
+    <section className="dashboard-operations-panel dashboard-crm-panel" data-testid="dashboard-crm-summary" aria-labelledby="dashboard-crm-title">
+     <header className="dashboard-section-heading compact"><div><span className="dashboard-eyebrow">Comercial / CRM</span><h2 id="dashboard-crm-title">Pipeline e follow-ups</h2><p>Uma única leitura do mesmo pipeline comercial.</p></div><Link className="dashboard-section-link" to="/app/crm">Abrir CRM <ArrowUpRight size={13}/></Link></header>
+     <div className="dashboard-crm-body">
+      <div className="dashboard-pipeline-list">{data.availability.crm&&pipelineEntries.length?pipelineEntries.map(([status,total])=><p key={status}><span>{pipelineLabels[status]??status}</span><strong>{total}</strong><i style={{width:`${Math.max(8,Math.round((total/Math.max(1,data.crmSummary.total))*100))}%`}}/></p>):<div className="dashboard-empty-inline">Pipeline indisponível.</div>}</div>
+      <div className="dashboard-followup-strip"><p><Clock3 size={15}/><span>Vencidos</span><strong>{data.availability.crm?data.crmSummary.followUps.overdue:'—'}</strong></p><p><span>Hoje</span><strong>{data.availability.crm?data.crmSummary.followUps.today:'—'}</strong></p><p><span>Próximos</span><strong>{data.availability.crm?data.crmSummary.followUps.upcoming:'—'}</strong></p></div>
+     </div>
+    </section>
+
+    <section className="dashboard-operations-panel dashboard-content-panel" data-testid="dashboard-content-activity" aria-labelledby="dashboard-content-title">
+     <header className="dashboard-section-heading compact"><div><span className="dashboard-eyebrow">Conteúdo / atividade</span><h2 id="dashboard-content-title">Operação editorial</h2><p>{data.availability.editorial?`${data.editorialCounts.published} publicados · ${data.editorialCounts.drafts} rascunhos · ${data.editorialCounts.archived} arquivados`:'Fonte editorial indisponível'}</p></div><Link className="dashboard-section-link" to="/app/site/conteudos">Conteúdos <ArrowUpRight size={13}/></Link></header>
+     <div className="dashboard-activity-list">{activity.isLoading?<div className="dashboard-empty-inline">Carregando movimentações…</div>:recentActivity.length?recentActivity.map(item=><article key={item.id}><span className="dashboard-row-icon"><FileText size={14}/></span><div><strong>{item.title}</strong><p>{item.action==='published'?'Publicado':'Atualizado'} · {item.category}</p></div><time>{formatDate(item.occurred_at)}</time></article>):<div className="dashboard-empty-inline">Nenhuma movimentação editorial recente.</div>}</div>
+    </section>
+
+    <section className="dashboard-operations-panel dashboard-agenda-panel" data-testid="dashboard-agenda" aria-labelledby="dashboard-agenda-title">
+     <header className="dashboard-section-heading compact"><div><span className="dashboard-eyebrow">Agenda</span><h2 id="dashboard-agenda-title">Próximos compromissos</h2><p>Contexto operacional, sem competir com os indicadores P0.</p></div><Link className="dashboard-section-link" to="/app/agenda">Agenda <ArrowUpRight size={13}/></Link></header>
+     <div className="dashboard-agenda-list">{data.availability.agenda&&data.upcoming.length?data.upcoming.slice(0,4).map(item=><article key={item.id}><span><CalendarDays size={14}/></span><div><strong>{item.title}</strong><time dateTime={item.startsAt}>{formatDate(item.startsAt)}</time></div></article>):<div className="dashboard-empty-inline">{data.availability.agenda?'Nenhum compromisso futuro agendado.':'Agenda indisponível nesta carga.'}</div>}</div>
+    </section>
    </div>
-   <div className="unified-dashboard-main-grid">
-    <section className="unified-dashboard-card unified-visits-card"><div className="unified-card-heading"><div><h2>Visitas no Site <small>(últimos 7 dias)</small></h2><p className={`unified-data-source ${visits.source.toLowerCase()}`}>{sourceLabel(visits.source)}{visits.updatedAt?` · atualizado ${new Date(visits.updatedAt).toLocaleString('pt-BR')}`:''}</p></div><button type="button" onClick={()=>navigate('/app/marketing/metricas')}>Ver Métricas</button></div>{visitsLoading?<div className="unified-dashboard-empty">Consultando Analytics real…</div>:visits.points.length?<div className="unified-line-chart" aria-label="Visualizações reais do site nos últimos sete dias"><div className="unified-chart-y"><span>{compact(chart.max)}</span><span>{compact(chart.max*.75)}</span><span>{compact(chart.max*.5)}</span><span>{compact(chart.max*.25)}</span><span>0</span></div><div className="unified-chart-plot"><svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="dashboardArea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="currentColor" stopOpacity=".16"/><stop offset="1" stopColor="currentColor" stopOpacity="0"/></linearGradient></defs><polygon points={`0,100 ${chart.points} 100,100`} fill="url(#dashboardArea)"/><polyline points={chart.points} fill="none" vectorEffect="non-scaling-stroke"/></svg><div className="unified-chart-dates">{visits.points.map(point=><span key={point.date}>{point.label}</span>)}</div></div></div>:<div className="unified-dashboard-unavailable"><strong>MÉTRICA NÃO DISPONÍVEL</strong><p>{visitsError||'Não existe série de pageviews mensurável e com proveniência para este período. Nenhum valor fictício ou zero de fallback foi renderizado.'}</p><button type="button" onClick={()=>navigate('/app/marketing/metricas')}>Abrir Métricas</button></div>}</section>
-    <section className="unified-dashboard-card"><div className="unified-card-heading"><div><h2>Atividades Recentes</h2><p>Fonte editorial do Portal</p></div><button type="button" onClick={()=>navigate('/app/site/conteudos')}>Ver todas</button></div><div className="unified-activity-list">{activity.isLoading?<div className="unified-dashboard-empty">Carregando atividades...</div>:activity.data?.length?activity.data.slice(0,5).map(item=><article key={item.id}><span className="unified-row-icon"><Newspaper size={14}/></span><div><strong>{item.action==='published'?'Novo conteúdo publicado':'Conteúdo atualizado'}</strong><p>{item.title} · {item.category}</p></div><time>{formatDate(item.occurred_at)}</time><i/></article>):<div className="unified-dashboard-empty">Nenhuma atividade registrada.</div>}</div></section>
-    <section className="unified-dashboard-card"><div className="unified-card-heading"><div><h2>Compromissos</h2><p>Agenda operacional</p></div><button type="button" onClick={()=>navigate('/app/agenda')}>Ver agenda</button></div><div className="unified-activity-list">{data.upcoming.length?data.upcoming.slice(0,5).map(item=><article key={item.id}><span className="unified-row-icon"><FileText size={14}/></span><div><strong>{item.title}</strong></div><time>{formatDate(item.startsAt)}</time><i/></article>):<div className="unified-dashboard-empty">Nenhum compromisso futuro agendado.</div>}</div></section>
-   </div>
-   <div className="unified-dashboard-bottom-grid">
-    <section className="unified-dashboard-card"><div className="unified-card-heading"><div><h2>Distribuição de Leads</h2><p>Por estágio · dados do CRM</p></div><button type="button" onClick={()=>navigate('/app/crm')}>Abrir CRM</button></div><div className="unified-lead-summary"><div className="unified-donut"><div><span>Total</span><strong>{totalLeads}</strong></div></div><div className="unified-lead-legend">{leadEntries.length?leadEntries.map(([status,total])=><div key={status}><span>{pipelineLabels[status]??status}</span><strong>{totalLeads?Math.round((total/totalLeads)*100):0}%</strong></div>):<div><span>Sem leads</span><strong>—</strong></div>}</div></div></section>
-    <section className="unified-dashboard-card"><div className="unified-card-heading"><div><h2>Conteúdos em Destaque</h2><p>Movimentações editoriais recentes</p></div><button type="button" onClick={()=>navigate('/app/site/conteudos')}>Ver todas</button></div><div className="unified-content-list">{recentContent.length?recentContent.map(item=><article key={item.id}><span className="unified-content-thumb"><FileText size={18}/></span><div><strong>{item.title}</strong><p>{formatDate(item.occurred_at)}</p><small><Eye size={12}/> {item.category}</small></div></article>):<div className="unified-dashboard-empty">Nenhum conteúdo recente.</div>}</div></section>
-    <section className="unified-dashboard-card"><div className="unified-card-heading"><div><h2>Tarefas Pendentes</h2><p>Marketing operacional · sem prioridade inventada</p></div><button type="button" onClick={()=>navigate('/app/marketing/tarefas')}>Ver todas</button></div>{pendingTasks===null?<div className="unified-dashboard-unavailable"><strong>FONTE NÃO DISPONÍVEL</strong><p>As tarefas operacionais de Marketing ainda não possuem fonte persistente conectada. Nenhuma fixture demonstrativa foi promovida a dado real.</p></div>:<><div className="unified-task-progress"><div className="unified-task-ring"><strong>{pendingTasks.length}</strong></div><div><span>Demandas do runtime</span><strong>{pendingTasks.length} pendente{pendingTasks.length===1?'':'s'} na visão atual</strong></div></div><div className="unified-task-list">{pendingTasks.length?pendingTasks.map(item=><article key={item.id}><span className="unified-task-check"/><div><strong>{item.title}</strong></div><em>{item.priority}</em><time>{formatTaskDate(item.deadline)}</time></article>):<div className="unified-dashboard-empty">Nenhuma tarefa pendente com prazo atual.</div>}</div></>}</section>
-   </div>
-  </section>
+
+   <nav className="dashboard-quick-actions" data-testid="dashboard-quick-actions" aria-label="Ações rápidas do Dashboard">
+    <div><span className="dashboard-eyebrow">Ações rápidas</span><strong>Ir para</strong></div>
+    <Link to="/app/metricas"><BarChart3 size={15}/>Métricas</Link>
+    <Link to="/app/crm"><UsersRound size={15}/>CRM</Link>
+    <Link to="/app/finance"><CircleDollarSign size={15}/>Financeiro</Link>
+    <Link to="/app/site/conteudos"><FileText size={15}/>Conteúdos</Link>
+    <Link to="/app/agenda"><CalendarDays size={15}/>Agenda</Link>
+   </nav>
+  </main>
  </AdminShell>
 }

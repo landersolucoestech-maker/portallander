@@ -7,20 +7,21 @@ const isGroup=(item:AdminNavItem):item is AdminNavGroup=>!Array.isArray(item)
 describe('admin navigation',()=>{
   it('mantém exatamente os módulos aprovados no workspace administrativo',()=>{
     const labels=UNIFIED_ADMIN_NAV.map(item=>isGroup(item)?item.label:item[0])
-    expect(labels).toEqual(['Dashboard','CRM','Financeiro','Agenda','Chat','RH','Site','Marketing','Configurações'])
+    expect(labels).toEqual(['Dashboard','CRM','Financeiro','Agenda','Chat','RH','Métricas','Site','Marketing','Configurações'])
   })
 
   it('preserva as rotas visíveis obrigatórias do shell unificado',()=>{
     const serialized=JSON.stringify(UNIFIED_ADMIN_NAV)
-    for(const route of ['/app/dashboard','/app/crm','/app/finance','/app/finance/invoices','/app/finance/accounting','/app/agenda','/app/chat','/app/rh','/app/site/conteudos','/app/site/midia','/app/site/paginas','/app/site/formularios','/app/site/midia-kit','/app/marketing','/app/marketing/metricas','/app/settings'])expect(serialized).toContain(route)
+    for(const route of ['/app/dashboard','/app/crm','/app/finance','/app/finance/invoices','/app/finance/accounting','/app/agenda','/app/chat','/app/rh','/app/metricas','/app/site/conteudos','/app/site/midia','/app/site/paginas','/app/site/formularios','/app/site/midia-kit','/app/marketing','/app/settings'])expect(serialized).toContain(route)
+    expect(serialized).not.toContain('/app/marketing/metricas')
     expect(serialized).not.toContain('/app/contracts')
     expect(serialized).not.toContain('/app/reports')
   })
 
-  it('expõe os sete submódulos existentes de Marketing, incluindo Métricas',()=>{
+  it('mantém Marketing com seus seis submódulos legítimos e sem ownership de Métricas',()=>{
     const marketing=UNIFIED_ADMIN_NAV.find(item=>isGroup(item)&&item.label==='Marketing')
-    expect(marketing&&isGroup(marketing)?marketing.children.map(child=>child[0]):[]).toEqual(['Visão Geral','Campanhas','Calendário','Tarefas','Métricas','Briefings','IA Criativa'])
-    expect(marketing&&isGroup(marketing)?marketing.children.map(child=>child[2]):[]).toEqual(['/app/marketing','/app/marketing/campanhas','/app/marketing/calendario','/app/marketing/tarefas','/app/marketing/metricas','/app/marketing/briefings','/app/marketing/ia-criativa'])
+    expect(marketing&&isGroup(marketing)?marketing.children.map(child=>child[0]):[]).toEqual(['Visão Geral','Campanhas','Calendário','Tarefas','Briefings','IA Criativa'])
+    expect(marketing&&isGroup(marketing)?marketing.children.map(child=>child[2]):[]).toEqual(['/app/marketing','/app/marketing/campanhas','/app/marketing/calendario','/app/marketing/tarefas','/app/marketing/briefings','/app/marketing/ia-criativa'])
   })
 
   it('mantém somente as três páginas permitidas no submenu Financeiro',()=>{

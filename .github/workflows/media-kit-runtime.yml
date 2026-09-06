@@ -7,6 +7,8 @@ on:
       - 'apps/web/**'
       - 'packages/mockup/**'
       - 'packages/shared/**'
+      - '.github/workflows/deploy-pages.yml'
+      - '.github/workflows/metrics-runtime.yml'
       - '.github/workflows/media-kit-runtime.yml'
       - 'package-lock.json'
       - 'package.json'

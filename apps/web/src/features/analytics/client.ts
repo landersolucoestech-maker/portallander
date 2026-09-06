@@ -28,7 +28,7 @@ async function mockMetrics(query:AnalyticsMetricQuery={}):Promise<AnalyticsMetri
   const {getMockupScenario}=await import('@portallander/mockup')
   const scenario=getMockupScenario(mockupScenario())
   if('errors' in scenario&&scenario.errors.analytics)throw new Error(scenario.errors.analytics)
-  const wantsPrevious=Boolean(query.periodStart?.startsWith('2026-08'))
+  const wantsPrevious=Boolean(query.periodEnd&&query.periodEnd<='2026-09-06T00:00:00.000Z')
   const selected=scenario.analytics.metrics.filter(row=>wantsPrevious?row.id.endsWith(':prev'):!row.id.endsWith(':prev'))
   const metrics:AnalyticsMetric[]=selected.map(row=>({...row,periodStart:query.periodStart||row.periodStart,periodEnd:query.periodEnd||row.periodEnd}))
   return {metrics}

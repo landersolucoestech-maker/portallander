@@ -6,7 +6,7 @@ import {useAdminAuth} from '../../features/access/adminAuthState'
 import {portalLogo} from '../branding/assets/brandAsset'
 import {appReadModel} from '../data/appReadModel'
 
-export type AdminArea='crm'|'contracts'|'finance'|'agenda'|'chat'|'rh'|'marketing'|'reports'|'settings'|'cms'
+export type AdminArea='crm'|'contracts'|'finance'|'agenda'|'chat'|'rh'|'metrics'|'marketing'|'reports'|'settings'|'cms'
 export type AdminNavLink=readonly [label:string,icon:LucideIcon,to:string]
 export type AdminNavGroup={label:string;icon:LucideIcon;to?:string;children:readonly AdminNavLink[]}
 export type AdminNavItem=AdminNavLink|AdminNavGroup
@@ -83,7 +83,7 @@ function PageHeader({context,header,actions}:{context:string;header?:PageHeaderC
 
 export function AdminShell({area,items,children,header,headerAction,headerActions}:{area:AdminArea;items:readonly AdminNavItem[];children:ReactNode;header?:PageHeaderConfig;headerAction?:AdminShellAction;headerActions?:readonly AdminShellAction[]}){
   const location=useLocation()
-  const context=area==='crm'?'CRM':area==='contracts'?'Contratos':area==='finance'?'Financeiro':area==='agenda'?'Agenda':area==='chat'?'Chat':area==='rh'?'RH':area==='marketing'?'Marketing':area==='reports'?'Relatórios':area==='settings'?'Configurações':'Site'
+  const context=area==='crm'?'CRM':area==='contracts'?'Contratos':area==='finance'?'Financeiro':area==='agenda'?'Agenda':area==='chat'?'Chat':area==='rh'?'RH':area==='metrics'?'Métricas':area==='marketing'?'Marketing':area==='reports'?'Relatórios':area==='settings'?'Configurações':'Site'
   const [expandedGroups,setExpandedGroups]=useState<Record<string,boolean>>({})
   const [sidebarCollapsed,setSidebarCollapsed]=useState(()=>typeof window!=='undefined'&&window.sessionStorage.getItem('portal-lander:admin-sidebar-collapsed')==='1')
   const rawActions=headerActions??(headerAction?[headerAction]:[])
@@ -115,7 +115,7 @@ export function AdminShell({area,items,children,header,headerAction,headerAction
             return <div className={`sidebar-nav-group${expanded?' expanded':''}`} key={item.label}><button className="sidebar-nav-group-label" type="button" aria-expanded={expanded} onClick={()=>setExpandedGroups(current=>({...current,[item.label]:!expanded}))}><GroupIcon size={17}/><span>{item.label}</span><ChevronDown size={13}/></button>{expanded&&<div className="sidebar-subnav">{item.children.map(([label,Icon,to])=><NavLink end className="sidebar-subnav-link" key={to} to={to}><Icon size={14}/><span>{label}</span></NavLink>)}</div>}</div>
           }
           const [label,Icon,to]=item
-          return <NavLink key={to} end={to==='/app/dashboard'||to==='/app/crm'||to==='/app/agenda'||to==='/app/chat'||to==='/app/rh'} to={to}><Icon size={17}/><span>{label}</span></NavLink>
+          return <NavLink key={to} end={to==='/app/dashboard'||to==='/app/crm'||to==='/app/agenda'||to==='/app/chat'||to==='/app/rh'||to==='/app/metricas'} to={to}><Icon size={17}/><span>{label}</span></NavLink>
         })}
       </nav>
     </aside>

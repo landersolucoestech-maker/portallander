@@ -13,6 +13,7 @@ const AgendaPage=lazy(()=>import('../features/agenda/AgendaPage'))
 const ChatPage=lazy(()=>import('../features/chat/ChatPage'))
 const ChatAutomationSettingsPage=lazy(()=>import('../features/chat/ChatAutomationSettingsPage'))
 const RHPage=lazy(()=>import('../features/rh/RHPage'))
+const MetricsPage=lazy(()=>import('../features/analytics/MetricsPage'))
 const MarketingPage=lazy(()=>import('../features/marketing/MarketingPage'))
 const ReportsPage=lazy(()=>import('../features/reports/ReportsPage'))
 const SettingsPage=lazy(()=>import('../features/settings/SettingsPage'))
@@ -36,6 +37,7 @@ function LoginRoute(){
   return <LoginPage/>
 }
 
+function LegacyMetricsRedirect(){const location=useLocation();return <Navigate to={`/app/metricas${location.search}`} replace/>}
 const protectedRoute=(element:ReactNode)=><RequireAdmin>{element}</RequireAdmin>
 
 function InternalRoutes(){return <Suspense fallback={null}><Routes>
@@ -49,6 +51,8 @@ function InternalRoutes(){return <Suspense fallback={null}><Routes>
   <Route path="/app/chat" element={protectedRoute(<ChatPage/>)}/>
   <Route path="/app/chat/settings" element={protectedRoute(<ChatAutomationSettingsPage/>)}/>
   <Route path="/app/rh" element={protectedRoute(<RHPage/>)}/>
+  <Route path="/app/metricas" element={protectedRoute(<MetricsPage/>)}/>
+  <Route path="/app/marketing/metricas" element={<LegacyMetricsRedirect/>}/>
   <Route path="/app/marketing/*" element={protectedRoute(<MarketingPage/>)}/>
   <Route path="/app/reports" element={protectedRoute(<ReportsPage/>)}/>
   <Route path="/app/relatorios" element={<Navigate to="/app/reports" replace/>}/>

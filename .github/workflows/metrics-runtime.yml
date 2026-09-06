@@ -1,0 +1,124 @@
+name: Metrics Global Runtime Proof
+
+on:
+  workflow_run:
+    workflows: ["Frontend CI and Pages"]
+    types: [completed]
+
+permissions:
+  contents: read
+
+jobs:
+  metrics-pages-runtime:
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'dev'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      TARGET_SHA: ${{ github.event.workflow_run.head_sha }}
+      DEPLOY_URL: https://landersolucoestech-maker.github.io/portallander/
+    steps:
+      - name: Checkout exact deployed SHA
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TARGET_SHA }}
+      - name: Verify exact dev SHA
+        run: |
+          test "$(git rev-parse HEAD)" = "${TARGET_SHA}"
+          echo "METRICS_RUNTIME_SHA=${TARGET_SHA}"
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install monorepo
+        run: npm ci
+      - name: Prove reusable Metrics UI has no demo KPI literals
+        run: |
+          if grep -E "128400|35400|176900|548200|48200|268000|415000" apps/web/src/features/analytics/MetricsPage.tsx; then
+            echo "REUSABLE RUNTIME HARDCODED METRICS IN UI != 0"
+            exit 1
+          fi
+          echo "REUSABLE RUNTIME HARDCODED METRICS IN UI = 0"
+      - name: Install Chromium
+        working-directory: apps/web
+        run: npx playwright install --with-deps chromium
+      - name: Validate published Metrics module and capture evidence
+        working-directory: apps/web
+        run: |
+          mkdir -p test-results/metrics-pages
+          node --input-type=module <<'NODE'
+          import {chromium} from '@playwright/test'
+          const base=process.env.DEPLOY_URL
+          const browser=await chromium.launch({headless:true})
+          const page=await browser.newPage({viewport:{width:1440,height:1100}})
+          const errors=[]
+          page.on('pageerror',error=>errors.push(error.message))
+          const waitStable=async()=>{await page.locator('main').first().waitFor({state:'visible',timeout:20000})}
+          const goto=async hash=>{
+            const response=await page.goto(`${base}${hash}`,{waitUntil:'domcontentloaded'})
+            if(response&&!response.ok())throw new Error(`HTTP ${response.status()} for ${hash}`)
+            await waitStable()
+          }
+          const screenshot=async name=>page.screenshot({path:`test-results/metrics-pages/${name}`,fullPage:true})
+          try{
+            await goto('#/app/metricas')
+            await page.getByTestId('metrics-page').waitFor({state:'visible',timeout:20000})
+            const metricsLink=page.getByRole('link',{name:'Métricas',exact:true})
+            await metricsLink.waitFor({state:'visible'})
+            if((await metricsLink.getAttribute('href'))!=='#/app/metricas')throw new Error('Métricas não está exposta como item principal canônico.')
+            for(const label of ['Visão Geral','Site','Redes Sociais','Conteúdo','Conversões'])await page.getByRole('tab',{name:label,exact:true}).waitFor({state:'visible'})
+            const marketingGroup=page.getByRole('button',{name:/Marketing/}).first()
+            await marketingGroup.click()
+            const sidebar=page.locator('aside.sidebar')
+            if(await sidebar.locator('.sidebar-subnav-link').filter({hasText:'Métricas'}).count())throw new Error('Marketing ainda possui submenu Métricas.')
+            await screenshot('metrics-overview.png')
+            console.log('METRICS_TOP_LEVEL_NAV=PASS')
+            console.log('METRICS_OVERVIEW=PASS')
+
+            await page.getByRole('tab',{name:'Site',exact:true}).click()
+            await page.getByTestId('metrics-site-tab').waitFor({state:'visible'})
+            const siteBody=await page.getByTestId('metrics-site-tab').innerText()
+            for(const label of ['Usuários','Novos usuários','Usuários recorrentes','Sessões','Visualizações','Canais de aquisição','Páginas mais acessadas','Conteúdos mais acessados'])if(!siteBody.includes(label))throw new Error(`Métrica Site ausente: ${label}`)
+            if(siteBody.includes('GA4 não configurado'))throw new Error('Mockup full não populou métricas de Site.')
+            await screenshot('metrics-site.png')
+            console.log('METRICS_SITE_FULL=PASS')
+
+            await page.getByRole('tab',{name:'Redes Sociais',exact:true}).click()
+            const social=page.getByTestId('metrics-social-tab')
+            await social.waitFor({state:'visible'})
+            for(const label of ['Alcance','Impressões','Cliques','Engajamento','Conversões','Seguidores','Top Conteúdos'])await social.getByText(label,{exact:true}).first().waitFor({state:'visible'})
+            const socialBody=await social.innerText()
+            for(const forbidden of ['Metric key','Account ID','Property ID','Adicionar métrica'])if(socialBody.includes(forbidden))throw new Error(`Campo técnico manual vazou para Social: ${forbidden}`)
+            if(!socialBody.includes('Instagram'))throw new Error('Snapshots sociais automáticos do full não apareceram.')
+            await screenshot('metrics-social.png')
+            console.log('METRICS_SOCIAL_AUTOMATIC=PASS')
+
+            await page.getByRole('tab',{name:'Conteúdo',exact:true}).click()
+            const content=page.getByTestId('metrics-content-tab')
+            await content.waitFor({state:'visible'})
+            for(const label of ['Publicados','Publicados no período','Rascunhos','Arquivados','Últimos conteúdos publicados','Top Conteúdos'])await content.getByText(label,{exact:true}).first().waitFor({state:'visible'})
+            await screenshot('metrics-content.png')
+            console.log('METRICS_CONTENT_CANONICAL=PASS')
+
+            await page.getByRole('tab',{name:'Conversões',exact:true}).click()
+            const conversions=page.getByTestId('metrics-conversions-tab')
+            await conversions.waitFor({state:'visible'})
+            const conversionBody=await conversions.innerText()
+            for(const label of ['Contato Comercial','Colabore','Anuncie','CRM','content_collaborations'])if(!conversionBody.includes(label))throw new Error(`Pipeline de conversão ausente: ${label}`)
+            await screenshot('metrics-conversions.png')
+            console.log('METRICS_CONVERSIONS_CANONICAL=PASS')
+
+            await goto('#/app/marketing/metricas?tab=site')
+            await page.waitForURL(/#\/app\/metricas\?tab=site$/,{timeout:10000})
+            await page.getByTestId('metrics-site-tab').waitFor({state:'visible'})
+            console.log('METRICS_LEGACY_REDIRECT=PASS')
+            console.log('METRICS_SINGLE_PAGE=PASS')
+            if(errors.length)throw new Error(`Page errors: ${JSON.stringify(errors)}`)
+          }finally{await browser.close()}
+          NODE
+      - name: Upload Metrics Pages evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: metrics-pages-${{ env.TARGET_SHA }}
+          path: apps/web/test-results/metrics-pages
+          if-no-files-found: error

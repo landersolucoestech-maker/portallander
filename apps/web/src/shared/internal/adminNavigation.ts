@@ -12,6 +12,7 @@ export const UNIFIED_ADMIN_NAV:readonly AdminNavItem[]=[
   ['Agenda',CalendarDays,'/app/agenda'],
   ['Chat',MessageCircle,'/app/chat'],
   ['RH',UsersRound,'/app/rh'],
+  ['Métricas',BarChart3,'/app/metricas'],
   {label:'Site',icon:Layers3,to:'/app/site',children:[
     ['Conteúdos',FileText,'/app/site/conteudos'],
     ['Mídias',Images,'/app/site/midia'],
@@ -24,7 +25,6 @@ export const UNIFIED_ADMIN_NAV:readonly AdminNavItem[]=[
     ['Campanhas',Megaphone,'/app/marketing/campanhas'],
     ['Calendário',CalendarDays,'/app/marketing/calendario'],
     ['Tarefas',ListChecks,'/app/marketing/tarefas'],
-    ['Métricas',BarChart3,'/app/marketing/metricas'],
     ['Briefings',ClipboardList,'/app/marketing/briefings'],
     ['IA Criativa',Sparkles,'/app/marketing/ia-criativa'],
   ]},

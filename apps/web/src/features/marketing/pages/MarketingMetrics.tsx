@@ -11,6 +11,8 @@ import {Card,Empty,pct} from '../MarketingUi'
 const DISPLAYABLE_STATUSES=new Set<AnalyticsDataStatus>(['LIVE','CACHED','MANUAL','STALE'])
 const METRIC_KEYS=['reach','impressions','clicks','engagement','conversions','followers','spend'] as const
 
+type MarketingMetricsProps={state:MarketingSeed;periodStart?:string;periodEnd?:string;previousPeriodStart?:string;previousPeriodEnd?:string;hidePeriodControl?:boolean}
+
 function monthRange(period:string){
   if(!/^\d{4}-\d{2}$/.test(period))return {}
   const [year,month]=period.split('-').map(Number)
@@ -35,7 +37,7 @@ function sourceLabel(metrics:AnalyticsMetric[]){
   return updated?`Atualizado em ${new Date(updated).toLocaleString('pt-BR')}`:'Proveniência disponível na API'
 }
 
-export function MarketingMetrics({state}:{state:MarketingSeed}){
+export function MarketingMetrics({state,periodStart,periodEnd,previousPeriodStart,previousPeriodEnd,hidePeriodControl=false}:MarketingMetricsProps){
   const [provider,setProvider]=useState('all')
   const [period,setPeriod]=useState(()=>new Date().toISOString().slice(0,7))
   const [metrics,setMetrics]=useState<AnalyticsMetric[]>([])
@@ -45,10 +47,12 @@ export function MarketingMetrics({state}:{state:MarketingSeed}){
 
   useEffect(()=>{
     let active=true
-    const currentRange=monthRange(period),previousRange=monthRange(previousMonth(period))
+    setLoading(true);setError('')
+    const currentRange=periodStart&&periodEnd?{periodStart,periodEnd}:monthRange(period)
+    const previousRange=previousPeriodStart&&previousPeriodEnd?{periodStart:previousPeriodStart,periodEnd:previousPeriodEnd}:monthRange(previousMonth(period))
     Promise.all([analyticsClient.metrics({...currentRange,limit:500}),analyticsClient.metrics({...previousRange,limit:500})]).then(([current,previous])=>{if(active){setMetrics(current.metrics.filter(metric=>metric.dataStatus!=='MOCK'));setPreviousMetrics(previous.metrics.filter(metric=>metric.dataStatus!=='MOCK'))}}).catch(caught=>{if(active){setMetrics([]);setPreviousMetrics([]);setError(caught instanceof Error?caught.message:'Analytics indisponível.')}}).finally(()=>{if(active)setLoading(false)})
     return()=>{active=false}
-  },[period])
+  },[period,periodStart,periodEnd,previousPeriodStart,previousPeriodEnd])
 
   const providers=useMemo(()=>Array.from(new Set(metrics.map(metric=>metric.provider).filter((value):value is string=>Boolean(value)))).sort(),[metrics])
   const base=useMemo(()=>metrics.filter(metric=>provider==='all'||metric.provider===provider),[metrics,provider])
@@ -66,7 +70,8 @@ export function MarketingMetrics({state}:{state:MarketingSeed}){
 
   return <>
     <div className="marketing-platform-tabs marketing-platform-tabs-exact"><button type="button" className={provider==='all'?'active':''} onClick={()=>setProvider('all')}><Globe2 size={14}/>Visão Geral</button>{providers.map(name=><button type="button" key={name} className={provider===name?'active':''} onClick={()=>setProvider(name)}><span className="marketing-platform-dot"/>{name}</button>)}</div>
-    <div className="marketing-metrics-period"><input type="month" aria-label="Período das métricas" value={period} onChange={event=>changePeriod(event.target.value)}/><small>Comparação automática com {previousMonth(period)} somente quando os dois períodos são semanticamente comparáveis.</small></div>
+    {!hidePeriodControl&&<div className="marketing-metrics-period"><input type="month" aria-label="Período das métricas" value={period} onChange={event=>changePeriod(event.target.value)}/><small>Comparação automática com {previousMonth(period)} somente quando os dois períodos são semanticamente comparáveis.</small></div>}
+    {hidePeriodControl&&<div className="marketing-metrics-period"><small>Período compartilhado definido pela página global de Métricas · comparação com período anterior equivalente.</small></div>}
     {error&&<div className="marketing-empty"><strong>Analytics indisponível</strong><p>{error} Nenhum valor mock foi usado como fallback.</p></div>}
     <div className="marketing-metric-strip marketing-metric-strip-exact">{[
       ['Alcance',valueLabel(totals.reach),'não somado/comparado entre observações incompatíveis',Users],

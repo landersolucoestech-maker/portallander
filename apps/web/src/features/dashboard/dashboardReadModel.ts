@@ -1,6 +1,5 @@
 import {getRuntimeDataProvider} from '../../shared/data/runtimeDataProvider'
 import type {AnalyticsProviderStatus} from '../analytics/domain'
-import type {AgendaEvent} from '../agenda/domain'
 import type {Lead} from '../crm/domain'
 import type {EditorialContent} from '../editorial/model'
 import type {FinanceTransaction} from '../finance/domain'
@@ -23,6 +22,13 @@ export type DashboardAttentionItem={
  detail:string
  href:string
  dueAt:string|null
+}
+
+type DashboardAgendaEntry={
+ id:string
+ title:string
+ startsAt:string
+ status:string
 }
 
 export function deriveFinanceSummary(items:readonly FinanceTransaction[],now=new Date()){
@@ -64,7 +70,7 @@ export function deriveEditorialSummary(contents:readonly EditorialContent[],now=
  }
 }
 
-export function deriveAgendaSummary(events:readonly AgendaEvent[],now=new Date()){
+export function deriveAgendaSummary(events:readonly DashboardAgendaEntry[],now=new Date()){
  const nowIso=now.toISOString()
  const upcoming=events.filter(item=>!CLOSED_EVENT_STATUSES.has(item.status)&&item.startsAt>=nowIso).sort((a,b)=>a.startsAt.localeCompare(b.startsAt)).slice(0,5)
  const immediateEnd=new Date(now.getTime()+AGENDA_HORIZON_HOURS*60*60*1000).toISOString()
@@ -89,7 +95,7 @@ export function deriveProviderAttention(providers:readonly AnalyticsProviderStat
  })
 }
 
-export function deriveOperationalAttention(input:{leads:readonly Lead[];transactions:readonly FinanceTransaction[];events:readonly AgendaEvent[];providers?:readonly AnalyticsProviderStatus[]},now=new Date()):DashboardAttentionItem[]{
+export function deriveOperationalAttention(input:{leads:readonly Lead[];transactions:readonly FinanceTransaction[];events:readonly DashboardAgendaEntry[];providers?:readonly AnalyticsProviderStatus[]},now=new Date()):DashboardAttentionItem[]{
  const crm=deriveCrmSummary(input.leads,now)
  const finance=deriveFinanceSummary(input.transactions,now)
  const agenda=deriveAgendaSummary(input.events,now)
@@ -121,7 +127,7 @@ export const dashboardReadModel={
   const revenue=paidRevenue(transactions)
   const financeSummary=deriveFinanceSummary(transactions,now)
   const crmSummary=deriveCrmSummary(crm.leads,now)
-  const agendaSummary=deriveAgendaSummary(agenda as AgendaEvent[],now)
+  const agendaSummary=deriveAgendaSummary(agenda,now)
   const editorialCounts=deriveEditorialSummary(editorial as EditorialContent[],now)
   const activeContracts=contracts.filter(item=>['signed','active','awaiting_signature','partially_signed'].includes(item.status))
   const pendingCommercialPublications=contracts.filter(item=>item.status!=='cancelled'&&item.status!=='closed'&&item.status!=='expired'&&/conte[uú]do|public|editorial/i.test(`${item.type} ${item.description}`)).length
@@ -133,7 +139,7 @@ export const dashboardReadModel={
    crmSummary,
    editorialCounts,
    upcoming:agendaSummary.upcoming,
-   attention:deriveOperationalAttention({leads:crm.leads,transactions,events:agenda as AgendaEvent[]},now),
+   attention:deriveOperationalAttention({leads:crm.leads,transactions,events:agenda},now),
    availability:{finance:true,crm:true,editorial:true,agenda:true},
    domainErrors:{} as Record<string,string>,
    monthRevenue:financeSummary.monthRevenue,

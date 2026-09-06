@@ -75,25 +75,27 @@ try{
   const fk=await pool.query('select converted_contact_id from crm_leads where id=$1',[created.id])
   assert.equal(fk.rows[0]?.converted_contact_id,converted.id)
 
-  const requestId=`crm-runtime-${marker}-advertising`
+  const requestId=`crm-runtime-${marker}-contact`
   const startedAt=Date.now()-2_000
   const submission=await formService.submit({
-    slug:'anuncie-contato',
-    payload:{name:'Advertising Runtime',email:`advertising-${email}`,phone:'11999999999',company:'Runtime Brand',type:'anunciante',service:'banner_publicitario',message:'Runtime advertising proof'},
-    source:{page:'/anuncie',campaign:'anuncie'},acceptedConsentIds:['ads-privacy'],files:[],ipHash:`ip-${marker}`,userAgent:'crm-runtime-proof',requestId,antiSpam:{honeypot:'',startedAt},
+    slug:'contato',
+    payload:{name:'Contact Runtime',email:`contact-form-${email}`,phone:'11999999999',company:'Runtime Brand',message:'Runtime commercial contact proof'},
+    source:{entryContext:'contato',page:'/contato'},acceptedConsentIds:['contact-privacy'],files:[],ipHash:`ip-${marker}`,userAgent:'crm-runtime-proof',requestId,antiSpam:{honeypot:'',startedAt},
   })
   assert.equal(submission.processingStatus,'accepted')
   assert.ok(submission.routingResults.crmLeadId)
-  const routed=await pool.query('select source_submission_id,origin,tags,campaign from crm_leads where id=$1',[submission.routingResults.crmLeadId])
+  assert.equal(submission.routingResults.collaborationId,undefined)
+  assert.equal(submission.source.entryContext,'contato')
+  const routed=await pool.query('select source_submission_id,origin,tags from crm_leads where id=$1',[submission.routingResults.crmLeadId])
   assert.equal(String(routed.rows[0]?.source_submission_id),submission.id)
   assert.equal(routed.rows[0]?.origin,'formulario_portal')
-  assert.ok(routed.rows[0]?.tags.includes('anuncie'))
-  assert.equal(routed.rows[0]?.campaign,'anuncie')
-  const consent=await pool.query('select accepted from form_submission_consents where submission_id=$1 and consent_key=$2',[submission.id,'ads-privacy'])
+  assert.ok(routed.rows[0]?.tags.includes('site'))
+  assert.ok(routed.rows[0]?.tags.includes('formulario'))
+  const consent=await pool.query('select accepted from form_submission_consents where submission_id=$1 and consent_key=$2',[submission.id,'contact-privacy'])
   assert.equal(consent.rows[0]?.accepted,true)
   assert.ok((await crmService.listLeads()).some(item=>item.id===submission.routingResults.crmLeadId&&item.sourceSubmissionId===submission.id))
   await assert.rejects(()=>formService.submit({
-    slug:'anuncie-contato',payload:{name:'Advertising Runtime',email:`advertising-${email}`,company:'Runtime Brand',type:'anunciante',service:'banner_publicitario',message:'duplicate'},source:{page:'/anuncie',campaign:'anuncie'},acceptedConsentIds:['ads-privacy'],files:[],ipHash:`ip-duplicate-${marker}`,userAgent:'crm-runtime-proof',requestId,antiSpam:{honeypot:'',startedAt:Date.now()-2_000},
+    slug:'contato',payload:{name:'Contact Runtime',email:`contact-form-${email}`,company:'Runtime Brand',message:'duplicate'},source:{entryContext:'contato',page:'/contato'},acceptedConsentIds:['contact-privacy'],files:[],ipHash:`ip-duplicate-${marker}`,userAgent:'crm-runtime-proof',requestId,antiSpam:{honeypot:'',startedAt:Date.now()-2_000},
   }),error=>error?.code==='23505')
   const requestRows=await pool.query('select count(*)::int as count from form_submissions where request_id=$1',[requestId])
   assert.equal(requestRows.rows[0]?.count,1)
@@ -119,8 +121,8 @@ try{
   console.log('CRM_CONVERSION_FK=PASS_RUNTIME')
   console.log('CRM_RBAC_OWNER=PASS_RUNTIME')
   console.log('CRM_RBAC_EDITOR_DENIED=PASS_RUNTIME')
-  console.log('ADVERTISING_TO_CRM_RUNTIME=PASS_RUNTIME')
-  console.log('ADVERTISING_REQUEST_ID_IDEMPOTENCY=PASS_RUNTIME')
+  console.log('CONTACT_COMMERCIAL_TO_CRM_RUNTIME=PASS_RUNTIME')
+  console.log('CONTACT_REQUEST_ID_IDEMPOTENCY=PASS_RUNTIME')
 } finally {
   await cleanup().catch(()=>undefined)
   await closePool()

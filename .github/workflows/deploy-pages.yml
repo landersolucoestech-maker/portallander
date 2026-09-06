@@ -16,10 +16,16 @@ concurrency:
 
 jobs:
   quality:
+    if: github.ref_name == 'dev'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Verify canonical dev ref
+        run: |
+          test "${GITHUB_REF_NAME}" = "dev"
+          test "$(git branch --show-current)" = "dev"
+          test "$(git rev-parse HEAD)" = "${GITHUB_SHA}"
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
@@ -40,6 +46,7 @@ jobs:
         run: npm --workspace @portallander/api test
 
   build:
+    if: github.ref_name == 'dev'
     runs-on: ubuntu-latest
     needs: quality
     steps:
@@ -76,6 +83,8 @@ jobs:
         run: |
           grep -R "mockup:source:mbw" apps/web/dist >/dev/null
           grep -R "content_mock_009" apps/web/dist >/dev/null
+          grep -R "mockup:analytics:instagram:followers" apps/web/dist >/dev/null
+          grep -R "mockup:account:instagram:portal-lander" apps/web/dist >/dev/null
           echo "DEVELOPMENT MOCKUP SCENARIO = full"
           echo "FULL MOCKUP LOADED = YES"
       - name: Upload Pages artifact
@@ -84,6 +93,7 @@ jobs:
           path: apps/web/dist
 
   visual-audit:
+    if: github.ref_name == 'dev'
     runs-on: ubuntu-latest
     needs: quality
     steps:
@@ -123,6 +133,7 @@ jobs:
           if-no-files-found: warn
 
   deploy:
+    if: github.ref_name == 'dev'
     environment:
       name: pages-dev
       url: ${{ steps.deployment.outputs.page_url }}
@@ -136,6 +147,7 @@ jobs:
         uses: actions/deploy-pages@v4
 
   deployed-browser-smoke:
+    if: github.ref_name == 'dev'
     runs-on: ubuntu-latest
     needs: deploy
     env:
@@ -164,6 +176,7 @@ jobs:
           const browser=await chromium.launch({headless:true})
           const page=await browser.newPage({viewport:{width:1440,height:1000}})
           const pageErrors=[]
+          let mediaKitEditorFollowers=''
           page.on('pageerror',error=>pageErrors.push(error.message))
 
           async function stableSurface(){
@@ -231,11 +244,29 @@ jobs:
             await visit('#/app/site/midia-kit','17-media-kit.png',async()=>{
               await page.getByText('Mídia Kit',{exact:true}).first().waitFor({state:'visible',timeout:15000})
               await page.getByTestId('media-kit-live-preview').waitFor({state:'visible',timeout:15000})
-              await page.getByText('Alcance',{exact:true}).first().waitFor({state:'visible',timeout:15000})
+              const automatic=page.getByTestId('media-kit-automatic-metrics')
+              await automatic.waitFor({state:'visible',timeout:15000})
+              for(const forbidden of ['Adicionar métrica','Metric key','Account ID','Property ID'])if(await automatic.getByText(forbidden,{exact:true}).count())throw new Error(`Media Kit still requires technical manual metric input: ${forbidden}`)
+              const instagramFollowers=automatic.locator('[data-media-kit-metric="Instagram:followers"]')
+              await instagramFollowers.waitFor({state:'visible',timeout:15000})
+              mediaKitEditorFollowers=await instagramFollowers.getByLabel('Valor').inputValue()
+              const provider=await instagramFollowers.getByLabel('Provider').inputValue()
+              const account=await instagramFollowers.getByLabel('Conta').inputValue()
+              const updated=await instagramFollowers.getByLabel('Atualizado em').inputValue()
+              const status=await instagramFollowers.getByLabel('Status').inputValue()
+              if(mediaKitEditorFollowers!=='48.200')throw new Error(`Unexpected Pages Instagram followers: ${mediaKitEditorFollowers}`)
+              if(provider!=='Instagram'||account!=='mockup:account:instagram:portal-lander')throw new Error(`Pages provenance mismatch: ${provider}/${account}`)
+              if(!updated||updated==='Data indisponível'||!status.includes('FRESH'))throw new Error('Pages automatic metric freshness/status missing')
+              console.log('PAGES_MEDIA_KIT_AUTOMATIC_METRICS=PASS')
             })
             await visit('#/app/site/midia-kit/preview','18-media-kit-preview.png',async()=>{
               await page.getByLabel('Preview do Mídia Kit').waitFor({state:'visible',timeout:15000})
               await page.getByText('NOSSA AUDIÊNCIA',{exact:true}).waitFor({state:'visible',timeout:15000})
+              const instagramFollowers=page.locator('.mk-preview-shell .mk-metric-grid article').filter({hasText:'Seguidores'}).filter({hasText:'Instagram'})
+              await instagramFollowers.waitFor({state:'attached',timeout:15000})
+              const previewValue=(await instagramFollowers.locator('strong').innerText()).trim()
+              if(previewValue!==mediaKitEditorFollowers)throw new Error(`Pages Media Kit editor/preview mismatch: ${mediaKitEditorFollowers} != ${previewValue}`)
+              console.log('PAGES_MEDIA_KIT_EDITOR_PREVIEW_PARITY=PASS')
             })
             if(pageErrors.length)throw new Error(`Browser page errors: ${pageErrors.join(' | ')}`)
             console.log(`DEVELOPMENT_DEPLOY_URL ${base}`)

@@ -24,7 +24,7 @@ jobs:
       - name: Promote reusable mock values into package
         shell: bash
         run: |
-          cat > /tmp/promote-mockup.ts <<'TS'
+          cat > /tmp/promote-mockup.mts <<'TS'
           import fs from 'node:fs'
           import path from 'node:path'
           import { pathToFileURL } from 'node:url'
@@ -59,7 +59,7 @@ jobs:
           fs.writeFileSync(path.join(root,'packages/mockup/src/generated/export-names.txt'),names.join('\n')+'\n')
           console.log(`PROMOTED_RUNTIME_EXPORTS=${runtimeEntries.length}`)
           TS
-          npx --yes tsx /tmp/promote-mockup.ts
+          npx --yes tsx /tmp/promote-mockup.mts
           echo '--- Remaining imports that reference mock modules outside apps/web/src/mocks ---'
           grep -RInE "from ['\"][^'\"]*mocks|import\(['\"][^'\"]*mocks" apps/web/src --exclude-dir=mocks || true
       - name: Verify promoted source compiles

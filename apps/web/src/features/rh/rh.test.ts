@@ -1,5 +1,17 @@
 import {describe,expect,it} from 'vitest'
-import {mockRhSeed} from '../../mocks/rh'
+import {mockRhSeed as rawMockRhSeed} from '@portallander/mockup'
+
+type RhSeed={
+ employees:Array<{id:string}>
+ payroll:Array<{employeeId:string;netSalary:number;grossSalary:number;discounts:number;bonus:number}>
+ leaves:Array<{employeeId:string;startDate:string;endDate:string;days:number}>
+ documents:Array<{employeeId:string}>
+ departments:string[]
+ documentTypes:string[]
+ leaveTypes:string[]
+}
+const mockRhSeed=rawMockRhSeed as RhSeed
+
 describe('rh mock contracts',()=>{
  it('keeps payroll, leaves and documents linked to existing employees',()=>{const ids=new Set(mockRhSeed.employees.map(x=>x.id));expect(mockRhSeed.payroll.every(x=>ids.has(x.employeeId))).toBe(true);expect(mockRhSeed.leaves.every(x=>ids.has(x.employeeId))).toBe(true);expect(mockRhSeed.documents.every(x=>ids.has(x.employeeId))).toBe(true)})
  it('keeps computed payroll values consistent',()=>{expect(mockRhSeed.payroll.every(x=>Math.abs(x.netSalary-(x.grossSalary-x.discounts+x.bonus))<0.001)).toBe(true)})

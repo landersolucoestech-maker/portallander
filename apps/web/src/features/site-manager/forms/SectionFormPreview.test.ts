@@ -1,9 +1,15 @@
-import {describe,expect,it} from 'vitest'
+import {beforeEach,describe,expect,it} from 'vitest'
+import {getMockupSystemForms} from '@portallander/mockup'
 import sectionConfigurationSource from '../pages/SectionConfigurationPage.tsx?raw'
-import {getSiteFormById} from './catalog'
+import {getSiteFormById,setRuntimeSiteForms} from './catalog'
+import type {SiteFormDefinition} from './domain'
 import {resolveSectionFormId} from './sectionFormMapping'
 
+const fullForms=()=>getMockupSystemForms('full') as unknown as SiteFormDefinition[]
+
 describe('section form preview contract',()=>{
+  beforeEach(()=>setRuntimeSiteForms(fullForms()))
+
   it('maps the Colabore section to the canonical collaborate form id',()=>{
     expect(resolveSectionFormId('colabore-formulario')).toBe('collaborate')
     const form=getSiteFormById('collaborate')

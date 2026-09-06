@@ -85,7 +85,8 @@ test.describe('Portal Lander product completion',()=>{
     await metricsLink.click()
     await expect.poll(()=>page.evaluate(()=>window.location.hash)).toBe('#/app/metricas')
     await expect(metricsLink).toHaveClass(/active/)
-    await expect(page.getByLabel('Período global das métricas')).toBeVisible()
+    await expect(page.getByLabel('Período global das métricas')).toHaveCount(0)
+    await expect(page.locator('.metrics-page .marketing-metrics-period')).toHaveCount(0)
     const tabs=page.getByRole('tablist',{name:'Fontes de Métricas'}).getByRole('tab')
     await expect(tabs).toHaveCount(5)
     expect((await tabs.allInnerTexts()).map(value=>value.trim())).toEqual(['Visão Geral','Site','Instagram','TikTok','YouTube'])
@@ -192,7 +193,8 @@ test.describe('product completion mobile',()=>{
 
   test('Global Métricas remains usable at 375px',async({page})=>{
     await openRoute(page,'/app/metricas')
-    await expect(page.getByLabel('Período global das métricas')).toBeVisible()
+    await expect(page.getByLabel('Período global das métricas')).toHaveCount(0)
+    await expect(page.locator('.metrics-page .marketing-metrics-period')).toHaveCount(0)
     await expect(page.getByRole('tablist',{name:'Fontes de Métricas'}).getByRole('tab')).toHaveCount(5)
     await assertNoHorizontalOverflow(page)
     await page.screenshot({path:'test-results/product-completion/mobile-metricas-global.png',fullPage:true})

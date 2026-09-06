@@ -22,6 +22,15 @@ describe('@portallander/mockup scenario registry',()=>{
   expect(second).not.toBe(first)
  })
 
+ it('exposes canonical deterministic social metric provenance in full',()=>{
+  const instagramFollowers=getMockupScenario('full').analytics.metrics.find(metric=>metric.provider==='Instagram'&&metric.metricKey==='followers')
+  expect(instagramFollowers).toBeTruthy()
+  expect(instagramFollowers?.value).toBe(48200)
+  expect(instagramFollowers?.providerAccountId).toBe('mockup:account:instagram:portal-lander')
+  expect(instagramFollowers?.dataStatus).toBe('CACHED')
+  expect(instagramFollowers?.freshness).toBe('FRESH')
+ })
+
  it('covers candidate A-F lifecycle states and keeps converted content referentially valid',()=>{
   const candidates=getMockupScenario('full').integrations.candidates
   expect(candidates.map(item=>item.id)).toEqual(['mockup:candidate:a','mockup:candidate:b','mockup:candidate:c','mockup:candidate:d','mockup:candidate:e','mockup:candidate:f'])

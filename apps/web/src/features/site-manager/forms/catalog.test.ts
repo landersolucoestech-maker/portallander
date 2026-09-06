@@ -1,46 +1,58 @@
-import {describe,expect,it} from 'vitest'
-import {siteFormRegistry} from './catalog'
+import {beforeEach,describe,expect,it} from 'vitest'
+import {getMockupSystemForms} from '@portallander/mockup'
+import {SYSTEM_FORM_KEYS} from '../../../../../../packages/shared/systemFormCatalog.js'
+import {getSiteFormBySlug,listRuntimeSiteForms,setRuntimeSiteForms} from './catalog'
+import type {SiteFormDefinition} from './domain'
 
-describe('site forms catalog',()=>{
-  it('mantém ids e slugs únicos',()=>{
-    const ids=siteFormRegistry.map(form=>form.id)
-    const slugs=siteFormRegistry.map(form=>form.slug)
-    expect(new Set(ids).size).toBe(ids.length)
-    expect(new Set(slugs).size).toBe(slugs.length)
+const fullForms=()=>getMockupSystemForms('full') as unknown as SiteFormDefinition[]
+
+describe('canonical site forms catalog',()=>{
+  beforeEach(()=>setRuntimeSiteForms(fullForms()))
+
+  it('expõe exatamente os dois formulários de sistema canônicos',()=>{
+    const forms=listRuntimeSiteForms()
+    expect(forms).toHaveLength(2)
+    expect(forms.map(form=>form.id)).toEqual(SYSTEM_FORM_KEYS)
+    expect(forms.map(form=>form.name)).toEqual(['Contato Comercial','Colabore / Anuncie'])
+    expect(forms.some(form=>form.id==='advertising-inquiry')).toBe(false)
+    expect(forms.some(form=>form.name==='Captação de Leads')).toBe(false)
+    expect(forms.some(form=>form.name==='Contato Comercial · Anuncie')).toBe(false)
   })
 
-  it('mantém campos ordenados e chaves únicas dentro de cada formulário',()=>{
-    for(const form of siteFormRegistry){
-      expect(form.fields.map(field=>field.order)).toEqual(form.fields.map((_,index)=>index+1))
-      const keys=form.fields.map(field=>field.key)
-      expect(new Set(keys).size).toBe(keys.length)
-    }
+  it.each([
+    ['captacao-leads','lead-capture'],
+    ['contato','lead-capture'],
+    ['contato-comercial','lead-capture'],
+    ['colabore','collaborate'],
+    ['anuncie','collaborate'],
+    ['anuncie-contato','collaborate'],
+    ['advertising-inquiry','collaborate'],
+  ])('resolve alias %s para a identidade %s sem criar registro extra',(alias,key)=>{
+    expect(getSiteFormBySlug(alias)?.id).toBe(key)
+    expect(listRuntimeSiteForms()).toHaveLength(2)
   })
 
-  it('roteia captação comercial exclusivamente ao CRM',()=>{
-    const leadForm=siteFormRegistry.find(form=>form.purpose==='lead_capture')
-    expect(leadForm?.routing.destination).toBe('crm')
-    expect(leadForm?.routing.crm?.origin).toBe('formulario_portal')
+  it('mantém contato comercial exclusivamente no CRM',()=>{
+    const contact=getSiteFormBySlug('contato')
+    expect(contact?.id).toBe('lead-capture')
+    expect(contact?.routing.destination).toBe('crm')
+    expect(contact?.routing.crm?.origin).toBe('formulario_portal')
   })
 
-  it('roteia Colabore para Conteúdos → Colaborações recebidas e não para CRM',()=>{
-    const collaborate=siteFormRegistry.find(form=>form.id==='collaborate')
-    expect(collaborate?.purpose).toBe('editorial_submission')
-    expect(collaborate?.routing.destination).toBe('content_collaborations')
-    expect(collaborate?.routing.crm).toBeUndefined()
+  it('usa uma única definição para Colabore e Anuncie em Colaborações recebidas',()=>{
+    const colabore=getSiteFormBySlug('colabore')
+    const anuncie=getSiteFormBySlug('anuncie')
+    expect(colabore?.id).toBe('collaborate')
+    expect(anuncie?.id).toBe(colabore?.id)
+    expect(anuncie?.version).toBe(colabore?.version)
+    expect(anuncie?.routing.destination).toBe('content_collaborations')
+    expect(anuncie?.routing.crm).toBeUndefined()
+    expect(anuncie?.fields.find(field=>field.key==='tipo')?.options).toEqual(expect.arrayContaining(['publicidade','patrocinio','parceria_comercial','conteudo_patrocinado']))
   })
 
-  it('publica o contato de Anuncie como intake comercial real do CRM',()=>{
-    const advertising=siteFormRegistry.find(form=>form.id==='advertising-inquiry')
-    expect(advertising?.slug).toBe('anuncie-contato')
-    expect(advertising?.purpose).toBe('advertising')
-    expect(advertising?.status).toBe('active')
-    expect(advertising?.routing.destination).toBe('crm')
-    expect(advertising?.routing.crm?.tags).toEqual(expect.arrayContaining(['anuncie','publicidade']))
-    expect(advertising?.fields.some(field=>field.key==='service'&&field.type==='select')).toBe(true)
-  })
-
-  it('versiona explicitamente todo formulário publicado ou em rascunho',()=>{
-    for(const form of siteFormRegistry)expect(form.version).toBeGreaterThanOrEqual(1)
+  it('rejeita runtime que recrie um terceiro formulário de sistema',()=>{
+    const forms=fullForms()
+    const duplicate={...structuredClone(forms[1]),id:'advertising-inquiry',slug:'anuncie-contato'}
+    expect(()=>setRuntimeSiteForms([...forms,duplicate])).toThrow(/Canonical system forms mismatch/)
   })
 })

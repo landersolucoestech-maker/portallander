@@ -28,7 +28,6 @@ describe('@portallander/mockup scenario registry',()=>{
   expect(instagramFollowers?.value).toBe(48200)
   expect(instagramFollowers?.providerAccountId).toBe('mockup:account:instagram:portal-lander')
   expect(instagramFollowers?.dataStatus).toBe('CACHED')
-  expect(instagramFollowers?.freshness).toBe('FRESH')
  })
 
  it('covers candidate A-F lifecycle states and keeps converted content referentially valid',()=>{

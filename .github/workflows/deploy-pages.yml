@@ -167,6 +167,8 @@ jobs:
       - name: Validate published development URL in Chromium
         working-directory: apps/web
         run: |
+          grep -q "const INTERNAL_METRICS_RANGE:MetricsRange='30d'" src/features/analytics/MetricsPage.tsx
+          echo "PAGES_METRICS_INTERNAL_CANONICAL_PERIOD=30d"
           mkdir -p test-results/deployed
           node --input-type=module <<'NODE'
           import {chromium} from '@playwright/test'
@@ -223,6 +225,7 @@ jobs:
             await page.getByRole('tab',{name:tabName,exact:true}).click()
             const source=page.getByTestId(testId)
             await source.waitFor({state:'visible',timeout:15000})
+            if(await source.locator('.marketing-metrics-period').count())throw new Error(`${tabName} still renders residual period UI.`)
             await source.getByText(`Resumo · ${tabName}`,{exact:true}).waitFor({state:'visible',timeout:15000})
             const body=await source.innerText()
             for(const forbidden of ['Metric key','Account ID','Property ID','Scope'])if(body.includes(forbidden))throw new Error(`${tabName} still exposes technical manual field: ${forbidden}`)
@@ -250,7 +253,8 @@ jobs:
             await visit('#/app/rh','07-rh.png')
             await visit('#/app/marketing','08-marketing.png')
             await visit('#/app/metricas','09-metrics-global.png',async()=>{
-              await page.getByTestId('metrics-page').waitFor({state:'visible',timeout:15000})
+              const metricsPage=page.getByTestId('metrics-page')
+              await metricsPage.waitFor({state:'visible',timeout:15000})
               const nav=page.getByRole('navigation',{name:'Módulos da Administração'})
               await nav.getByRole('link',{name:'Métricas',exact:true}).waitFor({state:'visible',timeout:15000})
               const marketingGroup=nav.locator('.sidebar-nav-group').filter({hasText:'Marketing'})
@@ -264,8 +268,11 @@ jobs:
               const expected=['Visão Geral','Site','Instagram','TikTok','YouTube']
               if(JSON.stringify(labels)!==JSON.stringify(expected))throw new Error(`Unexpected Metrics tabs: ${JSON.stringify(labels)}`)
               for(const legacy of ['Redes Sociais','Conteúdo','Conversões'])if(await tablist.getByRole('tab',{name:legacy,exact:true}).count())throw new Error(`Legacy Metrics tab still present: ${legacy}`)
-              const period=page.getByLabel('Período global das métricas')
-              await period.selectOption('7d')
+              if(await page.getByLabel('Período global das métricas').count())throw new Error('Global Metrics still renders the manual period selector.')
+              if(await metricsPage.getByText('O período é compartilhado entre todas as fontes.',{exact:true}).count())throw new Error('Global Metrics still renders the period helper text.')
+              if(await metricsPage.locator('.marketing-metrics-period').count())throw new Error('Global Metrics still renders period UI or residual period spacing.')
+              console.log('PAGES_METRICS_PERIOD_SELECTOR_ABSENT=PASS')
+              console.log('PAGES_METRICS_MANUAL_PERIOD_CONTROL=ABSENT')
               await page.getByRole('tab',{name:'Site',exact:true}).click()
               const site=page.getByTestId('metrics-site-tab')
               await site.waitFor({state:'visible',timeout:15000})
@@ -279,15 +286,10 @@ jobs:
               const conversionBody=await conversions.innerText()
               for(const label of ['Publicados','Rascunhos','Arquivados','Top Conteúdos'])if(!contentBody.includes(label))throw new Error(`Editorial metric missing inside Site: ${label}`)
               for(const label of ['Contato Comercial','Colabore','Anuncie','CRM','content_collaborations'])if(!conversionBody.includes(label))throw new Error(`Conversion context missing inside Site: ${label}`)
-              if(await period.inputValue()!=='7d')throw new Error('Global Metrics period was not preserved on Site.')
               metricsInstagramFollowers=await assertSocialSource('Instagram','metrics-instagram-tab')
-              if(await period.inputValue()!=='7d')throw new Error('Global Metrics period was not preserved on Instagram.')
               await assertSocialSource('TikTok','metrics-tiktok-tab')
-              if(await period.inputValue()!=='7d')throw new Error('Global Metrics period was not preserved on TikTok.')
               await assertSocialSource('YouTube','metrics-youtube-tab')
-              if(await period.inputValue()!=='7d')throw new Error('Global Metrics period was not preserved on YouTube.')
               await page.getByRole('tab',{name:'Visão Geral',exact:true}).click()
-              if(await period.inputValue()!=='7d')throw new Error('Global Metrics period was not preserved after cycling all sources.')
               console.log('PAGES_GLOBAL_METRICS=PASS')
               console.log('PAGES_METRICS_SOURCE_TABS=PASS')
               console.log('PAGES_METRICS_SHARED_PERIOD=PASS')

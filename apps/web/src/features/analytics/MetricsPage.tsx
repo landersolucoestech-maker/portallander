@@ -1,6 +1,6 @@
 import {BarChart3,CheckCircle2,FileText,Globe2,Target,TrendingUp,Users} from 'lucide-react'
 import type {LucideIcon} from 'lucide-react'
-import {useEffect,useMemo,useState} from 'react'
+import {useEffect,useState} from 'react'
 import {useSearchParams} from 'react-router-dom'
 import {AdminNotice,AdminShell} from '../../shared/internal/AdminUi'
 import {UNIFIED_ADMIN_NAV} from '../../shared/internal/adminNavigation'
@@ -23,6 +23,7 @@ type MetricsTab=(typeof TABS)[number][0]
 const VALID_TABS=new Set<MetricsTab>(TABS.map(([key])=>key))
 const DISPLAYABLE_STATUSES=new Set<AnalyticsDataStatus>(['LIVE','CACHED','MANUAL','STALE'])
 const SOCIAL_PROVIDERS={instagram:'Instagram',tiktok:'TikTok',youtube:'YouTube'} as const
+const INTERNAL_METRICS_RANGE:MetricsRange='30d'
 
 const dateText=(date:Date)=>date.toISOString().slice(0,10)
 const shiftDate=(value:string,days:number)=>{const date=new Date(`${value}T12:00:00.000Z`);date.setUTCDate(date.getUTCDate()+days);return dateText(date)}
@@ -108,27 +109,23 @@ function SourceTab({provider,state,dates,testId}:{provider:string;state:Marketin
 
 export default function MetricsPage(){
  const [searchParams,setSearchParams]=useSearchParams(),requested=searchParams.get('tab') as MetricsTab|null,tab:MetricsTab=requested&&VALID_TABS.has(requested)?requested:'geral'
- const [range,setRange]=useState<MetricsRange>('30d'),[customStart,setCustomStart]=useState(''),[customEnd,setCustomEnd]=useState('')
  const [data,setData]=useState<MetricsResponse|null>(null),[socialMetrics,setSocialMetrics]=useState<AnalyticsMetric[]>([]),[error,setError]=useState(''),[settledRequest,setSettledRequest]=useState('')
  const [marketingState,setMarketingState]=useState<MarketingSeed>(()=>marketingRepository.snapshot())
- const dates=useMemo(()=>selectedRange(range,customStart,customEnd),[range,customStart,customEnd])
- const rangeReady=range!=='custom'||Boolean(customStart&&customEnd)
- const requestKey=`${range}|${dates.startDate}|${dates.endDate}|${dates.periodStart}|${dates.periodEnd}`
- const loading=rangeReady&&settledRequest!==requestKey
+ const dates=selectedRange(INTERNAL_METRICS_RANGE,'','')
+ const requestKey=`${INTERNAL_METRICS_RANGE}|${dates.startDate}|${dates.endDate}|${dates.periodStart}|${dates.periodEnd}`
+ const loading=settledRequest!==requestKey
  useEffect(()=>{const refresh=()=>setMarketingState(marketingRepository.snapshot());window.addEventListener(marketingRepository.eventName,refresh);return()=>window.removeEventListener(marketingRepository.eventName,refresh)},[])
  useEffect(()=>{
-  if(!rangeReady)return
   let active=true
-  const aggregate=loadMetrics({range,startDate:dates.startDate,endDate:dates.endDate}).then(value=>{if(active){setData(value);setError('')}}).catch(caught=>{if(active){setData(null);setError(caught instanceof Error?caught.message:'Métricas indisponíveis.')}})
+  const aggregate=loadMetrics({range:INTERNAL_METRICS_RANGE,startDate:dates.startDate,endDate:dates.endDate}).then(value=>{if(active){setData(value);setError('')}}).catch(caught=>{if(active){setData(null);setError(caught instanceof Error?caught.message:'Métricas indisponíveis.')}})
   const social=analyticsClient.metrics({periodStart:dates.periodStart,periodEnd:dates.periodEnd,limit:500}).then(value=>{if(active)setSocialMetrics(value.metrics.filter(metric=>metric.dataStatus!=='MOCK'))}).catch(()=>{if(active)setSocialMetrics([])})
   void Promise.allSettled([aggregate,social]).finally(()=>{if(active)setSettledRequest(requestKey)})
   return()=>{active=false}
- },[range,rangeReady,requestKey,dates.startDate,dates.endDate,dates.periodStart,dates.periodEnd])
+ },[requestKey,dates.startDate,dates.endDate,dates.periodStart,dates.periodEnd])
  const productionMock=import.meta.env.PROD&&getRuntimeDataProvider().kind==='mock',metricState=productionMock?{...marketingState,contents:[]}:marketingState
  const selectTab=(next:MetricsTab)=>{const nextParams=new URLSearchParams(searchParams);nextParams.set('tab',next);setSearchParams(nextParams,{replace:true})}
  return <AdminShell area="metrics" items={UNIFIED_ADMIN_NAV} header={{title:'Métricas',description:'Analytics global organizado por fonte e canal de dados'}}><section className="marketing-page metrics-page" data-testid="metrics-page">
   <div className="marketing-platform-tabs marketing-platform-tabs-exact" role="tablist" aria-label="Fontes de Métricas">{TABS.map(([key,label])=><button key={key} type="button" role="tab" aria-selected={tab===key} className={tab===key?'active':''} onClick={()=>selectTab(key)}>{label}</button>)}</div>
-  <div className="marketing-metrics-period"><label><span>Período</span><select aria-label="Período global das métricas" value={range} onChange={event=>setRange(event.target.value as MetricsRange)}><option value="today">Hoje</option><option value="7d">7 dias</option><option value="30d">30 dias</option><option value="90d">90 dias</option><option value="custom">Personalizado</option></select></label>{range==='custom'&&<><input type="date" aria-label="Início do período" value={customStart} onChange={event=>setCustomStart(event.target.value)}/><input type="date" aria-label="Fim do período" value={customEnd} onChange={event=>setCustomEnd(event.target.value)}/></>}<small>O período é compartilhado entre todas as fontes.</small></div>
   {!loading&&error&&<AdminNotice title="Métricas indisponíveis" description={`${error} Nenhum valor mock é usado como fallback em produção.`}/>} 
   {loading&&!data?<div className="marketing-empty">Carregando métricas canônicas…</div>:data?<>
    {tab==='geral'&&<OverviewTab data={data} socialMetrics={socialMetrics}/>} 

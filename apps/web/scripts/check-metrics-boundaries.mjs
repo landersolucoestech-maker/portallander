@@ -15,11 +15,11 @@ requireTokens('InternalApp.tsx',app,["../features/analytics/MetricsPage",'path="
 requireTokens('adminNavigation.ts',nav,["['Métricas',BarChart3,'/app/metricas']"])
 forbidTokens('adminNavigation.ts',nav,["['Métricas',BarChart3,'/app/marketing/metricas']"])
 forbidTokens('MarketingPage.tsx',marketing,['MarketingMetrics','/app/marketing/metricas'])
-requireTokens('MetricsPage.tsx',metrics,["const TABS=[['geral','Visão Geral'],['site','Site'],['instagram','Instagram'],['tiktok','TikTok'],['youtube','YouTube']] as const",'data-testid="metrics-page"','Período global das métricas','data-testid="metrics-site-content"','data-testid="metrics-site-conversions"','metrics-instagram-tab','metrics-tiktok-tab','metrics-youtube-tab'])
-forbidTokens('MetricsPage.tsx',metrics,["['social','Redes Sociais']","['conteudo','Conteúdo']","['conversoes','Conversões']",'/app/metricas/site','/app/metricas/social','/app/metricas/conteudo','/app/metricas/conversoes',"from '@portallander/mockup'",'128400','548200','48200','268000','415000'])
+requireTokens('MetricsPage.tsx',metrics,["const TABS=[['geral','Visão Geral'],['site','Site'],['instagram','Instagram'],['tiktok','TikTok'],['youtube','YouTube']] as const","const INTERNAL_METRICS_RANGE:MetricsRange='30d'",'data-testid="metrics-page"','data-testid="metrics-site-content"','data-testid="metrics-site-conversions"','metrics-instagram-tab','metrics-tiktok-tab','metrics-youtube-tab'])
+forbidTokens('MetricsPage.tsx',metrics,['Período global das métricas','O período é compartilhado entre todas as fontes.',"['social','Redes Sociais']","['conteudo','Conteúdo']","['conversoes','Conversões']",'/app/metricas/site','/app/metricas/social','/app/metricas/conteudo','/app/metricas/conversoes',"from '@portallander/mockup'",'128400','548200','48200','268000','415000'])
 requireTokens('metricsClient.ts',client,['/api/metrics','loadDevelopmentMetricsOverview'])
 forbidTokens('metricsClient.ts',client,["@portallander/mockup",'getMockupMetricsOverview'])
 requireTokens('analytics/client.ts',analyticsClient,['loadDevelopmentMetricsOverview',"await import('@portallander/mockup')",'getMockupMetricsOverview'])
 
 if(failures.length){console.error('Falha nos boundaries do módulo Métricas:');failures.forEach(item=>console.error(`- ${item}`));process.exit(1)}
-console.log('Metrics boundaries OK — módulo global, rota única, cinco abas por fonte (Visão Geral, Site, Instagram, TikTok e YouTube), Site consolida editorial/conversões, Marketing sem ownership, UI sem KPI de fixture e mockup mediado pelo adapter analítico.')
+console.log('Metrics boundaries OK — módulo global, rota única, cinco abas por fonte (Visão Geral, Site, Instagram, TikTok e YouTube), Site consolida editorial/conversões, período interno canônico de 30 dias sem seletor manual, Marketing sem ownership, UI sem KPI de fixture e mockup mediado pelo adapter analítico.')

@@ -72,24 +72,30 @@ async function proveAppearance(page:Page,formId:string,screenshotName:string){
 test.describe('Portal Lander product completion',()=>{
   test.use({viewport:{width:1440,height:900}})
 
-  test('Marketing exposes Métricas in canonical order, navigates and never falls back to mock Analytics',async({page})=>{
+  test('Métricas stays top-level, preserves legacy routing and never falls back to mock Analytics',async({page})=>{
     await openRoute(page,'/app/marketing')
-    const marketingGroup=page.locator('.sidebar-nav-group').filter({has:page.getByRole('button',{name:/Marketing/i})})
+    const nav=page.getByRole('navigation',{name:'Módulos da Administração'})
+    const marketingGroup=nav.locator('.sidebar-nav-group').filter({has:page.getByRole('button',{name:/Marketing/i})})
     await expect(marketingGroup).toBeVisible()
     const labels=(await marketingGroup.locator('.sidebar-subnav-link').allInnerTexts()).map(value=>value.trim())
-    expect(labels).toEqual(['Visão Geral','Campanhas','Calendário','Tarefas','Métricas','Briefings','IA Criativa'])
-    const metricsLink=marketingGroup.getByRole('link',{name:'Métricas',exact:true})
+    expect(labels).toEqual(['Visão Geral','Campanhas','Calendário','Tarefas','Briefings','IA Criativa'])
+    const metricsLink=nav.getByRole('link',{name:'Métricas',exact:true})
+    await expect(metricsLink).toBeVisible()
+    await expect(metricsLink).toHaveAttribute('href','#/app/metricas')
     await metricsLink.click()
-    await expect.poll(()=>page.evaluate(()=>window.location.hash)).toContain('/app/marketing/metricas')
+    await expect.poll(()=>page.evaluate(()=>window.location.hash)).toBe('#/app/metricas')
     await expect(metricsLink).toHaveClass(/active/)
-    await expect(page.getByLabel('Período das métricas')).toBeVisible()
-    await expect(page.locator('.marketing-page')).not.toContainText('MOCK')
-    const unavailable=page.getByText('Analytics indisponível',{exact:true})
-    const metricStrip=page.locator('.marketing-metric-strip')
-    await expect(metricStrip).toBeVisible()
-    if(await unavailable.count())await expect(unavailable).toBeVisible()
+    await expect(page.getByLabel('Período global das métricas')).toBeVisible()
+    const tabs=page.getByRole('tablist',{name:'Fontes de Métricas'}).getByRole('tab')
+    await expect(tabs).toHaveCount(5)
+    expect((await tabs.allInnerTexts()).map(value=>value.trim())).toEqual(['Visão Geral','Site','Instagram','TikTok','YouTube'])
+    await expect(page.getByTestId('metrics-overview-tab')).toBeVisible()
+    await expect(page.locator('.metrics-page')).not.toContainText('MOCK')
+    await openRoute(page,'/app/marketing/metricas?tab=instagram')
+    await expect.poll(()=>page.evaluate(()=>window.location.hash)).toBe('#/app/metricas?tab=instagram')
+    await expect(page.getByRole('tab',{name:'Instagram',exact:true})).toHaveAttribute('aria-selected','true')
     await assertNoHorizontalOverflow(page)
-    await page.screenshot({path:'test-results/product-completion/marketing-metricas-1440.png',fullPage:true})
+    await page.screenshot({path:'test-results/product-completion/metricas-global-1440.png',fullPage:true})
   })
 
   test('Lead capture exposes live visual customization through the shared public renderer',async({page})=>{
@@ -184,11 +190,12 @@ test.describe('Portal Lander product completion',()=>{
 test.describe('product completion mobile',()=>{
   test.use({viewport:{width:375,height:812}})
 
-  test('Marketing Métricas remains usable at 375px',async({page})=>{
-    await openRoute(page,'/app/marketing/metricas')
-    await expect(page.getByLabel('Período das métricas')).toBeVisible()
+  test('Global Métricas remains usable at 375px',async({page})=>{
+    await openRoute(page,'/app/metricas')
+    await expect(page.getByLabel('Período global das métricas')).toBeVisible()
+    await expect(page.getByRole('tablist',{name:'Fontes de Métricas'}).getByRole('tab')).toHaveCount(5)
     await assertNoHorizontalOverflow(page)
-    await page.screenshot({path:'test-results/product-completion/mobile-marketing-metricas.png',fullPage:true})
+    await page.screenshot({path:'test-results/product-completion/mobile-metricas-global.png',fullPage:true})
   })
 
   for(const form of [{id:'lead-capture',name:'lead-capture'},{id:'collaborate',name:'colabore'}]){

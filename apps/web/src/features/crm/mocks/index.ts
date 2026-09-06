@@ -1,7 +1,4 @@
-import {mockCrmState} from '../../../mocks'
+import {mockCrmState} from '@portallander/mockup'
 
-/**
- * Compatibility facade for the CRM module.
- * Canonical mock records live in src/mocks/crm and are consumed at runtime through ApplicationDataProvider.
- */
+/** Compatibility facade. Canonical reusable CRM development data lives in @portallander/mockup. */
 export const crmMockState=mockCrmState

@@ -1,9 +1,6 @@
-import {mockContractCategories,mockContracts,mockContractTemplates,mockContractVariables} from '../../../mocks'
+import {mockContractCategories,mockContracts,mockContractTemplates,mockContractVariables} from '@portallander/mockup'
 
-/**
- * Compatibility facade for the Contracts module.
- * Canonical mock records live in src/mocks/contracts and are consumed at runtime through ApplicationDataProvider.
- */
+/** Compatibility facade. Canonical reusable Contracts development data lives in @portallander/mockup. */
 export const contractsMockMeta={source:'global-mock-provider',enabled:true} as const
 export const contractsMockRecords=mockContracts
 export const contractTemplatesMock=mockContractTemplates

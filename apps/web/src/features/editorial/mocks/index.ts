@@ -1,5 +1,5 @@
-import {mockEditorialContents} from '../../../mocks'
+import {mockEditorialContents} from '@portallander/mockup'
 
-/** Compatibility facade. Canonical editorial data lives in src/mocks/editorial. */
+/** Compatibility facade. Canonical reusable Editorial development data lives in @portallander/mockup. */
 export const editorialMockContent=mockEditorialContents
-export const editorialMockCategories=Array.from(new Set(mockEditorialContents.flatMap(item=>item.tags))).sort()
+export const editorialMockCategories=Array.from(new Set(mockEditorialContents.flatMap((item:{tags:string[]})=>item.tags))).sort()

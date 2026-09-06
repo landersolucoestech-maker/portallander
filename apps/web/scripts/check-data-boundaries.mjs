@@ -19,12 +19,11 @@ async function walk(dir){
 const files=await walk(root)
 const sourceFiles=files.filter(path=>['.ts','.tsx'].includes(extname(path)))
 const relPath=path=>relative(root,path).replaceAll('\\','/')
-const visualFiles=sourceFiles.filter(path=>path.endsWith('.tsx')&&relPath(path)!=='main.tsx'&&!relPath(path).startsWith('mocks/'))
+const visualFiles=sourceFiles.filter(path=>path.endsWith('.tsx')&&relPath(path)!=='main.tsx')
 
 for(const path of visualFiles){
  const source=await readFile(path,'utf8')
  const rel=relPath(path)
- if(/from\s+['"][^'"]*\/mocks(?:\/|['"])/.test(source)||/from\s+['"]\.\/mocks['"]/.test(source))failures.push(`${rel} não pode importar mocks brutos.`)
  if(source.includes('@portallander/mockup'))failures.push(`${rel} não pode importar @portallander/mockup diretamente; use provider/repository/read model.`)
  if(source.includes('/shared/data/mockDataProvider')||source.includes("from '../../shared/data/mockDataProvider'")||source.includes("from '../shared/data/mockDataProvider'"))failures.push(`${rel} não pode depender diretamente do MockDataProvider.`)
 }
@@ -39,34 +38,29 @@ const featureMockFacades=[
 ]
 for(const rel of featureMockFacades){
  const source=await readFile(join(root,rel),'utf8')
- if(!source.includes("from '../../../mocks'"))failures.push(`${rel} deve ser apenas fachada temporária da raiz legada src/mocks até a consolidação final.`)
- if(/createdAt\s*:|updatedAt\s*:|id\s*:\s*['"][^'"]+['"]/.test(source))failures.push(`${rel} não pode voltar a declarar registros mock locais.`)
+ if(!source.includes("from '@portallander/mockup'"))failures.push(`${rel} deve ser apenas fachada de compatibilidade para @portallander/mockup.`)
+ if(/createdAt\s*:|updatedAt\s*:|id\s*:\s*['"][^'"]+['"]/.test(source))failures.push(`${rel} não pode declarar registros mock locais.`)
 }
 
-const allowedRawMockConsumers=new Set(['shared/data/mockDataProvider.ts',...featureMockFacades])
+try{await stat(join(root,'mocks'));failures.push('src/mocks não pode permanecer como segunda fonte de verdade após a promoção para @portallander/mockup.')}catch{/* expected: legacy tree removed */}
+
 const allowedMockupConsumers=new Set([
  'shared/data/mockDataProvider.ts',
  'features/analytics/client.ts',
  'features/editorial/contentIngestionClient.ts',
+ ...featureMockFacades,
 ])
 const demoRecordPatterns=[
- /Cliente Exemplo/i,
- /Fornecedor Exemplo/i,
- /Cliente Corporativo/i,
- /Agência Parceira/i,
- /lead_mock_/i,
- /contact_mock_/i,
- /interaction_mock_/i,
- /timeline_mock_/i,
- /['"](?:tx|nf|rule)-\d+['"]/i,
- /@example\.com/i,
+ /Cliente Exemplo/i,/Fornecedor Exemplo/i,/Cliente Corporativo/i,/Agência Parceira/i,
+ /lead_mock_/i,/contact_mock_/i,/interaction_mock_/i,/timeline_mock_/i,
+ /['"](?:tx|nf|rule)-\d+['"]/i,/@example\.com/i,
 ]
 for(const path of sourceFiles){
  const rel=relPath(path)
- if(rel.startsWith('mocks/')||rel.endsWith('.test.ts')||rel.endsWith('.test.tsx')||allowedRawMockConsumers.has(rel))continue
+ if(rel.endsWith('.test.ts')||rel.endsWith('.test.tsx'))continue
  const source=await readFile(path,'utf8')
- if(/from\s+['"][^'"]*\/mocks(?:\/|['"])/.test(source)||/from\s+['"]\.\/mocks['"]/.test(source))failures.push(`${rel} não pode consumir mocks diretamente; use provider/repository/read model.`)
- if(source.includes('@portallander/mockup')&&!allowedMockupConsumers.has(rel))failures.push(`${rel} não pode consumir @portallander/mockup diretamente; somente adapters/clientes de desenvolvimento aprovados podem fazê-lo.`)
+ if(/from\s+['"][^'"]*\/mocks(?:\/|['"])/.test(source)||/from\s+['"]\.\/mocks['"]/.test(source))failures.push(`${rel} não pode consumir uma árvore mock local; use provider/repository/read model.`)
+ if(source.includes('@portallander/mockup')&&!allowedMockupConsumers.has(rel))failures.push(`${rel} não pode consumir @portallander/mockup diretamente; somente adapters/clientes/facades aprovados podem fazê-lo.`)
  if(demoRecordPatterns.some(pattern=>pattern.test(source)))failures.push(`${rel} contém registro demonstrativo fora da fonte canônica @portallander/mockup.`)
 }
 
@@ -101,7 +95,7 @@ if(!activityHook.includes("mode==='api'?dashboardApi.getAdminActivity"))failures
 
 const provider=await readFile(join(root,'shared/data/mockDataProvider.ts'),'utf8')
 if(!provider.includes("from '@portallander/mockup'"))failures.push('MockDataProvider deve agregar os dados reutilizáveis de desenvolvimento somente via @portallander/mockup.')
-if(provider.includes("from '../../mocks'"))failures.push('MockDataProvider não pode manter src/mocks como segunda fonte de verdade após a promoção para @portallander/mockup.')
+if(provider.includes("from '../../mocks'"))failures.push('MockDataProvider não pode manter src/mocks como segunda fonte de verdade.')
 for(const removedWorkspaceToken of ['mockWorkspaces','workspaces:','WorkspaceDescriptor'])if(provider.includes(removedWorkspaceToken))failures.push(`MockDataProvider não pode reintroduzir arquitetura de workspaces: ${removedWorkspaceToken}`)
 
 if(failures.length){
@@ -109,4 +103,4 @@ if(failures.length){
  failures.forEach(item=>console.error(`- ${item}`))
  process.exit(1)
 }
-console.log('Data provider boundaries OK — public production is fail-closed; authenticated admin uses real API; reusable demo data is isolated behind @portallander/mockup and explicit development adapters.')
+console.log('Data provider boundaries OK — production fail-closed; reusable development data is canonical in @portallander/mockup; UI imports remain adapter-mediated.')

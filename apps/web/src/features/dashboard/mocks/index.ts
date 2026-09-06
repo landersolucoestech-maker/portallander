@@ -1,8 +1,8 @@
-import {mockDashboardOperationalSnapshot,mockNotifications} from '../../../mocks'
+import {mockDashboardOperationalSnapshot,mockNotifications} from '@portallander/mockup'
 
-/** Compatibility facade. Canonical dashboard data lives in src/mocks/dashboard. */
+/** Compatibility facade. Canonical reusable Dashboard development data lives in @portallander/mockup. */
 export const dashboardMockOverview={
  period:mockDashboardOperationalSnapshot.period,
- notifications:mockNotifications.filter(item=>item.status==='unread').length,
+ notifications:mockNotifications.filter((item:{status:string})=>item.status==='unread').length,
  pendingActions:mockDashboardOperationalSnapshot.pendingActions,
 } as const

@@ -31,6 +31,15 @@ type DashboardAgendaEntry={
  status:string
 }
 
+export type DashboardFeaturedContent={
+ id:string
+ title:string
+ coverImage?:string
+ tags:string[]
+ publishedAt?:string
+ updatedAt:string
+}
+
 export function deriveFinanceSummary(items:readonly FinanceTransaction[],now=new Date()){
  const month=monthKey(now),today=dayKey(now)
  const revenuePaid=items.filter(item=>item.type==='receita'&&item.status==='pago')
@@ -68,6 +77,13 @@ export function deriveEditorialSummary(contents:readonly EditorialContent[],now=
   archived:contents.filter(item=>item.status==='archived').length,
   publishedThisMonth:contents.filter(item=>item.status==='published'&&item.publishedAt?.startsWith(month)).length,
  }
+}
+
+export function deriveFeaturedContents(contents:readonly EditorialContent[]):DashboardFeaturedContent[]{
+ return contents.filter(item=>item.active&&item.status==='published')
+  .sort((a,b)=>(b.publishedAt??b.updatedAt).localeCompare(a.publishedAt??a.updatedAt)||b.updatedAt.localeCompare(a.updatedAt)||b.id.localeCompare(a.id))
+  .slice(0,3)
+  .map(item=>({id:item.id,title:item.title,coverImage:item.coverImage,tags:[...item.tags],publishedAt:item.publishedAt,updatedAt:item.updatedAt}))
 }
 
 export function deriveAgendaSummary(events:readonly DashboardAgendaEntry[],now=new Date()){
@@ -128,7 +144,9 @@ export const dashboardReadModel={
   const financeSummary=deriveFinanceSummary(transactions,now)
   const crmSummary=deriveCrmSummary(crm.leads,now)
   const agendaSummary=deriveAgendaSummary(agenda,now)
-  const editorialCounts=deriveEditorialSummary(editorial as EditorialContent[],now)
+  const editorialContents=editorial as EditorialContent[]
+  const editorialCounts=deriveEditorialSummary(editorialContents,now)
+  const featuredContents=deriveFeaturedContents(editorialContents)
   const activeContracts=contracts.filter(item=>['signed','active','awaiting_signature','partially_signed'].includes(item.status))
   const pendingCommercialPublications=contracts.filter(item=>item.status!=='cancelled'&&item.status!=='closed'&&item.status!=='expired'&&/conte[uú]do|public|editorial/i.test(`${item.type} ${item.description}`)).length
   const revenueByCategory=Object.entries(revenue.reduce<Record<string,number>>((acc,item)=>{acc[item.category]=(acc[item.category]??0)+item.amount;return acc},{})).sort((a,b)=>b[1]-a[1])
@@ -138,6 +156,7 @@ export const dashboardReadModel={
    financeSummary,
    crmSummary,
    editorialCounts,
+   featuredContents,
    upcoming:agendaSummary.upcoming,
    attention:deriveOperationalAttention({leads:crm.leads,transactions,events:agenda},now),
    availability:{finance:true,crm:true,editorial:true,agenda:true},

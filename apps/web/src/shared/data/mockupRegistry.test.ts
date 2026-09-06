@@ -5,7 +5,10 @@ describe('@portallander/mockup scenario registry',()=>{
  it('registers only full, empty and errors',()=>{
   expect(mockupRegistry.names).toEqual(['full','empty','errors'])
   expect(getMockupScenario('empty').analytics.metrics).toEqual([])
-  expect(getMockupScenario('errors').errors).toBeTruthy()
+  const errorsScenario=getMockupScenario('errors')
+  expect(errorsScenario.name).toBe('errors')
+  if(errorsScenario.name!=='errors')throw new Error('errors scenario registry returned the wrong variant')
+  expect(errorsScenario.errors).toBeTruthy()
  })
 
  it('fails fast for an unknown scenario',()=>{

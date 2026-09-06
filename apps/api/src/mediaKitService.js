@@ -1,3 +1,4 @@
+import {MEDIA_KIT_AUTOMATIC_METRIC_KEYS,metricDefinition} from '@portallander/shared/analyticsMetricCatalog.js'
 import {getPool} from './db.js'
 import {HttpError} from './editorialService.js'
 
@@ -27,6 +28,8 @@ const list=value=>Array.isArray(value)?value:[]
 const nullableText=value=>text(value)||null
 const validDate=value=>{if(!value)return null;const date=new Date(value);return Number.isNaN(date.getTime())?null:date}
 const numeric=value=>{if(value===null||value===undefined||value==='')return null;const result=Number(value);return Number.isFinite(result)?result:null}
+const iso=value=>value?.toISOString?.()??value??null
+const automaticMetricKeySet=new Set(MEDIA_KIT_AUTOMATIC_METRIC_KEYS)
 
 const normalizeFormat=(value,index)=>{
   if(!value||typeof value!=='object')throw new HttpError(400,`Formato publicitário inválido na posição ${index+1}.`,'MEDIA_KIT_FORMAT_INVALID')
@@ -40,7 +43,6 @@ const normalizeBinding=(value,index)=>{
   if(!metricKey)throw new HttpError(400,`Métrica ${index+1} sem metricKey.`,'MEDIA_KIT_METRIC_KEY_REQUIRED')
   const provider=text(value.provider),providerAccountId=text(value.providerAccountId),providerPropertyId=text(value.providerPropertyId)
   const manualValue=text(value.manualValue),manualPeriodStart=text(value.manualPeriodStart),manualPeriodEnd=text(value.manualPeriodEnd)
-  if(sourceMode==='analytics'&&(!provider||!providerAccountId))throw new HttpError(400,`Métrica ${index+1} de Analytics exige provider e providerAccountId explícitos.`,'MEDIA_KIT_ANALYTICS_BOUNDARY_REQUIRED')
   if(sourceMode==='manual'){
     const parsedValue=numeric(manualValue),start=validDate(manualPeriodStart),end=validDate(manualPeriodEnd)
     if(parsedValue===null||!start||!end||end<=start)throw new HttpError(400,`Métrica manual ${index+1} exige valor numérico e período válido.`,'MEDIA_KIT_MANUAL_METRIC_INVALID')
@@ -100,23 +102,66 @@ async function getLatest(pool,{status}={}){
 
 function unavailableSnapshot(binding,resolvedAt){return {id:binding.id,label:binding.label,metricKey:binding.metricKey,value:null,unit:binding.unit,provider:binding.provider||null,providerAccountId:binding.providerAccountId||null,providerPropertyId:binding.providerPropertyId||null,periodStart:null,periodEnd:null,granularity:null,sourceType:'unavailable',sourceReference:null,collectedAt:null,providerUpdatedAt:null,normalizedAt:resolvedAt,freshnessStatus:'UNKNOWN',dataStatus:'UNAVAILABLE',syncId:null,provenance:{reason:'NO_MATCHING_METRIC'},isEstimated:false,isManual:false}}
 
+function metricRowSnapshot(row,{id=`media-kit:auto:${row.id}`,label=metricDefinition(row.metric_key).label}={}){
+  return {id,label,metricKey:row.metric_key,value:row.value===null?null:Number(row.value),unit:row.unit,provider:row.provider||null,providerAccountId:row.provider_account_id||null,providerPropertyId:row.provider_property_id||null,periodStart:iso(row.period_start),periodEnd:iso(row.period_end),granularity:row.granularity,sourceType:row.source_type==='derived'?'derived':'provider',sourceReference:row.source_reference,collectedAt:iso(row.collected_at),providerUpdatedAt:iso(row.provider_updated_at),normalizedAt:iso(row.normalized_at),freshnessStatus:row.freshness_status,dataStatus:row.data_status,syncId:row.sync_id||null,provenance:{...(row.provenance||{}),resolvedForMediaKit:true,automatic:true,canonicalMetricId:String(row.id)},isEstimated:Boolean(row.is_estimated),isManual:false}
+}
+
 async function resolveMetricBinding(client,binding,resolvedAt){
   if(binding.sourceMode==='manual'){
     const value=numeric(binding.manualValue),periodStart=validDate(binding.manualPeriodStart),periodEnd=validDate(binding.manualPeriodEnd)
     if(value===null||!periodStart||!periodEnd||periodEnd<=periodStart)throw new HttpError(400,'Métrica manual inválida no momento da publicação.','MEDIA_KIT_MANUAL_METRIC_INVALID')
-    return {id:binding.id,label:binding.label,metricKey:binding.metricKey,value,unit:binding.unit,provider:null,providerAccountId:null,providerPropertyId:null,periodStart:periodStart.toISOString(),periodEnd:periodEnd.toISOString(),granularity:'custom',sourceType:'manual',sourceReference:`media-kit:${binding.id}:v-manual`,collectedAt:resolvedAt,providerUpdatedAt:null,normalizedAt:resolvedAt,freshnessStatus:'UNKNOWN',dataStatus:'MANUAL',syncId:null,provenance:{collectionMethod:'manual',resolvedForMediaKit:true},isEstimated:false,isManual:true}
+    return {id:binding.id,label:binding.label,metricKey:binding.metricKey,value,unit:binding.unit,provider:null,providerAccountId:null,providerPropertyId:null,periodStart:periodStart.toISOString(),periodEnd:periodEnd.toISOString(),granularity:'custom',sourceType:'manual',sourceReference:`media-kit:${binding.id}:v-manual`,collectedAt:resolvedAt,providerUpdatedAt:null,normalizedAt:resolvedAt,freshnessStatus:'UNKNOWN',dataStatus:'MANUAL',syncId:null,provenance:{collectionMethod:'manual',resolvedForMediaKit:true,legacyCompatibility:true},isEstimated:false,isManual:true}
   }
+  if(!binding.provider||!binding.providerAccountId)return unavailableSnapshot(binding,resolvedAt)
   const where=['metric_key=$1','scope_type=$2','scope_id=$3',`data_status<>'MOCK'`,'provider=$4','provider_account_id=$5'],params=[binding.metricKey,binding.scopeType,binding.scopeId,binding.provider,binding.providerAccountId]
   if(binding.providerPropertyId){params.push(binding.providerPropertyId);where.push(`provider_property_id=$${params.length}`)}
   const {rows}=await client.query(`select * from analytics_metrics where ${where.join(' and ')} order by period_end desc,normalized_at desc limit 1`,params)
   const row=rows[0]
   if(!row)return unavailableSnapshot(binding,resolvedAt)
-  return {id:binding.id,label:binding.label,metricKey:row.metric_key,value:row.value===null?null:Number(row.value),unit:row.unit,provider:row.provider||null,providerAccountId:row.provider_account_id||null,providerPropertyId:row.provider_property_id||null,periodStart:row.period_start?.toISOString?.()??row.period_start,periodEnd:row.period_end?.toISOString?.()??row.period_end,granularity:row.granularity,sourceType:row.source_type,sourceReference:row.source_reference,collectedAt:row.collected_at?.toISOString?.()??row.collected_at??null,providerUpdatedAt:row.provider_updated_at?.toISOString?.()??row.provider_updated_at??null,normalizedAt:row.normalized_at?.toISOString?.()??row.normalized_at??resolvedAt,freshnessStatus:row.freshness_status,dataStatus:row.data_status==='MOCK'?'UNAVAILABLE':row.data_status,syncId:row.sync_id||null,provenance:{...(row.provenance||{}),resolvedForMediaKit:true},isEstimated:Boolean(row.is_estimated),isManual:Boolean(row.is_manual)}
+  return metricRowSnapshot(row,{id:binding.id,label:binding.label})
 }
 
-async function resolveAudienceSnapshot(client,payload){
-  const resolvedAt=new Date().toISOString(),snapshot=[]
-  for(const binding of payload.audience.metrics)snapshot.push(await resolveMetricBinding(client,binding,resolvedAt))
+async function automaticAudienceSnapshot(client){
+  const {rows}=await client.query(`
+    select distinct on (provider,provider_account_id,coalesce(provider_property_id,''),metric_key)
+      *
+    from analytics_metrics
+    where metric_key=any($1::text[])
+      and source_type='provider'
+      and is_manual=false
+      and value is not null
+      and provider is not null and btrim(provider)<>''
+      and provider_account_id is not null and btrim(provider_account_id)<>''
+      and scope_type='portal' and scope_id='portal'
+      and data_status in ('LIVE','CACHED','STALE')
+    order by provider,provider_account_id,coalesce(provider_property_id,''),metric_key,period_end desc,normalized_at desc,collected_at desc nulls last,created_at desc
+  `,[MEDIA_KIT_AUTOMATIC_METRIC_KEYS])
+  return rows.map(row=>metricRowSnapshot(row))
+}
+
+const snapshotIdentity=item=>[item.provider||'',item.providerAccountId||'',item.providerPropertyId||'',item.metricKey].join('|')
+const isAutomaticPublishedSnapshot=item=>item&&item.provider&&item.value!==null&&!item.isManual&&item.sourceType!=='manual'&&automaticMetricKeySet.has(item.metricKey)
+
+export async function resolveAudienceSnapshot(client,payload,{previousSnapshot=[]}={}){
+  const resolvedAt=new Date().toISOString()
+  const automatic=await automaticAudienceSnapshot(client)
+  const byIdentity=new Map(automatic.map(item=>[snapshotIdentity(item),item]))
+  for(const previous of list(previousSnapshot)){
+    if(!isAutomaticPublishedSnapshot(previous))continue
+    const key=snapshotIdentity(previous)
+    if(!byIdentity.has(key))byIdentity.set(key,structuredClone(previous))
+  }
+  const automaticResolved=[...byIdentity.values()]
+  const automaticMetricKeys=new Set(automaticResolved.map(item=>item.metricKey))
+  const legacy=[]
+  for(const binding of payload.audience.metrics){
+    if(automaticMetricKeys.has(binding.metricKey))continue
+    const resolved=await resolveMetricBinding(client,binding,resolvedAt)
+    if(resolved.sourceType==='unavailable')continue
+    const duplicate=resolved.provider&&automaticResolved.some(item=>snapshotIdentity(item)===snapshotIdentity(resolved))
+    if(!duplicate)legacy.push(resolved)
+  }
+  const snapshot=[...automaticResolved,...legacy].sort((a,b)=>(a.provider||'~manual').localeCompare(b.provider||'~manual','pt-BR')||MEDIA_KIT_AUTOMATIC_METRIC_KEYS.indexOf(a.metricKey)-MEDIA_KIT_AUTOMATIC_METRIC_KEYS.indexOf(b.metricKey)||a.metricKey.localeCompare(b.metricKey))
   return {...payload,audience:{...payload.audience,snapshot,snapshotResolvedAt:resolvedAt}}
 }
 
@@ -140,7 +185,8 @@ export const mediaKitService={
     try{
       await client.query('begin');await client.query('select pg_advisory_xact_lock($1)',[90421011])
       const draft=await getLatest(client,{status:'draft'});if(!draft)throw new HttpError(409,'Não existe rascunho do Mídia Kit para publicar.','MEDIA_KIT_DRAFT_REQUIRED')
-      const normalized=normalizePayload(draft.payload),resolvedPayload=await resolveAudienceSnapshot(client,normalized)
+      const previousPublished=await getLatest(client,{status:'published'})
+      const normalized=normalizePayload(draft.payload),resolvedPayload=await resolveAudienceSnapshot(client,normalized,{previousSnapshot:previousPublished?.payload?.audience?.snapshot??[]})
       await client.query(`update media_kit_versions set status='inactive',updated_by=$1,updated_at=now() where status='published'`,[userId])
       const {rows}=await client.query(`update media_kit_versions set status='published',payload=$1::jsonb,updated_by=$2,updated_at=now(),published_at=now() where version=$3 returning version,status,payload,created_at,updated_at,published_at`,[JSON.stringify(resolvedPayload),userId,draft.version])
       await client.query('commit');return mapRow(rows[0])

@@ -63,7 +63,7 @@ jobs:
             const raw=String(value??'').trim().toLowerCase().replace(/\s+/g,' ')
             if(!raw||raw.includes('indisponível')||raw.includes('carregando'))return null
             const multiplier=raw.includes('mil')?1_000:raw.includes('mi')?1_000_000:1
-            const numeric=raw.replace(/mi|mil/g,'').replace(/r\$/g,'').replace(/%/g,'').trim()
+            const numeric=raw.replace(/mil|mi/g,'').replace(/r\$/g,'').replace(/%/g,'').trim()
             const canonical=multiplier===1?numeric.replace(/\./g,'').replace(',','.'):numeric.replace(/\./g,'').replace(',','.')
             const parsed=Number(canonical)
             return Number.isFinite(parsed)?parsed*multiplier:null

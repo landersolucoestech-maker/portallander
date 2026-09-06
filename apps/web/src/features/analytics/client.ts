@@ -34,6 +34,13 @@ async function mockMetrics(query:AnalyticsMetricQuery={}):Promise<AnalyticsMetri
   return {metrics}
 }
 
+export async function loadDevelopmentMetricsOverview<T>(input:{range:string;startDate?:string;endDate?:string}):Promise<T>{
+  if(!demoDataEnabled)throw new Error('Development Metrics adapter is disabled outside explicit demo mode.')
+  const {getMockupMetricsOverview}=await import('@portallander/mockup')
+  const readOverview=getMockupMetricsOverview as (value:{range:string;startDate?:string;endDate?:string})=>unknown
+  return readOverview(input) as T
+}
+
 export const analyticsClient={
   metrics(query:AnalyticsMetricQuery={}){return demoDataEnabled?mockMetrics(query):request<AnalyticsMetricsResponse>(`/api/analytics/metrics${queryString(query)}`)},
   async providerStatus(){

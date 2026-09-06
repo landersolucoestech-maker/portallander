@@ -10,7 +10,7 @@ import {listRuntimeSiteForms} from '../forms/catalog'
 import {formDraftRepository} from '../forms/draftRepository'
 import type {SiteFormDefinition} from '../forms/domain'
 
-const purposeLabel={lead_capture:'Captação comercial',contact:'Contato',advertising:'Publicidade',editorial_submission:'Submissão editorial',newsletter:'Newsletter',survey:'Pesquisa',event_registration:'Inscrição',custom:'Personalizado'} as const
+const purposeLabel={lead_capture:'Captação comercial',contact:'Contato',advertising:'Publicidade',editorial_submission:'Colaboração / publicidade',newsletter:'Newsletter',survey:'Pesquisa',event_registration:'Inscrição',custom:'Personalizado'} as const
 const destinationLabel={crm:'CRM → Leads',content_collaborations:'Site → Conteúdos → Colaborações recebidas',marketing:'Marketing',internal:'Interno',none:'Sem destino'} as const
 const statusLabel={draft:'Rascunho',active:'Ativo',inactive:'Inativo'} as const
 

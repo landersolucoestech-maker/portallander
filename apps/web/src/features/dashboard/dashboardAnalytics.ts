@@ -27,8 +27,9 @@ function metricSource(metric:AnalyticsMetric):DashboardAnalyticsSource{
  if(metric.isManual||metric.dataStatus==='MANUAL')return 'MANUAL_IDENTIFIED'
  return 'REAL'
 }
+function observationTimestamp(metric:AnalyticsMetric){return metric.normalizedAt||metric.collectedAt||metric.periodEnd}
 function latest(metrics:readonly AnalyticsMetric[],provider:string,key:string){
- return metrics.filter(metric=>metric.provider===provider&&metric.metricKey===key&&metric.value!==null&&metric.dataStatus!=='MOCK'&&DISPLAYABLE.has(metric.dataStatus)).sort((a,b)=>(b.normalizedAt||b.collectedAt||b.periodEnd).localeCompare(a.normalizedAt||a.collectedAt||a.periodEnd))[0]??null
+ return metrics.filter(metric=>metric.provider===provider&&metric.metricKey===key&&metric.value!==null&&metric.dataStatus!=='MOCK'&&DISPLAYABLE.has(metric.dataStatus)).sort((a,b)=>b.periodEnd.localeCompare(a.periodEnd)||observationTimestamp(b).localeCompare(observationTimestamp(a))||b.periodStart.localeCompare(a.periodStart)||b.id.localeCompare(a.id))[0]??null
 }
 function unavailable(key:DashboardChannelPulse['key'],label:string,metricKey:string,metricLabel:string,provider:string,href:string):DashboardChannelPulse{
  return {key,label,metricKey,metricLabel,value:null,source:'UNAVAILABLE',provider,accountId:null,href,updatedAt:null}

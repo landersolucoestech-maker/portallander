@@ -1,5 +1,5 @@
 import {afterEach,describe,expect,it} from 'vitest'
-import {mockContracts,mockFinanceTransactions,mockCrmState} from '../../mocks'
+import {mockContracts,mockFinanceTransactions,mockCrmState} from '@portallander/mockup'
 import {mockDataProvider} from './mockDataProvider'
 
 const idsUnique=(items:Array<{id:string}>)=>new Set(items.map(item=>item.id)).size===items.length

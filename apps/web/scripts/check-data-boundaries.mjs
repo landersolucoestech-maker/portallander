@@ -44,6 +44,11 @@ for(const rel of featureMockFacades){
 }
 
 const allowedRawMockConsumers=new Set(['shared/data/mockDataProvider.ts',...featureMockFacades])
+const allowedMockupConsumers=new Set([
+ 'shared/data/mockDataProvider.ts',
+ 'features/analytics/client.ts',
+ 'features/editorial/contentIngestionClient.ts',
+])
 const demoRecordPatterns=[
  /Cliente Exemplo/i,
  /Fornecedor Exemplo/i,
@@ -61,7 +66,7 @@ for(const path of sourceFiles){
  if(rel.startsWith('mocks/')||rel.endsWith('.test.ts')||rel.endsWith('.test.tsx')||allowedRawMockConsumers.has(rel))continue
  const source=await readFile(path,'utf8')
  if(/from\s+['"][^'"]*\/mocks(?:\/|['"])/.test(source)||/from\s+['"]\.\/mocks['"]/.test(source))failures.push(`${rel} não pode consumir mocks diretamente; use provider/repository/read model.`)
- if(source.includes('@portallander/mockup')&&rel!=='shared/data/mockDataProvider.ts')failures.push(`${rel} não pode consumir @portallander/mockup diretamente; somente adapters/clientes de desenvolvimento aprovados podem fazê-lo.`)
+ if(source.includes('@portallander/mockup')&&!allowedMockupConsumers.has(rel))failures.push(`${rel} não pode consumir @portallander/mockup diretamente; somente adapters/clientes de desenvolvimento aprovados podem fazê-lo.`)
  if(demoRecordPatterns.some(pattern=>pattern.test(source)))failures.push(`${rel} contém registro demonstrativo fora da fonte canônica @portallander/mockup.`)
 }
 

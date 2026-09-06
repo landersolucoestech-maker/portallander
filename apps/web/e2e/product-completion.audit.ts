@@ -155,56 +155,39 @@ test.describe('Portal Lander product completion',()=>{
     await page.screenshot({path:'test-results/product-completion/media-kit-live-preview-1440.png',fullPage:true})
   })
 
-  test('Dashboard presents the executive hierarchy, multichannel pulse and only useful actions',async({page})=>{
+  test('Dashboard follows the approved reference composition with multichannel performance',async({page})=>{
     await openRoute(page,'/app/dashboard')
     const dashboard=page.locator('.unified-dashboard')
+    const kpiRegion=page.getByTestId('dashboard-kpi-region')
+    const analytics=page.getByTestId('dashboard-analytics-region')
+    const recent=page.getByTestId('dashboard-recent-activity')
+    const leads=page.getByTestId('dashboard-lead-distribution')
+    const featured=page.getByTestId('dashboard-featured-content')
+    const pending=page.getByTestId('dashboard-pending-attention')
+
     await expect(dashboard).toBeVisible()
-    await expect(page.getByRole('heading',{name:'Resumo executivo',exact:true})).toBeVisible()
-    await expect(page.getByRole('heading',{name:'Atenção operacional',exact:true})).toBeVisible()
-    await expect(page.getByRole('heading',{name:'Performance multicanal',exact:true})).toBeVisible()
-    await expect(page.getByTestId('dashboard-crm-summary')).toBeVisible()
-    await expect(page.getByTestId('dashboard-content-activity')).toBeVisible()
-    await expect(page.getByTestId('dashboard-agenda')).toBeVisible()
-    await expect(page.getByTestId('dashboard-quick-actions')).toBeVisible()
+    await expect(kpiRegion.locator('[data-dashboard-kpi]')).toHaveCount(5)
+    for(const label of ['Novos Leads','Negociações','Faturamento (Mês)','Conteúdos Publicados','Visitas / Site'])await expect(kpiRegion.getByText(label,{exact:true})).toBeVisible()
+    for(const region of [analytics,recent,leads,featured,pending])await expect(region).toBeVisible()
+    await expect(page.getByRole('heading',{name:'Performance',exact:true})).toBeVisible()
+    await expect(page.getByRole('heading',{name:'Atividades Recentes',exact:true})).toBeVisible()
+    await expect(page.getByRole('heading',{name:'Distribuição de Leads',exact:true})).toBeVisible()
+    await expect(page.getByRole('heading',{name:'Conteúdos em Destaque',exact:true})).toBeVisible()
+    await expect(page.getByRole('heading',{name:'Pendências',exact:true})).toBeVisible()
+
+    const channelTabs=analytics.getByRole('tablist',{name:'Canais de performance'}).getByRole('tab')
+    await expect(channelTabs).toHaveCount(4)
+    expect((await channelTabs.allInnerTexts()).map(value=>value.trim())).toEqual(['Website','Instagram','TikTok','YouTube'])
+    await expect(analytics).not.toContainText('MOCK')
     await expect(dashboard).not.toContainText('Tarefas Pendentes')
-    await expect(dashboard).not.toContainText('Conteúdos em Destaque')
-    await expect(dashboard).not.toContainText('Visitas no Site')
+    for(const rejectedId of ['dashboard-executive-summary','dashboard-operational-attention','dashboard-multichannel','dashboard-crm-summary','dashboard-content-activity','dashboard-agenda','dashboard-quick-actions'])await expect(page.getByTestId(rejectedId)).toHaveCount(0)
 
-    const multichannel=page.getByTestId('dashboard-multichannel')
-    for(const channel of ['Website','Instagram','TikTok','YouTube'])await expect(multichannel.getByText(channel,{exact:true})).toBeVisible()
-    await expect(multichannel).not.toContainText('MOCK')
-
-    const channelRoutes:[string,RegExp][]=[
-      ['Abrir Métricas de Website',/\/app\/metricas\?tab=site$/],
-      ['Abrir Métricas de Instagram',/\/app\/metricas\?tab=instagram$/],
-      ['Abrir Métricas de TikTok',/\/app\/metricas\?tab=tiktok$/],
-      ['Abrir Métricas de YouTube',/\/app\/metricas\?tab=youtube$/],
-    ]
-    for(const [label,target] of channelRoutes){
-      const action=page.getByRole('link',{name:label,exact:true})
-      await expect(action).toBeVisible()
-      await action.click()
-      await expect.poll(()=>page.evaluate(()=>window.location.hash)).toMatch(target)
-      await openRoute(page,'/app/dashboard')
-    }
-
-    const quickActions:[string,RegExp][]=[
-      ['Métricas',/\/app\/metricas$/],
-      ['CRM',/\/app\/crm$/],
-      ['Financeiro',/\/app\/finance$/],
-      ['Conteúdos',/\/app\/site\/conteudos$/],
-      ['Agenda',/\/app\/agenda$/],
-    ]
-    const quick=page.getByRole('navigation',{name:'Ações rápidas do Dashboard'})
-    for(const [label,target] of quickActions){
-      const action=quick.getByRole('link',{name:label,exact:true})
-      await expect(action).toBeVisible()
-      await action.click()
-      await expect.poll(()=>page.evaluate(()=>window.location.hash)).toMatch(target)
-      await openRoute(page,'/app/dashboard')
-    }
+    await expect(analytics.getByRole('link',{name:/Ver métricas/i})).toHaveAttribute('href','#/app/metricas')
+    await expect(leads.getByRole('link',{name:/Abrir CRM/i})).toHaveAttribute('href','#/app/crm')
+    await expect(recent.getByRole('link',{name:/Ver todas/i})).toHaveAttribute('href','#/app/site/conteudos')
+    await expect(featured.getByRole('link',{name:/Ver todos/i})).toHaveAttribute('href','#/app/site/conteudos')
     await assertNoHorizontalOverflow(page)
-    await page.screenshot({path:'test-results/product-completion/dashboard-executive.png',fullPage:true})
+    await page.screenshot({path:'test-results/product-completion/dashboard-reference.png',fullPage:true})
   })
 })
 
@@ -240,22 +223,38 @@ test.describe('product completion mobile',()=>{
     await page.screenshot({path:'test-results/product-completion/mobile-media-kit.png',fullPage:true})
   })
 
-  test('Dashboard preserves executive-first hierarchy and multichannel usability at 375px',async({page})=>{
+  test('Dashboard preserves the approved reference order and multichannel usability at 375px',async({page})=>{
     await openRoute(page,'/app/dashboard')
     const dashboard=page.locator('.unified-dashboard')
-    await expect(page.getByTestId('dashboard-executive-summary')).toBeVisible()
-    await expect(page.getByTestId('dashboard-operational-attention')).toBeVisible()
-    await expect(page.getByTestId('dashboard-multichannel')).toBeVisible()
+    const kpis=page.getByTestId('dashboard-kpi-region')
+    const analytics=page.getByTestId('dashboard-analytics-region')
+    const recent=page.getByTestId('dashboard-recent-activity')
+    const leads=page.getByTestId('dashboard-lead-distribution')
+    const featured=page.getByTestId('dashboard-featured-content')
+    const pending=page.getByTestId('dashboard-pending-attention')
+
+    await expect(kpis.locator('[data-dashboard-kpi]')).toHaveCount(5)
+    for(const region of [analytics,recent,leads,featured,pending])await expect(region).toBeVisible()
+    await expect(analytics.getByRole('tablist',{name:'Canais de performance'}).getByRole('tab')).toHaveCount(4)
     const order=await page.evaluate(()=>{
-      const executive=document.querySelector('[data-testid="dashboard-executive-summary"]')?.getBoundingClientRect().top??Infinity
-      const multichannel=document.querySelector('[data-testid="dashboard-multichannel"]')?.getBoundingClientRect().top??Infinity
-      const content=document.querySelector('[data-testid="dashboard-content-activity"]')?.getBoundingClientRect().top??Infinity
-      return {executive,multichannel,content}
+      const top=(id:string)=>document.querySelector(`[data-testid="${id}"]`)?.getBoundingClientRect().top??Infinity
+      return {
+        kpis:top('dashboard-kpi-region'),
+        analytics:top('dashboard-analytics-region'),
+        recent:top('dashboard-recent-activity'),
+        leads:top('dashboard-lead-distribution'),
+        featured:top('dashboard-featured-content'),
+        pending:top('dashboard-pending-attention'),
+      }
     })
-    expect(order.executive).toBeLessThan(order.multichannel)
-    expect(order.multichannel).toBeLessThan(order.content)
+    expect(order.kpis).toBeLessThan(order.analytics)
+    expect(order.analytics).toBeLessThan(order.recent)
+    expect(order.recent).toBeLessThan(order.leads)
+    expect(order.leads).toBeLessThan(order.featured)
+    expect(order.featured).toBeLessThan(order.pending)
     await expect(dashboard).not.toContainText('Tarefas Pendentes')
+    for(const rejectedId of ['dashboard-executive-summary','dashboard-operational-attention','dashboard-multichannel','dashboard-quick-actions'])await expect(page.getByTestId(rejectedId)).toHaveCount(0)
     await assertNoHorizontalOverflow(page)
-    await page.screenshot({path:'test-results/product-completion/mobile-dashboard-executive.png',fullPage:true})
+    await page.screenshot({path:'test-results/product-completion/mobile-dashboard-reference.png',fullPage:true})
   })
 })

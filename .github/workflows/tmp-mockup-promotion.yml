@@ -59,6 +59,7 @@ jobs:
           const providerPath=path.join(root,'apps/web/src/shared/data/mockDataProvider.ts')
           let provider=fs.readFileSync(providerPath,'utf8')
           provider=provider.replace("from '../../mocks'","from '@portallander/mockup'")
+          provider=provider.replace('.find(item=>item.id===mockCurrentUserId)','.find((item:{id:string})=>item.id===mockCurrentUserId)')
           fs.writeFileSync(providerPath,provider)
 
           fs.writeFileSync(path.join(generatedDir,'export-names.txt'),runtimeEntries.map(([name])=>name).join('\n')+'\n')

@@ -1,5 +1,16 @@
 import {describe,expect,it} from 'vitest'
-import {mockMarketingSeed} from '../../mocks/marketing'
+import {mockMarketingSeed as rawMockMarketingSeed} from '@portallander/mockup'
+
+type MarketingSeed={
+ campaigns:Array<{budget:number;spend:number;clicks:number;impressions:number;conversions:number}>
+ owners:string[]
+ contents:Array<{publishDate:string;publishTime:string;channels:string[];owner:string}>
+ departments:string[]
+ tasks:Array<{owner:string;department:string}>
+ briefings:Array<{owners:string[]}>
+ metrics:Array<{reach:number;impressions:number;clicks:number;conversions:number;spend:number;revenue:number}>
+}
+const mockMarketingSeed=rawMockMarketingSeed as MarketingSeed
 
 describe('marketing mock contracts',()=>{
  it('keeps campaign financial values valid',()=>{expect(mockMarketingSeed.campaigns.every(x=>x.budget>=0&&x.spend>=0&&x.spend<=x.budget&&x.clicks>=0&&x.impressions>=0&&x.conversions>=0)).toBe(true)})

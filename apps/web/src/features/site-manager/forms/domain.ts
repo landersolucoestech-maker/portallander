@@ -3,6 +3,7 @@ export type FormDestination='crm'|'content_collaborations'|'marketing'|'internal
 export type FormStatus='draft'|'active'|'inactive'
 export type FormFieldType='text'|'email'|'tel'|'textarea'|'select'|'radio'|'checkbox'|'url'|'file'|'date'|'number'|'hidden'
 export type FormAppearancePreset='portal'|'minimal'|'editorial'|'compact'|'highlight'
+export type FormEntryContext='contato'|'colabore'|'anuncie'
 
 export interface FormAppearance{
   preset:FormAppearancePreset
@@ -70,13 +71,24 @@ export interface FormVersionSnapshot{
 
 export type SubmissionProcessingStatus='received'|'validating'|'accepted'|'rejected'|'spam'|'failed'
 
+export interface FormSubmissionSourceMetadata{
+  entryContext?:FormEntryContext
+  page?:string
+  campaign?:string
+  referrer?:string
+  utm?:Record<string,string>
+  legacyFormKey?:string
+  canonicalFormKey?:string
+  legacyClassification?:'advertising'|'ambiguous'
+}
+
 export interface FormSubmissionEnvelope{
   id:string
   formId:string
   formVersionId:string
   submittedAt:string
   payload:Record<string,unknown>
-  source:{page?:string;campaign?:string;referrer?:string;utm?:Record<string,string>}
+  source:FormSubmissionSourceMetadata
   consentSnapshot:readonly {consentId:string;version:string;text:string;accepted:boolean;acceptedAt:string}[]
   attachmentIds:readonly string[]
   processingStatus:SubmissionProcessingStatus

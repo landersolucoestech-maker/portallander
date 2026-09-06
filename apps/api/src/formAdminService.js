@@ -111,6 +111,7 @@ export const formAdminService={
       join lateral (
         select * from site_form_versions x where x.form_id=f.id order by (x.published_at is null) desc,x.version desc limit 1
       ) v on true
+      where f.retired_at is null
       order by f.updated_at desc,f.name asc`)
     return rows.map(row=>definitionFromRows(row,{version:row.version,fields:row.fields,consents:row.consents,routing:row.version_routing,success_message:row.version_success_message,definition_meta:row.definition_meta,published_at:row.version_published_at}))
   },

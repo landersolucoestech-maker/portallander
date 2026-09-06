@@ -2,7 +2,7 @@ import {publicSiteReadModel} from '../../../shared/data/publicSiteReadModel'
 import type {SiteFormDefinition} from './domain'
 import type {SiteFormOptionSets} from './SiteFormRenderer'
 
-const advertisingLabels:Record<string,string>={
+const canonicalLabels:Record<string,string>={
   anunciante:'Anunciante / Marca',
   patrocinador:'Patrocinador',
   agencia_publicidade:'Agência de Publicidade',
@@ -11,8 +11,10 @@ const advertisingLabels:Record<string,string>={
   materia_patrocinada:'Matéria patrocinada',
   campanha_publicitaria:'Campanha publicitária',
   publicacao_comercial:'Publicação comercial',
+  publicidade:'Publicidade',
   patrocinio:'Patrocínio',
   parceria_comercial:'Parceria comercial',
+  conteudo_patrocinado:'Conteúdo patrocinado',
   outro:'Outro',
 }
 
@@ -23,7 +25,7 @@ export function resolveSiteFormOptionSets(form:SiteFormDefinition):SiteFormOptio
 
   for(const field of form.fields){
     if(!field.options?.length)continue
-    sets[field.key]=field.options.map(value=>({value,label:collaborationLabels.get(value)??(form.purpose==='advertising'?advertisingLabels[value]:undefined)??value}))
+    sets[field.key]=field.options.map(value=>({value,label:collaborationLabels.get(value)??canonicalLabels[value]??value}))
   }
 
   return sets

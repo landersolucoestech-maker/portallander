@@ -27,17 +27,23 @@ jobs:
           cat > /tmp/promote-mockup.mts <<'TS'
           import fs from 'node:fs'
           import path from 'node:path'
-          import { pathToFileURL } from 'node:url'
+          import {createServer} from 'vite'
 
           const root=process.cwd()
-          const source=path.join(root,'apps/web/src/mocks/index.ts')
-          const mod=await import(pathToFileURL(source).href)
+          const webRoot=path.join(root,'apps/web')
+          const server=await createServer({root:webRoot,server:{middlewareMode:true},appType:'custom',logLevel:'error'})
+          let mod:Record<string,unknown>
+          try {
+            mod=await server.ssrLoadModule('/src/mocks/index.ts') as Record<string,unknown>
+          } finally {
+            await server.close()
+          }
           const runtimeEntries=Object.entries(mod)
             .filter(([name,value])=>/^mock[A-Z0-9_]/.test(name)&&typeof value!=='function')
             .sort(([a],[b])=>a.localeCompare(b))
           const payload=Object.fromEntries(runtimeEntries)
           const json=JSON.stringify(payload,null,2)
-          if(!json) throw new Error('Could not serialize reusable mock datasets')
+          if(!json||runtimeEntries.length===0) throw new Error('Could not serialize reusable mock datasets')
 
           const generatedDir=path.join(root,'packages/mockup/src/generated')
           fs.mkdirSync(generatedDir,{recursive:true})
@@ -55,8 +61,7 @@ jobs:
           provider=provider.replace("from '../../mocks'","from '@portallander/mockup'")
           fs.writeFileSync(providerPath,provider)
 
-          const names=runtimeEntries.map(([name])=>name)
-          fs.writeFileSync(path.join(root,'packages/mockup/src/generated/export-names.txt'),names.join('\n')+'\n')
+          fs.writeFileSync(path.join(generatedDir,'export-names.txt'),runtimeEntries.map(([name])=>name).join('\n')+'\n')
           console.log(`PROMOTED_RUNTIME_EXPORTS=${runtimeEntries.length}`)
           TS
           npx --yes tsx /tmp/promote-mockup.mts

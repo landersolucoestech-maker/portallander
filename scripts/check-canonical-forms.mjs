@@ -24,6 +24,7 @@ function classification(path){
   if(/^apps\/api\/migrations\/(005_seed_system_forms|021_advertising_inquiry_form|030_canonical_system_forms)\.sql$/.test(path))return 'MIGRATION HISTORY'
   if(/^packages\/shared\/systemFormCatalog\.(js|d\.ts)$/.test(path))return 'LEGACY ALIAS'
   if(/(?:\.test\.|\.audit\.|forms-runtime-proof\.mjs$)/.test(path))return 'HISTORICAL TEST'
+  if(/^\.github\/workflows\/(deploy-pages|engineering-dev-validation)\.yml$/.test(path))return 'HISTORICAL TEST'
   if(path==='scripts/check-canonical-forms.mjs')return 'DOCUMENTED COMPATIBILITY'
   return 'BUG/RESIDUE'
 }

@@ -101,24 +101,27 @@ function ConversionsTab({data}:{data:MetricsResponse}){return <div data-testid="
 export default function MetricsPage(){
  const [searchParams,setSearchParams]=useSearchParams(),requested=searchParams.get('tab') as MetricsTab|null,tab:MetricsTab=requested&&VALID_TABS.has(requested)?requested:'geral'
  const [range,setRange]=useState<MetricsRange>('30d'),[customStart,setCustomStart]=useState(''),[customEnd,setCustomEnd]=useState('')
- const [data,setData]=useState<MetricsResponse|null>(null),[socialMetrics,setSocialMetrics]=useState<AnalyticsMetric[]>([]),[loading,setLoading]=useState(true),[error,setError]=useState('')
+ const [data,setData]=useState<MetricsResponse|null>(null),[socialMetrics,setSocialMetrics]=useState<AnalyticsMetric[]>([]),[error,setError]=useState(''),[settledRequest,setSettledRequest]=useState('')
  const [marketingState,setMarketingState]=useState<MarketingSeed>(()=>marketingRepository.snapshot())
  const dates=useMemo(()=>selectedRange(range,customStart,customEnd),[range,customStart,customEnd])
+ const rangeReady=range!=='custom'||Boolean(customStart&&customEnd)
+ const requestKey=`${range}|${dates.startDate}|${dates.endDate}|${dates.periodStart}|${dates.periodEnd}`
+ const loading=rangeReady&&settledRequest!==requestKey
  useEffect(()=>{const refresh=()=>setMarketingState(marketingRepository.snapshot());window.addEventListener(marketingRepository.eventName,refresh);return()=>window.removeEventListener(marketingRepository.eventName,refresh)},[])
  useEffect(()=>{
-  if(range==='custom'&&(!customStart||!customEnd)){setLoading(false);return}
-  let active=true;setLoading(true);setError('')
-  const aggregate=loadMetrics({range,startDate:dates.startDate,endDate:dates.endDate}).then(value=>{if(active)setData(value)}).catch(caught=>{if(active){setData(null);setError(caught instanceof Error?caught.message:'Métricas indisponíveis.')}})
+  if(!rangeReady)return
+  let active=true
+  const aggregate=loadMetrics({range,startDate:dates.startDate,endDate:dates.endDate}).then(value=>{if(active){setData(value);setError('')}}).catch(caught=>{if(active){setData(null);setError(caught instanceof Error?caught.message:'Métricas indisponíveis.')}})
   const social=analyticsClient.metrics({periodStart:dates.periodStart,periodEnd:dates.periodEnd,limit:500}).then(value=>{if(active)setSocialMetrics(value.metrics.filter(metric=>metric.dataStatus!=='MOCK'))}).catch(()=>{if(active)setSocialMetrics([])})
-  void Promise.allSettled([aggregate,social]).finally(()=>{if(active)setLoading(false)})
+  void Promise.allSettled([aggregate,social]).finally(()=>{if(active)setSettledRequest(requestKey)})
   return()=>{active=false}
- },[range,customStart,customEnd,dates.startDate,dates.endDate,dates.periodStart,dates.periodEnd])
+ },[range,rangeReady,requestKey,dates.startDate,dates.endDate,dates.periodStart,dates.periodEnd])
  const productionMock=import.meta.env.PROD&&getRuntimeDataProvider().kind==='mock',metricState=productionMock?{...marketingState,contents:[]}:marketingState
  const selectTab=(next:MetricsTab)=>{const nextParams=new URLSearchParams(searchParams);nextParams.set('tab',next);setSearchParams(nextParams,{replace:true})}
  return <AdminShell area="metrics" items={UNIFIED_ADMIN_NAV} header={{title:'Métricas',description:'Analytics global do Portal Lander'}}><section className="marketing-page metrics-page" data-testid="metrics-page">
   <div className="marketing-platform-tabs marketing-platform-tabs-exact" role="tablist" aria-label="Áreas de Métricas">{TABS.map(([key,label])=><button key={key} type="button" role="tab" aria-selected={tab===key} className={tab===key?'active':''} onClick={()=>selectTab(key)}>{label}</button>)}</div>
   <div className="marketing-metrics-period"><label><span>Período</span><select aria-label="Período global das métricas" value={range} onChange={event=>setRange(event.target.value as MetricsRange)}><option value="today">Hoje</option><option value="7d">7 dias</option><option value="30d">30 dias</option><option value="90d">90 dias</option><option value="custom">Personalizado</option></select></label>{range==='custom'&&<><input type="date" aria-label="Início do período" value={customStart} onChange={event=>setCustomStart(event.target.value)}/><input type="date" aria-label="Fim do período" value={customEnd} onChange={event=>setCustomEnd(event.target.value)}/></>}<small>O período é compartilhado entre todas as abas.</small></div>
-  {error&&<AdminNotice title="Métricas indisponíveis" description={`${error} Nenhum valor mock é usado como fallback em produção.`}/>} 
+  {!loading&&error&&<AdminNotice title="Métricas indisponíveis" description={`${error} Nenhum valor mock é usado como fallback em produção.`}/>} 
   {loading&&!data?<div className="marketing-empty">Carregando métricas canônicas…</div>:data?<>
    {tab==='geral'&&<OverviewTab data={data} socialMetrics={socialMetrics}/>} 
    {tab==='site'&&<SiteTab data={data}/>} 

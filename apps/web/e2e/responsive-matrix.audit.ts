@@ -57,18 +57,49 @@ async function assertNoViewportRegression(page:Page,internal:boolean){
 }
 
 async function assertDashboardHierarchy(page:Page){
- await expect(page.getByTestId('dashboard-executive-summary')).toBeVisible()
- await expect(page.getByTestId('dashboard-operational-attention')).toBeVisible()
- const multichannel=page.getByTestId('dashboard-multichannel')
- await expect(multichannel).toBeVisible()
- for(const channel of ['Website','Instagram','TikTok','YouTube'])await expect(multichannel.getByText(channel,{exact:true})).toBeVisible()
- const positions=await page.evaluate(()=>({
-  executive:document.querySelector('[data-testid="dashboard-executive-summary"]')?.getBoundingClientRect().top??Infinity,
-  multichannel:document.querySelector('[data-testid="dashboard-multichannel"]')?.getBoundingClientRect().top??Infinity,
-  content:document.querySelector('[data-testid="dashboard-content-activity"]')?.getBoundingClientRect().top??Infinity,
- }))
- expect(positions.executive).toBeLessThan(positions.multichannel)
- expect(positions.multichannel).toBeLessThan(positions.content)
+ const kpis=page.getByTestId('dashboard-kpi-region')
+ const analytics=page.getByTestId('dashboard-analytics-region')
+ const recent=page.getByTestId('dashboard-recent-activity')
+ const leads=page.getByTestId('dashboard-lead-distribution')
+ const featured=page.getByTestId('dashboard-featured-content')
+ const pending=page.getByTestId('dashboard-pending-attention')
+
+ await expect(kpis).toBeVisible()
+ await expect(page.locator('[data-dashboard-kpi]')).toHaveCount(5)
+ await expect(analytics).toBeVisible()
+ await expect(recent).toBeVisible()
+ await expect(leads).toBeVisible()
+ await expect(featured).toBeVisible()
+ await expect(pending).toBeVisible()
+
+ const tabs=analytics.getByTestId('dashboard-channel-tabs')
+ await expect(tabs.getByRole('tab')).toHaveCount(4)
+ for(const channel of ['Website','Instagram','TikTok','YouTube'])await expect(tabs.getByRole('tab',{name:channel,exact:true})).toBeVisible()
+
+ for(const rejectedId of ['dashboard-executive-summary','dashboard-operational-attention','dashboard-multichannel','dashboard-quick-actions'])await expect(page.locator(`[data-testid="${rejectedId}"]`)).toHaveCount(0)
+
+ const positions=await page.evaluate(()=>{
+  const top=(testId:string)=>document.querySelector(`[data-testid="${testId}"]`)?.getBoundingClientRect().top??Infinity
+  return {
+   viewport:innerWidth,
+   kpis:top('dashboard-kpi-region'),
+   analytics:top('dashboard-analytics-region'),
+   recent:top('dashboard-recent-activity'),
+   leads:top('dashboard-lead-distribution'),
+   featured:top('dashboard-featured-content'),
+   pending:top('dashboard-pending-attention'),
+  }
+ })
+ expect(positions.kpis).toBeLessThan(positions.analytics)
+ expect(positions.recent).toBeGreaterThanOrEqual(positions.analytics-2)
+ expect(positions.leads).toBeGreaterThan(positions.analytics)
+ expect(positions.featured).toBeGreaterThanOrEqual(positions.leads-2)
+ expect(positions.pending).toBeGreaterThanOrEqual(positions.leads-2)
+ if(positions.viewport<=760){
+  expect(positions.recent).toBeGreaterThan(positions.analytics)
+  expect(positions.featured).toBeGreaterThan(positions.leads)
+  expect(positions.pending).toBeGreaterThan(positions.featured)
+ }
 }
 
 for(const viewport of requiredViewports){

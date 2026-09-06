@@ -88,7 +88,7 @@ if(!portalApp.includes("const PublicHome=lazy(()=>import('../pages/home/PublicHo
 const dashboardPage=await readFile(join(root,'features/dashboard/DashboardPage.tsx'),'utf8')
 for(const required of ['crmAdminClient.listLeads()','financeAdminClient.listTransactions()','agendaAdminClient.list()','listAdminEditorialContents()'])if(!dashboardPage.includes(required))failures.push(`Dashboard autenticado deve compor a API real: ${required}`)
 if(!dashboardPage.includes("const data=authenticated?adminDashboard.data:dashboardReadModel.snapshot()"))failures.push('Dashboard deve reservar dashboardReadModel/runtime provider ao modo não autenticado de desenvolvimento.')
-if(!dashboardPage.includes('pendingTasks:null'))failures.push('Dashboard autenticado deve representar Marketing sem fonte persistente como indisponível, não como fixture ou zero inventado.')
+if(dashboardPage.includes('pendingTasks')||dashboardPage.includes('/app/marketing/tarefas'))failures.push('Dashboard autenticado não pode promover tarefas de Marketing sem fonte persistente como KPI, alerta ou ação operacional.')
 
 const activityHook=await readFile(join(root,'features/dashboard/hooks/useActivityHistory.ts'),'utf8')
 if(!activityHook.includes("mode==='api'?dashboardApi.getAdminActivity"))failures.push('Histórico do Dashboard autenticado deve usar a API editorial real.')

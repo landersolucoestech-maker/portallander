@@ -71,5 +71,5 @@ jobs:
             echo "APPLY $migration"
             psql -v ON_ERROR_STOP=1 -f "$migration"
           done
-      - name: Prove authenticated CRM and advertising intake lifecycle
+      - name: Prove authenticated CRM and canonical contact intake lifecycle
         run: node apps/api/scripts/verify-crm-runtime.mjs

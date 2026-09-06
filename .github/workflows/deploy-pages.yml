@@ -296,7 +296,7 @@ jobs:
               console.log('PAGES_MEDIA_KIT_AUTOMATIC_METRICS=PASS')
             })
             await visit('#/app/site/midia-kit/preview','21-media-kit-preview.png',async()=>{
-              await page.getByLabel('Preview do Mídia Kit').waitFor({state:'visible',timeout:15000})
+              await page.getByLabel('Preview do Mídia Kit',{exact:true}).waitFor({state:'visible',timeout:15000})
               await page.getByText('NOSSA AUDIÊNCIA',{exact:true}).waitFor({state:'visible',timeout:15000})
               const instagramFollowers=page.locator('.mk-preview-shell .mk-metric-grid article').filter({hasText:'Seguidores'}).filter({hasText:'Instagram'})
               await instagramFollowers.waitFor({state:'attached',timeout:15000})

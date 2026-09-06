@@ -60,12 +60,13 @@ jobs:
         run: npm run build
       - name: Prove production mockup runtime references are zero
         run: |
-          if grep -R -E "mockup/full|mockup:source:|mockup:candidate:" apps/web/dist >/tmp/mockup-production-hits.txt; then
+          if grep -R -E "@portallander/mockup|mockup/full|mockup:source:|mockup:candidate:|generatedRuntimeData|mockCurrentUserId" apps/web/dist >/tmp/mockup-production-hits.txt; then
             cat /tmp/mockup-production-hits.txt
             echo "PRODUCTION MOCKUP REFERENCES != 0"
             exit 1
           fi
           echo "PRODUCTION MOCKUP REFERENCES = 0"
+          echo "PRODUCTION MOCK DATA FALLBACK = 0"
       - name: Build Pages development demo
         env:
           VITE_ENABLE_DEMO_DATA: 'true'
@@ -74,7 +75,9 @@ jobs:
       - name: Prove full mockup is present in development artifact
         run: |
           grep -R "mockup:source:mbw" apps/web/dist >/dev/null
+          grep -R "content_mock_009" apps/web/dist >/dev/null
           echo "DEVELOPMENT MOCKUP SCENARIO = full"
+          echo "FULL MOCKUP LOADED = YES"
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
@@ -104,9 +107,7 @@ jobs:
         run: |
           npm --workspace @portallander/web run preview -- --host 127.0.0.1 > /tmp/portal-preview.log 2>&1 &
           for i in {1..40}; do
-            if curl -fsS http://127.0.0.1:4173/portallander/ >/dev/null; then
-              exit 0
-            fi
+            if curl -fsS http://127.0.0.1:4173/portallander/ >/dev/null; then exit 0; fi
             sleep 1
           done
           cat /tmp/portal-preview.log
@@ -165,18 +166,20 @@ jobs:
           const pageErrors=[]
           page.on('pageerror',error=>pageErrors.push(error.message))
 
-          async function visit(hash,fileName,verify){
+          async function stableSurface(){
+            await page.locator('main').first().waitFor({state:'visible',timeout:15000})
+          }
+          async function visit(hash,fileName,verify=stableSurface){
             const url=`${base}${hash}`
             const response=await page.goto(url,{waitUntil:'domcontentloaded'})
-            if(response && !response.ok())throw new Error(`HTTP ${response.status()} for ${url}`)
-            if(response)console.log(`DEPLOY_HTTP ${response.status()} ${url}`)
-            else console.log(`DEPLOY_HTTP SAME_DOCUMENT ${url}`)
+            if(response&&!response.ok())throw new Error(`HTTP ${response.status()} for ${url}`)
+            console.log(response?`DEPLOY_HTTP ${response.status()} ${url}`:`DEPLOY_HTTP SAME_DOCUMENT ${url}`)
             try{
               await verify()
               await page.screenshot({path:`test-results/deployed/${fileName}`,fullPage:true})
               console.log(`DEPLOY_BROWSER_PASS ${url}`)
             }catch(error){
-              const body=(await page.locator('body').innerText()).slice(0,5000)
+              const body=(await page.locator('body').innerText()).slice(0,7000)
               console.log(`DEPLOY_BODY ${JSON.stringify(body)}`)
               await page.screenshot({path:`test-results/deployed/diagnostic-${fileName}`,fullPage:true})
               throw error
@@ -184,45 +187,59 @@ jobs:
           }
 
           try{
-            await visit('','01-development-home.png',async()=>{
+            await visit('','01-home.png',async()=>{
               await page.locator('main[aria-label="Seções da Página Inicial"]').waitFor({state:'visible',timeout:15000})
               await page.getByRole('region',{name:'Em Destaque'}).waitFor({state:'visible',timeout:15000})
-              const body=await page.locator('body').innerText()
-              if(body.includes('Dados operacionais indisponíveis.'))throw new Error('Development Pages rendered the production fail-closed screen.')
+              if((await page.locator('body').innerText()).includes('Dados operacionais indisponíveis.'))throw new Error('Development Pages rendered production fail-closed screen.')
             })
-            await visit('#/app/login','02-development-dashboard.png',async()=>{
-              await page.waitForURL(/#\/app\/dashboard/, {timeout:15000})
+            await visit('#/app/login','02-dashboard.png',async()=>{
+              await page.waitForURL(/#\/app\/dashboard/,{timeout:15000})
               await page.getByText('Dashboard',{exact:true}).first().waitFor({state:'visible',timeout:15000})
             })
+            await visit('#/app/crm','03-crm.png')
+            await visit('#/app/finance','04-finance.png')
+            await visit('#/app/agenda','05-agenda.png')
+            await visit('#/app/chat','06-chat.png')
+            await visit('#/app/rh','07-rh.png')
+            await visit('#/app/marketing','08-marketing.png')
             await visit('#/app/marketing/metricas','09-marketing-metrics-restored.png',async()=>{
               await page.getByText('Visão Geral',{exact:true}).first().waitFor({state:'visible',timeout:15000})
               for(const label of ['Alcance','Impressões','Cliques','Engajamento','Conversões','Seguidores'])await page.getByText(label,{exact:true}).first().waitFor({state:'visible',timeout:15000})
               await page.getByText('Top Conteúdos',{exact:true}).waitFor({state:'visible',timeout:15000})
-              const body=await page.locator('body').innerText()
-              if(body.includes('Métricas indisponíveis'))throw new Error('Original Metrics module did not receive development data.')
+              if((await page.locator('body').innerText()).includes('Métricas indisponíveis'))throw new Error('Original Metrics module did not receive development data.')
             })
-            await visit('#/app/settings','11-integrations-with-mockup-data.png',async()=>{
+            await visit('#/app/settings','10-settings.png')
+            await visit('#/app/settings','11-integrations.png',async()=>{
               await page.getByRole('tab',{name:'Integrações',exact:true}).click()
               await page.getByRole('heading',{name:'Descoberta editorial',exact:true}).waitFor({state:'visible',timeout:15000})
+              await page.getByText('Music Business Worldwide',{exact:true}).first().waitFor({state:'visible',timeout:15000})
               const body=await page.locator('body').innerText()
               for(const source of ['Music Business Worldwide','Billboard','Billboard Brasil','GDELT','YouTube','ECAD','Pro-Música Brasil','UBC','ABRAMUS','IFPI'])if(!body.includes(source))throw new Error(`Mockup source not visible: ${source}`)
               if(body.includes('Falha HTTP 404'))throw new Error('Editorial integrations still depend on unavailable Pages API.')
             })
-            await visit('#/app/site/conteudos','14-candidates.png',async()=>{
+            await visit('#/app/site/conteudos','12-site-contents.png',async()=>{
+              await stableSurface()
               await page.getByText('Candidatos editoriais',{exact:false}).first().waitFor({state:'visible',timeout:15000})
-              await page.getByText('Candidate A',{exact:false}).first().waitFor({state:'visible',timeout:15000})
-              await page.getByText('Candidate B',{exact:false}).first().waitFor({state:'visible',timeout:15000})
             })
-            await visit('#/app/site/midia-kit','18-media-kit.png',async()=>{
+            await visit('#/app/site/conteudos','13-candidates.png',async()=>{
+              await page.getByText('Candidate A',{exact:false}).first().waitFor({state:'visible',timeout:15000})
+              await page.getByText('Candidate F',{exact:false}).first().waitFor({state:'visible',timeout:15000})
+            })
+            await visit('#/app/site/conteudos/content_mock_009','14-content-editor.png')
+            await visit('#/app/site/midia','15-media.png')
+            await visit('#/app/site/formularios','16-forms.png')
+            await visit('#/app/site/midia-kit','17-media-kit.png',async()=>{
               await page.getByText('Mídia Kit',{exact:true}).first().waitFor({state:'visible',timeout:15000})
+              await page.getByTestId('media-kit-live-preview').waitFor({state:'visible',timeout:15000})
               await page.getByText('Alcance',{exact:true}).first().waitFor({state:'visible',timeout:15000})
             })
-            await visit('#/app/site/midia-kit/preview','19-media-kit-preview.png',async()=>{
+            await visit('#/app/site/midia-kit/preview','18-media-kit-preview.png',async()=>{
               await page.getByLabel('Preview do Mídia Kit').waitFor({state:'visible',timeout:15000})
               await page.getByText('NOSSA AUDIÊNCIA',{exact:true}).waitFor({state:'visible',timeout:15000})
             })
             if(pageErrors.length)throw new Error(`Browser page errors: ${pageErrors.join(' | ')}`)
             console.log(`DEVELOPMENT_DEPLOY_URL ${base}`)
+            console.log('PROJECT_WIDE_PAGES_SMOKE=PASS')
           }finally{await browser.close()}
           NODE
       - name: Upload deployed browser evidence

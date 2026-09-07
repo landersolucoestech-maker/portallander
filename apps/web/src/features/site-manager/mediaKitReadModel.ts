@@ -63,7 +63,7 @@ function resolveAutomatic(metric:AnalyticsMetric):MediaKitResolvedMetric{
   providerUpdatedAt:metric.providerUpdatedAt,
   normalizedAt:metric.normalizedAt,
   freshnessStatus:metric.freshnessStatus,
-  dataStatus:metric.dataStatus,
+  dataStatus:metric.dataStatus as MediaKitResolvedMetric['dataStatus'],
   syncId:metric.syncId,
   provenance:{...metric.provenance,source:'analyticsClient',automatic:true,canonicalMetricId:metric.id},
   isEstimated:metric.isEstimated,

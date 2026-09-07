@@ -1,5 +1,8 @@
 import {useQuery} from '@tanstack/react-query'
-import {ArrowUpRight,BarChart3,CircleDollarSign,Eye,FileText,Handshake,Newspaper,UsersRound} from 'lucide-react'
+import {
+ ArrowRight,BarChart3,BellRing,CalendarDays,CheckSquare,CircleDollarSign,Eye,FileText,
+ Handshake,Heart,MoreHorizontal,Play,TrendingUp,UsersRound,WalletCards,
+} from 'lucide-react'
 import {useMemo,useState} from 'react'
 import {Link} from 'react-router-dom'
 import {AdminShell} from '../../shared/internal/AdminUi'
@@ -16,16 +19,22 @@ import {dashboardReadModel,deriveAgendaSummary,deriveCrmSummary,deriveEditorialS
 import {useActivityHistory} from './hooks/useActivityHistory'
 import '../../styles/admin-dashboard-unified.css'
 
-const money=(value:number)=>value.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})
+const money=(value:number)=>value.toLocaleString('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:2})
 const compact=(value:number)=>new Intl.NumberFormat('pt-BR',{notation:'compact',maximumFractionDigits:1}).format(value)
 const monthKey=(now:Date)=>`${now.getUTCFullYear()}-${String(now.getUTCMonth()+1).padStart(2,'0')}`
 const formatDate=(raw:string|undefined|null)=>{if(!raw)return '—';const date=new Date(raw);return Number.isFinite(date.getTime())?date.toLocaleDateString('pt-BR'):'—'}
-const pipelineLabels:Record<string,string>={novo:'Novos',contato_realizado:'Contato realizado',qualificado:'Qualificados',proposta:'Propostas',negociacao:'Negociação',fechado:'Fechados',perdido:'Perdidos'}
-const pipelineColors=['#e30613','#ee6b73','#f2a1a7','#b83b43','#7f1d24']
+const formatTime=(raw:string|undefined|null)=>{if(!raw)return '—';const date=new Date(raw);return Number.isFinite(date.getTime())?date.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}):'—'}
+const formatMonth=(raw:string)=>{const [year,month]=raw.split('-').map(Number);if(!year||!month)return raw;const label=new Date(Date.UTC(year,month-1,1)).toLocaleDateString('pt-BR',{month:'long',year:'numeric',timeZone:'UTC'});return label.charAt(0).toUpperCase()+label.slice(1)}
+const pipelineLabels:Record<string,string>={novo:'Novo',contato_realizado:'Contato realizado',qualificado:'Qualificado',proposta:'Proposta',negociacao:'Negociação',fechado:'Fechado',perdido:'Perdido'}
+const performanceTabLabels:Record<'overview'|DashboardChannelPulse['key'],string>={overview:'Visão Geral',instagram:'Instagram',youtube:'YouTube',tiktok:'TikTok',site:'Site'}
 const developmentAnalytics=import.meta.env.DEV||import.meta.env.VITE_ENABLE_DEMO_DATA==='true'
 
 function settledValue<T>(result:PromiseSettledResult<T>,fallback:T){return result.status==='fulfilled'?result.value:fallback}
 function settledError(result:PromiseSettledResult<unknown>){return result.status==='rejected'?(result.reason instanceof Error?result.reason.message:String(result.reason)):''}
+function percentageChange(current:number,previous:number){if(previous<=0)return null;return (current-previous)/previous*100}
+function metricValue(metric:{value:number|null;status:string}|undefined){return metric?.status==='available'&&metric.value!==null?metric.value:null}
+function formatMetric(value:number|null,formatter:(value:number)=>string=compact){return value===null?'—':formatter(value)}
+function trendLabel(value:number|null){if(value===null||!Number.isFinite(value))return null;const rounded=Math.round(value);return `${rounded>=0?'+':''}${rounded}%`}
 
 async function loadAuthenticatedDashboard(now=new Date()){
  const [leadsResult,transactionsResult,eventsResult,contentsResult]=await Promise.allSettled([
@@ -79,20 +88,6 @@ async function loadDashboardAnalytics(){
  }
 }
 
-function displayNumber(available:boolean,value:number,formatter:(value:number)=>string=compact){return available?formatter(value):'INDISPONÍVEL'}
-function channelValue(channel:DashboardChannelPulse|undefined){return channel?.value===null||channel?.value===undefined?'INDISPONÍVEL':compact(channel.value)}
-function pipelineGradient(entries:Array<[string,number]>,total:number){
- if(total<=0||entries.length===0)return '#f0f0f0'
- let cursor=0
- const stops=entries.map(([,value],index)=>{
-  const start=cursor
-  cursor+=value/total*100
-  return `${pipelineColors[index%pipelineColors.length]} ${start.toFixed(2)}% ${cursor.toFixed(2)}%`
- })
- if(cursor<100)stops.push(`#f0f0f0 ${cursor.toFixed(2)}% 100%`)
- return `conic-gradient(${stops.join(',')})`
-}
-
 export default function DashboardPage(){
  const {status}=useAdminAuth()
  const authenticated=status==='authenticated'
@@ -100,7 +95,8 @@ export default function DashboardPage(){
  const analytics=useQuery({queryKey:['dashboard','analytics','30d'],queryFn:loadDashboardAnalytics,staleTime:30_000,refetchOnWindowFocus:false,retry:1})
  const activity=useActivityHistory(8)
  const data=authenticated?adminDashboard.data:dashboardReadModel.snapshot()
- const [selectedChannel,setSelectedChannel]=useState<DashboardChannelPulse['key']>('site')
+ const [performanceTab,setPerformanceTab]=useState<'overview'|DashboardChannelPulse['key']>('overview')
+ const [agendaTab,setAgendaTab]=useState<'agenda'|'tasks'>('agenda')
 
  const channels=useMemo(()=>resolveMultichannelPulses(analytics.data?.overview??null,analytics.data?.metrics??[],developmentAnalytics),[analytics.data])
  const websiteSeries=useMemo(()=>resolveDashboardPageviews(analytics.data?.metrics??[]),[analytics.data?.metrics])
@@ -113,102 +109,110 @@ export default function DashboardPage(){
   return <AdminShell area="crm" items={UNIFIED_ADMIN_NAV} header={{title:'DASHBOARD',description:'Visão Geral'}}><section className="unified-dashboard">{adminDashboard.isError?<div className="dashboard-load-state" role="alert"><strong>DADOS OPERACIONAIS INDISPONÍVEIS</strong><p>{adminDashboard.error instanceof Error?adminDashboard.error.message:'A API administrativa não pôde carregar o Dashboard.'}</p><button type="button" onClick={()=>void adminDashboard.refetch()}>Tentar novamente</button></div>:<div className="dashboard-load-state" role="status">Consultando dados administrativos reais…</div>}</section></AdminShell>
  }
 
- const pipelineEntries=Object.entries(data.crmSummary.pipeline).filter(([,total])=>total>0).sort(([,a],[,b])=>b-a).slice(0,5)
  const recentActivity=(activity.data??[]).slice(0,5)
  const domainErrorCount=Object.keys(data.domainErrors).length
- const website=channels.find(channel=>channel.key==='site')
- const activeChannel=channels.find(channel=>channel.key===selectedChannel)??channels[0]
- const chartPoints=websiteSeries.points.slice(-7)
+ const chartPoints=websiteSeries.points.slice(-12)
  const maxChartValue=Math.max(1,...chartPoints.map(point=>point.value))
  const chartCoordinates=chartPoints.map((point,index)=>{
   const x=chartPoints.length<=1?50:(index/(chartPoints.length-1))*100
   const y=92-(point.value/maxChartValue)*72
   return `${x.toFixed(2)},${y.toFixed(2)}`
  }).join(' ')
- const ringStyle={background:pipelineGradient(pipelineEntries,data.crmSummary.total)}
+ const activeChannel=performanceTab==='overview'?null:channels.find(channel=>channel.key===performanceTab)??null
+ const maxChannelValue=Math.max(1,...channels.map(channel=>channel.value??0))
+ const overview=analytics.data?.overview
+ const reach=metricValue(overview?.ga4.overview.users)
+ const views=metricValue(overview?.ga4.overview.pageviews)
+ const interactions=overview?.conversions.status==='available'?overview.conversions.total:null
+ const growth=chartPoints.length>=2&&chartPoints[0].value>0?(chartPoints.at(-1)!.value-chartPoints[0].value)/chartPoints[0].value*100:null
+ const leadTrend=percentageChange(data.crmSummary.newLeadsThisMonth,data.crmSummary.previousMonthNewLeads)
+ const revenueTrend=percentageChange(data.financeSummary.monthRevenue,data.financeSummary.previousMonthRevenue)
+ const funnelStages=['novo','contato_realizado','qualificado','proposta','negociacao']
+ const funnelEntries=funnelStages.map(stage=>[stage,data.crmSummary.pipeline[stage]??0] as const)
+ const funnelMax=Math.max(1,...funnelEntries.map(([,value])=>value))
+ const todayAgenda=data.upcoming.slice(0,3)
+ const conversion=Math.round(data.crmSummary.conversionRate*10)/10
+ const taskItems=attention.slice(0,3)
 
- return <AdminShell area="crm" items={UNIFIED_ADMIN_NAV} header={{title:'DASHBOARD',description:`Visão Geral · ${data.period.month}`}}>
+ return <AdminShell area="crm" items={UNIFIED_ADMIN_NAV} header={{title:'DASHBOARD',description:`Visão Geral · ${formatMonth(data.period.month)}`}}>
   <main className="unified-dashboard" aria-busy={activity.isLoading||analytics.isLoading||adminDashboard.isLoading}>
    <section className="dashboard-kpi-grid" data-testid="dashboard-kpi-region" aria-label="Indicadores principais">
     <article className="dashboard-kpi-card" data-dashboard-kpi="new-leads">
-     <span className="dashboard-kpi-icon is-crm"><UsersRound size={20}/></span>
-     <div><span data-dashboard-kpi-label>Novos Leads</span><strong>{displayNumber(data.availability.crm,data.crmSummary.newLeads,value=>String(value))}</strong><small>{data.availability.crm?`${data.crmSummary.total} leads no pipeline`:'Fonte CRM indisponível'}</small></div>
+     <span className="dashboard-kpi-icon"><UsersRound size={21}/></span>
+     <div className="dashboard-kpi-copy"><span data-dashboard-kpi-label>Novos Leads</span><div className="dashboard-kpi-value-line"><strong>{data.availability.crm?data.crmSummary.newLeadsThisMonth:'—'}</strong>{trendLabel(leadTrend)&&<span className={`dashboard-trend ${leadTrend!==null&&leadTrend<0?'is-negative':''}`}><TrendingUp size={11}/>{trendLabel(leadTrend)}</span>}</div><small>{data.availability.crm?'em relação ao mês anterior':'Fonte CRM indisponível'}</small></div>
     </article>
-    <article className="dashboard-kpi-card" data-dashboard-kpi="negotiations">
-     <span className="dashboard-kpi-icon is-sales"><Handshake size={20}/></span>
-     <div><span data-dashboard-kpi-label>Negociações</span><strong>{displayNumber(data.availability.crm,data.crmSummary.negotiations,value=>String(value))}</strong><small>{data.availability.crm?`${data.crmSummary.followUps.overdue} follow-up${data.crmSummary.followUps.overdue===1?'':'s'} vencido${data.crmSummary.followUps.overdue===1?'':'s'}`:'Fonte CRM indisponível'}</small></div>
+    <article className="dashboard-kpi-card" data-dashboard-kpi="active-negotiations">
+     <span className="dashboard-kpi-icon"><Handshake size={21}/></span>
+     <div className="dashboard-kpi-copy"><span data-dashboard-kpi-label>Negociações Ativas</span><div className="dashboard-kpi-value-line"><strong>{data.availability.crm?data.crmSummary.activeOpportunities:'—'}</strong></div><small>{data.availability.crm?'oportunidades em andamento':'Fonte CRM indisponível'}</small></div>
     </article>
-    <article className="dashboard-kpi-card" data-dashboard-kpi="revenue">
-     <span className="dashboard-kpi-icon is-finance"><CircleDollarSign size={20}/></span>
-     <div><span data-dashboard-kpi-label>Faturamento (Mês)</span><strong>{displayNumber(data.availability.finance,data.financeSummary.monthRevenue,money)}</strong><small>{data.availability.finance?'Receitas pagas no período':'Fonte financeira indisponível'}</small></div>
+    <article className="dashboard-kpi-card" data-dashboard-kpi="pipeline-value">
+     <span className="dashboard-kpi-icon"><BarChart3 size={21}/></span>
+     <div className="dashboard-kpi-copy"><span data-dashboard-kpi-label>Pipeline Comercial</span><div className="dashboard-kpi-value-line"><strong>{data.availability.crm?money(data.crmSummary.pipelineValue):'—'}</strong></div><small>{data.availability.crm?'em oportunidades':'Fonte CRM indisponível'}</small></div>
     </article>
-    <article className="dashboard-kpi-card" data-dashboard-kpi="published-content">
-     <span className="dashboard-kpi-icon is-content"><Newspaper size={20}/></span>
-     <div><span data-dashboard-kpi-label>Conteúdos Publicados</span><strong>{displayNumber(data.availability.editorial,data.editorialCounts.publishedThisMonth,value=>String(value))}</strong><small>{data.availability.editorial?`${data.editorialCounts.published} publicados no total`:'Fonte editorial indisponível'}</small></div>
+    <article className="dashboard-kpi-card" data-dashboard-kpi="receivable">
+     <span className="dashboard-kpi-icon"><WalletCards size={21}/></span>
+     <div className="dashboard-kpi-copy"><span data-dashboard-kpi-label>A Receber</span><div className="dashboard-kpi-value-line"><strong>{data.availability.finance?money(data.financeSummary.receivable):'—'}</strong></div><small>{data.availability.finance?'em receitas pendentes':'Fonte financeira indisponível'}</small></div>
     </article>
-    <article className="dashboard-kpi-card" data-dashboard-kpi="website">
-     <span className="dashboard-kpi-icon is-analytics"><Eye size={20}/></span>
-     <div><span data-dashboard-kpi-label><span>Visitas no Site</span> <span>(Mês)</span></span><strong>{channelValue(website)}</strong><small>{website?.value===null?'Métrica não disponível':`${website?.metricLabel??'Pageviews'} · 30 dias`}</small></div>
+    <article className="dashboard-kpi-card" data-dashboard-kpi="month-revenue">
+     <span className="dashboard-kpi-icon"><CircleDollarSign size={21}/></span>
+     <div className="dashboard-kpi-copy"><span data-dashboard-kpi-label>Faturamento do Mês</span><div className="dashboard-kpi-value-line"><strong>{data.availability.finance?money(data.financeSummary.monthRevenue):'—'}</strong>{trendLabel(revenueTrend)&&<span className={`dashboard-trend ${revenueTrend!==null&&revenueTrend<0?'is-negative':''}`}><TrendingUp size={11}/>{trendLabel(revenueTrend)}</span>}</div><small>{data.availability.finance?'em relação ao mês anterior':'Fonte financeira indisponível'}</small></div>
     </article>
    </section>
 
-   <section className="dashboard-reference-row" aria-label="Performance e atividades">
-    <section className="dashboard-reference-panel dashboard-analytics-panel" data-testid="dashboard-analytics-region" aria-labelledby="dashboard-performance-title">
-     <header className="dashboard-panel-heading dashboard-performance-heading"><div><h2 id="dashboard-performance-title">Performance</h2></div><Link to="/app/metricas">Ver métricas <ArrowUpRight size={14}/></Link></header>
-     <div className="dashboard-channel-tabs" data-testid="dashboard-channel-tabs" role="tablist" aria-label="Canais de performance">
-      {channels.map(channel=><button key={channel.key} type="button" role="tab" aria-selected={selectedChannel===channel.key} onClick={()=>setSelectedChannel(channel.key)}>{channel.label}</button>)}
+   <section className="dashboard-reference-row" aria-label="Performance e agenda">
+    <section className="dashboard-reference-panel dashboard-performance-panel" data-testid="dashboard-analytics-region" aria-labelledby="dashboard-performance-title">
+     <header className="dashboard-panel-heading"><div className="dashboard-title-with-icon"><span className="dashboard-section-icon"><BarChart3 size={20}/></span><div><h2 id="dashboard-performance-title">Performance Digital</h2><p>Acompanhe o desempenho dos seus canais</p></div></div><Link to="/app/metricas">Ver métricas <ArrowRight size={14}/></Link></header>
+     <div className="dashboard-channel-tabs dashboard-reference-tabs" data-testid="dashboard-channel-tabs" role="tablist" aria-label="Canais de performance">
+      {(['overview','instagram','youtube','tiktok','site'] as const).map(tab=><button key={tab} type="button" role="tab" aria-selected={performanceTab===tab} onClick={()=>setPerformanceTab(tab)}>{performanceTabLabels[tab]}</button>)}
      </div>
-     {selectedChannel==='site'?<div className="dashboard-chart-stage" data-testid="dashboard-website-chart">
-      <div className="dashboard-chart-pulse"><strong>{channelValue(activeChannel)}</strong><span>{activeChannel.metricLabel}</span></div>
-      {chartPoints.length>=2?<><svg viewBox="0 0 100 100" preserveAspectRatio="none" role="img" aria-label="Evolução recente de pageviews do Website">
-       <polygon points={`0,100 ${chartCoordinates} 100,100`} className="dashboard-chart-area"/>
-       <polyline points={chartCoordinates} className="dashboard-chart-line"/>
-      </svg><div className="dashboard-chart-labels">{chartPoints.map(point=><span key={point.date}>{point.label}</span>)}</div></>:<div className="dashboard-chart-unavailable"><BarChart3 size={24}/><strong>SÉRIE TEMPORAL INDISPONÍVEL</strong><p>Nenhum zero ou linha artificial foi criado para preencher o gráfico.</p></div>}
-     </div>:<div className="dashboard-channel-detail" data-testid={`dashboard-channel-detail-${selectedChannel}`}>
-      <BarChart3 size={28}/><div><span>{activeChannel.metricLabel}</span><strong>{activeChannel.value===null?'MÉTRICA NÃO DISPONÍVEL':compact(activeChannel.value)}</strong><small>Atualizado em {formatDate(activeChannel.updatedAt)}</small></div>
-     </div>}
-     {(analytics.data?.errors.overview||analytics.data?.errors.metrics)&&<p className="dashboard-analytics-note">Uma ou mais fontes Analytics não responderam. Os canais afetados permanecem como INDISPONÍVEL.</p>}
+     {performanceTab==='overview'?<>
+      <div className="dashboard-performance-kpis" data-testid="dashboard-performance-summary">
+       <article><span className="dashboard-mini-icon"><Eye size={16}/></span><div><small>Alcance Total</small><strong>{formatMetric(reach)}</strong><em>{reach===null?'GA4 indisponível':'usuários únicos'}</em></div></article>
+       <article><span className="dashboard-mini-icon"><Play size={16}/></span><div><small>Visualizações</small><strong>{formatMetric(views)}</strong><em>{views===null?'GA4 indisponível':'pageviews em 30 dias'}</em></div></article>
+       <article><span className="dashboard-mini-icon"><Heart size={16}/></span><div><small>Interações</small><strong>{formatMetric(interactions)}</strong><em>{interactions===null?'Conversões indisponíveis':'conversões registradas'}</em></div></article>
+       <article><span className="dashboard-mini-icon"><TrendingUp size={16}/></span><div><small>Crescimento</small><strong>{growth===null?'—':`${growth>=0?'+':''}${growth.toFixed(1).replace('.',',')}%`}</strong><em>vs. início do período</em></div></article>
+      </div>
+      <div className="dashboard-performance-body">
+       <div className="dashboard-chart-stage" data-testid="dashboard-website-chart">
+        {chartPoints.length>=2?<><svg viewBox="0 0 100 100" preserveAspectRatio="none" role="img" aria-label="Evolução recente de pageviews"><polygon points={`0,100 ${chartCoordinates} 100,100`} className="dashboard-chart-area"/><polyline points={chartCoordinates} className="dashboard-chart-line"/></svg><div className="dashboard-chart-labels">{chartPoints.map(point=><span key={point.date}>{point.label}</span>)}</div></>:<div className="dashboard-chart-unavailable"><BarChart3 size={24}/><strong>Série temporal indisponível</strong><p>Nenhum dado fictício foi criado para preencher o gráfico.</p></div>}
+       </div>
+       <aside className="dashboard-channel-distribution" aria-label="Distribuição por canal"><strong>Distribuição por canal</strong>{channels.map(channel=><div className="dashboard-channel-row" key={channel.key}><div><span>{performanceTabLabels[channel.key]}</span><b>{channel.value===null?'—':compact(channel.value)}</b></div><div className="dashboard-channel-track"><i style={{width:`${channel.value===null?0:Math.max(5,(channel.value/maxChannelValue)*100)}%`}}/></div><small>{channel.metricLabel}</small></div>)}</aside>
+      </div>
+     </>:<div className="dashboard-channel-detail" data-testid={`dashboard-channel-detail-${performanceTab}`}><BarChart3 size={30}/><div><span>{activeChannel?.label??performanceTabLabels[performanceTab]}</span><strong>{activeChannel?.value===null||activeChannel?.value===undefined?'MÉTRICA NÃO DISPONÍVEL':compact(activeChannel.value)}</strong><small>{activeChannel?.metricLabel??'Métrica'} · atualizado em {formatDate(activeChannel?.updatedAt)}</small></div></div>}
+     {(analytics.data?.errors.overview||analytics.data?.errors.metrics)&&<p className="dashboard-analytics-note">Uma ou mais fontes de Analytics não responderam. Os indicadores afetados permanecem indisponíveis.</p>}
     </section>
 
-    <aside className="dashboard-reference-panel dashboard-recent-panel" data-testid="dashboard-recent-activity" aria-labelledby="dashboard-recent-title">
-     <header className="dashboard-panel-heading">
-      <div><h2 id="dashboard-recent-title">Atividades Recentes</h2></div>
-      <Link to="/app/site/conteudos">Ver todas <ArrowUpRight size={14}/></Link>
-     </header>
-     <div className="dashboard-recent-list">
-      {activity.isLoading?<div className="dashboard-empty-inline">Carregando movimentações…</div>:recentActivity.length?recentActivity.map(item=><article key={item.id}><span className="dashboard-row-icon"><FileText size={15}/></span><div><strong>{item.title}</strong><p>{item.action==='published'?'Publicado':'Atualizado'} · {item.category}</p></div><time dateTime={item.occurred_at}>{formatDate(item.occurred_at)}</time></article>):<div className="dashboard-empty-inline"><strong>Nenhuma atividade recente</strong><p>Não há eventos editoriais legítimos para exibir nesta carga.</p></div>}
-     </div>
+    <aside className="dashboard-reference-panel dashboard-agenda-panel" data-testid="dashboard-today-next" aria-labelledby="dashboard-agenda-title">
+     <header className="dashboard-panel-heading"><div className="dashboard-title-with-icon"><span className="dashboard-section-icon"><CalendarDays size={20}/></span><div><h2 id="dashboard-agenda-title">Hoje & Próximos</h2><p>Seus compromissos e tarefas do dia</p></div></div><Link to="/app/agenda">Ver agenda <ArrowRight size={14}/></Link></header>
+     <div className="dashboard-agenda-tabs dashboard-reference-tabs" role="tablist" aria-label="Agenda e tarefas"><button type="button" role="tab" aria-selected={agendaTab==='agenda'} onClick={()=>setAgendaTab('agenda')}>Agenda</button><button type="button" role="tab" aria-selected={agendaTab==='tasks'} onClick={()=>setAgendaTab('tasks')}>Tarefas</button></div>
+     {agendaTab==='agenda'?<div className="dashboard-agenda-list">{todayAgenda.length?todayAgenda.map(event=><article key={event.id}><time dateTime={event.startsAt}><strong>{formatTime(event.startsAt)}</strong><small>{formatDate(event.startsAt)}</small></time><span className="dashboard-agenda-dot"/><div><strong>{event.title}</strong><p>{event.type||event.status}</p></div><span className="dashboard-status-pill">{event.status}</span></article>):<div className="dashboard-empty-inline"><strong>Nenhum compromisso próximo</strong><p>A agenda não possui eventos futuros nesta carga.</p></div>}</div>:<div className="dashboard-task-list">{taskItems.length?taskItems.map(item=><article key={item.id}><CheckSquare size={16}/><div><strong>{item.title}</strong><p>{item.detail}</p></div></article>):<div className="dashboard-empty-inline"><strong>Nenhuma tarefa pendente</strong><p>As fontes disponíveis não indicam ação pendente agora.</p></div>}</div>}
+     <footer className="dashboard-agenda-footer"><div><CheckSquare size={18}/><span><strong>{taskItems.length} tarefas pendentes</strong><small>prioridades operacionais atuais</small></span></div><Link to="/app/agenda">Ver todas <ArrowRight size={14}/></Link></footer>
     </aside>
    </section>
 
-   <section className="dashboard-bottom-grid" aria-label="Detalhamento operacional">
-    <section className="dashboard-reference-panel dashboard-leads-panel" data-testid="dashboard-lead-distribution" aria-labelledby="dashboard-leads-title">
-     <header className="dashboard-panel-heading">
-      <div><h2 id="dashboard-leads-title">Distribuição de Leads</h2><p>Por estágio</p></div>
-      <Link to="/app/crm">Abrir CRM <ArrowUpRight size={14}/></Link>
-     </header>
-     {data.availability.crm&&pipelineEntries.length?<div className="dashboard-lead-distribution-body">
-      <div className="dashboard-lead-ring" style={ringStyle} aria-label={`${data.crmSummary.total} leads no pipeline`}><div><span>Total</span><strong>{data.crmSummary.total}</strong></div></div>
-      <div className="dashboard-lead-legend">{pipelineEntries.map(([stage,total],index)=><p key={stage}><i style={{backgroundColor:pipelineColors[index%pipelineColors.length]}}/><span>{pipelineLabels[stage]??stage}</span><strong>{Math.round(total/Math.max(1,data.crmSummary.total)*100)}%</strong></p>)}</div>
-     </div>:<div className="dashboard-empty-inline"><strong>Pipeline indisponível</strong><p>Nenhuma distribuição foi fabricada.</p></div>}
+   <section className="dashboard-mid-row" aria-label="Funil e prioridades">
+    <section className="dashboard-reference-panel dashboard-funnel-panel" data-testid="dashboard-lead-distribution" aria-labelledby="dashboard-funnel-title">
+     <header className="dashboard-panel-heading"><div className="dashboard-title-with-icon"><span className="dashboard-section-icon"><BarChart3 size={20}/></span><div><h2 id="dashboard-funnel-title">Funil Comercial</h2><p>Acompanhe suas oportunidades</p></div></div><Link to="/app/crm">Abrir CRM <ArrowRight size={14}/></Link></header>
+     <div className="dashboard-funnel-body"><div className="dashboard-funnel-bars">{funnelEntries.map(([stage,total])=><div className="dashboard-funnel-row" key={stage}><span>{pipelineLabels[stage]??stage}</span><div><i style={{width:`${Math.max(total?8:0,(total/funnelMax)*100)}%`}}/></div><strong>{data.availability.crm?total:'—'}</strong></div>)}</div><aside className="dashboard-conversion-card"><BarChart3 size={24}/><span>Taxa de conversão</span><strong>{data.availability.crm?`${conversion.toFixed(1).replace(',0','').replace('.0','')}%`:'—'}</strong><small>de leads para clientes</small></aside></div>
     </section>
 
-    <section className="dashboard-reference-panel dashboard-featured-panel" data-testid="dashboard-featured-content" aria-labelledby="dashboard-featured-title">
-     <header className="dashboard-panel-heading"><div><h2 id="dashboard-featured-title">Conteúdos em Destaque</h2></div><Link to="/app/site/conteudos">Ver todos <ArrowUpRight size={14}/></Link></header>
-     <div className="dashboard-featured-list">
-      {data.availability.editorial&&data.featuredContents.length?data.featuredContents.map(item=><article key={item.id}>
-       <div className="dashboard-featured-thumb">{item.coverImage?<img src={item.coverImage} alt=""/>:<FileText size={20}/>}</div>
-       <div><strong>{item.title}</strong><time dateTime={item.publishedAt??item.updatedAt}>{formatDate(item.publishedAt??item.updatedAt)}</time><small>{item.tags.slice(0,2).join(' · ')||'Editorial'}</small></div>
-      </article>):<div className="dashboard-empty-inline"><strong>Nenhum conteúdo publicado</strong><p>O painel permanece vazio sem inventar destaque.</p></div>}
-     </div>
-    </section>
-
-    <section className="dashboard-reference-panel dashboard-pending-panel" data-testid="dashboard-pending-attention" aria-labelledby="dashboard-pending-title">
-     <header className="dashboard-panel-heading"><div><h2 id="dashboard-pending-title">Pendências</h2></div></header>
+    <section className="dashboard-reference-panel dashboard-alerts-panel" data-testid="dashboard-pending-attention" aria-labelledby="dashboard-alerts-title">
+     <header className="dashboard-panel-heading"><div className="dashboard-title-with-icon"><span className="dashboard-section-icon"><BellRing size={20}/></span><div><h2 id="dashboard-alerts-title">Alertas & Prioridades</h2><p>{attention.length} itens exigem atenção ao seu negócio</p></div></div><Link to="/app/dashboard">Ver pendências <ArrowRight size={14}/></Link></header>
      {domainErrorCount>0&&<p className="dashboard-source-warning">{domainErrorCount} fonte{domainErrorCount===1?'':'s'} operacional{domainErrorCount===1?'':'is'} indisponível{domainErrorCount===1?'':'eis'} nesta carga.</p>}
-     <div className="dashboard-pending-list">
-      {attention.length?attention.slice(0,4).map(item=><article key={item.id} data-attention-kind={item.kind}><span className="dashboard-attention-mark"/><div><strong>{item.title}</strong><p>{item.detail}</p>{item.dueAt&&<time dateTime={item.dueAt}>{formatDate(item.dueAt)}</time>}</div><Link to={item.href} aria-label={`Abrir ${item.title}`}><ArrowUpRight size={15}/></Link></article>):<div className="dashboard-empty-inline"><strong>Nenhuma pendência acionável</strong><p>As fontes disponíveis não indicam condição que exija ação agora.</p></div>}
-     </div>
+     <div className="dashboard-alert-grid">{attention.length?attention.map(item=><Link to={item.href} className="dashboard-alert-item" key={item.id} data-attention-kind={item.kind}><span className="dashboard-alert-icon"><BellRing size={15}/></span><div><strong>{item.title}</strong><p>{item.detail}</p></div><em>{item.kind==='finance'?'Financeiro':item.kind==='crm'?'CRM':item.kind==='analytics'?'Métricas':'Agenda'}</em></Link>):<div className="dashboard-empty-inline"><strong>Nenhum alerta acionável</strong><p>As fontes disponíveis não indicam condição que exija ação agora.</p></div>}</div>
+    </section>
+   </section>
+
+   <section className="dashboard-bottom-row" aria-label="Atividades e conteúdo">
+    <section className="dashboard-reference-panel dashboard-recent-panel" data-testid="dashboard-recent-activity" aria-labelledby="dashboard-recent-title">
+     <header className="dashboard-panel-heading"><div className="dashboard-title-with-icon"><span className="dashboard-section-icon"><TrendingUp size={20}/></span><div><h2 id="dashboard-recent-title">Atividades Recentes</h2><p>Últimas ações realizadas no portal</p></div></div><Link to="/app/site/conteudos">Ver todas <ArrowRight size={14}/></Link></header>
+     <div className="dashboard-recent-list">{activity.isLoading?<div className="dashboard-empty-inline">Carregando movimentações…</div>:recentActivity.length?recentActivity.map(item=><article key={item.id}><span className="dashboard-row-icon"><FileText size={15}/></span><div><strong>{item.title}</strong><p>{item.action==='published'?'Conteúdo publicado':'Conteúdo atualizado'} · {item.category}</p></div><time dateTime={item.occurred_at}>{formatDate(item.occurred_at)} <small>{formatTime(item.occurred_at)}</small></time></article>):<div className="dashboard-empty-inline"><strong>Nenhuma atividade recente</strong><p>Não há eventos editoriais legítimos para exibir nesta carga.</p></div>}</div>
+    </section>
+
+    <section className="dashboard-reference-panel dashboard-content-panel" data-testid="dashboard-featured-content" aria-labelledby="dashboard-content-title">
+     <header className="dashboard-panel-heading"><div className="dashboard-title-with-icon"><span className="dashboard-section-icon"><FileText size={20}/></span><div><h2 id="dashboard-content-title">Conteúdo & Publicações</h2><p>Gerencie seus conteúdos em um só lugar</p></div></div><Link to="/app/site/conteudos">Criar conteúdo <ArrowRight size={14}/></Link></header>
+     <div className="dashboard-content-stats"><div><strong>{data.availability.editorial?data.editorialCounts.publishedThisMonth:'—'}</strong><span><i className="is-green"/>publicados<small>no último mês</small></span></div><div><strong>—</strong><span><i className="is-yellow"/>agendados<small>sem fonte de agendamento editorial</small></span></div><div><strong>{data.availability.editorial?data.editorialCounts.drafts:'—'}</strong><span><i className="is-gray"/>rascunhos<small>em edição</small></span></div></div>
+     <div className="dashboard-featured-list">{data.availability.editorial&&data.featuredContents.length?data.featuredContents.map(item=><article key={item.id}><div className="dashboard-featured-thumb">{item.coverImage?<img src={item.coverImage} alt=""/>:<FileText size={20}/>}</div><div><strong>{item.title}</strong><time dateTime={item.publishedAt??item.updatedAt}>{formatDate(item.publishedAt??item.updatedAt)}</time></div><span className="dashboard-channel-pill">Site</span><MoreHorizontal size={16}/></article>):<div className="dashboard-empty-inline"><strong>Nenhum conteúdo publicado</strong><p>O painel permanece vazio sem inventar destaques.</p></div>}</div>
     </section>
    </section>
   </main>

@@ -10,6 +10,7 @@ const CLOSED_LEAD_STATUSES=new Set(['fechado','perdido'])
 const CLOSED_EVENT_STATUSES=new Set(['cancelado','cancelled','concluido','completed','realizado'])
 
 const monthKey=(now:Date)=>`${now.getUTCFullYear()}-${String(now.getUTCMonth()+1).padStart(2,'0')}`
+const previousMonthKey=(now:Date)=>{const previous=new Date(Date.UTC(now.getUTCFullYear(),now.getUTCMonth()-1,1));return `${previous.getUTCFullYear()}-${String(previous.getUTCMonth()+1).padStart(2,'0')}`}
 const dayKey=(now:Date)=>`${now.getUTCFullYear()}-${String(now.getUTCMonth()+1).padStart(2,'0')}-${String(now.getUTCDate()).padStart(2,'0')}`
 const normalizeDay=(value:string)=>value.slice(0,10)
 const plusDays=(day:string,days:number)=>{const date=new Date(`${day}T00:00:00.000Z`);date.setUTCDate(date.getUTCDate()+days);return date.toISOString().slice(0,10)}
@@ -29,6 +30,9 @@ type DashboardAgendaEntry={
  title:string
  startsAt:string
  status:string
+ endsAt?:string
+ type?:string
+ description?:string
 }
 
 export type DashboardFeaturedContent={
@@ -41,26 +45,36 @@ export type DashboardFeaturedContent={
 }
 
 export function deriveFinanceSummary(items:readonly FinanceTransaction[],now=new Date()){
- const month=monthKey(now),today=dayKey(now)
+ const month=monthKey(now),previousMonth=previousMonthKey(now),today=dayKey(now)
  const revenuePaid=items.filter(item=>item.type==='receita'&&item.status==='pago')
  const expensePaid=items.filter(item=>item.type==='despesa'&&item.status==='pago')
  const monthRevenue=revenuePaid.filter(item=>item.date.startsWith(month)).reduce((sum,item)=>sum+item.amount,0)
+ const previousMonthRevenue=revenuePaid.filter(item=>item.date.startsWith(previousMonth)).reduce((sum,item)=>sum+item.amount,0)
  const monthExpenses=expensePaid.filter(item=>item.date.startsWith(month)).reduce((sum,item)=>sum+item.amount,0)
  const receivable=items.filter(item=>item.type==='receita'&&(item.status==='pendente'||item.status==='vencido')).reduce((sum,item)=>sum+item.amount,0)
  const overdue=items.filter(item=>item.status==='vencido'||(item.status==='pendente'&&Boolean(item.dueDate)&&normalizeDay(item.dueDate)<today))
- return {monthRevenue,monthExpenses,balance:monthRevenue-monthExpenses,receivable,overdueCount:overdue.length,overdueAmount:overdue.reduce((sum,item)=>sum+item.amount,0)}
+ return {monthRevenue,previousMonthRevenue,monthExpenses,balance:monthRevenue-monthExpenses,receivable,overdueCount:overdue.length,overdueAmount:overdue.reduce((sum,item)=>sum+item.amount,0)}
 }
 
 export function deriveCrmSummary(leads:readonly Lead[],now=new Date()){
- const today=dayKey(now),horizon=plusDays(today,FOLLOW_UP_HORIZON_DAYS)
+ const today=dayKey(now),horizon=plusDays(today,FOLLOW_UP_HORIZON_DAYS),month=monthKey(now),previousMonth=previousMonthKey(now)
  const pipeline=leads.reduce<Record<string,number>>((acc,item)=>{acc[item.status]=(acc[item.status]??0)+1;return acc},{})
  const active=leads.filter(item=>!CLOSED_LEAD_STATUSES.has(item.status))
+ const closed=leads.filter(item=>item.status==='fechado')
  const followUps=active.filter(item=>Boolean(item.nextFollowUp)).map(item=>({...item,followUpDay:normalizeDay(item.nextFollowUp)}))
+ const newLeadsThisMonth=leads.filter(item=>item.createdAt.startsWith(month)).length
+ const previousMonthNewLeads=leads.filter(item=>item.createdAt.startsWith(previousMonth)).length
+ const pipelineValue=active.reduce((sum,item)=>sum+(typeof item.estimatedValue==='number'?item.estimatedValue:0),0)
  return {
   pipeline,
   total:leads.length,
   newLeads:pipeline.novo??0,
+  newLeadsThisMonth,
+  previousMonthNewLeads,
   negotiations:pipeline.negociacao??0,
+  activeOpportunities:active.length,
+  pipelineValue,
+  conversionRate:leads.length?closed.length/leads.length*100:0,
   followUps:{
    overdue:followUps.filter(item=>item.followUpDay<today).length,
    today:followUps.filter(item=>item.followUpDay===today).length,

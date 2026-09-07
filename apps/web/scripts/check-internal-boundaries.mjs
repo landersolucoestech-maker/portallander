@@ -140,7 +140,7 @@ for(const [path,source] of [['FinanceMainPage.tsx',financeMain],['FinanceInvoice
 const financeHooks=await read('src/features/finance/hooks.ts')
 requireTokens('finance/hooks.ts',financeHooks,['financeAdminClient','status===\'authenticated\'?\'api\':\'development\'','useQuery','useMutation'])
 const financeAdminClient=await read('src/features/finance/adminClient.ts')
-requireTokens('finance/adminClient.ts',financeAdminClient,['/api/finance/transactions','/api/finance/invoices','/api/finance/categories','/api/finance/rules',"credentials:'include'"])
+requireTokens('financeAdminClient.ts',financeAdminClient,['/api/finance/transactions','/api/finance/invoices','/api/finance/categories','/api/finance/rules',"credentials:'include'"])
 
 if(await exists('src/mocks'))failures.push('src/mocks deve permanecer removido; dados reutilizáveis de desenvolvimento pertencem a @portallander/mockup.')
 for(const required of [
@@ -150,8 +150,8 @@ for(const required of [
 ])if(!(await exists(required)))failures.push(`Arquitetura global de mock data exige ${required}.`)
 
 const mediaKitPage=await read('src/features/site-manager/pages/MediaKitPage.tsx')
-requireTokens('MediaKitPage.tsx',mediaKitPage,['data-testid="media-kit-automatic-metrics"','Audiência e métricas com proveniência','Métrica','Valor','Provider','Conta','Atualizado em','Status','Compatibilidade de dados manuais legados'])
-for(const forbidden of ['Adicionar métrica','Metric key','Account ID','Property ID'])if(mediaKitPage.includes(forbidden))failures.push(`Mídia Kit não pode exigir configuração técnica manual no fluxo principal: ${forbidden}`)
+requireTokens('MediaKitPage.tsx',mediaKitPage,['data-testid="media-kit-automatic-metrics"','Os números abaixo são selecionados automaticamente','Última atualização','Nenhum dado real de audiência está disponível','Ausência de dado não vira zero','Contexto editorial da audiência'])
+for(const forbidden of ['Adicionar métrica','Metric key','Account ID','Property ID','<span>Provider</span>','<span>Conta</span>','Compatibilidade de dados manuais legados','Usuários mensais','Visualizações mensais','Alcance social','Valor manual'])if(mediaKitPage.includes(forbidden))failures.push(`Mídia Kit não pode reintroduzir configuração técnica ou audiência manual no fluxo principal: ${forbidden}`)
 
 if(failures.length){console.error('Falha nos boundaries da aplicação:');failures.forEach(item=>console.error(`- ${item}`));process.exit(1)}
-console.log('Application boundaries OK — administração unificada; @portallander/mockup canônico; Mídia Kit automático; sem arquitetura legada de workspaces ou src/mocks')
+console.log('Application boundaries OK — administração unificada; @portallander/mockup canônico; Mídia Kit automático sem configuração técnica/manual; sem arquitetura legada de workspaces ou src/mocks')

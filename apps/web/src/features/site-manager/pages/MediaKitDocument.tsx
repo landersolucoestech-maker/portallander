@@ -4,9 +4,14 @@ import {portalLogo} from '../../../shared/branding/assets/brandAsset'
 import type {MediaKitDraft,MediaKitResolvedMetric} from '../mediaKitDomain'
 
 const PAGE_COUNT=9
+const realMetricStatuses=new Set<string>(['LIVE','CACHED','STALE'])
 const metricValue=(metric:MediaKitResolvedMetric)=>metric.value===null?'MÉTRICA NÃO DISPONÍVEL':new Intl.NumberFormat('pt-BR',{maximumFractionDigits:2}).format(metric.value)
 const metricUpdatedAt=(metric:MediaKitResolvedMetric)=>metric.normalizedAt||metric.collectedAt||metric.providerUpdatedAt||metric.periodEnd
 const availabilityLabel=(value:'AVAILABLE'|'UNAVAILABLE'|'UNKNOWN'|undefined)=>value==='AVAILABLE'?'DISPONÍVEL COMERCIALMENTE':value==='UNAVAILABLE'?'INDISPONÍVEL':'DISPONIBILIDADE NÃO CONFIRMADA'
+const isEligibleAutomaticMetric=(metric:MediaKitResolvedMetric)=>{
+  const evidence=`${metric.sourceReference??''} ${JSON.stringify(metric.provenance??{})}`.toLowerCase()
+  return Boolean(metric.value!==null&&metric.provider&&metric.providerAccountId&&!metric.isManual&&metric.sourceType==='provider'&&realMetricStatuses.has(metric.dataStatus)&&!evidence.includes('mock')&&!evidence.includes('fixture')&&!evidence.includes('demo'))
+}
 
 function Page({number,eyebrow,title,children,className=''}:{number:number;eyebrow:string;title:string;children:ReactNode;className?:string}){
   return <section className={`mk-page ${className}`.trim()} data-media-kit-page={number} aria-label={`Página ${number} de ${PAGE_COUNT}`}><header className="mk-page-header"><span>{eyebrow}</span><b>{String(number).padStart(2,'0')}</b></header><h2>{title}</h2>{children}<footer><span>PORTAL LANDER · MÍDIA KIT</span><span>{String(number).padStart(2,'0')}</span></footer></section>
@@ -17,7 +22,7 @@ function PreviewFrame({number,children}:{number:number;children:ReactNode}){
 }
 
 export function MediaKitDocument({kit,selectedPage}:{kit:MediaKitDraft;selectedPage?:number}){
- const metrics=kit.audience.snapshot.filter(metric=>metric.value!==null&&!metric.isManual&&metric.sourceType==='provider')
+ const metrics=kit.audience.snapshot.filter(isEligibleAutomaticMetric)
  return <main className="mk-document" aria-label="Preview do Mídia Kit" {...(selectedPage?{'data-selected-page':selectedPage}:{})}>
   <PreviewFrame number={1}><section className="mk-page mk-cover" data-media-kit-page={1} aria-label={`Página 1 de ${PAGE_COUNT}`}><img src={portalLogo} alt="Portal Lander"/><div><span>MÍDIA · PUBLICIDADE · AUDIÊNCIA</span><h1>{kit.identity.title}</h1><strong>{kit.identity.subtitle} {kit.identity.versionLabel}</strong></div><footer><span>DOCUMENTO COMERCIAL</span><span>01</span></footer></section></PreviewFrame>
   <PreviewFrame number={2}><Page number={2} eyebrow="SOBRE" title="SOBRE O PORTAL LANDER"><div className="mk-lead"><p>{kit.institutional.summary||'Apresentação institucional ainda não preenchida.'}</p><p>{kit.institutional.positioning||'Posicionamento comercial ainda não preenchido.'}</p></div><div className="mk-rule"/><p className="mk-note">Uma apresentação comercial direta do Portal Lander para marcas e parceiros.</p></Page></PreviewFrame>

@@ -62,8 +62,8 @@ export function deriveCrmSummary(leads:readonly Lead[],now=new Date()){
  const active=leads.filter(item=>!CLOSED_LEAD_STATUSES.has(item.status))
  const closed=leads.filter(item=>item.status==='fechado')
  const followUps=active.filter(item=>Boolean(item.nextFollowUp)).map(item=>({...item,followUpDay:normalizeDay(item.nextFollowUp)}))
- const newLeadsThisMonth=leads.filter(item=>item.createdAt.startsWith(month)).length
- const previousMonthNewLeads=leads.filter(item=>item.createdAt.startsWith(previousMonth)).length
+ const newLeadsThisMonth=leads.filter(item=>(item.createdAt??'').startsWith(month)).length
+ const previousMonthNewLeads=leads.filter(item=>(item.createdAt??'').startsWith(previousMonth)).length
  const pipelineValue=active.reduce((sum,item)=>sum+(typeof item.estimatedValue==='number'?item.estimatedValue:0),0)
  return {
   pipeline,

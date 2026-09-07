@@ -13,6 +13,11 @@ import './media-kit.css'
 
 const metricValue=(metric:MediaKitResolvedMetric)=>metric.value===null?'INDISPONÍVEL':new Intl.NumberFormat('pt-BR',{maximumFractionDigits:2}).format(metric.value)
 const metricUpdatedAt=(metric:MediaKitResolvedMetric)=>metric.normalizedAt||metric.collectedAt||metric.providerUpdatedAt||metric.periodEnd
+const realMetricStatuses=new Set<string>(['LIVE','CACHED','STALE'])
+const isEligibleAutomaticMetric=(metric:MediaKitResolvedMetric)=>{
+  const evidence=`${metric.sourceReference??''} ${JSON.stringify(metric.provenance??{})}`.toLowerCase()
+  return Boolean(metric.value!==null&&metric.provider&&metric.providerAccountId&&!metric.isManual&&metric.sourceType==='provider'&&realMetricStatuses.has(metric.dataStatus)&&!evidence.includes('mock')&&!evidence.includes('fixture')&&!evidence.includes('demo'))
+}
 
 export function MediaKitPage(){
   const navigate=useNavigate()
@@ -34,7 +39,7 @@ export function MediaKitPage(){
 
   if(!draft)return <AdminShell area="cms" items={SITE_MANAGER_NAV} header={{title:'Mídia Kit',description:'Gerencie a apresentação comercial do Portal Lander.'}}>{error?<AdminNotice title="Falha ao carregar o Mídia Kit" description={error}/>:<AdminNotice title="Carregando Mídia Kit" description="Sincronizando a versão administrativa disponível."/>}</AdminShell>
 
-  const automaticMetrics=draft.audience.snapshot.filter(metric=>metric.value!==null&&!metric.isManual&&metric.sourceType!=='manual')
+  const automaticMetrics=draft.audience.snapshot.filter(isEligibleAutomaticMetric)
   const patch=(next:MediaKitDraft)=>{setDraft({...next,status:'draft'});setSaved(false);setNotice('');setError('')}
   const patchPlacement=(placementId:string,commercialAvailability:'AVAILABLE'|'UNAVAILABLE'|'UNKNOWN',notes?:string)=>patch({...draft,inventory:{placements:draft.inventory.placements.map(item=>item.placementId===placementId?{...item,commercialAvailability,...(notes!==undefined?{notes}:{})}:item)}})
   const saveDraft=async()=>{
@@ -60,7 +65,7 @@ export function MediaKitPage(){
   const busy=Boolean(operation)
 
   return <AdminShell area="cms" items={SITE_MANAGER_NAV} header={{title:'Mídia Kit',description:'Edite a apresentação comercial; audiência e canais são preenchidos automaticamente a partir dos dados reais do Portal.'}}>
-    <AdminNotice title={persistent?'Mídia Kit conectado':'Rascunho editorial local'} description={persistent?'Os textos e decisões comerciais são editáveis aqui. Os números de audiência não são digitados no Mídia Kit: eles vêm automaticamente das integrações e permanecem indisponíveis quando não há dado real elegível.':'Este ambiente permite editar o conteúdo do documento. Métricas só aparecem quando uma fonte real elegível estiver disponível; o Mídia Kit não cria números de demonstração nem substitui ausência por zero.'}/>
+    <AdminNotice title={persistent?'Mídia Kit versionado e persistente':'Rascunho editorial local'} description={persistent?'Os textos e decisões comerciais são editáveis aqui. Os números de audiência não são digitados no Mídia Kit: eles vêm automaticamente das integrações e permanecem indisponíveis quando não há dado real elegível.':'Este ambiente permite editar o conteúdo do documento. Métricas só aparecem quando uma fonte real elegível estiver disponível; o Mídia Kit não cria números de demonstração nem substitui ausência por zero.'}/>
     {saved&&<AdminNotice title="Rascunho salvo" description={persistent?'As alterações editoriais estão persistidas no backend e ainda não foram publicadas.':'As alterações editoriais foram salvas neste navegador.'}/>} 
     {notice&&<AdminNotice title="Operação concluída" description={notice}/>} 
     {error&&<AdminNotice title="Falha na operação" description={error}/>} 

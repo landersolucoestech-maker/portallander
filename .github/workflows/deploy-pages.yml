@@ -174,7 +174,9 @@ jobs:
           import {chromium} from '@playwright/test'
 
           const base=process.env.DEPLOY_URL
+          const deployedSha=process.env.GITHUB_SHA
           if(!base)throw new Error('DEPLOY_URL was not provided by deploy-pages.')
+          if(!deployedSha)throw new Error('GITHUB_SHA was not provided by Actions.')
           const browser=await chromium.launch({headless:true})
           const page=await browser.newPage({viewport:{width:1440,height:1000}})
           const pageErrors=[]
@@ -242,9 +244,36 @@ jobs:
               await page.getByRole('region',{name:'Em Destaque'}).waitFor({state:'visible',timeout:15000})
               if((await page.locator('body').innerText()).includes('Dados operacionais indisponíveis.'))throw new Error('Development Pages rendered production fail-closed screen.')
             })
-            await visit('#/app/login','02-dashboard.png',async()=>{
+            await visit(`?sha=${deployedSha}#/app/login`,'dashboard-final-reference.png',async()=>{
               await page.waitForURL(/#\/app\/dashboard/,{timeout:15000})
               await page.getByText('Dashboard',{exact:true}).first().waitFor({state:'visible',timeout:15000})
+              const kpis=page.locator('[data-dashboard-kpi]')
+              if(await kpis.count()!==5)throw new Error(`DASHBOARD KPI COUNT ${(await kpis.count())} != 5`)
+              const labels=await kpis.locator('[data-dashboard-kpi-label]').evaluateAll(nodes=>nodes.map(node=>(node.textContent??'').replace(/\s+/g,' ').trim()))
+              const expected=['Novos Leads','Negociações','Faturamento (Mês)','Conteúdos Publicados','Visitas no Site (Mês)']
+              labels.forEach((label,index)=>console.log(`RENDERED KPI ${index+1} = ${label}`))
+              if(JSON.stringify(labels)!==JSON.stringify(expected))throw new Error(`Published dashboard KPI order mismatch: ${JSON.stringify(labels)}`)
+
+              const performance=page.getByTestId('dashboard-analytics-region')
+              const activities=page.getByTestId('dashboard-recent-activity')
+              const leads=page.getByTestId('dashboard-lead-distribution')
+              const featured=page.getByTestId('dashboard-featured-content')
+              const pending=page.getByTestId('dashboard-pending-attention')
+              const [performanceBox,activitiesBox,leadBox,featuredBox,pendingBox]=await Promise.all([performance,activities,leads,featured,pending].map(locator=>locator.boundingBox()))
+              if(!performanceBox||!activitiesBox||!leadBox||!featuredBox||!pendingBox)throw new Error('Published dashboard structural bounding boxes are incomplete.')
+              if(Math.abs(performanceBox.y-activitiesBox.y)>6||performanceBox.x>=activitiesBox.x||performanceBox.width<=activitiesBox.width*1.45)throw new Error('Published dashboard row 2 geometry does not match the approved reference.')
+              if(Math.abs(leadBox.y-featuredBox.y)>6||Math.abs(featuredBox.y-pendingBox.y)>6||!(leadBox.x<featuredBox.x&&featuredBox.x<pendingBox.x))throw new Error('Published dashboard row 3 geometry does not match the approved reference.')
+              const bottomWidths=[leadBox.width,featuredBox.width,pendingBox.width]
+              const averageBottom=bottomWidths.reduce((sum,value)=>sum+value,0)/bottomWidths.length
+              if((Math.max(...bottomWidths)-Math.min(...bottomWidths))/averageBottom>.10)throw new Error('Published dashboard bottom panel widths diverge by more than 10%.')
+              for(const heading of ['Hoje & Próximo','Funil Comercial','Alertas & Prioridades','Conteúdo & Publicações','Quick Actions'])if(await page.getByRole('heading',{name:heading,exact:true}).count())throw new Error(`Rejected dashboard surface is still published: ${heading}`)
+              console.log(`PERFORMANCE BOX = ${Math.round(performanceBox.x)},${Math.round(performanceBox.y)},${Math.round(performanceBox.width)},${Math.round(performanceBox.height)}`)
+              console.log(`ACTIVITIES BOX = ${Math.round(activitiesBox.x)},${Math.round(activitiesBox.y)},${Math.round(activitiesBox.width)},${Math.round(activitiesBox.height)}`)
+              console.log(`BOTTOM PANEL 1 = Distribuição de Leads @ ${Math.round(leadBox.x)},${Math.round(leadBox.y)},${Math.round(leadBox.width)},${Math.round(leadBox.height)}`)
+              console.log(`BOTTOM PANEL 2 = Conteúdos em Destaque @ ${Math.round(featuredBox.x)},${Math.round(featuredBox.y)},${Math.round(featuredBox.width)},${Math.round(featuredBox.height)}`)
+              console.log(`BOTTOM PANEL 3 = Pendências @ ${Math.round(pendingBox.x)},${Math.round(pendingBox.y)},${Math.round(pendingBox.width)},${Math.round(pendingBox.height)}`)
+              console.log(`PAGES_DASHBOARD_CACHE_BUST_SHA=${deployedSha}`)
+              console.log('PAGES_DASHBOARD_REFERENCE=PASS')
             })
             await visit('#/app/crm','03-crm.png')
             await visit('#/app/finance','04-finance.png')

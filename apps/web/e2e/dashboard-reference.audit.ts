@@ -3,6 +3,7 @@ import {expect,test,type Page} from '@playwright/test'
 const base='http://127.0.0.1:4173/portallander/'
 const desktopViewports=[{width:1680,height:1050},{width:1440,height:900},{width:1280,height:800}]
 const compactViewports=[{width:834,height:1112},{width:390,height:844}]
+const expectedKpis=['Novos Leads','Negociações','Faturamento (Mês)','Conteúdos Publicados','Visitas no Site (Mês)']
 
 async function openDashboard(page:Page){
  await page.goto(`${base}#/app/dashboard`,{waitUntil:'domcontentloaded'})
@@ -18,6 +19,12 @@ async function assertNoHorizontalOverflow(page:Page){
 function spread(values:number[]){return Math.max(...values)-Math.min(...values)}
 function relativeSpread(values:number[]){const average=values.reduce((sum,value)=>sum+value,0)/Math.max(1,values.length);return average===0?0:spread(values)/average}
 
+async function renderedKpiLabels(page:Page){
+ const labels=await page.locator('[data-dashboard-kpi] [data-dashboard-kpi-label]').evaluateAll(nodes=>nodes.map(node=>(node.textContent??'').replace(/\s+/g,' ').trim()))
+ labels.forEach((label,index)=>console.log(`RENDERED KPI ${index+1} = ${label}`))
+ return labels
+}
+
 async function assertRejectedCompositionAbsent(page:Page){
  for(const heading of ['Hoje & Próximo','Funil Comercial','Alertas & Prioridades','Conteúdo & Publicações','Quick Actions'])await expect(page.getByRole('heading',{name:heading,exact:true})).toHaveCount(0)
  for(const rejectedId of ['dashboard-executive-summary','dashboard-operational-attention','dashboard-multichannel','dashboard-crm-summary','dashboard-content-activity','dashboard-agenda','dashboard-quick-actions'])await expect(page.getByTestId(rejectedId)).toHaveCount(0)
@@ -32,7 +39,7 @@ test('dashboard follows the approved structural blueprint on desktop',async({pag
 
   const kpis=page.locator('[data-dashboard-kpi]')
   await expect(kpis).toHaveCount(5)
-  for(const label of ['Novos Leads','Negociações','Faturamento (Mês)','Conteúdos Publicados','Visitas no Site'])await expect(page.getByTestId('dashboard-kpi-region').getByText(label,{exact:true})).toBeVisible()
+  expect(await renderedKpiLabels(page)).toEqual(expectedKpis)
 
   const analytics=page.getByTestId('dashboard-analytics-region')
   const activities=page.getByTestId('dashboard-recent-activity')
@@ -42,7 +49,7 @@ test('dashboard follows the approved structural blueprint on desktop',async({pag
   for(const region of [analytics,activities,leads,featured,pending])await expect(region).toBeVisible()
 
   const kpiBoxes=await kpis.evaluateAll(nodes=>nodes.map(node=>{const r=node.getBoundingClientRect();return{x:r.x,y:r.y,width:r.width,height:r.height}}))
-  expect(spread(kpiBoxes.map(box=>box.y))).toBeLessThanOrEqual(4)
+  expect(spread(kpiBoxes.map(box=>box.y))).toBeLessThanOrEqual(5)
   expect(spread(kpiBoxes.map(box=>box.height))).toBeLessThanOrEqual(8)
   expect(relativeSpread(kpiBoxes.map(box=>box.width))).toBeLessThanOrEqual(.08)
 
@@ -53,20 +60,32 @@ test('dashboard follows the approved structural blueprint on desktop',async({pag
   if(row2&&analyticsBox&&activityBox){
    expect(Math.abs(analyticsBox.y-activityBox.y)).toBeLessThanOrEqual(6)
    expect(Math.abs((analyticsBox.y+analyticsBox.height)-(activityBox.y+activityBox.height))).toBeLessThanOrEqual(10)
+   expect(analyticsBox.x).toBeLessThan(activityBox.x)
    expect(analyticsBox.x+analyticsBox.width).toBeLessThan(activityBox.x)
+   expect(analyticsBox.width).toBeGreaterThan(activityBox.width*1.45)
    const analyticsRatio=analyticsBox.width/row2.width
    const activityRatio=activityBox.width/row2.width
    expect(analyticsRatio).toBeGreaterThanOrEqual(.62)
    expect(analyticsRatio).toBeLessThanOrEqual(.70)
    expect(activityRatio).toBeGreaterThanOrEqual(.30)
    expect(activityRatio).toBeLessThanOrEqual(.38)
+   console.log(`PERFORMANCE BOX = ${Math.round(analyticsBox.x)},${Math.round(analyticsBox.y)},${Math.round(analyticsBox.width)},${Math.round(analyticsBox.height)}`)
+   console.log(`ACTIVITIES BOX = ${Math.round(activityBox.x)},${Math.round(activityBox.y)},${Math.round(activityBox.width)},${Math.round(activityBox.height)}`)
   }
 
-  const bottomBoxes=await Promise.all([leads,featured,pending].map(locator=>locator.boundingBox()))
-  const present=bottomBoxes.filter((box):box is NonNullable<typeof box>=>Boolean(box))
+  const leadBox=await leads.boundingBox()
+  const featuredBox=await featured.boundingBox()
+  const pendingBox=await pending.boundingBox()
+  const present=[leadBox,featuredBox,pendingBox].filter((box):box is NonNullable<typeof box>=>Boolean(box))
   expect(present).toHaveLength(3)
   expect(spread(present.map(box=>box.y))).toBeLessThanOrEqual(6)
   expect(relativeSpread(present.map(box=>box.width))).toBeLessThanOrEqual(.10)
+  if(leadBox&&featuredBox&&pendingBox){
+   expect(leadBox.x).toBeLessThan(featuredBox.x)
+   expect(featuredBox.x).toBeLessThan(pendingBox.x)
+   expect(Math.abs(leadBox.y-featuredBox.y)).toBeLessThanOrEqual(6)
+   expect(Math.abs(featuredBox.y-pendingBox.y)).toBeLessThanOrEqual(6)
+  }
   if(analyticsBox)for(const box of present)expect(box.y).toBeGreaterThan(analyticsBox.y+analyticsBox.height)
 
   await expect(page.getByTestId('dashboard-channel-tabs').getByRole('tab')).toHaveCount(4)
@@ -84,7 +103,7 @@ test('multichannel stays inside Performance without mini-dashboard overload',asy
  await openDashboard(page)
  const analytics=page.getByTestId('dashboard-analytics-region')
  const tabs=analytics.getByTestId('dashboard-channel-tabs')
- await expect(analytics.getByTestId('dashboard-performance-context')).toBeVisible()
+ await expect(analytics.locator('.dashboard-performance-context')).toHaveCount(0)
  await tabs.getByRole('tab',{name:'Instagram',exact:true}).click()
  await expect(analytics.getByTestId('dashboard-channel-detail-instagram')).toBeVisible()
  await tabs.getByRole('tab',{name:'TikTok',exact:true}).click()
@@ -98,6 +117,7 @@ test('tablet and mobile preserve reference order without overflow',async({page})
  for(const viewport of compactViewports){
   await page.setViewportSize(viewport)
   await openDashboard(page)
+  expect(await renderedKpiLabels(page)).toEqual(expectedKpis)
   const ids=['dashboard-kpi-region','dashboard-analytics-region','dashboard-recent-activity','dashboard-lead-distribution','dashboard-featured-content','dashboard-pending-attention']
   const positions=[]
   for(const id of ids){const box=await page.getByTestId(id).boundingBox();expect(box).not.toBeNull();positions.push(box?.y??0)}

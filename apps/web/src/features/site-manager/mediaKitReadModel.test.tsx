@@ -25,8 +25,8 @@ vi.mock('../analytics/client',()=>({
 
 vi.mock('./readModel',()=>({siteManagerReadModel:{pages:[{slug:'sobre',description:'Resumo canônico do portal'}]}}))
 
-function metric(provider:string,accountId:string,metricKey:string,value:number,{id=`${provider}-${metricKey}`,periodStart='2026-08-01T00:00:00.000Z',periodEnd='2026-09-01T00:00:00.000Z'}={}):AnalyticsMetric{
- return {id,metricKey,value,unit:'count',provider,providerAccountId:accountId,providerPropertyId:null,scopeType:'portal',scopeId:'portal',periodStart,periodEnd,granularity:'month',timezone:'America/Sao_Paulo',dimensions:{},filters:{},sourceType:'provider',sourceReference:`test:${provider}:${metricKey}`,collectedAt:periodEnd,providerUpdatedAt:null,normalizedAt:periodEnd,freshnessStatus:'FRESH',dataStatus:'CACHED',syncId:null,provenance:{automatic:true},isEstimated:false,isManual:false}
+function metric(provider:string,accountId:string,metricKey:string,value:number,{id=`${provider}-${metricKey}`,periodStart='2026-08-01T00:00:00.000Z',periodEnd='2026-09-01T00:00:00.000Z',dataStatus='CACHED' as AnalyticsMetric['dataStatus'],sourceReference=`test:${provider}:${metricKey}`,provenance={automatic:true} as Record<string,unknown>}={}):AnalyticsMetric{
+ return {id,metricKey,value,unit:'count',provider,providerAccountId:accountId,providerPropertyId:null,scopeType:'portal',scopeId:'portal',periodStart,periodEnd,granularity:'month',timezone:'America/Sao_Paulo',dimensions:{},filters:{},sourceType:'provider',sourceReference,collectedAt:periodEnd,providerUpdatedAt:null,normalizedAt:periodEnd,freshnessStatus:'FRESH',dataStatus,syncId:null,provenance,isEstimated:false,isManual:false}
 }
 function manualSnapshot(metricKey:string,value:number):MediaKitResolvedMetric{
  return {id:`legacy-${metricKey}`,label:`Legacy ${metricKey}`,metricKey,value,unit:'count',provider:null,providerAccountId:null,providerPropertyId:null,periodStart:'2026-08-01',periodEnd:'2026-09-01',granularity:'custom',sourceType:'manual',sourceReference:'legacy',collectedAt:null,providerUpdatedAt:null,normalizedAt:null,freshnessStatus:'UNKNOWN',dataStatus:'MANUAL',syncId:null,provenance:{legacy:true},isEstimated:false,isManual:true}
@@ -53,7 +53,8 @@ describe('mediaKitReadModel automatic canonical integration snapshots',()=>{
   expect(followerA?.provenance.automatic).toBe(true)
   expect(htmlA).toContain('Seguidores')
   expect(htmlA).toContain('128.400')
-  expect(htmlA).toContain('Instagram')
+  expect(htmlA).not.toContain('ig-portal')
+  expect(htmlA).not.toContain('CACHED')
 
   state.analytics=[metric('Instagram','ig-portal','followers',130250)]
   const b=await mediaKitReadModel.snapshot(structuredClone(defaultMediaKitDraft))
@@ -94,19 +95,29 @@ describe('mediaKitReadModel automatic canonical integration snapshots',()=>{
   expect(html).toContain('MÉTRICA NÃO DISPONÍVEL')
  })
 
- it('gives automatic canonical metrics precedence over legacy manual values and uses legacy only as fallback',async()=>{
+ it('discards legacy manual values even when no automatic integration metric exists',async()=>{
   const source=structuredClone(defaultMediaKitDraft)
+  source.audience.monthlyUsers='999999'
+  source.audience.monthlyViews='888888'
+  source.audience.socialReach='777777'
   source.audience.snapshot=[manualSnapshot('followers',999)]
-  state.analytics=[metric('Instagram','ig-portal','followers',128400)]
-  const automatic=await mediaKitReadModel.snapshot(source)
-  expect(automatic.audience.snapshot.some(item=>item.metricKey==='followers'&&item.isManual)).toBe(false)
-  expect(automatic.audience.snapshot.find(item=>item.metricKey==='followers')?.value).toBe(128400)
+  source.audience.metrics=[{id:'legacy-binding',label:'Seguidores',metricKey:'followers',unit:'count',sourceMode:'manual',provider:'',providerAccountId:'',providerPropertyId:'',scopeType:'portal',scopeId:'portal',manualValue:'999',manualPeriodStart:'2026-08-01',manualPeriodEnd:'2026-09-01'}]
+  const kit=await mediaKitReadModel.snapshot(source)
+  expect(kit.audience.snapshot).toEqual([])
+  expect(kit.audience.metrics).toEqual([])
+  expect(kit.audience.monthlyUsers).toBe('')
+  expect(kit.audience.monthlyViews).toBe('')
+  expect(kit.audience.socialReach).toBe('')
+ })
 
-  state.analytics=[]
-  const fallback=await mediaKitReadModel.snapshot(source)
-  expect(fallback.audience.snapshot).toHaveLength(1)
-  expect(fallback.audience.snapshot[0].value).toBe(999)
-  expect(fallback.audience.snapshot[0].dataStatus).toBe('MANUAL')
+ it('rejects mock, fixture and demo metrics instead of relabeling them as real',async()=>{
+  state.analytics=[
+   metric('Instagram','ig-portal','followers',555555,{id:'mock',dataStatus:'MOCK',sourceReference:'mock:instagram'}),
+   metric('YouTube','yt-channel','followers',444444,{id:'fixture',sourceReference:'fixture:youtube',provenance:{fixture:true}}),
+   metric('TikTok','tt-portal','reach',333333,{id:'demo',sourceReference:'provider:tiktok',provenance:{environment:'demo'}}),
+  ]
+  const kit=await mediaKitReadModel.snapshot(structuredClone(defaultMediaKitDraft))
+  expect(kit.audience.snapshot).toEqual([])
  })
 
  it('uses the same canonical Instagram snapshot value consumed by Marketing aggregation',async()=>{

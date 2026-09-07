@@ -4,6 +4,7 @@ import {HttpError} from './editorialService.js'
 
 const CANONICAL_PLACEMENTS=new Set(['home-sidebar','editorial-sidebar','advertise-here'])
 const COMMERCIAL_AVAILABILITY=new Set(['AVAILABLE','UNAVAILABLE','UNKNOWN'])
+const REAL_METRIC_STATUSES=new Set(['LIVE','CACHED','STALE'])
 const DEFAULT_INVENTORY=[
   {placementId:'home-sidebar',commercialAvailability:'UNKNOWN',notes:''},
   {placementId:'editorial-sidebar',commercialAvailability:'UNKNOWN',notes:''},
@@ -26,42 +27,16 @@ const text=value=>typeof value==='string'?value.trim():''
 const object=value=>value&&typeof value==='object'&&!Array.isArray(value)?value:{}
 const list=value=>Array.isArray(value)?value:[]
 const nullableText=value=>text(value)||null
-const validDate=value=>{if(!value)return null;const date=new Date(value);return Number.isNaN(date.getTime())?null:date}
-const numeric=value=>{if(value===null||value===undefined||value==='')return null;const result=Number(value);return Number.isFinite(result)?result:null}
 const iso=value=>value?.toISOString?.()??value??null
 const automaticMetricKeySet=new Set(MEDIA_KIT_AUTOMATIC_METRIC_KEYS)
+const looksSynthetic=(sourceReference,provenance)=>{
+  const evidence=`${sourceReference??''} ${JSON.stringify(provenance??{})}`.toLowerCase()
+  return evidence.includes('mock')||evidence.includes('fixture')||evidence.includes('demo')
+}
 
 const normalizeFormat=(value,index)=>{
   if(!value||typeof value!=='object')throw new HttpError(400,`Formato publicitário inválido na posição ${index+1}.`,'MEDIA_KIT_FORMAT_INVALID')
   return {id:text(value.id)||`format-${index+1}`,name:text(value.name),placement:text(value.placement),dimensions:text(value.dimensions),description:text(value.description)}
-}
-
-const normalizeBinding=(value,index)=>{
-  if(!value||typeof value!=='object')throw new HttpError(400,`Métrica do Mídia Kit inválida na posição ${index+1}.`,'MEDIA_KIT_METRIC_INVALID')
-  const sourceMode=value.sourceMode==='manual'?'manual':'analytics'
-  const metricKey=text(value.metricKey)
-  if(!metricKey)throw new HttpError(400,`Métrica ${index+1} sem metricKey.`,'MEDIA_KIT_METRIC_KEY_REQUIRED')
-  const provider=text(value.provider),providerAccountId=text(value.providerAccountId),providerPropertyId=text(value.providerPropertyId)
-  const manualValue=text(value.manualValue),manualPeriodStart=text(value.manualPeriodStart),manualPeriodEnd=text(value.manualPeriodEnd)
-  if(sourceMode==='manual'){
-    const parsedValue=numeric(manualValue),start=validDate(manualPeriodStart),end=validDate(manualPeriodEnd)
-    if(parsedValue===null||!start||!end||end<=start)throw new HttpError(400,`Métrica manual ${index+1} exige valor numérico e período válido.`,'MEDIA_KIT_MANUAL_METRIC_INVALID')
-  }
-  return {
-    id:text(value.id)||`metric-${index+1}`,
-    label:text(value.label)||metricKey,
-    metricKey,
-    unit:text(value.unit)||'count',
-    sourceMode,
-    provider,
-    providerAccountId,
-    providerPropertyId,
-    scopeType:text(value.scopeType)||'portal',
-    scopeId:text(value.scopeId)||'portal',
-    manualValue,
-    manualPeriodStart,
-    manualPeriodEnd,
-  }
 }
 
 const normalizeInventoryItem=(value,index)=>{
@@ -79,7 +54,7 @@ export const normalizePayload=value=>{
   return {
     identity:{title:text(identity.title)||DEFAULT_PAYLOAD.identity.title,subtitle:text(identity.subtitle)||DEFAULT_PAYLOAD.identity.subtitle,versionLabel:text(identity.versionLabel)||DEFAULT_PAYLOAD.identity.versionLabel},
     institutional:{title:text(institutional.title)||DEFAULT_PAYLOAD.institutional.title,summary:text(institutional.summary),positioning:text(institutional.positioning)},
-    audience:{monthlyUsers:text(audience.monthlyUsers),monthlyViews:text(audience.monthlyViews),socialReach:text(audience.socialReach),notes:text(audience.notes),metrics:list(audience.metrics).map(normalizeBinding),snapshot:[],snapshotResolvedAt:null},
+    audience:{monthlyUsers:'',monthlyViews:'',socialReach:'',notes:text(audience.notes),metrics:[],snapshot:[],snapshotResolvedAt:null},
     inventory:{placements},
     newsletter:{enabled:newsletter.enabled!==false,description:text(newsletter.description)},
     social:{channelIds:list(social.channelIds).map(text).filter(Boolean)},
@@ -100,25 +75,8 @@ async function getLatest(pool,{status}={}){
   return rows[0]??null
 }
 
-function unavailableSnapshot(binding,resolvedAt){return {id:binding.id,label:binding.label,metricKey:binding.metricKey,value:null,unit:binding.unit,provider:binding.provider||null,providerAccountId:binding.providerAccountId||null,providerPropertyId:binding.providerPropertyId||null,periodStart:null,periodEnd:null,granularity:null,sourceType:'unavailable',sourceReference:null,collectedAt:null,providerUpdatedAt:null,normalizedAt:resolvedAt,freshnessStatus:'UNKNOWN',dataStatus:'UNAVAILABLE',syncId:null,provenance:{reason:'NO_MATCHING_METRIC'},isEstimated:false,isManual:false}}
-
 function metricRowSnapshot(row,{id=`media-kit:auto:${row.id}`,label=metricDefinition(row.metric_key).label}={}){
-  return {id,label,metricKey:row.metric_key,value:row.value===null?null:Number(row.value),unit:row.unit,provider:row.provider||null,providerAccountId:row.provider_account_id||null,providerPropertyId:row.provider_property_id||null,periodStart:iso(row.period_start),periodEnd:iso(row.period_end),granularity:row.granularity,sourceType:row.source_type==='derived'?'derived':'provider',sourceReference:row.source_reference,collectedAt:iso(row.collected_at),providerUpdatedAt:iso(row.provider_updated_at),normalizedAt:iso(row.normalized_at),freshnessStatus:row.freshness_status,dataStatus:row.data_status,syncId:row.sync_id||null,provenance:{...(row.provenance||{}),resolvedForMediaKit:true,automatic:true,canonicalMetricId:String(row.id)},isEstimated:Boolean(row.is_estimated),isManual:false}
-}
-
-async function resolveMetricBinding(client,binding,resolvedAt){
-  if(binding.sourceMode==='manual'){
-    const value=numeric(binding.manualValue),periodStart=validDate(binding.manualPeriodStart),periodEnd=validDate(binding.manualPeriodEnd)
-    if(value===null||!periodStart||!periodEnd||periodEnd<=periodStart)throw new HttpError(400,'Métrica manual inválida no momento da publicação.','MEDIA_KIT_MANUAL_METRIC_INVALID')
-    return {id:binding.id,label:binding.label,metricKey:binding.metricKey,value,unit:binding.unit,provider:null,providerAccountId:null,providerPropertyId:null,periodStart:periodStart.toISOString(),periodEnd:periodEnd.toISOString(),granularity:'custom',sourceType:'manual',sourceReference:`media-kit:${binding.id}:v-manual`,collectedAt:resolvedAt,providerUpdatedAt:null,normalizedAt:resolvedAt,freshnessStatus:'UNKNOWN',dataStatus:'MANUAL',syncId:null,provenance:{collectionMethod:'manual',resolvedForMediaKit:true,legacyCompatibility:true},isEstimated:false,isManual:true}
-  }
-  if(!binding.provider||!binding.providerAccountId)return unavailableSnapshot(binding,resolvedAt)
-  const where=['metric_key=$1','scope_type=$2','scope_id=$3',`data_status<>'MOCK'`,'provider=$4','provider_account_id=$5'],params=[binding.metricKey,binding.scopeType,binding.scopeId,binding.provider,binding.providerAccountId]
-  if(binding.providerPropertyId){params.push(binding.providerPropertyId);where.push(`provider_property_id=$${params.length}`)}
-  const {rows}=await client.query(`select * from analytics_metrics where ${where.join(' and ')} order by period_end desc,normalized_at desc limit 1`,params)
-  const row=rows[0]
-  if(!row)return unavailableSnapshot(binding,resolvedAt)
-  return metricRowSnapshot(row,{id:binding.id,label:binding.label})
+  return {id,label,metricKey:row.metric_key,value:row.value===null?null:Number(row.value),unit:row.unit,provider:row.provider||null,providerAccountId:row.provider_account_id||null,providerPropertyId:row.provider_property_id||null,periodStart:iso(row.period_start),periodEnd:iso(row.period_end),granularity:row.granularity,sourceType:'provider',sourceReference:row.source_reference,collectedAt:iso(row.collected_at),providerUpdatedAt:iso(row.provider_updated_at),normalizedAt:iso(row.normalized_at),freshnessStatus:row.freshness_status,dataStatus:row.data_status,syncId:row.sync_id||null,provenance:{...(row.provenance||{}),resolvedForMediaKit:true,automatic:true,canonicalMetricId:String(row.id)},isEstimated:Boolean(row.is_estimated),isManual:false}
 }
 
 async function automaticAudienceSnapshot(client){
@@ -136,11 +94,13 @@ async function automaticAudienceSnapshot(client){
       and data_status in ('LIVE','CACHED','STALE')
     order by provider,provider_account_id,coalesce(provider_property_id,''),metric_key,period_end desc,normalized_at desc,collected_at desc nulls last,created_at desc
   `,[MEDIA_KIT_AUTOMATIC_METRIC_KEYS])
-  return rows.map(row=>metricRowSnapshot(row))
+  return rows.filter(row=>!looksSynthetic(row.source_reference,row.provenance)).map(row=>metricRowSnapshot(row))
 }
 
 const snapshotIdentity=item=>[item.provider||'',item.providerAccountId||'',item.providerPropertyId||'',item.metricKey].join('|')
-const isAutomaticPublishedSnapshot=item=>item&&item.provider&&item.value!==null&&!item.isManual&&item.sourceType!=='manual'&&automaticMetricKeySet.has(item.metricKey)
+const isAutomaticPublishedSnapshot=item=>Boolean(
+  item&&item.provider&&item.providerAccountId&&item.value!==null&&!item.isManual&&item.sourceType==='provider'&&automaticMetricKeySet.has(item.metricKey)&&REAL_METRIC_STATUSES.has(item.dataStatus)&&!looksSynthetic(item.sourceReference,item.provenance),
+)
 
 export async function resolveAudienceSnapshot(client,payload,{previousSnapshot=[]}={}){
   const resolvedAt=new Date().toISOString()
@@ -151,18 +111,8 @@ export async function resolveAudienceSnapshot(client,payload,{previousSnapshot=[
     const key=snapshotIdentity(previous)
     if(!byIdentity.has(key))byIdentity.set(key,structuredClone(previous))
   }
-  const automaticResolved=[...byIdentity.values()]
-  const automaticMetricKeys=new Set(automaticResolved.map(item=>item.metricKey))
-  const legacy=[]
-  for(const binding of payload.audience.metrics){
-    if(automaticMetricKeys.has(binding.metricKey))continue
-    const resolved=await resolveMetricBinding(client,binding,resolvedAt)
-    if(resolved.sourceType==='unavailable')continue
-    const duplicate=resolved.provider&&automaticResolved.some(item=>snapshotIdentity(item)===snapshotIdentity(resolved))
-    if(!duplicate)legacy.push(resolved)
-  }
-  const snapshot=[...automaticResolved,...legacy].sort((a,b)=>(a.provider||'~manual').localeCompare(b.provider||'~manual','pt-BR')||MEDIA_KIT_AUTOMATIC_METRIC_KEYS.indexOf(a.metricKey)-MEDIA_KIT_AUTOMATIC_METRIC_KEYS.indexOf(b.metricKey)||a.metricKey.localeCompare(b.metricKey))
-  return {...payload,audience:{...payload.audience,snapshot,snapshotResolvedAt:resolvedAt}}
+  const snapshot=[...byIdentity.values()].sort((a,b)=>(a.provider||'').localeCompare(b.provider||'','pt-BR')||MEDIA_KIT_AUTOMATIC_METRIC_KEYS.indexOf(a.metricKey)-MEDIA_KIT_AUTOMATIC_METRIC_KEYS.indexOf(b.metricKey)||a.metricKey.localeCompare(b.metricKey))
+  return {...payload,audience:{...payload.audience,monthlyUsers:'',monthlyViews:'',socialReach:'',metrics:[],snapshot,snapshotResolvedAt:resolvedAt}}
 }
 
 export const mediaKitService={

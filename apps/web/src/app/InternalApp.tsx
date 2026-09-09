@@ -1,27 +1,27 @@
 import {lazy,Suspense,type ReactNode} from 'react'
 import {Navigate,Route,Routes,useLocation} from 'react-router-dom'
-import {AdminAuthProvider} from '../features/access/AdminAuthContext'
-import {useAdminAuth} from '../features/access/adminAuthState'
+import {AdminAuthProvider} from '../modules/access/AdminAuthContext'
+import {useAdminAuth} from '../modules/access/adminAuthState'
 import '../styles/admin-entry.css'
 
-const LoginPage=lazy(()=>import('../features/access/LoginPage').then(module=>({default:module.LoginPage})))
-const ProfilePage=lazy(()=>import('../features/access/AccountPages').then(module=>({default:module.ProfilePage})))
-const CrmModuleRoutes=lazy(()=>import('../features/access/CrmModuleRoutes'))
-const DashboardPage=lazy(()=>import('../features/dashboard/DashboardPage'))
-const ContractsPage=lazy(()=>import('../features/contracts/ContractsPage'))
-const AgendaPage=lazy(()=>import('../features/agenda/AgendaPage'))
-const ChatPage=lazy(()=>import('../features/chat/ChatPage'))
-const ChatAutomationSettingsPage=lazy(()=>import('../features/chat/ChatAutomationSettingsPage'))
-const RHPage=lazy(()=>import('../features/rh/RHPage'))
-const MetricsPage=lazy(()=>import('../features/analytics/MetricsPage'))
-const MarketingPage=lazy(()=>import('../features/marketing/MarketingPage'))
-const ReportsPage=lazy(()=>import('../features/reports/ReportsPage'))
-const SettingsPage=lazy(()=>import('../features/settings/SettingsPage'))
-const FinanceMainPage=lazy(()=>import('../features/finance/FinanceMainPage'))
-const FinanceInvoicesPage=lazy(()=>import('../features/finance/FinanceInvoicesPage'))
-const FinanceAccountingPage=lazy(()=>import('../features/finance/FinanceAccountingPage'))
-const FinanceRegistryPage=lazy(()=>import('../features/finance/FinanceRegistryPage'))
-const SiteManagerRoutes=lazy(()=>import('../features/site-manager/SiteManagerRoutes'))
+const LoginPage=lazy(()=>import('../modules/access/LoginPage').then(module=>({default:module.LoginPage})))
+const ProfilePage=lazy(()=>import('../modules/access/AccountPages').then(module=>({default:module.ProfilePage})))
+const CrmModuleRoutes=lazy(()=>import('../modules/access/CrmModuleRoutes'))
+const DashboardPage=lazy(()=>import('../modules/dashboard/DashboardPage'))
+const ContractsPage=lazy(()=>import('../modules/contracts/ContractsPage'))
+const AgendaPage=lazy(()=>import('../modules/agenda/AgendaPage'))
+const ChatPage=lazy(()=>import('../modules/chat/ChatPage'))
+const ChatAutomationSettingsPage=lazy(()=>import('../modules/chat/ChatAutomationSettingsPage'))
+const RHPage=lazy(()=>import('../modules/rh/RHPage'))
+const MetricsPage=lazy(()=>import('../modules/analytics/MetricsPage'))
+const MarketingPage=lazy(()=>import('../modules/marketing/MarketingPage'))
+const ReportsPage=lazy(()=>import('../modules/reports/ReportsPage'))
+const SettingsPage=lazy(()=>import('../modules/settings/SettingsPage'))
+const FinanceMainPage=lazy(()=>import('../modules/finance/FinanceMainPage'))
+const FinanceInvoicesPage=lazy(()=>import('../modules/finance/FinanceInvoicesPage'))
+const FinanceAccountingPage=lazy(()=>import('../modules/finance/FinanceAccountingPage'))
+const FinanceRegistryPage=lazy(()=>import('../modules/finance/FinanceRegistryPage'))
+const SiteManagerRoutes=lazy(()=>import('../modules/site-manager/SiteManagerRoutes'))
 
 function RequireAdmin({children}:{children:ReactNode}){
   const {status}=useAdminAuth()

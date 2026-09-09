@@ -1,8 +1,8 @@
 import {useEffect,useMemo,useState} from 'react'
 import {HomePageRenderer,type HomeRenderedSectionId,type HomeSectionConfigurationMap} from './HomePageRenderer'
-import {loadPublicHomeSections,readInitialHomeSections} from '../../features/site-manager/homeSectionConfigRepository'
-import {HOME_PREVIEW_MESSAGE} from '../../features/site-manager/components/homePreviewProtocol'
-import type {SectionConfiguration} from '../../features/site-manager/sectionConfiguration'
+import {loadPublicHomeSections,readInitialHomeSections} from '../../modules/site-manager/homeSectionConfigRepository'
+import {HOME_PREVIEW_MESSAGE} from '../../modules/site-manager/components/homePreviewProtocol'
+import type {SectionConfiguration} from '../../modules/site-manager/sectionConfiguration'
 import './styles/home-admin-preview.css'
 
 type PreviewPayload={type:string;sectionId?:HomeRenderedSectionId;configuration?:SectionConfiguration}

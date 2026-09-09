@@ -6,12 +6,12 @@ const forbidTokens=(path,source,tokens)=>{for(const token of tokens)if(source.in
 
 const app=await read('src/app/InternalApp.tsx')
 const nav=await read('src/shared/internal/adminNavigation.ts')
-const marketing=await read('src/features/marketing/MarketingPage.tsx')
-const metrics=await read('src/features/analytics/MetricsPage.tsx')
-const client=await read('src/features/analytics/metricsClient.ts')
-const analyticsClient=await read('src/features/analytics/client.ts')
+const marketing=await read('src/modules/marketing/MarketingPage.tsx')
+const metrics=await read('src/modules/analytics/MetricsPage.tsx')
+const client=await read('src/modules/analytics/metricsClient.ts')
+const analyticsClient=await read('src/modules/analytics/client.ts')
 
-requireTokens('InternalApp.tsx',app,["../features/analytics/MetricsPage",'path="/app/metricas"','path="/app/marketing/metricas"','LegacyMetricsRedirect'])
+requireTokens('InternalApp.tsx',app,["../modules/analytics/MetricsPage",'path="/app/metricas"','path="/app/marketing/metricas"','LegacyMetricsRedirect'])
 requireTokens('adminNavigation.ts',nav,["['Métricas',BarChart3,'/app/metricas']"])
 forbidTokens('adminNavigation.ts',nav,["['Métricas',BarChart3,'/app/marketing/metricas']"])
 forbidTokens('MarketingPage.tsx',marketing,['MarketingMetrics','/app/marketing/metricas'])

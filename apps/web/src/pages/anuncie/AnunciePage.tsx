@@ -1,8 +1,8 @@
 import {BarChart3,LayoutGrid,Megaphone,Newspaper} from 'lucide-react'
-import {submitSiteForm} from '../../features/site-manager/forms/client'
-import {getSiteFormBySlug} from '../../features/site-manager/forms/catalog'
-import {resolveSiteFormOptionSets} from '../../features/site-manager/forms/runtimeOptions'
-import {SiteFormRenderer,type SiteFormSubmitPayload} from '../../features/site-manager/forms/SiteFormRenderer'
+import {submitSiteForm} from '../../modules/site-manager/forms/client'
+import {getSiteFormBySlug} from '../../modules/site-manager/forms/catalog'
+import {resolveSiteFormOptionSets} from '../../modules/site-manager/forms/runtimeOptions'
+import {SiteFormRenderer,type SiteFormSubmitPayload} from '../../modules/site-manager/forms/SiteFormRenderer'
 import {publicSiteReadModel} from '../../shared/data/publicSiteReadModel'
 import {PublicFooter,PublicHeader} from '../../shared/public/PublicChrome'
 

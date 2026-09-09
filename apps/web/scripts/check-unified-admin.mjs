@@ -16,9 +16,9 @@ const forbiddenTokens=[
   'admin-workspaces.css',
 ]
 const removedPaths=[
-  'features/access/WorkspacePage.tsx',
-  'features/access/CrmWorkspace.tsx',
-  'features/access/mocks/index.ts',
+  'modules/access/WorkspacePage.tsx',
+  'modules/access/CrmWorkspace.tsx',
+  'modules/access/mocks/index.ts',
   'styles/admin-workspaces.css',
 ]
 

@@ -45,7 +45,7 @@ if(unjustified.length){
   process.exitCode=1
 }
 
-const adminSource=readFileSync('apps/web/src/features/site-manager/pages/SiteFormsPage.tsx','utf8')
+const adminSource=readFileSync('apps/web/src/modules/site-manager/pages/SiteFormsPage.tsx','utf8')
 const forbiddenUiPatterns=[
   [/\.slice\(0\s*,\s*2\)/,'slice(0,2)'],
   [/forms\.filter\([^\n]*(?:name|slug|id)/,'name/id based forms.filter'],

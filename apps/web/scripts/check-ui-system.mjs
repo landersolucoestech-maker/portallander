@@ -34,10 +34,10 @@ for(const required of ["--ui-font:'Montserrat'",'min-height:100dvh','--ui-contro
 const accessDesign=await read('src/styles/admin-access-system.css')
 for(const required of ["font-family:'Montserrat'",'min-height:100dvh','focus-visible','prefers-reduced-motion'])if(!accessDesign.includes(required))failures.push(`Baseline de acesso deve preservar: ${required}`)
 
-const settings=await read('src/features/settings/SettingsPage.tsx')
+const settings=await read('src/modules/settings/SettingsPage.tsx')
 for(const forbidden of ["['cadastro-publico'","['billing'",'<PublicRegistration','<Billing ','Acesso externo',"item.status==='available'"])if(settings.includes(forbidden))failures.push(`Configurações reintroduziu UI removida: ${forbidden}`)
 for(const required of ["['empresa'","['automacoes'","['seguranca'","['integracoes'","['usuarios'",'role="tablist"','useModalA11y'])if(!settings.includes(required))failures.push(`Configurações deve preservar: ${required}`)
-const settingsDomain=await read('src/features/settings/domain.ts')
+const settingsDomain=await read('src/modules/settings/domain.ts')
 for(const forbidden of ['cadastro-publico','billing','SettingsPlan','SettingsBilling','SettingsInvoice','publicRegistration'])if(settingsDomain.includes(forbidden))failures.push(`Contratos de Settings reintroduziram estrutura comercial removida: ${forbidden}`)
 const mockupRuntime=await read('../../packages/mockup/src/generated/runtimeData.ts')
 const settingsStart=mockupRuntime.indexOf('"mockSettingsSeed"')
@@ -51,8 +51,8 @@ for(const required of ['to="/app/settings"','<span>Configurações</span>','aria
 const rowMenu=await read('src/shared/internal/TableRowActionMenu.tsx')
 for(const required of ['Visualizar','Editar','Excluir','role="menu"','role="menuitem"','ArrowDown','ArrowUp'])if(!rowMenu.includes(required))failures.push(`Menu de ações compartilhado deve preservar: ${required}`)
 
-const reports=await read('src/features/reports/ReportsPage.tsx')
-const marketingUi=await read('src/features/marketing/MarketingUi.tsx')
+const reports=await read('src/modules/reports/ReportsPage.tsx')
+const marketingUi=await read('src/modules/marketing/MarketingUi.tsx')
 for(const [name,source] of [['Relatórios',reports],['Marketing',marketingUi]])for(const required of ['useModalA11y','role="dialog"','aria-modal="true"'])if(!source.includes(required))failures.push(`${name}: modal deve usar ${required}.`)
 if(!marketingUi.includes('TableRowActionMenu'))failures.push('Marketing deve reutilizar o menu de ações compartilhado.')
 

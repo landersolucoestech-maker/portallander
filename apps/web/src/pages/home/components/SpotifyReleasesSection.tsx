@@ -1,8 +1,8 @@
 import {useEffect,useMemo,useState} from 'react'
 import {Link} from 'react-router-dom'
-import {homeContentResponsiveCssVariables,withHomeContentSectionConfiguration} from '../../../features/site-manager/homeContentSectionConfiguration'
-import type {SectionConfiguration} from '../../../features/site-manager/sectionConfiguration'
-import {spotifyReleaseClient,type SpotifyReleasePublicState} from '../../../features/site-manager/spotifyReleaseClient'
+import {homeContentResponsiveCssVariables,withHomeContentSectionConfiguration} from '../../../modules/site-manager/homeContentSectionConfiguration'
+import type {SectionConfiguration} from '../../../modules/site-manager/sectionConfiguration'
+import {spotifyReleaseClient,type SpotifyReleasePublicState} from '../../../modules/site-manager/spotifyReleaseClient'
 import {PUBLIC_ROUTES} from '../../../shared/public/publicRoutes'
 import '../styles/spotify-releases.css'
 

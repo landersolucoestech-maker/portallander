@@ -4,7 +4,7 @@ import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { portalLogo } from '../branding/assets/brandAsset'
 import { readFooterBrandConfig, type FooterBrandConfig } from '../branding/models/footerBrandModel'
 import { readHeaderBrandConfig, type HeaderBrandConfig } from '../branding/models/headerBrandModel'
-import { editorialReadModel } from '../../features/editorial/repository'
+import { editorialReadModel } from '../../modules/editorial/repository'
 import {subscribeNewsletter} from '../data/newsletterClient'
 import {publicSiteReadModel} from '../data/publicSiteReadModel'
 

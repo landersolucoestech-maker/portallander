@@ -1,13 +1,13 @@
 import type {ReactNode} from 'react'
 import {Link} from 'react-router-dom'
-import {withAdvertisingSectionLayout} from '../../features/site-manager/advertisingSectionLayout'
+import {withAdvertisingSectionLayout} from '../../modules/site-manager/advertisingSectionLayout'
 import {
   filterAgendaByWindow,
   homeContentResponsiveCssVariables,
   selectConfiguredItems,
   withHomeContentSectionConfiguration,
-} from '../../features/site-manager/homeContentSectionConfiguration'
-import {defaultSectionConfiguration,type SectionConfiguration} from '../../features/site-manager/sectionConfiguration'
+} from '../../modules/site-manager/homeContentSectionConfiguration'
+import {defaultSectionConfiguration,type SectionConfiguration} from '../../modules/site-manager/sectionConfiguration'
 import {PublicFooter,PublicHeader} from '../../shared/public/PublicChrome'
 import {PublicAdvertisementModule,PublicMostReadModule} from '../../shared/public/PublicEditorialModules'
 import {AdvertiseHereSection} from './components/AdvertiseHereSection'

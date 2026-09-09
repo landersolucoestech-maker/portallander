@@ -1,4 +1,4 @@
-import {usePublicHomeSections} from '../../features/site-manager/usePublicHomeSections'
+import {usePublicHomeSections} from '../../modules/site-manager/usePublicHomeSections'
 import {HomePageRenderer} from './HomePageRenderer'
 
 export function PublicHome(){

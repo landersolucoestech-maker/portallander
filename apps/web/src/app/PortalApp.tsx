@@ -1,16 +1,16 @@
 import { lazy, Suspense, useMemo, type ReactNode } from 'react'
 import { Link, Navigate, useLocation } from 'react-router-dom'
 import { renderPublicSpecialPage } from './publicSpecialPageRegistry'
-import { editorialReadModel } from '../features/editorial/repository'
+import { editorialReadModel } from '../modules/editorial/repository'
 import { PageContainer,PageSection,PageShell } from '../shared/public/PublicPageArchitecture'
 import { PublicNotFound } from '../shared/public/PublicNotFound'
 
 const InternalApp=lazy(()=>import('./InternalApp'))
 const PublicHome=lazy(()=>import('../pages/home/PublicHome').then(module=>({default:module.PublicHome})))
 const AnunciePage=lazy(()=>import('../pages/anuncie/AnunciePage').then(module=>({default:module.AnunciePage})))
-const EditorialContentPage=lazy(()=>import('../features/editorial/components/EditorialContentPage').then(module=>({default:module.EditorialContentPage})))
-const EditorialListingPage=lazy(()=>import('../features/editorial/components/EditorialListingPage').then(module=>({default:module.EditorialListingPage})))
-const StructuredPublicPage=lazy(()=>import('../features/editorial/components/StructuredPublicPage').then(module=>({default:module.StructuredPublicPage})))
+const EditorialContentPage=lazy(()=>import('../modules/editorial/components/EditorialContentPage').then(module=>({default:module.EditorialContentPage})))
+const EditorialListingPage=lazy(()=>import('../modules/editorial/components/EditorialListingPage').then(module=>({default:module.EditorialListingPage})))
+const StructuredPublicPage=lazy(()=>import('../modules/editorial/components/StructuredPublicPage').then(module=>({default:module.StructuredPublicPage})))
 const HomePreviewPage=lazy(()=>import('../pages/home/HomePreviewPage').then(module=>({default:module.HomePreviewPage})))
 const deferred=(node:ReactNode)=><Suspense fallback={null}>{node}</Suspense>
 

@@ -2,7 +2,7 @@ import {useEffect,useRef,useState,type ReactNode} from 'react'
 import type {LucideIcon} from 'lucide-react'
 import {ArrowLeft,Bell,ChevronDown,FilePlus2,FileStack,LayoutTemplate,LogOut,PanelLeftClose,PanelLeftOpen,Settings,UserPlus,UserRound} from 'lucide-react'
 import {Link,NavLink,useLocation,useNavigate} from 'react-router-dom'
-import {useAdminAuth} from '../../features/access/adminAuthState'
+import {useAdminAuth} from '../../modules/access/adminAuthState'
 import {portalLogo} from '../branding/assets/brandAsset'
 import {appReadModel} from '../data/appReadModel'
 

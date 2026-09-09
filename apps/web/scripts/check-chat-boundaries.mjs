@@ -5,12 +5,12 @@ const failures=[]
 const requireTokens=(path,source,tokens)=>{for(const token of tokens)if(!source.includes(token))failures.push(`${path} deve preservar: ${token}`)}
 const forbidTokens=(path,source,tokens)=>{for(const token of tokens)if(source.includes(token))failures.push(`${path} não pode reintroduzir persistência/integração local autenticada: ${token}`)}
 
-const page=await read('src/features/chat/ChatPage.tsx')
-const support=await read('src/features/chat/components/SupportCenterView.tsx')
-const internal=await read('src/features/chat/components/InternalChatView.tsx')
-const settings=await read('src/features/chat/ChatAutomationSettingsPage.tsx')
-const hooks=await read('src/features/chat/hooks.ts')
-const client=await read('src/features/chat/adminClient.ts')
+const page=await read('src/modules/chat/ChatPage.tsx')
+const support=await read('src/modules/chat/components/SupportCenterView.tsx')
+const internal=await read('src/modules/chat/components/InternalChatView.tsx')
+const settings=await read('src/modules/chat/ChatAutomationSettingsPage.tsx')
+const hooks=await read('src/modules/chat/hooks.ts')
+const client=await read('src/modules/chat/adminClient.ts')
 
 requireTokens('ChatPage.tsx',page,['useChatState','useCreateSupportConversation'])
 requireTokens('SupportCenterView.tsx',support,['useCreateLead','useCreateContact','useCreateAgendaEvent','Gravação de áudio ainda não disponível.','Teste de escalonamento indisponível enquanto não houver runtime configurado.'])

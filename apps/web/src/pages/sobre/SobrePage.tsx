@@ -1,9 +1,9 @@
-import type {EditorialPage} from '../../features/editorial/model'
-import {editorialReadModel} from '../../features/editorial/repository'
-import {useEditorialSeo} from '../../features/editorial/hooks/useEditorialSeo'
-import {defaultSectionConfiguration} from '../../features/site-manager/sectionConfiguration'
-import {usePublicHomeSections} from '../../features/site-manager/usePublicHomeSections'
-import {useSectionConfiguration} from '../../features/site-manager/useSectionConfiguration'
+import type {EditorialPage} from '../../modules/editorial/model'
+import {editorialReadModel} from '../../modules/editorial/repository'
+import {useEditorialSeo} from '../../modules/editorial/hooks/useEditorialSeo'
+import {defaultSectionConfiguration} from '../../modules/site-manager/sectionConfiguration'
+import {usePublicHomeSections} from '../../modules/site-manager/usePublicHomeSections'
+import {useSectionConfiguration} from '../../modules/site-manager/useSectionConfiguration'
 import {ContentSidebarLayout,PageContainer,PageHero,PageSection,PageShell,SectionHeading} from '../../shared/public/PublicPageArchitecture'
 
 export function SobrePage({page}:{page:EditorialPage}){

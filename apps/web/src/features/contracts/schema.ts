@@ -1,4 +1,0 @@
-import {z} from 'zod'
-export const contractPartySchema=z.object({name:z.string().min(1,'Informe o nome da parte.'),email:z.string().email('E-mail inválido.').or(z.literal('')),document:z.string()})
-export const contractSchema=z.object({title:z.string().min(1,'Título obrigatório.'),type:z.string().min(1,'Tipo obrigatório.'),categoryId:z.string().min(1,'Categoria obrigatória.'),startDate:z.string(),endDate:z.string(),payment:z.object({amount:z.union([z.number().min(0),z.literal('')])}),parties:z.array(contractPartySchema).min(2,'Informe pelo menos duas partes.')}).refine(value=>!value.startDate||!value.endDate||value.endDate>=value.startDate,{message:'A data final não pode ser anterior à inicial.',path:['endDate']})
-export const signerSchema=z.object({name:z.string().min(1),email:z.string().email(),required:z.boolean()})

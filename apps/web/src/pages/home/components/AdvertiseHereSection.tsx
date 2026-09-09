@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import {
   advertisingResponsiveCssVariables,
   type AdvertisingSectionConfiguration,
-} from '../../../features/site-manager/advertisingSectionLayout'
+} from '../../../modules/site-manager/advertisingSectionLayout'
 import { defaultHomeAdConfig, readHomeAdConfig, type HomeAdConfig } from '../models/adModel'
 
 function SmartAdvertiseHereLink({ to, target, children, className }: { to: string; target:'same'|'new'; children: ReactNode; className?:string }) {

@@ -1,7 +1,7 @@
 import type {CSSProperties,ReactNode} from 'react'
 import {Link} from 'react-router-dom'
-import type {SectionConfiguration} from '../../features/site-manager/sectionConfiguration'
-import {heroResponsiveCssVariables} from '../../features/site-manager/sectionConfiguration'
+import type {SectionConfiguration} from '../../modules/site-manager/sectionConfiguration'
+import {heroResponsiveCssVariables} from '../../modules/site-manager/sectionConfiguration'
 import {PublicFooter,PublicHeader,type PublicNewsletterConfiguration} from './PublicChrome'
 
 export type PageHeroVariant='default'|'editorial'|'institutional'|'legal'|'minimal'

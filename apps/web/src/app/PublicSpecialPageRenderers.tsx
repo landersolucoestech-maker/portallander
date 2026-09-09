@@ -1,5 +1,5 @@
 import {lazy,Suspense} from 'react'
-import type {EditorialPage} from '../features/editorial/model'
+import type {EditorialPage} from '../modules/editorial/model'
 
 const LazySobrePage=lazy(()=>import('../pages/sobre/SobrePage').then(module=>({default:module.SobrePage})))
 const LazyColaborePage=lazy(()=>import('../pages/colabore/ColaborePage').then(module=>({default:module.ColaborePage})))

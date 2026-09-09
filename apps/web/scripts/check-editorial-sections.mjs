@@ -6,7 +6,7 @@ const exists=async path=>{try{await access(new URL(`../${path}`,import.meta.url)
 const failures=[]
 const requireTokens=(path,source,tokens)=>{for(const token of tokens)if(!source.includes(token))failures.push(`${path} deve preservar: ${token}`)}
 
-const sectionModel=await read('src/features/site-manager/sectionConfiguration.ts')
+const sectionModel=await read('src/modules/site-manager/sectionConfiguration.ts')
 requireTokens('sectionConfiguration.ts',sectionModel,[
   "id:'editorial-hero'",
   "id:'editorial-summary'",
@@ -18,14 +18,14 @@ requireTokens('sectionConfiguration.ts',sectionModel,[
   'EDITORIAL_PAGE_SECTION_DEFINITIONS',
 ])
 
-const pages=await read('src/features/site-manager/pages/SiteSectionsPage.tsx')
+const pages=await read('src/modules/site-manager/pages/SiteSectionsPage.tsx')
 requireTokens('SiteSectionsPage.tsx',pages,[
   'isEditorialLayout?EDITORIAL_PAGE_SECTION_DEFINITIONS',
   '/app/site/paginas/${encodeURIComponent(selected.id)}/secoes/${encodeURIComponent(section.id)}',
   'Configurar',
 ])
 
-const listing=await read('src/features/editorial/components/EditorialListingPage.tsx')
+const listing=await read('src/modules/editorial/components/EditorialListingPage.tsx')
 requireTokens('EditorialListingPage.tsx',listing,[
   "useSectionConfiguration(page.id,'editorial-ad'",
   'ContentSidebarLayout',
@@ -74,7 +74,7 @@ requireTokens('public-page-architecture.css',architectureCss,[
   '.pl-editorial-card-grid,.pl-related-grid{grid-template-columns:1fr}',
 ])
 
-const sectionEditor=await read('src/features/site-manager/pages/SectionConfigurationPage.tsx')
+const sectionEditor=await read('src/modules/site-manager/pages/SectionConfigurationPage.tsx')
 requireTokens('SectionConfigurationPage.tsx',sectionEditor,[
   "import {SectionMediaField} from '../components/SectionMediaField'",
   'imageKind&&<SectionMediaField',
@@ -83,7 +83,7 @@ requireTokens('SectionConfigurationPage.tsx',sectionEditor,[
   "label={definition.kind==='ad'?'Arte da publicidade':'Imagem / mídia'}",
 ])
 
-const mediaField=await read('src/features/site-manager/components/SectionMediaField.tsx')
+const mediaField=await read('src/modules/site-manager/components/SectionMediaField.tsx')
 requireTokens('SectionMediaField.tsx',mediaField,[
   'Carregar imagem',
   'Biblioteca',

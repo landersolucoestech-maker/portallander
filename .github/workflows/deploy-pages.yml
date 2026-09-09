@@ -167,7 +167,7 @@ jobs:
       - name: Validate published development URL in Chromium
         working-directory: apps/web
         run: |
-          grep -q "const INTERNAL_METRICS_RANGE:MetricsRange='30d'" src/features/analytics/MetricsPage.tsx
+          grep -q "const INTERNAL_METRICS_RANGE:MetricsRange='30d'" src/modules/analytics/MetricsPage.tsx
           echo "PAGES_METRICS_INTERNAL_CANONICAL_PERIOD=30d"
           mkdir -p test-results/deployed
           node --input-type=module <<'NODE'

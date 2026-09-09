@@ -1,5 +1,5 @@
 import type {ReactNode} from 'react'
-import {SPECIAL_LAYOUT_PAGE_SLUGS,type EditorialPage} from '../features/editorial/model'
+import {SPECIAL_LAYOUT_PAGE_SLUGS,type EditorialPage} from '../modules/editorial/model'
 import {ColaborePage,ContatoPage,SobrePage} from './PublicSpecialPageRenderers'
 
 type SpecialPageRenderer=(page:EditorialPage)=>ReactNode

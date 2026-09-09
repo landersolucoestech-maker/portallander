@@ -29,12 +29,12 @@ for(const path of visualFiles){
 }
 
 const featureMockFacades=[
- 'features/crm/mocks/index.ts',
- 'features/contracts/mocks/index.ts',
- 'features/finance/mocks/index.ts',
- 'features/dashboard/mocks/index.ts',
- 'features/editorial/mocks/index.ts',
- 'features/site-manager/mocks/index.ts',
+ 'modules/crm/mocks/index.ts',
+ 'modules/contracts/mocks/index.ts',
+ 'modules/finance/mocks/index.ts',
+ 'modules/dashboard/mocks/index.ts',
+ 'modules/editorial/mocks/index.ts',
+ 'modules/site-manager/mocks/index.ts',
 ]
 for(const rel of featureMockFacades){
  const source=await readFile(join(root,rel),'utf8')
@@ -46,8 +46,8 @@ try{await stat(join(root,'mocks'));failures.push('src/mocks não pode permanecer
 
 const allowedMockupConsumers=new Set([
  'shared/data/mockDataProvider.ts',
- 'features/analytics/client.ts',
- 'features/editorial/contentIngestionClient.ts',
+ 'modules/analytics/client.ts',
+ 'modules/editorial/contentIngestionClient.ts',
  ...featureMockFacades,
 ])
 const demoRecordPatterns=[
@@ -64,7 +64,7 @@ for(const path of sourceFiles){
  if(demoRecordPatterns.some(pattern=>pattern.test(source)))failures.push(`${rel} contém registro demonstrativo fora da fonte canônica @portallander/mockup.`)
 }
 
-for(const rel of ['features/crm/repository.ts','features/contracts/repository.ts','features/finance/repository.ts','features/editorial/repository.ts']){
+for(const rel of ['modules/crm/repository.ts','modules/contracts/repository.ts','modules/finance/repository.ts','modules/editorial/repository.ts']){
  const source=await readFile(join(root,rel),'utf8')
  if(!source.includes('getRuntimeDataProvider'))failures.push(`${rel} deve obter seeds/leitura pelo runtime provider.`)
  if(/from\s+['"]\.\/mocks['"]/.test(source))failures.push(`${rel} não pode importar mocks locais da feature.`)
@@ -85,12 +85,12 @@ const portalApp=await readFile(join(root,'app/PortalApp.tsx'),'utf8')
 if(/import\s+\{\s*PublicHome\s*\}\s+from/.test(portalApp))failures.push('PortalApp não pode importar PublicHome eager: /app deve montar sem inicializar o grafo de dados públicos.')
 if(!portalApp.includes("const PublicHome=lazy(()=>import('../pages/home/PublicHome')"))failures.push('PortalApp deve carregar PublicHome de forma lazy para isolar o bootstrap administrativo do provider público.')
 
-const dashboardPage=await readFile(join(root,'features/dashboard/DashboardPage.tsx'),'utf8')
+const dashboardPage=await readFile(join(root,'modules/dashboard/DashboardPage.tsx'),'utf8')
 for(const required of ['crmAdminClient.listLeads()','financeAdminClient.listTransactions()','agendaAdminClient.list()','listAdminEditorialContents()'])if(!dashboardPage.includes(required))failures.push(`Dashboard autenticado deve compor a API real: ${required}`)
 if(!dashboardPage.includes("const data=authenticated?adminDashboard.data:dashboardReadModel.snapshot()"))failures.push('Dashboard deve reservar dashboardReadModel/runtime provider ao modo não autenticado de desenvolvimento.')
 if(dashboardPage.includes('pendingTasks')||dashboardPage.includes('/app/marketing/tarefas'))failures.push('Dashboard autenticado não pode promover tarefas de Marketing sem fonte persistente como KPI, alerta ou ação operacional.')
 
-const activityHook=await readFile(join(root,'features/dashboard/hooks/useActivityHistory.ts'),'utf8')
+const activityHook=await readFile(join(root,'modules/dashboard/hooks/useActivityHistory.ts'),'utf8')
 if(!activityHook.includes("mode==='api'?dashboardApi.getAdminActivity"))failures.push('Histórico do Dashboard autenticado deve usar a API editorial real.')
 
 const provider=await readFile(join(root,'shared/data/mockDataProvider.ts'),'utf8')

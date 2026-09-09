@@ -19,22 +19,22 @@ Objetivo deste documento: separar dados estruturais legítimos da interface de d
 | --- | --- | --- | --- |
 | `src/shared/internal/AdminUi.tsx` | usuário exibido no Account Menu (iniciais, função e nome) escrito no componente | `EXTERNALIZE_MOCK` + `USE_DATA_PROVIDER` | `users/access` |
 | `src/shared/internal/AdminUi.tsx` | mensagem fixa de zero notificações | `EXTERNALIZE_MOCK` + `SCENARIO_STATE` | `notifications` |
-| `src/features/access/mocks/index.ts` | mock atual contém somente workspace/nome/função e não alimenta o shell | `EXTERNALIZE_MOCK` | ampliar domínio `access/users` |
-| `src/features/access/WorkspacePage.tsx` | `workspaces` local define cards/rotas/descrições | `KEEP_STATIC` | mover apenas para config se necessário; não é massa de dados de negócio |
-| `src/features/access/LoginPage.tsx` | textos de capability e formulário desabilitado | `KEEP_STATIC` | copy/estado técnico de autenticação |
-| `src/features/access/AccountPages.tsx` | página de perfil sem dados reais | `SCENARIO_STATE` | futuro provider de usuário |
+| `src/modules/access/mocks/index.ts` | mock atual contém somente workspace/nome/função e não alimenta o shell | `EXTERNALIZE_MOCK` | ampliar domínio `access/users` |
+| `src/modules/access/WorkspacePage.tsx` | `workspaces` local define cards/rotas/descrições | `KEEP_STATIC` | mover apenas para config se necessário; não é massa de dados de negócio |
+| `src/modules/access/LoginPage.tsx` | textos de capability e formulário desabilitado | `KEEP_STATIC` | copy/estado técnico de autenticação |
+| `src/modules/access/AccountPages.tsx` | página de perfil sem dados reais | `SCENARIO_STATE` | futuro provider de usuário |
 
 ## 2. Dashboard
 
 | Arquivo | Ocorrência | Classificação | Destino previsto |
 | --- | --- | --- | --- |
-| `src/features/dashboard/DashboardPage.tsx` | `operationalAlerts=[]` definido na camada visual | `EXTERNALIZE_MOCK` | `dashboard/alerts` |
-| `src/features/dashboard/DashboardPage.tsx` | Faturamento do Mês, A Receber, Contratos Ativos e Publicações Contratadas Pendentes exibidos como valores fixos indisponíveis | `DERIVE_FROM_DATA` + `SCENARIO_STATE` | finance/contracts/obligations providers |
-| `src/features/dashboard/DashboardPage.tsx` | Próximos Compromissos fixado como indisponível | `EXTERNALIZE_MOCK` + `SCENARIO_STATE` | `agenda`/dashboard |
-| `src/features/dashboard/DashboardPage.tsx` | Pipeline Comercial fixado como indisponível | `DERIVE_FROM_DATA` | CRM leads |
-| `src/features/dashboard/DashboardPage.tsx` | Receita por Origem fixada como indisponível | `DERIVE_FROM_DATA` | Finance transactions/categories |
-| `src/features/dashboard/api.ts` | métricas editoriais e atividade são derivadas do read model | `KEEP_STATIC` arquitetura / `DERIVE_FROM_DATA` já atendido | manter interface, trocar provider de origem |
-| `src/features/dashboard/mocks/index.ts` | mock contém apenas período/notificações/pendingActions e não cobre a tela | `EXTERNALIZE_MOCK` | ampliar massa e/ou remover duplicidade em favor de dados derivados |
+| `src/modules/dashboard/DashboardPage.tsx` | `operationalAlerts=[]` definido na camada visual | `EXTERNALIZE_MOCK` | `dashboard/alerts` |
+| `src/modules/dashboard/DashboardPage.tsx` | Faturamento do Mês, A Receber, Contratos Ativos e Publicações Contratadas Pendentes exibidos como valores fixos indisponíveis | `DERIVE_FROM_DATA` + `SCENARIO_STATE` | finance/contracts/obligations providers |
+| `src/modules/dashboard/DashboardPage.tsx` | Próximos Compromissos fixado como indisponível | `EXTERNALIZE_MOCK` + `SCENARIO_STATE` | `agenda`/dashboard |
+| `src/modules/dashboard/DashboardPage.tsx` | Pipeline Comercial fixado como indisponível | `DERIVE_FROM_DATA` | CRM leads |
+| `src/modules/dashboard/DashboardPage.tsx` | Receita por Origem fixada como indisponível | `DERIVE_FROM_DATA` | Finance transactions/categories |
+| `src/modules/dashboard/api.ts` | métricas editoriais e atividade são derivadas do read model | `KEEP_STATIC` arquitetura / `DERIVE_FROM_DATA` já atendido | manter interface, trocar provider de origem |
+| `src/modules/dashboard/mocks/index.ts` | mock contém apenas período/notificações/pendingActions e não cobre a tela | `EXTERNALIZE_MOCK` | ampliar massa e/ou remover duplicidade em favor de dados derivados |
 
 `DashboardSkeleton` e sua quantidade visual de placeholders são estrutura da interface, não dataset funcional.
 
@@ -42,17 +42,17 @@ Objetivo deste documento: separar dados estruturais legítimos da interface de d
 
 ### Dados existentes
 
-`src/features/crm/mocks/index.ts` já possui `CrmState` tipado e repository de fallback. Entretanto existem somente 5 leads e 5 contatos, volume insuficiente para paginação/densidade real (page size atual 20), e os relacionamentos ainda não são a fonte canônica compartilhada com Finance/Contracts.
+`src/modules/crm/mocks/index.ts` já possui `CrmState` tipado e repository de fallback. Entretanto existem somente 5 leads e 5 contatos, volume insuficiente para paginação/densidade real (page size atual 20), e os relacionamentos ainda não são a fonte canônica compartilhada com Finance/Contracts.
 
 | Arquivo | Ocorrência | Classificação | Destino previsto |
 | --- | --- | --- | --- |
-| `src/features/crm/mocks/index.ts` | 5 leads / 5 contatos; volume pequeno; entidades não canônicas para outros módulos | `EXTERNALIZE_MOCK` (ampliar/normalizar) | domínio CRM global |
-| `src/features/crm/ContactFormModal.tsx` | opções inline de tipo de pessoa | `MOVE_DOMAIN_OPTIONS` | CRM domain options |
-| `src/features/crm/ContactFormModal.tsx` | opções inline Ativo/Inativo | `MOVE_DOMAIN_OPTIONS` | CRM domain options |
-| `src/features/crm/CrmPage.tsx` | filtros de entity type e status repetem opções do formulário | `MOVE_DOMAIN_OPTIONS` | mesma fonte única |
-| `src/features/crm/domain.ts` | registries de status/tipo/serviço/origem/prioridade/temperatura/categoria/perfis | `KEEP_STATIC` como domínio; revisar organização na Etapa 3/12 | `crm/options` ou domain |
-| `src/features/crm/domain.ts` | `emptyLead()` / `emptyContact()` | `KEEP_STATIC` como factory/default de criação; revisar na Etapa 3 | factory tipada |
-| `src/features/crm/repository.ts` / `hooks.ts` | abstração já existente entre UI e seed | `KEEP_STATIC` arquitetura | será integrada ao provider global |
+| `src/modules/crm/mocks/index.ts` | 5 leads / 5 contatos; volume pequeno; entidades não canônicas para outros módulos | `EXTERNALIZE_MOCK` (ampliar/normalizar) | domínio CRM global |
+| `src/modules/crm/ContactFormModal.tsx` | opções inline de tipo de pessoa | `MOVE_DOMAIN_OPTIONS` | CRM domain options |
+| `src/modules/crm/ContactFormModal.tsx` | opções inline Ativo/Inativo | `MOVE_DOMAIN_OPTIONS` | CRM domain options |
+| `src/modules/crm/CrmPage.tsx` | filtros de entity type e status repetem opções do formulário | `MOVE_DOMAIN_OPTIONS` | mesma fonte única |
+| `src/modules/crm/domain.ts` | registries de status/tipo/serviço/origem/prioridade/temperatura/categoria/perfis | `KEEP_STATIC` como domínio; revisar organização na Etapa 3/12 | `crm/options` ou domain |
+| `src/modules/crm/domain.ts` | `emptyLead()` / `emptyContact()` | `KEEP_STATIC` como factory/default de criação; revisar na Etapa 3 | factory tipada |
+| `src/modules/crm/repository.ts` / `hooks.ts` | abstração já existente entre UI e seed | `KEEP_STATIC` arquitetura | será integrada ao provider global |
 
 Os labels, títulos de formulário e mensagens de validação permanecem estruturais.
 
@@ -68,15 +68,15 @@ Logo, o módulo não possui massa de contratos/templates para avaliação real e
 
 | Arquivo | Ocorrência | Classificação | Destino previsto |
 | --- | --- | --- | --- |
-| `src/features/contracts/mocks/index.ts` | contratos vazios | `EXTERNALIZE_MOCK` | criar contratos coerentes com CRM/Finance |
-| `src/features/contracts/mocks/index.ts` | templates vazios | `EXTERNALIZE_MOCK` | criar templates realistas tipados |
-| `src/features/contracts/mocks/index.ts` | categorias/variáveis já externas | `KEEP_STATIC`/dados de domínio | manter e normalizar |
-| `src/features/contracts/ContractsPage.tsx` | KPIs calculados da coleção | `DERIVE_FROM_DATA` já atendido | manter cálculo sobre provider |
-| `src/features/contracts/components/ContractWizardPortal.tsx` | `steps` | `KEEP_STATIC` | estrutura do wizard |
-| `src/features/contracts/components/ContractWizardPortal.tsx` | `makeContract`/`emptyParty` com defaults de criação | `MOVE_DOMAIN_OPTIONS`/factory | mover para factory de domínio |
-| `src/features/contracts/components/ContractWizardPortal.tsx` | opções inline de origem da parte, tipo de entidade, moeda e outros selects | `MOVE_DOMAIN_OPTIONS` | contract domain options |
-| `src/features/contracts/domain.ts` | status, signature status e tipos de contrato centralizados | `KEEP_STATIC` como domínio | reorganizar na Etapa 3/12 |
-| `src/features/contracts/repository.ts` / `hooks.ts` | já existe camada de acesso | `KEEP_STATIC` arquitetura | conectar ao provider global |
+| `src/modules/contracts/mocks/index.ts` | contratos vazios | `EXTERNALIZE_MOCK` | criar contratos coerentes com CRM/Finance |
+| `src/modules/contracts/mocks/index.ts` | templates vazios | `EXTERNALIZE_MOCK` | criar templates realistas tipados |
+| `src/modules/contracts/mocks/index.ts` | categorias/variáveis já externas | `KEEP_STATIC`/dados de domínio | manter e normalizar |
+| `src/modules/contracts/ContractsPage.tsx` | KPIs calculados da coleção | `DERIVE_FROM_DATA` já atendido | manter cálculo sobre provider |
+| `src/modules/contracts/components/ContractWizardPortal.tsx` | `steps` | `KEEP_STATIC` | estrutura do wizard |
+| `src/modules/contracts/components/ContractWizardPortal.tsx` | `makeContract`/`emptyParty` com defaults de criação | `MOVE_DOMAIN_OPTIONS`/factory | mover para factory de domínio |
+| `src/modules/contracts/components/ContractWizardPortal.tsx` | opções inline de origem da parte, tipo de entidade, moeda e outros selects | `MOVE_DOMAIN_OPTIONS` | contract domain options |
+| `src/modules/contracts/domain.ts` | status, signature status e tipos de contrato centralizados | `KEEP_STATIC` como domínio | reorganizar na Etapa 3/12 |
+| `src/modules/contracts/repository.ts` / `hooks.ts` | já existe camada de acesso | `KEEP_STATIC` arquitetura | conectar ao provider global |
 
 ## 5. Financeiro
 
@@ -91,19 +91,19 @@ O volume é insuficiente para testar paginação, filtros, seleção, atrasos, c
 
 | Arquivo | Ocorrência | Classificação | Destino previsto |
 | --- | --- | --- | --- |
-| `src/features/finance/mocks/index.ts` | massa pequena e referências genéricas/inconsistentes | `EXTERNALIZE_MOCK` (reconstruir) | Finance ligado a CRM/Contracts |
-| `src/features/finance/FinanceMainPage.tsx` | importa `financeTransactionsMock` diretamente | `USE_DATA_PROVIDER` | finance repository/provider |
-| `src/features/finance/FinanceMainPage.tsx` | lê/escreve `localStorage` na página | `USE_DATA_PROVIDER` | adapter/repository |
-| `src/features/finance/FinanceMainPage.tsx` | objeto `blank` de transação dentro do modal | `MOVE_DOMAIN_OPTIONS`/factory | finance factory |
-| `src/features/finance/FinanceMainPage.tsx` | options inline: tipo, pagamento, método, status | `MOVE_DOMAIN_OPTIONS` | finance domain options |
-| `src/features/finance/FinanceMainPage.tsx` | KPIs receita/despesa/lucro/receber/pagar | `DERIVE_FROM_DATA` já atendido | manter derivação sobre provider |
-| `src/features/finance/FinanceInvoicesPage.tsx` | importa raw invoice mock e controla localStorage na página | `USE_DATA_PROVIDER` | finance repository/provider |
-| `src/features/finance/FinanceInvoicesPage.tsx` | objeto blank de nota e options de tipo/status inline | `MOVE_DOMAIN_OPTIONS`/factory | finance domain |
-| `src/features/finance/FinanceInvoicesPage.tsx` | 6 KPIs derivados das notas | `DERIVE_FROM_DATA` já atendido | manter |
-| `src/features/finance/FinanceAccountingPage.tsx` | lê `financeTransactionsMock` diretamente como fallback | `USE_DATA_PROVIDER` | mesmo finance provider |
-| `src/features/finance/FinanceAccountingPage.tsx` | KPIs e resultados calculados da coleção | `DERIVE_FROM_DATA` já atendido | manter |
-| `src/features/finance/FinancePage.tsx` | implementação combinada duplicada para categories/rules; seeds/storage/modais próprios | `USE_DATA_PROVIDER` + `MOVE_DOMAIN_OPTIONS` | consolidar sobre finance provider sem restaurar Automações |
-| `src/features/finance/domain.ts` | domain importa mocks e reexporta `seed*` | `USE_DATA_PROVIDER` | desacoplar domain de mock |
+| `src/modules/finance/mocks/index.ts` | massa pequena e referências genéricas/inconsistentes | `EXTERNALIZE_MOCK` (reconstruir) | Finance ligado a CRM/Contracts |
+| `src/modules/finance/FinanceMainPage.tsx` | importa `financeTransactionsMock` diretamente | `USE_DATA_PROVIDER` | finance repository/provider |
+| `src/modules/finance/FinanceMainPage.tsx` | lê/escreve `localStorage` na página | `USE_DATA_PROVIDER` | adapter/repository |
+| `src/modules/finance/FinanceMainPage.tsx` | objeto `blank` de transação dentro do modal | `MOVE_DOMAIN_OPTIONS`/factory | finance factory |
+| `src/modules/finance/FinanceMainPage.tsx` | options inline: tipo, pagamento, método, status | `MOVE_DOMAIN_OPTIONS` | finance domain options |
+| `src/modules/finance/FinanceMainPage.tsx` | KPIs receita/despesa/lucro/receber/pagar | `DERIVE_FROM_DATA` já atendido | manter derivação sobre provider |
+| `src/modules/finance/FinanceInvoicesPage.tsx` | importa raw invoice mock e controla localStorage na página | `USE_DATA_PROVIDER` | finance repository/provider |
+| `src/modules/finance/FinanceInvoicesPage.tsx` | objeto blank de nota e options de tipo/status inline | `MOVE_DOMAIN_OPTIONS`/factory | finance domain |
+| `src/modules/finance/FinanceInvoicesPage.tsx` | 6 KPIs derivados das notas | `DERIVE_FROM_DATA` já atendido | manter |
+| `src/modules/finance/FinanceAccountingPage.tsx` | lê `financeTransactionsMock` diretamente como fallback | `USE_DATA_PROVIDER` | mesmo finance provider |
+| `src/modules/finance/FinanceAccountingPage.tsx` | KPIs e resultados calculados da coleção | `DERIVE_FROM_DATA` já atendido | manter |
+| `src/modules/finance/FinancePage.tsx` | implementação combinada duplicada para categories/rules; seeds/storage/modais próprios | `USE_DATA_PROVIDER` + `MOVE_DOMAIN_OPTIONS` | consolidar sobre finance provider sem restaurar Automações |
+| `src/modules/finance/domain.ts` | domain importa mocks e reexporta `seed*` | `USE_DATA_PROVIDER` | desacoplar domain de mock |
 
 Regra preservada: **Automações Financeiras não volta para o produto**. A nova arquitetura não pode reintroduzir a página removida.
 
@@ -111,12 +111,12 @@ Regra preservada: **Automações Financeiras não volta para o produto**. A nova
 
 | Arquivo | Ocorrência | Classificação | Destino previsto |
 | --- | --- | --- | --- |
-| `src/features/editorial/data/legacySnapshot.ts` | páginas, notícias, imagens, autores, datas, categorias, summaries e bodies demonstrativos | `EXTERNALIZE_MOCK` | `mocks/editorial` |
-| `src/features/editorial/mocks/index.ts` | placeholder vazio enquanto os dados reais continuam no legacy snapshot | `EXTERNALIZE_MOCK` | substituir pelo dataset editorial canônico |
-| `src/features/editorial/repository.ts` | UI já consome read model/repository | `KEEP_STATIC` arquitetura | repository passa a ler provider global |
-| `src/features/editorial/components/EditorialAdmin.tsx` | status de filtro definidos localmente | `MOVE_DOMAIN_OPTIONS` | editorial domain options |
-| `src/features/editorial/components/EditorialListingPage.tsx` | conteúdo vem do repository | `KEEP_STATIC` arquitetura | preservar |
-| `src/features/editorial/components/EditorialContentPage.tsx` | conteúdo vem do repository | `KEEP_STATIC` arquitetura | preservar |
+| `src/modules/editorial/data/legacySnapshot.ts` | páginas, notícias, imagens, autores, datas, categorias, summaries e bodies demonstrativos | `EXTERNALIZE_MOCK` | `mocks/editorial` |
+| `src/modules/editorial/mocks/index.ts` | placeholder vazio enquanto os dados reais continuam no legacy snapshot | `EXTERNALIZE_MOCK` | substituir pelo dataset editorial canônico |
+| `src/modules/editorial/repository.ts` | UI já consome read model/repository | `KEEP_STATIC` arquitetura | repository passa a ler provider global |
+| `src/modules/editorial/components/EditorialAdmin.tsx` | status de filtro definidos localmente | `MOVE_DOMAIN_OPTIONS` | editorial domain options |
+| `src/modules/editorial/components/EditorialListingPage.tsx` | conteúdo vem do repository | `KEEP_STATIC` arquitetura | preservar |
+| `src/modules/editorial/components/EditorialContentPage.tsx` | conteúdo vem do repository | `KEEP_STATIC` arquitetura | preservar |
 
 ## 7. Home pública
 
@@ -146,13 +146,13 @@ Regra preservada: **Automações Financeiras não volta para o produto**. A nova
 
 | Arquivo | Ocorrência | Classificação | Destino previsto |
 | --- | --- | --- | --- |
-| `src/features/site-manager/mocks/index.ts` | pages/media/categories vazios; placeholder não utilizado como base real | `EXTERNALIZE_MOCK` | alimentar a partir do dataset editorial compartilhado, sem universo paralelo |
-| `src/features/site-manager/readModel.ts` | agrega dados editoriais | `KEEP_STATIC` arquitetura | provider global abaixo do read model |
-| `src/features/site-manager/pages/HomeManagerPage.tsx` | array `sections` mistura definição estrutural com status/countLabel de runtime | config: `KEEP_STATIC`; estado/count: `DERIVE_FROM_DATA` | site config + selectors |
-| `src/features/site-manager/pages/SiteManagerDashboardPage.tsx` | KPIs derivados do read model | `DERIVE_FROM_DATA` já atendido | manter |
-| `src/features/site-manager/pages/SiteCategoriesPage.tsx` | dados vêm do read model | `KEEP_STATIC` arquitetura | manter |
-| `src/features/site-manager/pages/SiteMediaPage.tsx` | `mediaTypes` local | `MOVE_DOMAIN_OPTIONS` | media domain options |
-| `src/features/site-manager/pages/MediaKitPage.tsx` | contadores derivados do read model | `DERIVE_FROM_DATA` já atendido | manter |
+| `src/modules/site-manager/mocks/index.ts` | pages/media/categories vazios; placeholder não utilizado como base real | `EXTERNALIZE_MOCK` | alimentar a partir do dataset editorial compartilhado, sem universo paralelo |
+| `src/modules/site-manager/readModel.ts` | agrega dados editoriais | `KEEP_STATIC` arquitetura | provider global abaixo do read model |
+| `src/modules/site-manager/pages/HomeManagerPage.tsx` | array `sections` mistura definição estrutural com status/countLabel de runtime | config: `KEEP_STATIC`; estado/count: `DERIVE_FROM_DATA` | site config + selectors |
+| `src/modules/site-manager/pages/SiteManagerDashboardPage.tsx` | KPIs derivados do read model | `DERIVE_FROM_DATA` já atendido | manter |
+| `src/modules/site-manager/pages/SiteCategoriesPage.tsx` | dados vêm do read model | `KEEP_STATIC` arquitetura | manter |
+| `src/modules/site-manager/pages/SiteMediaPage.tsx` | `mediaTypes` local | `MOVE_DOMAIN_OPTIONS` | media domain options |
+| `src/modules/site-manager/pages/MediaKitPage.tsx` | contadores derivados do read model | `DERIVE_FROM_DATA` já atendido | manter |
 
 ## 10. Branding
 

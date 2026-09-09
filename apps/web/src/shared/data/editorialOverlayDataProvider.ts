@@ -1,4 +1,4 @@
-import type {PublicEditorialSnapshot} from '../../features/editorial/apiClient'
+import type {PublicEditorialSnapshot} from '../../modules/editorial/apiClient'
 import type {ApplicationDataProvider} from './dataProvider'
 
 const clone=<T>(value:T):T=>structuredClone(value)

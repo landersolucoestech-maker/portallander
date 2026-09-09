@@ -1,6 +1,6 @@
 import {describe,expect,it} from 'vitest'
 import {createPublicApiDataProvider} from './publicApiDataProvider'
-import type {PublicEditorialSnapshot} from '../../features/editorial/apiClient'
+import type {PublicEditorialSnapshot} from '../../modules/editorial/apiClient'
 
 const snapshot:PublicEditorialSnapshot={
  pages:[{id:'page-news',title:'Notícias',navigationLabel:'Notícias',slug:'noticias',description:'',type:'editorial',status:'published',active:true,visibility:'public',showInMainMenu:true,menuOrder:1,order:1,parentId:null,seo:{},createdAt:'2026-09-01T00:00:00Z',updatedAt:'2026-09-01T00:00:00Z',publishedAt:'2026-09-01T00:00:00Z'}],

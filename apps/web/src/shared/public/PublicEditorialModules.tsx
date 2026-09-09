@@ -1,7 +1,7 @@
 import type {ReactNode} from 'react'
 import {Link} from 'react-router-dom'
-import {advertisingResponsiveCssVariables,withAdvertisingSectionLayout,type AdvertisingSectionConfiguration} from '../../features/site-manager/advertisingSectionLayout'
-import type {SectionConfiguration} from '../../features/site-manager/sectionConfiguration'
+import {advertisingResponsiveCssVariables,withAdvertisingSectionLayout,type AdvertisingSectionConfiguration} from '../../modules/site-manager/advertisingSectionLayout'
+import type {SectionConfiguration} from '../../modules/site-manager/sectionConfiguration'
 import {getRuntimeDataProvider} from '../data/runtimeDataProvider'
 
 function SmartLink({to,children,className}:{to:string;children:ReactNode;className?:string}){

@@ -33,15 +33,15 @@ jobs:
         run: npm ci
       - name: Prove reusable Metrics UI has no demo KPI literals
         run: |
-          if grep -E "128400|35400|176900|548200|48200|268000|415000" apps/web/src/features/analytics/MetricsPage.tsx; then
+          if grep -E "128400|35400|176900|548200|48200|268000|415000" apps/web/src/modules/analytics/MetricsPage.tsx; then
             echo "REUSABLE RUNTIME HARDCODED METRICS IN UI != 0"
             exit 1
           fi
-          if grep -F "O período é compartilhado entre todas as fontes." apps/web/src/features/analytics/MetricsPage.tsx; then
+          if grep -F "O período é compartilhado entre todas as fontes." apps/web/src/modules/analytics/MetricsPage.tsx; then
             echo "METRICS_PERIOD_HELPER_TEXT_PRESENT=YES"
             exit 1
           fi
-          grep -q "const INTERNAL_METRICS_RANGE:MetricsRange='30d'" apps/web/src/features/analytics/MetricsPage.tsx
+          grep -q "const INTERNAL_METRICS_RANGE:MetricsRange='30d'" apps/web/src/modules/analytics/MetricsPage.tsx
           echo "REUSABLE RUNTIME HARDCODED METRICS IN UI = 0"
           echo "METRICS_INTERNAL_CANONICAL_PERIOD=30d"
       - name: Install Chromium

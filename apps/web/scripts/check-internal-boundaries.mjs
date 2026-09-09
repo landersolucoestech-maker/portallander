@@ -17,18 +17,18 @@ if(/import\s+\{?\s*mockDataProvider/.test(main))failures.push('main.tsx não pod
 
 const internalApp=await read('src/app/InternalApp.tsx')
 requireModuleSources('InternalApp.tsx',internalApp,[
- '../features/access/LoginPage',
- '../features/access/AdminAuthContext',
- '../features/access/adminAuthState',
- '../features/access/CrmModuleRoutes',
- '../features/dashboard/DashboardPage',
- '../features/contracts/ContractsPage',
- '../features/finance/FinanceMainPage',
- '../features/finance/FinanceInvoicesPage',
- '../features/finance/FinanceAccountingPage',
- '../features/finance/FinanceRegistryPage',
- '../features/settings/SettingsPage',
- '../features/site-manager/SiteManagerRoutes',
+ '../modules/access/LoginPage',
+ '../modules/access/AdminAuthContext',
+ '../modules/access/adminAuthState',
+ '../modules/access/CrmModuleRoutes',
+ '../modules/dashboard/DashboardPage',
+ '../modules/contracts/ContractsPage',
+ '../modules/finance/FinanceMainPage',
+ '../modules/finance/FinanceInvoicesPage',
+ '../modules/finance/FinanceAccountingPage',
+ '../modules/finance/FinanceRegistryPage',
+ '../modules/settings/SettingsPage',
+ '../modules/site-manager/SiteManagerRoutes',
 ])
 requireTokens('InternalApp.tsx',internalApp,[
  'function RequireAdmin',
@@ -49,7 +49,7 @@ requireTokens('InternalApp.tsx',internalApp,[
 ])
 forbidTokens('InternalApp.tsx',internalApp,['WorkspacePage','CrmWorkspace','/app/workspaces','workspace selection'])
 
-const authContext=await read('src/features/access/AdminAuthContext.tsx')
+const authContext=await read('src/modules/access/AdminAuthContext.tsx')
 requireTokens('AdminAuthContext.tsx',authContext,[
  "const demoAuthEnabled=import.meta.env.DEV||import.meta.env.VITE_ENABLE_DEMO_DATA==='true'",
  'isAdminAuthConfigured',
@@ -60,13 +60,13 @@ requireTokens('AdminAuthContext.tsx',authContext,[
 ])
 if(authContext.includes("useState<AdminAuthStatus>('development')"))failures.push('AdminAuthContext.tsx não pode manter bypass administrativo incondicional.')
 
-const crmModuleRoutes=await read('src/features/access/CrmModuleRoutes.tsx')
+const crmModuleRoutes=await read('src/modules/access/CrmModuleRoutes.tsx')
 requireTokens('CrmModuleRoutes.tsx',crmModuleRoutes,["from '../crm/CrmPage'",'<Route index element={<CrmPage/>}/>','path="leads" element={<CrmPage/>}','path="contatos" element={<CrmPage/>}'])
 forbidTokens('CrmModuleRoutes.tsx',crmModuleRoutes,['Workspace','workspace'])
 
 for(const removed of [
- 'src/features/access/WorkspacePage.tsx',
- 'src/features/access/CrmWorkspace.tsx',
+ 'src/modules/access/WorkspacePage.tsx',
+ 'src/modules/access/CrmWorkspace.tsx',
  'src/styles/admin-workspaces.css',
 ])if(await exists(removed))failures.push(`${removed} pertence à arquitetura antiga de múltiplos workspaces e deve permanecer removido.`)
 
@@ -94,7 +94,7 @@ requireTokens('adminNavigation.ts',adminNavigation,[
 forbidTokens('adminNavigation.ts',adminNavigation,['CRM_WORKSPACE_NAV','WORKSPACE_NAV','/app/workspaces'])
 for(const forbidden of ["['Dashboard',LayoutDashboard,'/app/crm']",'/app/crm/dashboard','/app/crm/integrations','Integrações','PlugZap',"['Categorias',Tags,'/app/finance/categories']","/app/finance/automations","['Contratos',FileText,'/app/contracts']","['Relatórios'"])if(adminNavigation.includes(forbidden))failures.push(`adminNavigation contém item proibido ou removido: ${forbidden}`)
 
-const crmPage=await read('src/features/crm/CrmPage.tsx')
+const crmPage=await read('src/modules/crm/CrmPage.tsx')
 requireTokens('CrmPage.tsx',crmPage,['UNIFIED_ADMIN_NAV',"title:'CRM'",'Gerencie contatos, leads e relacionamentos comerciais do Portal Lander.','crm-tabs','role="tablist"','Novo Contato','Novo Lead','LeadFormModal','ContactFormModal','Total de Leads','Total de Contatos'])
 forbidTokens('CrmPage.tsx',crmPage,['CRM_WORKSPACE_NAV','CrmWorkspace'])
 for(const forbidden of ['crm-page-toolbar','Gravadora/Selo','Distribuição Digital','Gestão Artística','Contratação de Artistas'])if(crmPage.includes(forbidden))failures.push(`CRM não pode manter cabeçalho duplicado ou domínio musical: ${forbidden}`)
@@ -111,7 +111,7 @@ requireTokens('mockDataProvider.ts',mockDataProvider,["from '@portallander/mocku
 const appReadModel=await read('src/shared/data/appReadModel.ts')
 forbidTokens('appReadModel.ts',appReadModel,['workspaces()','.identity.workspaces'])
 
-const accountPage=await read('src/features/access/AccountPages.tsx')
+const accountPage=await read('src/modules/access/AccountPages.tsx')
 requireTokens('AccountPages.tsx',accountPage,['UNIFIED_ADMIN_NAV','useAdminAuth','sessionUser.displayName'])
 forbidTokens('AccountPages.tsx',accountPage,['CRM_WORKSPACE_NAV'])
 
@@ -120,26 +120,26 @@ requireTokens('AdminUi.tsx',adminUi,['export type PageHeaderConfig','function He
 if(adminUi.includes('notification-count'))failures.push('AdminUi não pode reintroduzir contador numérico de notificações no cabeçalho.')
 if(adminUi.includes('AdminPageHeader'))failures.push('AdminUi não pode reintroduzir o cabeçalho duplicado AdminPageHeader.')
 
-const settingsPage=await read('src/features/settings/SettingsPage.tsx')
-const siteIdentity=await read('src/features/settings/SiteIdentitySettings.tsx')
+const settingsPage=await read('src/modules/settings/SettingsPage.tsx')
+const siteIdentity=await read('src/modules/settings/SiteIdentitySettings.tsx')
 requireTokens('SettingsPage.tsx',settingsPage,["'identidade_site'",'Identidade do Site','<SiteIdentitySettings/>'])
 requireTokens('SiteIdentitySettings.tsx',siteIdentity,['Cabeçalho global','Rodapé global','HeaderBrandEditor'])
 
-const financeMain=await read('src/features/finance/FinanceMainPage.tsx')
+const financeMain=await read('src/modules/finance/FinanceMainPage.tsx')
 requireTokens('FinanceMainPage.tsx',financeMain,['Financeiro','Nova Transação','Importar OFX','useFinanceTransactions','useFinanceCategories','useSaveFinanceTransaction','useDeleteFinanceTransaction'])
 if(financeMain.includes("label:'Automações'"))failures.push('Financeiro principal não pode reintroduzir ação Automações.')
-const financeInvoices=await read('src/features/finance/FinanceInvoicesPage.tsx')
+const financeInvoices=await read('src/modules/finance/FinanceInvoicesPage.tsx')
 requireTokens('FinanceInvoicesPage.tsx',financeInvoices,['Notas Fiscais','Registrar Nota','setInvoiceModal(null)','function InvoiceModal','useFinanceInvoices','useSaveFinanceInvoice','useDeleteFinanceInvoice'])
-const financeAccounting=await read('src/features/finance/FinanceAccountingPage.tsx')
+const financeAccounting=await read('src/modules/finance/FinanceAccountingPage.tsx')
 requireTokens('FinanceAccountingPage.tsx',financeAccounting,['Contabilidade','Receita Total','Despesa Total','Lucro Líquido','Margem Líquida','Demonstrativo de Resultado','useFinanceTransactions'])
-const financeRegistry=await read('src/features/finance/FinanceRegistryPage.tsx')
+const financeRegistry=await read('src/modules/finance/FinanceRegistryPage.tsx')
 requireTokens('FinanceRegistryPage.tsx',financeRegistry,['Categorias Financeiras','Regras Financeiras','useFinanceCategories','useFinanceRules','useSaveFinanceCategory','useDeleteFinanceCategory','useSaveFinanceRule','useDeleteFinanceRule'])
 for(const [path,source] of [['FinanceMainPage.tsx',financeMain],['FinanceInvoicesPage.tsx',financeInvoices],['FinanceAccountingPage.tsx',financeAccounting],['FinanceRegistryPage.tsx',financeRegistry]]){
  if(source.includes('financeRepository.'))failures.push(`${path} não pode persistir dados financeiros diretamente no repository/localStorage; use hooks canônicos.`)
 }
-const financeHooks=await read('src/features/finance/hooks.ts')
+const financeHooks=await read('src/modules/finance/hooks.ts')
 requireTokens('finance/hooks.ts',financeHooks,['financeAdminClient','status===\'authenticated\'?\'api\':\'development\'','useQuery','useMutation'])
-const financeAdminClient=await read('src/features/finance/adminClient.ts')
+const financeAdminClient=await read('src/modules/finance/adminClient.ts')
 requireTokens('financeAdminClient.ts',financeAdminClient,['/api/finance/transactions','/api/finance/invoices','/api/finance/categories','/api/finance/rules',"credentials:'include'"])
 
 if(await exists('src/mocks'))failures.push('src/mocks deve permanecer removido; dados reutilizáveis de desenvolvimento pertencem a @portallander/mockup.')
@@ -149,7 +149,7 @@ for(const required of [
  '../../packages/mockup/src/registry.ts',
 ])if(!(await exists(required)))failures.push(`Arquitetura global de mock data exige ${required}.`)
 
-const mediaKitPage=await read('src/features/site-manager/pages/MediaKitPage.tsx')
+const mediaKitPage=await read('src/modules/site-manager/pages/MediaKitPage.tsx')
 requireTokens('MediaKitPage.tsx',mediaKitPage,['data-testid="media-kit-automatic-metrics"','Os números abaixo são selecionados automaticamente','Última atualização','Nenhum dado real de audiência está disponível','Ausência de dado não vira zero','Contexto editorial da audiência'])
 for(const forbidden of ['Adicionar métrica','Metric key','Account ID','Property ID','<span>Provider</span>','<span>Conta</span>','Compatibilidade de dados manuais legados','Usuários mensais','Visualizações mensais','Alcance social','Valor manual'])if(mediaKitPage.includes(forbidden))failures.push(`Mídia Kit não pode reintroduzir configuração técnica ou audiência manual no fluxo principal: ${forbidden}`)
 

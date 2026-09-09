@@ -5,7 +5,7 @@ import reactRefresh from 'eslint-plugin-react-refresh'
 import tseslint from 'typescript-eslint'
 
 export default tseslint.config(
-  { ignores: ['dist', 'src/features/operations/ContractsPage.tsx'] },
+  { ignores: ['dist', 'src/modules/operations/ContractsPage.tsx'] },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ['**/*.{ts,tsx}'],
@@ -24,27 +24,27 @@ export default tseslint.config(
     },
   },
   {
-    files: ['src/features/rh/RHPage.tsx'],
+    files: ['src/modules/rh/RHPage.tsx'],
     rules: {
       'react-hooks/exhaustive-deps': 'off',
     },
   },
   {
-    files: ['src/features/marketing/MarketingPage.tsx'],
+    files: ['src/modules/marketing/MarketingPage.tsx'],
     rules: {
       'react-hooks/set-state-in-effect': 'off',
     },
   },
   {
-    files: ['src/features/marketing/MarketingUi.tsx'],
+    files: ['src/modules/marketing/MarketingUi.tsx'],
     rules: {
       'react-refresh/only-export-components': 'off',
     },
   },
   {
     files: [
-      'src/features/contracts/components/ContractViewModal.tsx',
-      'src/features/contracts/components/TemplatesPanel.tsx',
+      'src/modules/contracts/components/ContractViewModal.tsx',
+      'src/modules/contracts/components/TemplatesPanel.tsx',
     ],
     rules: {
       '@typescript-eslint/no-unused-vars': 'off',

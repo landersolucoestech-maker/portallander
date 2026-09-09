@@ -1,0 +1,26 @@
+import {useMutation,useQuery,useQueryClient} from '@tanstack/react-query'
+import {useAdminAuth} from '../access/AdminAuthContext'
+import {financeAdminClient} from './adminClient'
+import {uid,type FinanceCategory,type FinanceInvoice,type FinanceRule,type FinanceTransaction} from './domain'
+import {financeRepository} from './repository'
+
+const key=(mode:'api'|'development',collection:string)=>['finance',mode,collection] as const
+export function useFinanceRuntime(){const {status}=useAdminAuth();const mode=status==='authenticated'?'api':'development';return{mode,api:mode==='api'} as const}
+const useInvalidate=(collection:string)=>{const qc=useQueryClient(),{mode}=useFinanceRuntime();return()=>qc.invalidateQueries({queryKey:key(mode,collection)})}
+
+export function useFinanceTransactions(){const {mode,api}=useFinanceRuntime();return useQuery({queryKey:key(mode,'transactions'),queryFn:()=>api?financeAdminClient.listTransactions():Promise.resolve(financeRepository.listTransactions()),staleTime:10_000})}
+export function useFinanceCategories(){const {mode,api}=useFinanceRuntime();return useQuery({queryKey:key(mode,'categories'),queryFn:()=>api?financeAdminClient.listCategories():Promise.resolve(financeRepository.listCategories()),staleTime:10_000})}
+export function useFinanceInvoices(){const {mode,api}=useFinanceRuntime();return useQuery({queryKey:key(mode,'invoices'),queryFn:()=>api?financeAdminClient.listInvoices():Promise.resolve(financeRepository.listInvoices()),staleTime:10_000})}
+export function useFinanceRules(){const {mode,api}=useFinanceRuntime();return useQuery({queryKey:key(mode,'rules'),queryFn:()=>api?financeAdminClient.listRules():Promise.resolve(financeRepository.listRules()),staleTime:10_000})}
+
+export function useSaveFinanceTransaction(){const {api}=useFinanceRuntime(),invalidate=useInvalidate('transactions');return useMutation({mutationFn:async(value:FinanceTransaction)=>{if(api)return value.id?financeAdminClient.updateTransaction(value):financeAdminClient.createTransaction(value);const now=new Date().toISOString(),items=financeRepository.listTransactions();const saved=value.id?{...value,updatedAt:now}:{...value,id:uid('tx'),createdAt:now,updatedAt:now};financeRepository.saveTransactions(value.id?items.map(item=>item.id===value.id?saved:item):[saved,...items]);return saved},onSuccess:invalidate})}
+export function useDeleteFinanceTransaction(){const {api}=useFinanceRuntime(),invalidate=useInvalidate('transactions');return useMutation({mutationFn:async(id:string)=>{if(api)return financeAdminClient.removeTransaction(id);financeRepository.saveTransactions(financeRepository.listTransactions().filter(item=>item.id!==id))},onSuccess:invalidate})}
+
+export function useSaveFinanceInvoice(){const {api}=useFinanceRuntime(),invalidate=useInvalidate('invoices');return useMutation({mutationFn:async(value:FinanceInvoice)=>{if(api)return value.id?financeAdminClient.updateInvoice(value):financeAdminClient.createInvoice(value);const now=new Date().toISOString(),items=financeRepository.listInvoices();const saved=value.id?{...value,updatedAt:now}:{...value,id:uid('nf'),createdAt:now,updatedAt:now};financeRepository.saveInvoices(value.id?items.map(item=>item.id===value.id?saved:item):[saved,...items]);return saved},onSuccess:invalidate})}
+export function useDeleteFinanceInvoice(){const {api}=useFinanceRuntime(),invalidate=useInvalidate('invoices');return useMutation({mutationFn:async(id:string)=>{if(api)return financeAdminClient.removeInvoice(id);financeRepository.saveInvoices(financeRepository.listInvoices().filter(item=>item.id!==id))},onSuccess:invalidate})}
+
+export function useSaveFinanceCategory(){const {api}=useFinanceRuntime(),invalidate=useInvalidate('categories');return useMutation({mutationFn:async(value:FinanceCategory)=>{if(api)return value.id?financeAdminClient.updateCategory(value):financeAdminClient.createCategory(value);const items=financeRepository.listCategories(),saved=value.id?value:{...value,id:uid('category')};financeRepository.saveCategories(value.id?items.map(item=>item.id===value.id?saved:item):[saved,...items]);return saved},onSuccess:invalidate})}
+export function useDeleteFinanceCategory(){const {api}=useFinanceRuntime(),invalidate=useInvalidate('categories');return useMutation({mutationFn:async(id:string)=>{if(api)return financeAdminClient.removeCategory(id);financeRepository.saveCategories(financeRepository.listCategories().filter(item=>item.id!==id))},onSuccess:invalidate})}
+
+export function useSaveFinanceRule(){const {api}=useFinanceRuntime(),invalidate=useInvalidate('rules');return useMutation({mutationFn:async(value:FinanceRule)=>{if(api)return value.id?financeAdminClient.updateRule(value):financeAdminClient.createRule(value);const items=financeRepository.listRules(),saved=value.id?value:{...value,id:uid('rule')};financeRepository.saveRules(value.id?items.map(item=>item.id===value.id?saved:item):[saved,...items]);return saved},onSuccess:invalidate})}
+export function useDeleteFinanceRule(){const {api}=useFinanceRuntime(),invalidate=useInvalidate('rules');return useMutation({mutationFn:async(id:string)=>{if(api)return financeAdminClient.removeRule(id);financeRepository.saveRules(financeRepository.listRules().filter(item=>item.id!==id))},onSuccess:invalidate})}

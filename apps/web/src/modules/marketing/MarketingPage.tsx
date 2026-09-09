@@ -1,0 +1,23 @@
+import {useEffect,useState} from 'react'
+import {Navigate,useLocation} from 'react-router-dom'
+import {AdminNotice,AdminShell,type AdminShellAction} from '../../shared/internal/AdminUi'
+import {UNIFIED_ADMIN_NAV} from '../../shared/internal/adminNavigation'
+import {getRuntimeDataProvider} from '../../shared/data/runtimeDataProvider'
+import type {MarketingSeed,MarketingTab} from './domain'
+import {marketingRepository} from './repository'
+import {MarketingOverview} from './pages/MarketingOverview'
+import {MarketingCampaigns} from './pages/MarketingCampaigns'
+import {MarketingCalendar} from './pages/MarketingCalendar'
+import {MarketingTasks} from './pages/MarketingTasks'
+import {MarketingBriefings} from './pages/MarketingBriefings'
+import {MarketingAiCreative} from './pages/MarketingAiCreative'
+import './marketing.css'
+import './marketing-reference.css'
+import './marketing-reference-exact.css'
+import './marketing-ai-exact.css'
+import './marketing-table-controls.css'
+const tabFromPath=(path:string):MarketingTab|null=>path==='/app/marketing'||path==='/app/marketing/'?'overview':path==='/app/marketing/campanhas'?'campaigns':path==='/app/marketing/calendario'?'calendar':path==='/app/marketing/tarefas'?'tasks':path==='/app/marketing/briefings'?'briefings':path==='/app/marketing/ia-criativa'?'ai':null
+const title=(tab:MarketingTab)=>tab==='overview'?'Visão Geral':tab==='campaigns'?'Campanhas de Marketing':tab==='calendar'?'Marketing - Calendário de Conteúdo':tab==='tasks'?'Marketing · Tarefas':tab==='briefings'?'Briefings':'IA Criativa'
+const description=(tab:MarketingTab)=>tab==='overview'?'Cockpit operacional do setor de marketing':tab==='campaigns'?'Planeje, execute e monitore campanhas e tráfego pago':tab==='calendar'?'Programação de conteúdos':tab==='tasks'?'Núcleo operacional de tarefas':tab==='briefings'?'Origem estratégica dos projetos':'Criação, perfil, pitching, tendências, métricas e histórico.'
+const createLabel=(tab:MarketingTab)=>tab==='campaigns'?'Nova Campanha':tab==='calendar'?'Novo Conteúdo':tab==='tasks'?'Nova Tarefa':tab==='briefings'?'Novo Briefing':null
+export default function MarketingPage(){const location=useLocation(),tab=tabFromPath(location.pathname),[state,setState]=useState<MarketingSeed>(()=>marketingRepository.snapshot());useEffect(()=>{const refresh=()=>setState(marketingRepository.snapshot());window.addEventListener(marketingRepository.eventName,refresh);return()=>window.removeEventListener(marketingRepository.eventName,refresh)},[]);if(!tab)return <Navigate to="/app/marketing" replace/>;const productionMock=import.meta.env.PROD&&getRuntimeDataProvider().kind==='mock';const operationalMockBlocked=productionMock;const label=operationalMockBlocked?null:createLabel(tab),headerAction:AdminShellAction|undefined=label?{label,variant:'primary',onClick:()=>{const button=document.querySelector<HTMLButtonElement>('.marketing-page-action-row button');button?.click()}}:undefined;return <AdminShell area="marketing" items={UNIFIED_ADMIN_NAV} header={{title:title(tab),description:description(tab)}} headerAction={headerAction}><section className="marketing-page">{operationalMockBlocked?<AdminNotice title="Dados de Marketing não conectados" description="Este runtime possui somente fixtures demonstrativas para o domínio operacional de Marketing. Em produção elas não são exibidas nem tratadas como campanhas, conteúdos, tarefas ou briefings reais."/>:tab==='overview'?<MarketingOverview state={state}/>:tab==='campaigns'?<MarketingCampaigns state={state}/>:tab==='calendar'?<MarketingCalendar state={state}/>:tab==='tasks'?<MarketingTasks state={state}/>:tab==='briefings'?<MarketingBriefings state={state}/>:<MarketingAiCreative state={state}/>}</section></AdminShell>}

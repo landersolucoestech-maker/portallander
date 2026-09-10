@@ -16,11 +16,11 @@ const assertCascadeTail=(source,expected,message)=>{
 }
 
 const adminEntry=await read('src/styles/admin-entry.css')
-assertCascadeTail(adminEntry,["@import './admin-design-system.css';","@import './admin-accessibility.css';"],'Cascade administrativa deve terminar em admin-design-system.css → admin-accessibility.css; nenhuma folha arbitrária pode vir depois da camada final de acessibilidade.')
+assertCascadeTail(adminEntry,["@import './admin-design-system.css';","@import './admin-table-system.css';","@import './admin-accessibility.css';"],'Cascade administrativa deve terminar em admin-design-system.css → admin-table-system.css → admin-accessibility.css; nenhuma folha arbitrária pode vir depois da camada final de acessibilidade.')
 if(!adminEntry.includes("@import './admin-access-system.css';"))failures.push('Páginas de acesso devem carregar o baseline tipográfico/interacional interno.')
 if(adminEntry.includes('admin-table-alignment.css'))failures.push('A camada global de alinhamento de tabelas não pode voltar; alinhamento deve ser semântico.')
 if(adminEntry.includes('admin-settings-pruning.css'))failures.push('Configurações não pode depender de pruning por CSS para esconder funcionalidades.')
-for(const path of ['src/styles/admin-design-system.css','src/styles/admin-access-system.css','src/styles/admin-accessibility.css'])if(!(await exists(path)))failures.push(`Design system interno exige ${path}.`)
+for(const path of ['src/styles/admin-foundations.css','src/styles/admin-design-system.css','src/styles/admin-table-system.css','src/styles/admin-access-system.css','src/styles/admin-accessibility.css'])if(!(await exists(path)))failures.push(`Design system interno exige ${path}.`)
 
 const publicStyles=await read('src/styles/public-styles.css')
 assertCascadeTail(publicStyles,["@import './public-layout-system.css';","@import './public-corrections.css';"],'Cascade pública deve terminar em public-layout-system.css → public-corrections.css; nenhuma folha arbitrária pode vir depois da camada final de correções/a11y.')
@@ -29,8 +29,10 @@ for(const path of ['src/styles/public-layout-system.css','src/styles/public-corr
 const indexHtml=await read('index.html')
 for(const font of ['Bebas+Neue','Montserrat'])if(!indexHtml.includes(font))failures.push(`Fonte carregada obrigatória ausente: ${font}.`)
 if(indexHtml.includes('.news-reference-page .pl-page-hero'))failures.push('Layout visual da página de notícias não pode permanecer hardcoded em index.html.')
+const adminFoundations=await read('src/styles/admin-foundations.css')
+for(const required of ["--ui-font:'Montserrat'",'--ui-control-sm:32px','--ui-control-md:36px','--ui-page-gap:24px'])if(!adminFoundations.includes(required))failures.push(`Fundações administrativas devem preservar: ${required}`)
 const adminDesign=await read('src/styles/admin-design-system.css')
-for(const required of ["--ui-font:'Montserrat'",'min-height:100dvh','--ui-control-sm:32px','--ui-control-md:36px','--ui-page-gap:24px','prefers-reduced-motion','workspace-primary-action{display:inline-flex'])if(!adminDesign.includes(required))failures.push(`Design system administrativo deve preservar: ${required}`)
+for(const required of ['min-height:100dvh','prefers-reduced-motion','workspace-primary-action{display:inline-flex'])if(!adminDesign.includes(required))failures.push(`Design system administrativo deve preservar: ${required}`)
 const accessDesign=await read('src/styles/admin-access-system.css')
 for(const required of ["font-family:'Montserrat'",'min-height:100dvh','focus-visible','prefers-reduced-motion'])if(!accessDesign.includes(required))failures.push(`Baseline de acesso deve preservar: ${required}`)
 

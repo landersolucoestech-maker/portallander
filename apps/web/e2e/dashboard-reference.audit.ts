@@ -32,9 +32,11 @@ test('dashboard reproduces the approved executive reference on desktop',async({p
   await expect(kpis).toHaveCount(5)
   expect(await renderedKpiLabels(page)).toEqual(expectedKpis)
 
-  for(const heading of ['Performance Digital','Hoje & Próximos','Funil Comercial','Alertas & Prioridades','Atividades Recentes','Conteúdo & Publicações']){
+  for(const heading of ['Performance Digital','Hoje & Próximos','Funil Comercial','Atividades Recentes','Conteúdo & Publicações']){
    await expect(page.getByRole('heading',{name:heading,exact:true})).toBeVisible()
   }
+  await expect(page.getByRole('heading',{name:'Alertas & Prioridades',exact:true})).toHaveCount(0)
+  await expect(page.getByTestId('dashboard-pending-attention')).toHaveCount(0)
 
   const kpiBoxes=await kpis.evaluateAll(nodes=>nodes.map(node=>{const r=node.getBoundingClientRect();return{x:r.x,y:r.y,width:r.width,height:r.height}}))
   if(viewport.width>1280){
@@ -46,24 +48,22 @@ test('dashboard reproduces the approved executive reference on desktop',async({p
   const performance=page.getByTestId('dashboard-analytics-region')
   const agenda=page.getByTestId('dashboard-today-next')
   const funnel=page.getByTestId('dashboard-lead-distribution')
-  const alerts=page.getByTestId('dashboard-pending-attention')
   const activity=page.getByTestId('dashboard-recent-activity')
   const content=page.getByTestId('dashboard-featured-content')
-  for(const region of [performance,agenda,funnel,alerts,activity,content])await expect(region).toBeVisible()
+  for(const region of [performance,agenda,funnel,activity,content])await expect(region).toBeVisible()
 
   if(viewport.width>1280){
    const performanceBox=await performance.boundingBox()
    const agendaBox=await agenda.boundingBox()
    const funnelBox=await funnel.boundingBox()
-   const alertsBox=await alerts.boundingBox()
    const activityBox=await activity.boundingBox()
    const contentBox=await content.boundingBox()
-   expect(performanceBox).not.toBeNull();expect(agendaBox).not.toBeNull();expect(funnelBox).not.toBeNull();expect(alertsBox).not.toBeNull();expect(activityBox).not.toBeNull();expect(contentBox).not.toBeNull()
+   expect(performanceBox).not.toBeNull();expect(agendaBox).not.toBeNull();expect(funnelBox).not.toBeNull();expect(activityBox).not.toBeNull();expect(contentBox).not.toBeNull()
    if(performanceBox&&agendaBox){
     expect(Math.abs(performanceBox.y-agendaBox.y)).toBeLessThanOrEqual(6)
     expect(performanceBox.width).toBeGreaterThan(agendaBox.width*1.35)
    }
-   if(funnelBox&&alertsBox){expect(Math.abs(funnelBox.y-alertsBox.y)).toBeLessThanOrEqual(6);expect(funnelBox.x).toBeLessThan(alertsBox.x)}
+   if(funnelBox&&activityBox)expect(funnelBox.y).toBeLessThan(activityBox.y)
    if(activityBox&&contentBox){expect(Math.abs(activityBox.y-contentBox.y)).toBeLessThanOrEqual(6);expect(activityBox.x).toBeLessThan(contentBox.x)}
   }
 
@@ -97,7 +97,9 @@ test('tablet and mobile preserve reference order without overflow',async({page})
   await page.setViewportSize(viewport)
   await openDashboard(page)
   expect(await renderedKpiLabels(page)).toEqual(expectedKpis)
-  const ids=['dashboard-kpi-region','dashboard-analytics-region','dashboard-today-next','dashboard-lead-distribution','dashboard-pending-attention','dashboard-recent-activity','dashboard-featured-content']
+  await expect(page.getByRole('heading',{name:'Alertas & Prioridades',exact:true})).toHaveCount(0)
+  await expect(page.getByTestId('dashboard-pending-attention')).toHaveCount(0)
+  const ids=['dashboard-kpi-region','dashboard-analytics-region','dashboard-today-next','dashboard-lead-distribution','dashboard-recent-activity','dashboard-featured-content']
   const positions=[]
   for(const id of ids){const box=await page.getByTestId(id).boundingBox();expect(box).not.toBeNull();positions.push(box?.y??0)}
   for(let index=1;index<positions.length;index++)expect(positions[index]).toBeGreaterThanOrEqual(positions[index-1]-2)

@@ -1,0 +1,25 @@
+/* Portal Lander — canonical public geometry tokens.
+   Structural public chrome and legacy Home hero geometry consume these values.
+   Page-specific composition belongs to its owning layout, never to patch layers. */
+:root{
+  --pl-public-font:'Montserrat',Arial,sans-serif;
+  --pl-public-container:1180px;
+  --pl-public-gutter:24px;
+  --pl-public-gutter-tablet:20px;
+  --pl-public-gutter-mobile:16px;
+
+  --pl-public-header-height:78px;
+  --pl-public-header-height-mobile:70px;
+  --pl-public-brand-width:142px;
+  --pl-public-brand-height:62px;
+  --pl-public-brand-width-mobile:124px;
+  --pl-public-brand-height-mobile:54px;
+  --pl-public-control-height:36px;
+  --pl-public-search-input-height:38px;
+
+  --pl-home-hero-min-height:500px;
+  --pl-home-hero-brand-min-height:340px;
+  --pl-home-hero-padding-block:46px;
+  --pl-home-hero-padding-block-tablet:48px;
+  --pl-home-hero-padding-block-mobile:40px;
+}

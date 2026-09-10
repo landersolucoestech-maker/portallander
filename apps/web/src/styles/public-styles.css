@@ -1,7 +1,7 @@
 @import './styles.css';
+@import './public-foundations.css';
 @import './public.css';
 @import './public-logo.css';
-@import './public-tweaks.css';
 @import './public-mockup.css';
 @import '../pages/home/styles/hero-public.css';
 @import './public-reference.css';

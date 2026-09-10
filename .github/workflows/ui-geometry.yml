@@ -1,0 +1,67 @@
+name: UI Geometry Invariants
+
+on:
+  push:
+    branches: [dev]
+    paths:
+      - 'apps/web/src/**'
+      - 'apps/web/e2e/shared-geometry.audit.ts'
+      - 'apps/web/package.json'
+      - 'package-lock.json'
+      - '.github/workflows/ui-geometry.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ui-geometry-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  geometry:
+    if: github.ref_name == 'dev'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Verify canonical dev ref
+        run: |
+          test "${GITHUB_REF_NAME}" = "dev"
+          test "$(git branch --show-current)" = "dev"
+          test "$(git rev-parse HEAD)" = "${GITHUB_SHA}"
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install monorepo
+        run: npm ci
+      - name: Lint web
+        run: npm run lint
+      - name: Build explicit browser demo fixture
+        env:
+          VITE_ENABLE_DEMO_DATA: 'true'
+          VITE_MOCKUP_SCENARIO: 'full'
+        run: npm run build
+      - name: Install Chromium
+        working-directory: apps/web
+        run: npx playwright install --with-deps chromium
+      - name: Start production preview
+        run: |
+          npm --workspace @portallander/web run preview -- --host 127.0.0.1 > /tmp/portal-preview.log 2>&1 &
+          for i in {1..40}; do
+            if curl -fsS http://127.0.0.1:4173/portallander/ >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/portal-preview.log
+          exit 1
+      - name: Enforce cross-page geometry
+        working-directory: apps/web
+        run: npx playwright test e2e/shared-geometry.audit.ts --reporter=line
+      - name: Upload geometry traces
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-geometry-failure
+          path: apps/web/test-results
+          if-no-files-found: warn

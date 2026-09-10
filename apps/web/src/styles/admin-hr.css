@@ -117,7 +117,7 @@
   background:var(--ui-accent);
 }
 
-/* Filters: same toolbar surface and control heights as CRM/Finance. */
+/* Filters: RH is the compact-toolbar member of the shared admin control family. */
 .app-shell .rh-filters{
   width:100%;
   min-width:0;
@@ -130,7 +130,8 @@
   background:var(--ui-surface);
 }
 .app-shell .rh-search{
-  height:var(--ui-control-md);
+  height:var(--ui-control-sm);
+  min-height:var(--ui-control-sm);
   min-width:var(--ui-search-min-width);
   flex:1 1 auto;
   display:flex;
@@ -146,7 +147,8 @@
 .app-shell .rh-search input{
   width:100%;
   min-width:0;
-  height:100%;
+  height:var(--ui-control-sm);
+  min-height:var(--ui-control-sm);
   padding:0;
   border:0;
   outline:0;
@@ -156,8 +158,8 @@
 }
 .app-shell .rh-search:focus-within{border-color:#888;box-shadow:0 0 0 3px rgba(0,0,0,.035)}
 .app-shell .rh-filters>select,.app-shell .rh-filters>input{
-  height:var(--ui-control-md);
-  min-height:var(--ui-control-md);
+  height:var(--ui-control-sm);
+  min-height:var(--ui-control-sm);
   padding:0 var(--ui-space-3);
   border:1px solid var(--ui-border-strong);
   border-radius:var(--ui-radius-md);
@@ -316,7 +318,8 @@
 .app-shell .rh-doc-selector label>span{flex:0 0 auto;color:#475467;font-size:12px;font-weight:700}
 .app-shell .rh-doc-selector select{
   min-width:260px;
-  height:var(--ui-control-md);
+  height:var(--ui-control-sm);
+  min-height:var(--ui-control-sm);
   padding:0 var(--ui-space-3);
   border:1px solid var(--ui-border-strong);
   border-radius:var(--ui-radius-md);

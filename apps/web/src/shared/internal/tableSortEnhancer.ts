@@ -1,7 +1,7 @@
 type SortDirection='asc'|'desc'
 type SortState={column:number;direction:SortDirection}
 
-const TABLE_SCOPE='.rh-page .rh-table,.marketing-page .marketing-campaign-table,.marketing-page .marketing-task-table,.marketing-page .marketing-briefing-table'
+const TABLE_SCOPE='.hr-page .hr-table,.marketing-page .marketing-campaign-table,.marketing-page .marketing-task-table,.marketing-page .marketing-briefing-table'
 const states=new WeakMap<HTMLTableElement,SortState>()
 let applying=false
 
@@ -44,17 +44,13 @@ function decorateTable(table:HTMLTableElement){
     const th=header as HTMLTableCellElement
     if(th.classList.contains('select')||th.classList.contains('actions')||th.classList.contains('actions-col'))return
     if(th.querySelector('input[type="checkbox"]'))return
-
     const existingButtons=th.querySelector('.portal-auto-sort-buttons')
     if(th.dataset.portalSort==='ready'&&existingButtons)return
     if(th.dataset.portalSort==='ready'&&!existingButtons)delete th.dataset.portalSort
-
     const nativeSort=th.querySelector('.crm-sort-header:not(.portal-auto-sort-header)')
     if(nativeSort)return
-
     const label=(th.textContent??'').trim()
     if(!label||/^ações$/i.test(label)||/^selecionar$/i.test(label))return
-
     th.dataset.portalSort='ready'
     th.textContent=''
     const wrap=document.createElement('div')
@@ -95,7 +91,7 @@ function scan(){
   document.querySelectorAll<HTMLTableElement>(TABLE_SCOPE).forEach(decorateTable)
 }
 
-export function installRhMarketingTableSorting(){
+export function installHrMarketingTableSorting(){
   if(typeof document==='undefined')return
   const rescan=()=>requestAnimationFrame(scan)
   scan()

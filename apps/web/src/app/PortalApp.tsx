@@ -7,7 +7,7 @@ import { PublicNotFound } from '../shared/public/PublicNotFound'
 
 const InternalApp=lazy(()=>import('./InternalApp'))
 const PublicHome=lazy(()=>import('../pages/home/PublicHome').then(module=>({default:module.PublicHome})))
-const AnunciePage=lazy(()=>import('../pages/anuncie/AnunciePage').then(module=>({default:module.AnunciePage})))
+const AdvertisePage=lazy(()=>import('../pages/advertise/AdvertisePage').then(module=>({default:module.AdvertisePage})))
 const EditorialContentPage=lazy(()=>import('../modules/editorial/components/EditorialContentPage').then(module=>({default:module.EditorialContentPage})))
 const EditorialListingPage=lazy(()=>import('../modules/editorial/components/EditorialListingPage').then(module=>({default:module.EditorialListingPage})))
 const StructuredPublicPage=lazy(()=>import('../modules/editorial/components/StructuredPublicPage').then(module=>({default:module.StructuredPublicPage})))
@@ -23,7 +23,7 @@ export default function PortalApp(){
 
   if(path==='/')return deferred(<PublicHome/>)
   if(path==='/_preview/home')return deferred(<HomePreviewPage/>)
-  if(path==='/anuncie')return deferred(<AnunciePage/>)
+  if(path==='/anuncie')return deferred(<AdvertisePage/>)
   if(path.startsWith('/app'))return deferred(<InternalApp/>)
   if(segments[0]==='noticia'&&segments[1])return <Navigate to={`/noticias/${segments[1]}`} replace/>
 

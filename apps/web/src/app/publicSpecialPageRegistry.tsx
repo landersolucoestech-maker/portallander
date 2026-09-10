@@ -1,17 +1,17 @@
 import type {ReactNode} from 'react'
 import {SPECIAL_LAYOUT_PAGE_SLUGS,type EditorialPage} from '../modules/editorial/model'
-import {ColaborePage,ContatoPage,SobrePage} from './PublicSpecialPageRenderers'
+import {AboutPage,CollaboratePage,ContactPage} from './PublicSpecialPageRenderers'
 
 type SpecialPageRenderer=(page:EditorialPage)=>ReactNode
 
 const SPECIAL_PAGE_RENDERERS:Readonly<Record<string,SpecialPageRenderer>>={
-  sobre:page=><SobrePage page={page}/>,
-  colabore:()=> <ColaborePage/>,
-  contato:page=><ContatoPage page={page}/>,
+  sobre:page=><AboutPage page={page}/>,
+  colabore:page=><CollaboratePage page={page}/>,
+  contato:page=><ContactPage page={page}/>,
 }
 
 for(const slug of SPECIAL_LAYOUT_PAGE_SLUGS){
-  if(!SPECIAL_PAGE_RENDERERS[slug])throw new Error(`Página especial sem renderer público: ${slug}`)
+  if(!SPECIAL_PAGE_RENDERERS[slug])throw new Error(`Missing public renderer for special page: ${slug}`)
 }
 
 export const PUBLIC_SPECIAL_PAGE_SLUGS=Object.freeze([...SPECIAL_LAYOUT_PAGE_SLUGS])

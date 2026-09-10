@@ -1,18 +1,18 @@
 import {lazy,Suspense} from 'react'
 import type {EditorialPage} from '../modules/editorial/model'
 
-const LazySobrePage=lazy(()=>import('../pages/sobre/SobrePage').then(module=>({default:module.SobrePage})))
-const LazyColaborePage=lazy(()=>import('../pages/colabore/ColaborePage').then(module=>({default:module.ColaborePage})))
-const LazyContatoPage=lazy(()=>import('../pages/contato/ContatoPage').then(module=>({default:module.ContatoPage})))
+const LazyAboutPage=lazy(()=>import('../pages/about/AboutPage').then(module=>({default:module.AboutPage})))
+const LazyCollaboratePage=lazy(()=>import('../pages/collaborate/CollaboratePage').then(module=>({default:module.CollaboratePage})))
+const LazyContactPage=lazy(()=>import('../pages/contact/ContactPage').then(module=>({default:module.ContactPage})))
 
-export function SobrePage({page}:{page:EditorialPage}){
-  return <Suspense fallback={null}><LazySobrePage page={page}/></Suspense>
+export function AboutPage({page}:{page:EditorialPage}){
+  return <Suspense fallback={null}><LazyAboutPage page={page}/></Suspense>
 }
 
-export function ColaborePage(){
-  return <Suspense fallback={null}><LazyColaborePage/></Suspense>
+export function CollaboratePage({page}:{page:EditorialPage}){
+  return <Suspense fallback={null}><LazyCollaboratePage page={page}/></Suspense>
 }
 
-export function ContatoPage({page}:{page:EditorialPage}){
-  return <Suspense fallback={null}><LazyContatoPage page={page}/></Suspense>
+export function ContactPage({page}:{page:EditorialPage}){
+  return <Suspense fallback={null}><LazyContactPage page={page}/></Suspense>
 }

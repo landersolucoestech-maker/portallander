@@ -13,7 +13,7 @@ import type {ApplicationDataProvider} from './shared/data/dataProvider'
 import {hasRuntimeDataProvider,setRuntimeDataProvider} from './shared/data/runtimeDataProvider'
 import {scenarioController} from './shared/data/scenarioController'
 import {purgeRemovedModuleStorage} from './shared/internal/legacyStorageCleanup'
-import {installRhMarketingTableSorting} from './shared/internal/tableSortEnhancer'
+import {installHrMarketingTableSorting} from './shared/internal/tableSortEnhancer'
 import {installAutoTablePagination} from './shared/internal/autoTablePagination'
 import './styles/public-styles.css'
 
@@ -38,21 +38,15 @@ async function bootstrapExplicitDemoData(){
 }
 
 purgeRemovedModuleStorage()
-
 const queryClient=new QueryClient()
 
-const REQUIRED_PUBLIC_FONTS = [
-  '400 16px "Bebas Neue"','400 16px "Montserrat"','500 16px "Montserrat"','600 16px "Montserrat"','700 16px "Montserrat"','800 16px "Montserrat"',
-]
+const REQUIRED_PUBLIC_FONTS=['400 16px "Bebas Neue"','400 16px "Montserrat"','500 16px "Montserrat"','600 16px "Montserrat"','700 16px "Montserrat"','800 16px "Montserrat"']
 const FONT_BOOTSTRAP_TIMEOUT_MS=3000
 
-async function waitForPublicFonts() {
-  if (!document.fonts?.load) return
-  const fontLoad=Promise.all(REQUIRED_PUBLIC_FONTS.map(font => document.fonts.load(font))).then(()=>document.fonts.ready).then(()=>undefined)
-  await Promise.race([
-    fontLoad,
-    new Promise<void>(resolve=>window.setTimeout(resolve,FONT_BOOTSTRAP_TIMEOUT_MS)),
-  ])
+async function waitForPublicFonts(){
+  if(!document.fonts?.load)return
+  const fontLoad=Promise.all(REQUIRED_PUBLIC_FONTS.map(font=>document.fonts.load(font))).then(()=>document.fonts.ready).then(()=>undefined)
+  await Promise.race([fontLoad,new Promise<void>(resolve=>window.setTimeout(resolve,FONT_BOOTSTRAP_TIMEOUT_MS))])
 }
 
 async function bootstrapEditorialData(){
@@ -69,29 +63,25 @@ async function bootstrapEditorialData(){
       setRuntimeDataProvider(editorialBaseProvider)
     }
   }catch(error){
-    console.warn('[Portal Lander] API editorial indisponível; nenhuma fonte real foi substituída por mock.',error)
+    console.warn('[Portal Lander] Editorial API unavailable; real data was not replaced with mock data.',error)
   }
 }
 
 async function bootstrapForms(){
   try{await bootstrapPublishedSiteForms()}
-  catch(error){console.warn('[Portal Lander] API de formulários indisponível; nenhuma definição mock foi promovida a produção.',error)}
+  catch(error){console.warn('[Portal Lander] Forms API unavailable; mock definitions were not promoted to production.',error)}
 }
 
-async function mountApp() {
+async function mountApp(){
   const root=document.getElementById('root')!
   if(!hasRuntimeDataProvider()&&!attributableAdminApiRuntime()){
-    ReactDOM.createRoot(root).render(
-      <React.StrictMode><main role="main" className="runtime-data-unavailable"><h1>Portal Lander</h1><p>Dados operacionais indisponíveis.</p><p>A API pública ou o banco de dados não estão disponíveis para este ambiente.</p></main></React.StrictMode>,
-    )
+    ReactDOM.createRoot(root).render(<React.StrictMode><main role="main" className="runtime-data-unavailable"><h1>Portal Lander</h1><p>Dados operacionais indisponíveis.</p><p>A API pública ou o banco de dados não estão disponíveis para este ambiente.</p></main></React.StrictMode>)
     return
   }
   const {default:App}=await import('./app/PortalApp')
-  ReactDOM.createRoot(root).render(
-    <React.StrictMode><QueryClientProvider client={queryClient}><HashRouter><App/></HashRouter></QueryClientProvider></React.StrictMode>,
-  )
+  ReactDOM.createRoot(root).render(<React.StrictMode><QueryClientProvider client={queryClient}><HashRouter><App/></HashRouter></QueryClientProvider></React.StrictMode>)
   requestAnimationFrame(()=>{
-    installRhMarketingTableSorting()
+    installHrMarketingTableSorting()
     installAutoTablePagination()
   })
 }
@@ -103,7 +93,7 @@ void bootstrapExplicitDemoData().then(()=>Promise.all([
   waitForPublicFonts().catch(()=>undefined),
   bootstrapEditorialData(),
   bootstrapForms(),
-])).finally(async() => {
+])).finally(async()=>{
   document.documentElement.classList.remove('pl-fonts-loading')
   document.documentElement.classList.add('pl-fonts-ready')
   await mountApp()

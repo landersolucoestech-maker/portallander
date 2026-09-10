@@ -13,18 +13,18 @@ for(const path of requiredFiles)if(!(await exists(path)))failures.push(`Módulo 
 
 const routes=await read('src/modules/site-manager/SiteManagerRoutes.tsx')
 requireTokens('SiteManagerRoutes.tsx',routes,[
-  'path="paginas/home/secoes/lancamentos" element={<HomeReleasesSectionPage/>}',
-  'path="paginas/:pageId/secoes/institutional-hero" element={<GlobalHeroEditorPage sectionId="institutional-hero"/>}',
-  'path="paginas/:pageId/secoes/legal-hero" element={<GlobalHeroEditorPage sectionId="legal-hero"/>}',
-  'path="paginas/:pageId/secoes/:sectionId" element={<SectionConfigurationPage/>}',
-  'path="conteudos/:contentId" element={<SiteContentEditorPage/>}',
-  'path="conteudos/colaboracoes" element={<SiteCollaborationsPage/>}',
-  'path="formularios/:formId" element={<SiteFormEditorPage/>}',
-  'path="midia" element={<SiteMediaPage/>}',
-  'path="midia-kit" element={<MediaKitPage/>}',
-  'path="configuracoes" element={<Navigate to="/app/settings" replace/>}',
+  'path="pages/home/sections/releases" element={<HomeReleasesSectionPage/>}',
+  'path="pages/:pageId/sections/institutional-hero" element={<GlobalHeroEditorPage sectionId="institutional-hero"/>}',
+  'path="pages/:pageId/sections/legal-hero" element={<GlobalHeroEditorPage sectionId="legal-hero"/>}',
+  'path="pages/:pageId/sections/:sectionId" element={<SectionConfigurationPage/>}',
+  'path="content/:contentId" element={<SiteContentEditorPage/>}',
+  'path="content/collaborations" element={<SiteCollaborationsPage/>}',
+  'path="forms/:formId" element={<SiteFormEditorPage/>}',
+  'path="media" element={<SiteMediaPage/>}',
+  'path="media-kit" element={<MediaKitPage/>}',
+  'path="settings" element={<Navigate to="/app/settings" replace/>}',
 ])
-if(routes.includes('<HomeContentSectionPage sectionId="lancamentos"'))failures.push('Lançamentos não pode voltar ao editor genérico dependente do data provider; use HomeReleasesSectionPage.')
+if(routes.includes('<HomeContentSectionPage sectionId="lancamentos"')||routes.includes('<HomeContentSectionPage sectionId="releases"'))failures.push('Lançamentos não pode voltar ao editor genérico dependente do data provider; use HomeReleasesSectionPage.')
 
 const pages=await read('src/modules/site-manager/pages/SiteSectionsPage.tsx')
 requireTokens('SiteSectionsPage.tsx',pages,['isSpecialLayoutPage','isPublishedPage','EDITORIAL_PAGE_SECTION_DEFINITIONS','HOME_SECTION_DEFINITIONS','INSTITUTIONAL_PAGE_SECTION_DEFINITIONS','LEGAL_PAGE_SECTION_DEFINITIONS','LEGAL_PAGE_SLUGS','resolvePageLayout','openCreatePage','openEditPage','deletePage','openCreateSection','RESERVED_PAGE_SLUGS','to="/app/settings"','createAdminEditorialPage','updateAdminEditorialPage','deleteAdminEditorialPage','/app/site/paginas/${encodeURIComponent(selected.id)}/secoes/${encodeURIComponent(section.id)}','Configurar','site-pages-management','site-pages-management-actions','site-pages-structure','site-pages-structure-header','site-pages-context','site-pages-global-settings','site-sections-list','site-sections-actions','Estrutura editorial herdada de Notícias','Arquitetura institucional global','Arquitetura jurídica global','Estrutura de ${selected.title}','Configurações globais do site','pageSections.length'])

@@ -1,6 +1,6 @@
 import {useQuery} from '@tanstack/react-query'
 import {
- ArrowRight,BarChart3,BellRing,CalendarDays,CheckSquare,CircleDollarSign,Eye,FileText,
+ ArrowRight,BarChart3,CalendarDays,CheckSquare,CircleDollarSign,Eye,FileText,
  Handshake,Heart,MoreHorizontal,Play,TrendingUp,UsersRound,WalletCards,
 } from 'lucide-react'
 import {useMemo,useState} from 'react'
@@ -110,7 +110,6 @@ export default function DashboardPage(){
  }
 
  const recentActivity=(activity.data??[]).slice(0,5)
- const domainErrorCount=Object.keys(data.domainErrors).length
  const chartPoints=websiteSeries.points.slice(-12)
  const maxChartValue=Math.max(1,...chartPoints.map(point=>point.value))
  const chartCoordinates=chartPoints.map((point,index)=>{
@@ -190,17 +189,9 @@ export default function DashboardPage(){
     </aside>
    </section>
 
-   <section className="dashboard-mid-row" aria-label="Funil e prioridades">
-    <section className="dashboard-reference-panel dashboard-funnel-panel" data-testid="dashboard-lead-distribution" aria-labelledby="dashboard-funnel-title">
-     <header className="dashboard-panel-heading"><div className="dashboard-title-with-icon"><span className="dashboard-section-icon"><BarChart3 size={20}/></span><div><h2 id="dashboard-funnel-title">Funil Comercial</h2><p>Acompanhe suas oportunidades</p></div></div><Link to="/app/crm">Abrir CRM <ArrowRight size={14}/></Link></header>
-     <div className="dashboard-funnel-body"><div className="dashboard-funnel-bars">{funnelEntries.map(([stage,total])=><div className="dashboard-funnel-row" key={stage}><span>{pipelineLabels[stage]??stage}</span><div><i style={{width:`${Math.max(total?8:0,(total/funnelMax)*100)}%`}}/></div><strong>{data.availability.crm?total:'—'}</strong></div>)}</div><aside className="dashboard-conversion-card"><BarChart3 size={24}/><span>Taxa de conversão</span><strong>{data.availability.crm?`${conversion.toFixed(1).replace(',0','').replace('.0','')}%`:'—'}</strong><small>de leads para clientes</small></aside></div>
-    </section>
-
-    <section className="dashboard-reference-panel dashboard-alerts-panel" data-testid="dashboard-pending-attention" aria-labelledby="dashboard-alerts-title">
-     <header className="dashboard-panel-heading"><div className="dashboard-title-with-icon"><span className="dashboard-section-icon"><BellRing size={20}/></span><div><h2 id="dashboard-alerts-title">Alertas & Prioridades</h2><p>{attention.length} itens exigem atenção ao seu negócio</p></div></div><Link to="/app/dashboard">Ver pendências <ArrowRight size={14}/></Link></header>
-     {domainErrorCount>0&&<p className="dashboard-source-warning">{domainErrorCount} fonte{domainErrorCount===1?'':'s'} operacional{domainErrorCount===1?'':'is'} indisponível{domainErrorCount===1?'':'eis'} nesta carga.</p>}
-     <div className="dashboard-alert-grid">{attention.length?attention.map(item=><Link to={item.href} className="dashboard-alert-item" key={item.id} data-attention-kind={item.kind}><span className="dashboard-alert-icon"><BellRing size={15}/></span><div><strong>{item.title}</strong><p>{item.detail}</p></div><em>{item.kind==='finance'?'Financeiro':item.kind==='crm'?'CRM':item.kind==='analytics'?'Métricas':'Agenda'}</em></Link>):<div className="dashboard-empty-inline"><strong>Nenhum alerta acionável</strong><p>As fontes disponíveis não indicam condição que exija ação agora.</p></div>}</div>
-    </section>
+   <section className="dashboard-reference-panel dashboard-funnel-panel" data-testid="dashboard-lead-distribution" aria-labelledby="dashboard-funnel-title">
+    <header className="dashboard-panel-heading"><div className="dashboard-title-with-icon"><span className="dashboard-section-icon"><BarChart3 size={20}/></span><div><h2 id="dashboard-funnel-title">Funil Comercial</h2><p>Acompanhe suas oportunidades</p></div></div><Link to="/app/crm">Abrir CRM <ArrowRight size={14}/></Link></header>
+    <div className="dashboard-funnel-body"><div className="dashboard-funnel-bars">{funnelEntries.map(([stage,total])=><div className="dashboard-funnel-row" key={stage}><span>{pipelineLabels[stage]??stage}</span><div><i style={{width:`${Math.max(total?8:0,(total/funnelMax)*100)}%`}}/></div><strong>{data.availability.crm?total:'—'}</strong></div>)}</div><aside className="dashboard-conversion-card"><BarChart3 size={24}/><span>Taxa de conversão</span><strong>{data.availability.crm?`${conversion.toFixed(1).replace(',0','').replace('.0','')}%`:'—'}</strong><small>de leads para clientes</small></aside></div>
    </section>
 
    <section className="dashboard-bottom-row" aria-label="Atividades e conteúdo">

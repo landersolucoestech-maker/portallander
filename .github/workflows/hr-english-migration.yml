@@ -1,0 +1,390 @@
+name: Canonical HR Technical English Migration
+
+on:
+  push:
+    branches: [dev]
+    paths:
+      - '.github/workflows/hr-english-migration.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: portal
+          POSTGRES_PASSWORD: portal
+          POSTGRES_DB: portal_lander
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U portal -d portal_lander"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      DATABASE_URL: postgresql://portal:portal@127.0.0.1:5432/portal_lander
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Remove accidental temporary refs
+        shell: bash
+        run: |
+          set -euo pipefail
+          git push origin --delete __should_not_use__ __cleanup_probe__ __DO_NOT_CREATE_BRANCHES__ __oops__ || true
+
+      - name: Refactor HR technical contracts to English
+        shell: bash
+        run: |
+          set -euo pipefail
+          git mv apps/web/src/modules/rh apps/web/src/modules/hr
+          git mv apps/web/src/modules/hr/RHPage.tsx apps/web/src/modules/hr/HRPage.tsx
+          git mv apps/web/src/modules/hr/rh.css apps/web/src/modules/hr/hr.css
+          git mv apps/web/src/modules/hr/rh.test.ts apps/web/src/modules/hr/hr.test.ts
+          git mv apps/api/src/rhService.js apps/api/src/hrService.js
+          git mv apps/api/src/rhHttp.js apps/api/src/hrHttp.js
+          git mv apps/web/scripts/check-rh-boundaries.mjs apps/web/scripts/check-hr-boundaries.mjs
+          mkdir -p docs/architecture
+
+          node --input-type=module <<'NODE'
+          import {readFileSync,writeFileSync} from 'node:fs'
+          import {execFileSync} from 'node:child_process'
+
+          const files=execFileSync('git',['ls-files'],{encoding:'utf8'}).trim().split('\n').filter(Boolean)
+          const textual=/\.(?:ts|tsx|js|mjs|json|md|css)$/
+          const replacements=[
+            ['src/modules/rh','src/modules/hr'],
+            ['modules/rh','modules/hr'],
+            ['RHPage','HRPage'],
+            ["'./rh.css'","'./hr.css'"],
+            ['check-rh-boundaries','check-hr-boundaries'],
+            ['rhService','hrService'],
+            ['rhHttp','hrHttp'],
+            ['handleRhRequest','handleHrRequest'],
+            ['RhAdminClientError','HrAdminClientError'],
+            ['rhAdminClient','hrAdminClient'],
+            ['useRhRuntime','useHrRuntime'],
+            ['useRhState','useHrState'],
+            ['useDeleteRhDocument','useDeleteHrDocument'],
+            ['rhRepository','hrRepository'],
+            ['RhSeed','HrSeed'],
+            ['/api/rh','/api/hr'],
+            ['RH_','HR_'],
+            ['rh_admin_state','hr_admin_state'],
+            ['portal-lander:rh:','portal-lander:hr:'],
+            ["['rh',mode","['hr',mode"],
+            ['getRuntimeDataProvider().rh.seed()','getRuntimeDataProvider().hr.seed()'],
+            ['area="rh"','area="hr"'],
+            ["id:'rh'","id:'hr'"],
+            ["area:'rh'","area:'hr'"]
+          ]
+          for(const path of files){
+            if(path.startsWith('.github/workflows/'))continue
+            if(path.startsWith('apps/api/migrations/'))continue
+            if(!textual.test(path))continue
+            let before=readFileSync(path,'utf8'),after=before
+            for(const [from,to] of replacements)after=after.replaceAll(from,to)
+            if(path.includes('dataProvider')||path.startsWith('packages/mockup/')){
+              after=after.replace(/\brh:\s*\{/g,'hr:{').replace("|'rh'|'marketing'","|'hr'|'marketing'")
+            }
+            if(after!==before)writeFileSync(path,after)
+          }
+          NODE
+
+          cat > apps/web/src/modules/hr/domain.ts <<'EOF'
+          export type EmployeeStatus='active'|'inactive'|'vacation'|'leave'|'terminated'
+          export type ContractType='clt'|'contractor'|'intern'|'temporary'|'self_employed'
+          export type PayrollStatus='pending'|'processed'|'paid'|'cancelled'
+          export type LeaveStatus='pending'|'approved'|'rejected'|'in_progress'|'completed'
+          export type Department='administration'|'sales'|'finance'|'marketing'|'operations'|'technology'
+          export type EmployeeDocumentType='employment_contract'|'personal_document'|'medical_certificate'|'proof'|'certificate'|'other'
+          export type LeaveType='vacation'|'medical_certificate'|'medical_leave'|'parental_leave'|'justified_absence'|'leave_of_absence'
+
+          export interface Employee{
+           id:string;name:string;email:string;cpf:string;rg:string;birthDate:string;phone:string;address:string;role:string;department:Department|string;contractType:ContractType;admissionDate:string;baseSalary:number;status:EmployeeStatus;linkedUser:string;notes:string;createdAt:string;updatedAt:string
+          }
+          export interface PayrollEntry{
+           id:string;employeeId:string;referenceMonth:string;grossSalary:number;discounts:number;bonus:number;netSalary:number;paymentDate:string;status:PayrollStatus;notes:string;createdAt:string;updatedAt:string
+          }
+          export interface LeaveEntry{
+           id:string;employeeId:string;type:LeaveType|string;startDate:string;endDate:string;days:number;status:LeaveStatus;approvedBy:string;approvedByUserId?:string|null;approvedByDisplayName?:string;approvedAt?:string|null;notes:string;createdAt:string;updatedAt:string
+          }
+          export interface EmployeeDocument{
+           id:string;employeeId:string;type:EmployeeDocumentType|string;fileName:string;fileUrl:string;description:string;createdAt:string
+          }
+          export interface HrSeed{employees:Employee[];payroll:PayrollEntry[];leaves:LeaveEntry[];documents:EmployeeDocument[];departments:string[];documentTypes:string[];leaveTypes:string[];runtime?:{documentUpload?:{configured:boolean}};meta?:{version:number;updatedAt:string}}
+
+          const labels:Record<string,string>={
+            active:'Ativo',inactive:'Inativo',vacation:'Férias',leave:'Afastado',terminated:'Desligado',
+            clt:'CLT',contractor:'PJ',intern:'Estágio',temporary:'Temporário',self_employed:'Autônomo',
+            pending:'Pendente',processed:'Processado',paid:'Pago',cancelled:'Cancelado',approved:'Aprovado',rejected:'Rejeitado',in_progress:'Em andamento',completed:'Concluído',
+            administration:'Administrativo',sales:'Comercial',finance:'Financeiro',marketing:'Marketing',operations:'Operações',technology:'Tecnologia',
+            employment_contract:'Contrato de Trabalho',personal_document:'Documento Pessoal',medical_certificate:'Atestado',proof:'Comprovante',certificate:'Certificado',other:'Outro',
+            medical_leave:'Licença médica',parental_leave:'Licença maternidade/paternidade',justified_absence:'Falta justificada',leave_of_absence:'Afastamento'
+          }
+          export const hrLabel=(value:string)=>labels[value]??value
+          export const uid=(prefix:string)=>`${prefix}_${Date.now()}_${Math.random().toString(36).slice(2,8)}`
+          export const money=(value:number)=>new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(value)
+          export const dateLabel=(value:string)=>value?new Date(`${value}T12:00:00`).toLocaleDateString('pt-BR'):'—'
+          EOF
+
+          node --input-type=module <<'NODE'
+          import {readFileSync,writeFileSync} from 'node:fs'
+          import {execFileSync} from 'node:child_process'
+
+          const targets=execFileSync('git',['ls-files','apps/web/src/modules/hr','packages/mockup','apps/api/src/hrService.js'],{encoding:'utf8'}).trim().split('\n').filter(Boolean)
+          const values=[
+            ["'ativo'","'active'"],["'inativo'","'inactive'"],["'férias'","'vacation'"],["'afastado'","'leave'"],["'desligado'","'terminated'"],
+            ["'CLT'","'clt'"],["'PJ'","'contractor'"],["'Estágio'","'intern'"],["'Temporário'","'temporary'"],["'Autônomo'","'self_employed'"],
+            ["'pendente'","'pending'"],["'processado'","'processed'"],["'pago'","'paid'"],["'cancelado'","'cancelled'"],
+            ["'aprovado'","'approved'"],["'rejeitado'","'rejected'"],["'em andamento'","'in_progress'"],["'concluído'","'completed'"],
+            ["'Administrativo'","'administration'"],["'Comercial'","'sales'"],["'Financeiro'","'finance'"],["'Operações'","'operations'"],["'Tecnologia'","'technology'"],
+            ["'Contrato de Trabalho'","'employment_contract'"],["'Documento Pessoal'","'personal_document'"],["'Atestado'","'medical_certificate'"],["'Comprovante'","'proof'"],["'Certificado'","'certificate'"],["'Outro'","'other'"],
+            ["'atestado'","'medical_certificate'"],["'licença médica'","'medical_leave'"],["'licença maternidade/paternidade'","'parental_leave'"],["'falta justificada'","'justified_absence'"],["'afastamento'","'leave_of_absence'"]
+          ]
+          for(const path of targets){
+            let before=readFileSync(path,'utf8'),after=before
+            for(const [from,to] of values)after=after.replaceAll(from,to)
+            if(path.endsWith('/HRPage.tsx')){
+              after=after
+                .replace('dateLabel,money,','dateLabel,hrLabel,money,')
+                .replace("const statusLabel=(value:string)=>value?value.charAt(0).toUpperCase()+value.slice(1):'—'","const statusLabel=(value:string)=>value?hrLabel(value):'—'")
+                .replaceAll('<option key={x}>{x}</option>','<option key={x} value={x}>{statusLabel(x)}</option>')
+                .replaceAll('{x.contractType}','{statusLabel(x.contractType)}')
+                .replaceAll("{x.department||'—'}","{statusLabel(x.department)||'—'}")
+                .replaceAll('<td>{x.type}</td>','<td>{statusLabel(x.type)}</td>')
+            }
+            if(path.endsWith('/hr.css'))after=after.replaceAll('rh-','hr-')
+            if(after!==before)writeFileSync(path,after)
+          }
+          NODE
+
+          cat > apps/web/src/modules/hr/adminClient.ts <<'EOF'
+          import type {Employee,HrSeed,LeaveEntry,PayrollEntry} from './domain'
+
+          const apiBase=(import.meta.env.VITE_PORTAL_API_BASE_URL||'').replace(/\/$/,'')
+          const ERROR_MESSAGES_PT_BR:Record<string,string>={
+            HR_NETWORK_ERROR:'Não foi possível alcançar a API de RH.',
+            HR_UNAUTHENTICATED:'Sua sessão administrativa não é válida.',
+            HR_EMPLOYEE_NOT_FOUND:'Funcionário não encontrado.',
+            HR_EMPLOYEE_STATUS_INVALID:'Status de funcionário inválido.',
+            HR_CONTRACT_TYPE_INVALID:'Tipo de contrato inválido.',
+            HR_PAYROLL_NOT_FOUND:'Registro de pagamento não encontrado.',
+            HR_LEAVE_NOT_FOUND:'Férias ou ausência não encontrada.',
+            HR_DOCUMENT_NOT_FOUND:'Documento não encontrado.',
+            HR_DOCUMENT_UPLOAD_UNAVAILABLE:'O upload de documentos ainda não está disponível neste ambiente.',
+            HR_REQUEST_FAILED:'Não foi possível concluir a solicitação de RH.'
+          }
+          export class HrAdminClientError extends Error{constructor(message:string,public code:string,public status:number){super(message)}}
+          const localizedMessage=(code:string,fallback:string)=>ERROR_MESSAGES_PT_BR[code]??fallback
+          async function request<T>(path:string,init:RequestInit={}):Promise<T>{let response:Response;try{response=await fetch(`${apiBase}${path}`,{credentials:'include',headers:{'content-type':'application/json',...(init.headers||{})},...init})}catch{throw new HrAdminClientError(ERROR_MESSAGES_PT_BR.HR_NETWORK_ERROR,'HR_NETWORK_ERROR',0)}const payload=await response.json().catch(()=>({})) as Record<string,unknown>;if(!response.ok){const code=String(payload.code||'HR_REQUEST_FAILED');throw new HrAdminClientError(localizedMessage(code,ERROR_MESSAGES_PT_BR.HR_REQUEST_FAILED),code,response.status)}return payload as T}
+          const state=<T extends {state:HrSeed}>(value:T)=>value.state
+          export type EmployeeDraft=Omit<Employee,'id'|'createdAt'|'updatedAt'>
+          export type PayrollDraft=Omit<PayrollEntry,'id'|'createdAt'|'updatedAt'|'netSalary'>
+          export type LeaveDraft=Omit<LeaveEntry,'id'|'createdAt'|'updatedAt'|'days'|'approvedBy'|'approvedByUserId'|'approvedByDisplayName'|'approvedAt'>
+          export const hrAdminClient={
+            state:()=>request<{state:HrSeed}>('/api/hr/state').then(state),
+            saveEmployee:(value:EmployeeDraft,id?:string)=>request<{state:HrSeed}>(id?`/api/hr/employees/${encodeURIComponent(id)}`:'/api/hr/employees',{method:id?'PATCH':'POST',body:JSON.stringify(value)}).then(state),
+            deleteEmployees:(ids:string[])=>request<{state:HrSeed}>('/api/hr/employees',{method:'DELETE',body:JSON.stringify({ids})}).then(state),
+            savePayroll:(value:PayrollDraft,id?:string)=>request<{state:HrSeed}>(id?`/api/hr/payroll/${encodeURIComponent(id)}`:'/api/hr/payroll',{method:id?'PATCH':'POST',body:JSON.stringify(value)}).then(state),
+            deletePayroll:(ids:string[])=>request<{state:HrSeed}>('/api/hr/payroll',{method:'DELETE',body:JSON.stringify({ids})}).then(state),
+            saveLeave:(value:LeaveDraft,id?:string)=>request<{state:HrSeed}>(id?`/api/hr/leaves/${encodeURIComponent(id)}`:'/api/hr/leaves',{method:id?'PATCH':'POST',body:JSON.stringify(value)}).then(state),
+            deleteLeaves:(ids:string[])=>request<{state:HrSeed}>('/api/hr/leaves',{method:'DELETE',body:JSON.stringify({ids})}).then(state),
+            deleteDocument:(id:string)=>request<{state:HrSeed}>(`/api/hr/documents/${encodeURIComponent(id)}`,{method:'DELETE'}).then(state),
+          }
+          EOF
+
+          node --input-type=module <<'NODE'
+          import {readFileSync,writeFileSync} from 'node:fs'
+          const servicePath='apps/api/src/hrService.js'
+          let service=readFileSync(servicePath,'utf8')
+          service=service
+            .replace("const LOOKUPS={departments:['administration','sales','finance','Marketing','operations','technology'],documentTypes:['employment_contract','personal_document','medical_certificate','proof','certificate','other'],leaveTypes:['vacation','medical_certificate','medical_leave','parental_leave','justified_absence','leave_of_absence']}","const LOOKUPS={departments:['administration','sales','finance','marketing','operations','technology'],documentTypes:['employment_contract','personal_document','medical_certificate','proof','certificate','other'],leaveTypes:['vacation','medical_certificate','medical_leave','parental_leave','justified_absence','leave_of_absence']}")
+          const messages=[
+            ['Data deve usar YYYY-MM-DD.','Date must use YYYY-MM-DD.'],
+            ['Mês de referência obrigatório.','Reference month is required.'],
+            ['Mês de referência deve usar YYYY-MM.','Reference month must use YYYY-MM.'],
+            ['Usuário administrativo inválido.','Invalid administrative user.'],
+            ['Funcionário não encontrado.','Employee not found.'],
+            ['Status de funcionário inválido.','Invalid employee status.'],
+            ['Tipo de contrato inválido.','Invalid contract type.'],
+            ['Nome do funcionário obrigatório.','Employee name is required.'],
+            ['Status da folha inválido.','Invalid payroll status.'],
+            ['Funcionário obrigatório.','Employee is required.'],
+            ['Status de ausência inválido.','Invalid leave status.'],
+            ['Data final deve ser igual ou posterior à inicial.','End date must be on or after start date.'],
+            ['Tipo de ausência obrigatório.','Leave type is required.'],
+            ['Selecione ao menos um funcionário.','Select at least one employee.'],
+            ['Registro de pagamento não encontrado.','Payroll record not found.'],
+            ['Selecione ao menos um registro.','Select at least one record.'],
+            ['Férias/ausência não encontrada.','Leave record not found.'],
+            ['Documento não encontrado.','Document not found.'],
+            ['Upload de documentos ainda não possui storage persistente configurado.','Persistent document storage is not configured.']
+          ]
+          for(const [from,to] of messages)service=service.replaceAll(from,to)
+          writeFileSync(servicePath,service)
+
+          const httpPath='apps/api/src/hrHttp.js'
+          let http=readFileSync(httpPath,'utf8')
+          const httpMessages=[
+            ['Payload de RH excede o limite permitido.','HR payload exceeds the allowed limit.'],
+            ['JSON inválido.','Invalid JSON.'],
+            ['Sessão administrativa inválida.','Invalid administrative session.'],
+            ['Rota de RH não encontrada.','HR route not found.'],
+            ['Erro interno da API de RH.','Internal HR API error.']
+          ]
+          for(const [from,to] of httpMessages)http=http.replaceAll(from,to)
+          writeFileSync(httpPath,http)
+          NODE
+
+          cat > apps/api/migrations/031_hr_technical_naming.sql <<'EOF'
+          begin;
+
+          do $$
+          begin
+            if to_regclass('public.rh_admin_state') is not null and to_regclass('public.hr_admin_state') is null then
+              alter table rh_admin_state rename to hr_admin_state;
+            end if;
+          end $$;
+
+          do $$
+          begin
+            if exists(select 1 from pg_trigger where tgname='rh_admin_state_set_updated_at' and tgrelid='hr_admin_state'::regclass) then
+              alter trigger rh_admin_state_set_updated_at on hr_admin_state rename to hr_admin_state_set_updated_at;
+            end if;
+          end $$;
+
+          update hr_admin_state
+          set payload=jsonb_set(payload,'{employees}',coalesce((
+            select jsonb_agg(item || jsonb_build_object(
+              'status',case item->>'status' when 'ativo' then 'active' when 'inativo' then 'inactive' when 'férias' then 'vacation' when 'afastado' then 'leave' when 'desligado' then 'terminated' else item->>'status' end,
+              'contractType',case item->>'contractType' when 'CLT' then 'clt' when 'PJ' then 'contractor' when 'Estágio' then 'intern' when 'Temporário' then 'temporary' when 'Autônomo' then 'self_employed' else item->>'contractType' end,
+              'department',case item->>'department' when 'Administrativo' then 'administration' when 'Comercial' then 'sales' when 'Financeiro' then 'finance' when 'Marketing' then 'marketing' when 'Operações' then 'operations' when 'Tecnologia' then 'technology' else item->>'department' end
+            )) from jsonb_array_elements(coalesce(payload->'employees','[]'::jsonb)) item
+          ),'[]'::jsonb),true);
+
+          update hr_admin_state
+          set payload=jsonb_set(payload,'{payroll}',coalesce((
+            select jsonb_agg(jsonb_set(item,'{status}',to_jsonb(case item->>'status' when 'pendente' then 'pending' when 'processado' then 'processed' when 'pago' then 'paid' when 'cancelado' then 'cancelled' else item->>'status' end),false)) from jsonb_array_elements(coalesce(payload->'payroll','[]'::jsonb)) item
+          ),'[]'::jsonb),true);
+
+          update hr_admin_state
+          set payload=jsonb_set(payload,'{leaves}',coalesce((
+            select jsonb_agg(item || jsonb_build_object(
+              'status',case item->>'status' when 'pendente' then 'pending' when 'aprovado' then 'approved' when 'rejeitado' then 'rejected' when 'em andamento' then 'in_progress' when 'concluído' then 'completed' else item->>'status' end,
+              'type',case item->>'type' when 'férias' then 'vacation' when 'atestado' then 'medical_certificate' when 'licença médica' then 'medical_leave' when 'licença maternidade/paternidade' then 'parental_leave' when 'falta justificada' then 'justified_absence' when 'afastamento' then 'leave_of_absence' else item->>'type' end
+            )) from jsonb_array_elements(coalesce(payload->'leaves','[]'::jsonb)) item
+          ),'[]'::jsonb),true);
+
+          update hr_admin_state
+          set payload=jsonb_set(payload,'{documents}',coalesce((
+            select jsonb_agg(item || jsonb_build_object('type',case item->>'type' when 'Contrato de Trabalho' then 'employment_contract' when 'Documento Pessoal' then 'personal_document' when 'Atestado' then 'medical_certificate' when 'Comprovante' then 'proof' when 'Certificado' then 'certificate' when 'Outro' then 'other' else item->>'type' end)) from jsonb_array_elements(coalesce(payload->'documents','[]'::jsonb)) item
+          ),'[]'::jsonb),true);
+
+          update hr_admin_state set payload=payload || jsonb_build_object(
+            'departments',jsonb_build_array('administration','sales','finance','marketing','operations','technology'),
+            'documentTypes',jsonb_build_array('employment_contract','personal_document','medical_certificate','proof','certificate','other'),
+            'leaveTypes',jsonb_build_array('vacation','medical_certificate','medical_leave','parental_leave','justified_absence','leave_of_absence')
+          );
+
+          comment on table hr_admin_state is 'Canonical authenticated HR domain state. Technical identifiers and enum values are English.';
+          comment on column hr_admin_state.payload is 'HR-domain-only JSON state using English technical values.';
+          comment on column hr_admin_state.updated_by is 'Authenticated admin user responsible for the latest HR mutation.';
+          commit;
+          EOF
+
+          cat > docs/architecture/naming-conventions.md <<'EOF'
+          # Naming conventions
+
+          Portal Lander uses English for every technical artifact and Brazilian Portuguese only for user-facing frontend copy.
+
+          ## Technical layer
+          - Directories, filenames, modules, symbols, types, functions, variables, services, tests, scripts, workflows and internal API paths use English.
+          - New database tables, columns, constraints, indexes and internal enum values use English.
+          - `apps/web/src/modules` is the single canonical frontend domain tree. `src/features` must not exist.
+          - Published migrations are immutable historical records. Legacy Portuguese values may be referenced only inside forward compatibility migrations that translate persisted data into the canonical English contract.
+          - Brazilian legal abbreviations and provider trademarks such as CNPJ, CPF, CLT, Pix and Autentique may remain canonical domain terms.
+
+          ## Presentation layer
+          - Portuguese is allowed only in frontend strings that are actually presented to the user.
+          - Visible copy uses pt-BR with correct accents and product terminology.
+          - User-facing route slugs may remain localized when they are part of the navigation contract, such as `/app/rh`.
+          - Technical enum values must be mapped to localized labels before rendering.
+          - Backend messages, identifiers and error codes are English; frontend code owns localization of user-visible errors.
+          EOF
+
+          cat > apps/web/scripts/check-naming-conventions.mjs <<'EOF'
+          import {existsSync,readFileSync,readdirSync,statSync} from 'node:fs'
+          import {join,relative,resolve,sep} from 'node:path'
+          const root=resolve(process.cwd(),'../..')
+          const forbiddenPaths=['apps/web/src/modules/rh','apps/api/src/rhService.js','apps/api/src/rhHttp.js','apps/web/scripts/check-rh-boundaries.mjs']
+          const violations=[]
+          for(const path of forbiddenPaths)if(existsSync(join(root,path)))violations.push(`legacy technical path: ${path}`)
+          const ignored=new Set(['.git','node_modules','dist','test-results','coverage','migrations','.github'])
+          const patterns=[/\bRhSeed\b/,/\brhService\b/,/\brhHttp\b/,/\bhandleRhRequest\b/,/\brhAdminClient\b/,/\bRhAdminClientError\b/,/\brhRepository\b/,/\buseRh(?:Runtime|State)\b/,/\/api\/rh(?:\/|['"`])/]
+          function walk(dir){for(const name of readdirSync(dir)){if(ignored.has(name))continue;const absolute=join(dir,name),stats=statSync(absolute);if(stats.isDirectory()){walk(absolute);continue}if(!/\.(?:[cm]?[jt]sx?|json|ya?ml)$/i.test(name))continue;const text=readFileSync(absolute,'utf8');text.split(/\r?\n/).forEach((line,index)=>{if(patterns.some(pattern=>pattern.test(line)))violations.push(`${relative(root,absolute).split(sep).join('/')}:${index+1}`)})}}
+          walk(root)
+          if(violations.length){console.error('Technical naming convention violations:');violations.forEach(item=>console.error(`- ${item}`));process.exit(1)}
+          console.log('Naming conventions OK — canonical HR technical contracts are English.')
+          EOF
+
+          node --input-type=module <<'NODE'
+          import {readFileSync,writeFileSync} from 'node:fs'
+          const packagePath='apps/web/package.json'
+          const pkg=JSON.parse(readFileSync(packagePath,'utf8'))
+          if(!pkg.scripts['check:architecture'].includes('check-naming-conventions.mjs')){
+            pkg.scripts['check:architecture']=pkg.scripts['check:architecture'].replace('node scripts/check-module-architecture.mjs && ','node scripts/check-module-architecture.mjs && node scripts/check-naming-conventions.mjs && ')
+          }
+          writeFileSync(packagePath,JSON.stringify(pkg,null,2)+'\n')
+          NODE
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Apply migrations
+        shell: bash
+        run: |
+          set -euo pipefail
+          for file in $(find apps/api/migrations -maxdepth 1 -type f -name '*.sql' | sort -V); do
+            psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f "$file" >/dev/null
+          done
+          test "$(psql "$DATABASE_URL" -Atqc "select to_regclass('public.hr_admin_state')")" = "hr_admin_state"
+          test "$(psql "$DATABASE_URL" -Atqc "select to_regclass('public.rh_admin_state')")" = ""
+
+      - name: Certify architecture and naming
+        run: npm run check:architecture
+
+      - name: Lint typecheck and web tests
+        run: npm run lint && npm run typecheck && npm test
+
+      - name: API build and tests
+        run: npm --workspace @portallander/api run build && npm --workspace @portallander/api test
+
+      - name: Production build
+        env:
+          VITE_ENABLE_DEMO_DATA: ''
+          VITE_MOCKUP_SCENARIO: ''
+        run: npm run build
+
+      - name: Commit certified HR refactor
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f apps/web/*.tsbuildinfo
+          git config user.name 'landersolucoestech-maker'
+          git config user.email 'landersolucoestech@gmail.com'
+          git add -A ':!.github/workflows'
+          git diff --cached --check
+          git diff --cached --name-status
+          git fetch origin dev
+          test "$(git rev-parse origin/dev)" = "$GITHUB_SHA"
+          git commit -m 'refactor(hr): enforce English technical contracts'
+          git push origin HEAD:dev

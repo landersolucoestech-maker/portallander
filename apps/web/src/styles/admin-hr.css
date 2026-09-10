@@ -1,0 +1,440 @@
+/* Portal Lander — canonical Recursos Humanos visual contract.
+   Shared dimensions come from admin-foundations.css; RH owns only its domain composition. */
+
+.app-shell .rh-page{
+  width:100%;
+  max-width:none;
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  gap:var(--ui-page-gap);
+  color:var(--ui-text);
+}
+
+/* KPI row: same surface, hierarchy and geometry used by the admin KPI family. */
+.app-shell .rh-kpis{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:var(--ui-kpi-gap);
+}
+.app-shell .rh-kpi{
+  min-width:0;
+  min-height:var(--ui-kpi-min-height);
+  padding:var(--ui-kpi-padding);
+  display:grid;
+  grid-template-columns:minmax(0,1fr) var(--ui-kpi-icon);
+  align-items:start;
+  gap:var(--ui-space-3);
+  background:var(--ui-surface);
+  border:1px solid var(--ui-border);
+  border-radius:var(--ui-radius-lg);
+  box-shadow:0 1px 2px rgba(0,0,0,.025);
+}
+.app-shell .rh-kpi>span:first-child{
+  grid-column:2;
+  grid-row:1;
+  width:var(--ui-kpi-icon);
+  height:var(--ui-kpi-icon);
+  display:grid;
+  place-items:center;
+  border-radius:var(--ui-radius-md);
+  background:var(--ui-surface-subtle);
+  color:var(--ui-accent);
+}
+.app-shell .rh-kpi>span:first-child svg{width:18px;height:18px}
+.app-shell .rh-kpi>div{
+  grid-column:1;
+  grid-row:1;
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+}
+.app-shell .rh-kpi small{
+  order:0;
+  display:block;
+  margin:0;
+  color:var(--ui-muted);
+  font-size:11px;
+  line-height:1.35;
+  font-weight:700;
+}
+.app-shell .rh-kpi strong{
+  order:1;
+  display:block;
+  margin-top:var(--ui-space-2);
+  color:var(--ui-text-strong);
+  font-size:24px;
+  line-height:1.05;
+  font-weight:800;
+  letter-spacing:-.03em;
+}
+.app-shell .rh-kpi em{
+  order:2;
+  display:block;
+  margin-top:var(--ui-space-1);
+  color:var(--ui-muted);
+  font-size:10px;
+  line-height:1.35;
+  font-weight:500;
+  font-style:normal;
+}
+
+/* Domain tabs intentionally follow the same underline navigation used by CRM. */
+.app-shell .rh-tabs{
+  width:100%;
+  display:flex;
+  align-items:center;
+  gap:var(--ui-space-1);
+  border-bottom:1px solid var(--ui-border);
+}
+.app-shell .rh-tabs button{
+  position:relative;
+  min-height:42px;
+  padding:0 var(--ui-space-4);
+  border:0;
+  background:transparent;
+  color:var(--ui-muted);
+  display:inline-flex;
+  align-items:center;
+  gap:var(--ui-space-2);
+  font-size:10px;
+  line-height:1;
+  font-weight:800;
+  cursor:pointer;
+  white-space:nowrap;
+}
+.app-shell .rh-tabs button svg{width:15px;height:15px}
+.app-shell .rh-tabs button:hover,.app-shell .rh-tabs button:focus-visible{color:var(--ui-text-strong)}
+.app-shell .rh-tabs button.active{color:var(--ui-text-strong)}
+.app-shell .rh-tabs button.active::after{
+  content:"";
+  position:absolute;
+  left:var(--ui-space-3);
+  right:var(--ui-space-3);
+  bottom:-1px;
+  height:2px;
+  background:var(--ui-accent);
+}
+
+/* Filters: same toolbar surface and control heights as CRM/Finance. */
+.app-shell .rh-filters{
+  width:100%;
+  min-width:0;
+  display:flex;
+  align-items:center;
+  gap:var(--ui-space-2);
+  padding:9px;
+  border:1px solid var(--ui-border);
+  border-radius:var(--ui-radius-lg);
+  background:var(--ui-surface);
+}
+.app-shell .rh-search{
+  height:var(--ui-control-md);
+  min-width:var(--ui-search-min-width);
+  flex:1 1 auto;
+  display:flex;
+  align-items:center;
+  gap:var(--ui-space-2);
+  padding:0 var(--ui-space-3);
+  border:1px solid var(--ui-border-strong);
+  border-radius:var(--ui-radius-md);
+  background:var(--ui-surface);
+  color:var(--ui-muted);
+}
+.app-shell .rh-search svg{width:15px;height:15px;flex:0 0 auto}
+.app-shell .rh-search input{
+  width:100%;
+  min-width:0;
+  height:100%;
+  padding:0;
+  border:0;
+  outline:0;
+  background:transparent;
+  color:var(--ui-text);
+  font-size:12px;
+}
+.app-shell .rh-search:focus-within{border-color:#888;box-shadow:0 0 0 3px rgba(0,0,0,.035)}
+.app-shell .rh-filters>select,.app-shell .rh-filters>input{
+  height:var(--ui-control-md);
+  min-height:var(--ui-control-md);
+  padding:0 var(--ui-space-3);
+  border:1px solid var(--ui-border-strong);
+  border-radius:var(--ui-radius-md);
+  background:var(--ui-surface);
+  color:#475467;
+  font-size:12px;
+  line-height:1;
+}
+.app-shell .rh-filters>input[type="month"]{flex:0 0 auto;min-width:148px}
+
+/* Table card and table density follow the shared administrative table contract. */
+.app-shell .rh-table-card{
+  min-width:0;
+  overflow:visible;
+  border:1px solid var(--ui-border);
+  border-radius:var(--ui-radius-lg);
+  background:var(--ui-surface);
+  box-shadow:0 1px 2px rgba(0,0,0,.025);
+}
+.app-shell .rh-table-card>header{
+  min-height:64px;
+  padding:var(--ui-space-3) var(--ui-space-4);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:var(--ui-space-4);
+  border-bottom:1px solid var(--ui-border);
+}
+.app-shell .rh-table-card>header>div:first-child{min-width:0}
+.app-shell .rh-table-card>header>div:last-child{display:flex;align-items:center;justify-content:flex-end;gap:var(--ui-space-2);flex-wrap:wrap}
+.app-shell .rh-table-card h3{margin:0;color:var(--ui-text-strong);font-size:13px;line-height:1.25;font-weight:800}
+.app-shell .rh-table-card header p{margin:var(--ui-space-1) 0 0;color:var(--ui-muted);font-size:10px;line-height:1.35}
+.app-shell .rh-table-card header>div:last-child>span{color:var(--ui-muted);font-size:10px;white-space:nowrap}
+.app-shell .rh-table-scroll{width:100%;min-width:0;overflow:auto}
+.app-shell .rh-table{
+  width:100%;
+  min-width:var(--ui-table-min-width);
+  border-collapse:collapse;
+  table-layout:auto;
+}
+.app-shell .rh-table th{
+  height:calc(var(--ui-control-md) + var(--ui-space-1));
+  padding:0 var(--ui-table-cell-inline);
+  border-bottom:1px solid var(--ui-border);
+  background:var(--ui-surface-subtle);
+  color:var(--ui-muted);
+  text-align:left;
+  font-size:11px;
+  line-height:1;
+  font-weight:650;
+  white-space:nowrap;
+}
+.app-shell .rh-table td{
+  height:var(--ui-table-row-height);
+  padding:var(--ui-table-cell-block) var(--ui-table-cell-inline);
+  border-bottom:1px solid var(--ui-border);
+  color:#475467;
+  vertical-align:middle;
+  font-size:12px;
+  line-height:1.35;
+}
+.app-shell .rh-table tbody tr:last-child td{border-bottom:0}
+.app-shell .rh-table tbody tr:hover{background:#fffafa}
+.app-shell .rh-table strong{display:block;color:var(--ui-text-strong);font-size:12px;line-height:1.3;font-weight:700}
+.app-shell .rh-table small{display:block;margin-top:2px;color:var(--ui-muted-soft);font-size:10px;line-height:1.3}
+.app-shell .rh-table .check{
+  width:var(--ui-table-selector-width);
+  min-width:var(--ui-table-selector-width);
+  max-width:var(--ui-table-selector-width);
+  padding-left:var(--ui-table-selector-inline);
+  padding-right:var(--ui-table-selector-inline);
+  text-align:center;
+}
+.app-shell .rh-table input[type="checkbox"]{width:15px;height:15px;margin:0;accent-color:var(--ui-text-strong);cursor:pointer}
+.app-shell .rh-table .positive{color:var(--ui-success)}
+.app-shell .rh-table .negative{color:var(--ui-danger)}
+
+.app-shell .rh-status{
+  min-height:var(--ui-badge-min-height);
+  padding:var(--ui-space-1) var(--ui-space-2);
+  display:inline-flex;
+  align-items:center;
+  border-radius:999px;
+  background:#f3f4f6;
+  color:#475467;
+  font-size:10px;
+  line-height:1.2;
+  font-weight:700;
+  white-space:nowrap;
+}
+.app-shell .rh-status.active,.app-shell .rh-status.ativo,.app-shell .rh-status.paid,.app-shell .rh-status.pago,.app-shell .rh-status.approved,.app-shell .rh-status.aprovado,.app-shell .rh-status.completed{background:#ecfdf3;color:var(--ui-success)}
+.app-shell .rh-status.vacation,.app-shell .rh-status.ferias,.app-shell .rh-status.processed,.app-shell .rh-status.processado,.app-shell .rh-status.in_progress,.app-shell .rh-status.em-andamento{background:#eef4ff;color:#3538cd}
+.app-shell .rh-status.leave,.app-shell .rh-status.afastado,.app-shell .rh-status.pending,.app-shell .rh-status.pendente{background:#fffaeb;color:var(--ui-warning)}
+.app-shell .rh-status.inactive,.app-shell .rh-status.terminated,.app-shell .rh-status.rejected,.app-shell .rh-status.cancelled,.app-shell .rh-status.desligado,.app-shell .rh-status.rejeitado{background:#fef3f2;color:var(--ui-danger)}
+
+/* Current HR markup uses a compact three-action group; style it as a real admin control, never browser-native buttons. */
+.app-shell .rh-row-actions{display:flex;align-items:center;justify-content:flex-end;gap:2px;white-space:nowrap}
+.app-shell .rh-row-actions button{
+  min-height:var(--ui-control-sm);
+  height:var(--ui-control-sm);
+  padding:0 var(--ui-space-2);
+  border:1px solid transparent;
+  border-radius:var(--ui-radius-sm);
+  background:transparent;
+  color:#475467;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  font-size:10px;
+  line-height:1;
+  font-weight:700;
+  cursor:pointer;
+}
+.app-shell .rh-row-actions button:first-child,.app-shell .rh-row-actions button:last-child{width:var(--ui-control-sm);padding:0}
+.app-shell .rh-row-actions button:hover{background:#f2f4f7;color:var(--ui-text-strong)}
+.app-shell .rh-row-actions button.negative{color:var(--ui-danger)}
+.app-shell .rh-row-actions button.negative:hover{background:#fff0f1}
+
+.app-shell .rh-empty-inline{padding:var(--ui-space-6);color:var(--ui-muted);text-align:center;font-size:11px}
+.app-shell .rh-pagination{
+  min-height:var(--ui-pagination-min-height);
+  padding:var(--ui-pagination-block) var(--ui-pagination-inline);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:var(--ui-pagination-gap);
+  border-top:1px solid var(--ui-border);
+  background:var(--ui-surface-subtle);
+  color:var(--ui-muted);
+  font-size:11px;
+}
+.app-shell .rh-pagination button{
+  width:var(--ui-pagination-control);
+  height:var(--ui-pagination-control);
+  padding:0;
+  display:grid;
+  place-items:center;
+  border:1px solid var(--ui-border-strong);
+  border-radius:var(--ui-radius-sm);
+  background:var(--ui-surface);
+  color:#475467;
+  cursor:pointer;
+}
+.app-shell .rh-pagination button:disabled{opacity:.4;cursor:not-allowed}
+
+/* Documents and empty states use the same card language. */
+.app-shell .rh-docs{display:grid;gap:var(--ui-card-gap)}
+.app-shell .rh-doc-selector,.app-shell .rh-upload-card{
+  border:1px solid var(--ui-border);
+  border-radius:var(--ui-radius-lg);
+  background:var(--ui-surface);
+  box-shadow:0 1px 2px rgba(0,0,0,.025);
+}
+.app-shell .rh-doc-selector{padding:var(--ui-space-4)}
+.app-shell .rh-doc-selector label{display:flex;align-items:center;gap:var(--ui-space-3);min-width:0}
+.app-shell .rh-doc-selector label>span{flex:0 0 auto;color:#475467;font-size:12px;font-weight:700}
+.app-shell .rh-doc-selector select{
+  min-width:260px;
+  height:var(--ui-control-md);
+  padding:0 var(--ui-space-3);
+  border:1px solid var(--ui-border-strong);
+  border-radius:var(--ui-radius-md);
+  background:var(--ui-surface);
+  color:var(--ui-text);
+  font-size:12px;
+}
+.app-shell .rh-empty-card{
+  min-height:180px;
+  padding:var(--ui-space-6);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:var(--ui-space-2);
+  border:1px dashed var(--ui-border-strong);
+  border-radius:var(--ui-radius-lg);
+  background:var(--ui-surface-subtle);
+  color:var(--ui-muted-soft);
+  text-align:center;
+}
+.app-shell .rh-empty-card strong{color:#475467;font-size:13px}
+.app-shell .rh-empty-card p{max-width:520px;margin:0;color:var(--ui-muted);font-size:11px;line-height:1.5}
+.app-shell .rh-upload-card{padding:var(--ui-space-4);display:grid;gap:var(--ui-space-3)}
+.app-shell .rh-upload-card h3{margin:0;color:var(--ui-text-strong);font-size:13px}
+.app-shell .rh-upload-zone{
+  min-height:96px;
+  padding:var(--ui-space-4);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:var(--ui-space-1);
+  border:1px dashed var(--ui-border-strong);
+  border-radius:var(--ui-radius-md);
+  background:var(--ui-surface-subtle);
+  color:var(--ui-muted);
+  text-align:center;
+}
+.app-shell .rh-upload-zone strong{color:#475467;font-size:12px}
+.app-shell .rh-upload-zone span{font-size:10px}
+
+/* HR modal/form markup is current; selectors intentionally match the actual JSX. */
+.app-shell .rh-modal-backdrop{
+  position:fixed;
+  inset:0;
+  z-index:90;
+  padding:var(--ui-space-4);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:rgba(0,0,0,.48);
+}
+.app-shell .rh-modal{
+  width:min(720px,calc(100vw - var(--ui-space-6)));
+  max-height:min(92vh,calc(100dvh - var(--ui-page-gap)));
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  border-radius:var(--ui-radius-lg);
+  background:var(--ui-surface);
+  box-shadow:var(--ui-shadow-popover);
+}
+.app-shell .rh-modal>header{
+  min-height:60px;
+  padding:var(--ui-space-4) var(--ui-space-5);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:var(--ui-space-4);
+  border-bottom:1px solid var(--ui-border);
+}
+.app-shell .rh-modal>header h2{margin:0;color:var(--ui-text-strong);font-size:18px;line-height:1.2}
+.app-shell .rh-modal>header button{width:var(--ui-control-sm);height:var(--ui-control-sm);border:0;border-radius:var(--ui-radius-sm);background:transparent;color:var(--ui-muted);display:grid;place-items:center;cursor:pointer}
+.app-shell .rh-modal>header button:hover{background:#f2f4f7;color:var(--ui-text-strong)}
+.app-shell .rh-modal>header button svg{width:18px;height:18px}
+.app-shell .rh-modal-body{overflow:auto;padding:var(--ui-space-5)}
+.app-shell .rh-modal>footer{padding:var(--ui-space-3) var(--ui-space-5);display:flex;align-items:center;justify-content:flex-end;gap:var(--ui-space-2);border-top:1px solid var(--ui-border);background:var(--ui-surface)}
+.app-shell .rh-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--ui-space-3)}
+.app-shell .rh-form-grid>label{min-width:0;display:flex;flex-direction:column;gap:var(--ui-space-1);color:#475467;font-size:12px;font-weight:700}
+.app-shell .rh-form-grid>label.wide{grid-column:1/-1}
+.app-shell .rh-form-grid>label>input,.app-shell .rh-form-grid>label>select,.app-shell .rh-form-grid>label>textarea{
+  width:100%;
+  min-height:var(--ui-control-md);
+  padding:var(--ui-space-2) var(--ui-space-3);
+  border:1px solid var(--ui-border-strong);
+  border-radius:var(--ui-radius-md);
+  background:var(--ui-surface);
+  color:var(--ui-text);
+  font-size:13px;
+  line-height:1.35;
+  outline:0;
+}
+.app-shell .rh-form-grid>label>textarea{resize:vertical}
+.app-shell .rh-form-grid>label>input:focus,.app-shell .rh-form-grid>label>select:focus,.app-shell .rh-form-grid>label>textarea:focus{border-color:#888;box-shadow:0 0 0 3px rgba(0,0,0,.035)}
+.app-shell .rh-view-list{margin:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--ui-space-3)}
+.app-shell .rh-view-list>div{min-width:0;padding:var(--ui-space-3);border:1px solid var(--ui-border);border-radius:var(--ui-radius-md);background:var(--ui-surface-subtle)}
+.app-shell .rh-view-list dt{color:var(--ui-muted);font-size:10px;font-weight:700}
+.app-shell .rh-view-list dd{margin:var(--ui-space-1) 0 0;color:var(--ui-text-strong);font-size:12px;font-weight:700;overflow-wrap:anywhere}
+
+@media(max-width:1180px){
+  .app-shell .rh-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:800px){
+  .app-shell .rh-page{gap:var(--ui-page-gap-mobile)}
+  .app-shell .rh-tabs{overflow-x:auto}
+  .app-shell .rh-filters{align-items:stretch;flex-direction:column}
+  .app-shell .rh-search{min-width:0;width:100%}
+  .app-shell .rh-filters>select,.app-shell .rh-filters>input{width:100%}
+  .app-shell .rh-doc-selector label{align-items:stretch;flex-direction:column}
+  .app-shell .rh-doc-selector select{width:100%;min-width:0}
+  .app-shell .rh-form-grid,.app-shell .rh-view-list{grid-template-columns:1fr}
+  .app-shell .rh-form-grid>label.wide{grid-column:auto}
+}
+@media(max-width:560px){
+  .app-shell .rh-kpis{grid-template-columns:1fr}
+  .app-shell .rh-table-card>header{align-items:flex-start;flex-direction:column}
+  .app-shell .rh-table-card>header>div:last-child{width:100%;justify-content:space-between}
+  .app-shell .rh-modal-backdrop{padding:var(--ui-space-2)}
+  .app-shell .rh-modal{width:100%;max-height:calc(100dvh - var(--ui-space-4));border-radius:var(--ui-radius-md)}
+}

@@ -83,6 +83,7 @@ for(const viewport of viewports){
    measurements.push(await measure(page,route))
   }
 
+  console.log(`UI_GEOMETRY_MEASUREMENTS ${viewport.name} ${JSON.stringify(measurements)}`)
   const baseline=measurements[0]
   for(const current of measurements){
    expect(close(current.header.x,baseline.header.x),`${current.route}: header x-axis`).toBeTruthy()

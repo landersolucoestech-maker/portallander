@@ -81,13 +81,13 @@ requireTokens('adminNavigation.ts',adminNavigation,[
  "['Contabilidade',BookOpen,'/app/finance/accounting']",
  "['Agenda',CalendarDays,'/app/agenda']",
  "['Chat',MessageCircle,'/app/chat']",
- "['RH',UsersRound,'/app/rh']",
+ "['RH',UsersRound,'/app/hr']",
  "label:'Site'",
- "['Conteúdos',FileText,'/app/site/conteudos']",
- "['Mídias',Images,'/app/site/midia']",
- "['Páginas',Layers3,'/app/site/paginas']",
- "['Formulários',ClipboardList,'/app/site/formularios']",
- "['Mídia Kit',Newspaper,'/app/site/midia-kit']",
+ "['Conteúdos',FileText,'/app/site/content']",
+ "['Mídias',Images,'/app/site/media']",
+ "['Páginas',Layers3,'/app/site/pages']",
+ "['Formulários',ClipboardList,'/app/site/forms']",
+ "['Mídia Kit',Newspaper,'/app/site/media-kit']",
  "label:'Marketing'",
  "['Configurações',Settings,'/app/settings']"
 ])
@@ -140,7 +140,7 @@ for(const [path,source] of [['FinanceMainPage.tsx',financeMain],['FinanceInvoice
 const financeHooks=await read('src/modules/finance/hooks.ts')
 requireTokens('finance/hooks.ts',financeHooks,['financeAdminClient','status===\'authenticated\'?\'api\':\'development\'','useQuery','useMutation'])
 const financeAdminClient=await read('src/modules/finance/adminClient.ts')
-requireTokens('financeAdminClient.ts',financeAdminClient,['/api/finance/transactions','/api/finance/invoices','/api/finance/categories','/api/finance/rules',"credentials:'include'"])
+requireTokens('finance/adminClient.ts',financeAdminClient,['/api/finance/transactions','/api/finance/invoices','/api/finance/categories','/api/finance/rules',"credentials:'include'"])
 
 if(await exists('src/mocks'))failures.push('src/mocks deve permanecer removido; dados reutilizáveis de desenvolvimento pertencem a @portallander/mockup.')
 for(const required of [

@@ -28,10 +28,33 @@ type Geometry={
  tokens:{headerHeight:number;pageInline:number;pageBlockStart:number;controlMd:number}
 }
 
-type BoxSample={selector:string;height:number;minHeight:number;paddingTop:number;paddingRight:number;paddingBottom:number;paddingLeft:number;fontSize:number}
+type BoxSample={
+ selector:string
+ height:number
+ minHeight:number
+ paddingTop:number
+ paddingRight:number
+ paddingBottom:number
+ paddingLeft:number
+ fontSize:number
+ isSelector:boolean
+}
 type ComponentGeometry={
  route:string
- tokens:{controlMd:number;controlSm:number;kpiMinHeight:number;kpiPadding:number;tableRowHeight:number;tableCellBlock:number;tableCellInline:number;paginationMinHeight:number;paginationControl:number;paginationBlock:number;paginationInline:number}
+ tokens:{
+  controlMd:number
+  controlSm:number
+  kpiMinHeight:number
+  kpiPadding:number
+  tableRowHeight:number
+  tableCellBlock:number
+  tableCellInline:number
+  tableSelectorInline:number
+  paginationMinHeight:number
+  paginationControl:number
+  paginationBlock:number
+  paginationInline:number
+ }
  defaultControls:BoxSample[]
  compactControls:BoxSample[]
  kpis:BoxSample[]
@@ -98,10 +121,11 @@ async function measureComponents(page:Page,route:string):Promise<ComponentGeomet
    return rect.width>0&&rect.height>0&&style.display!=='none'&&style.visibility!=='hidden'
   }).map(node=>{
    const style=getComputedStyle(node),rect=node.getBoundingClientRect()
-   return {selector:`${node.tagName.toLowerCase()}.${Array.from(node.classList).join('.')}`,height:rect.height,minHeight:px(style.minHeight),paddingTop:px(style.paddingTop),paddingRight:px(style.paddingRight),paddingBottom:px(style.paddingBottom),paddingLeft:px(style.paddingLeft),fontSize:px(style.fontSize)}
+   const isSelector=node.matches('.crm-checkbox-cell,.check,.select')||Boolean(node.querySelector('input[type="checkbox"]'))
+   return {selector:`${node.tagName.toLowerCase()}.${Array.from(node.classList).join('.')}`,height:rect.height,minHeight:px(style.minHeight),paddingTop:px(style.paddingTop),paddingRight:px(style.paddingRight),paddingBottom:px(style.paddingBottom),paddingLeft:px(style.paddingLeft),fontSize:px(style.fontSize),isSelector}
   })
   const defaultSelector='.crm-btn,.agenda-toolbar .button,.agenda-toolbar select,.agenda-toolbar .agenda-icon-button,.contracts-filters select,.contracts-registry select,.finance-filters>input,.finance-filters>select,.finance-search,.contracts-search,.crm-search,.crm-filter-selects select,.crm-inline-select,.agenda-search,.marketing-primary,.marketing-secondary,.settings-primary,.settings-outline,.settings-danger'
-  const compactSelector='.rh-primary,.rh-secondary,.rh-danger-button,.rh-filters>input,.rh-filters>select,.rh-search,.rh-doc-selector select,.rh-field input,.rh-field select,.marketing-filters>select,.marketing-filters>input,.marketing-search,.marketing-calendar-toolbar>select,.marketing-period-button'
+  const compactSelector='.rh-primary,.rh-secondary,.rh-danger-button,.rh-filters>input,.rh-filters>select,.rh-search input,.rh-doc-selector select,.rh-field input,.rh-field select,.marketing-filters>select,.marketing-filters>input,.marketing-search,.marketing-calendar-toolbar>select,.marketing-period-button'
   const kpiSelector='.admin-kpi,.crm-kpi,.finance-kpi,.contracts-kpi,.rh-kpi,.marketing-kpi,.dashboard-stat-card'
   const tableHeaderSelector='.crm-table th,.finance-table th,.contracts-table th,.rh-table th,.marketing-table th,.settings-table-wrap th'
   const tableCellSelector='.crm-table td,.finance-table td,.contracts-table td,.rh-table td,.marketing-table td,.settings-table-wrap td'
@@ -117,6 +141,7 @@ async function measureComponents(page:Page,route:string):Promise<ComponentGeomet
     tableRowHeight:px(shellStyle.getPropertyValue('--ui-table-row-height')),
     tableCellBlock:px(shellStyle.getPropertyValue('--ui-table-cell-block')),
     tableCellInline:px(shellStyle.getPropertyValue('--ui-table-cell-inline')),
+    tableSelectorInline:px(shellStyle.getPropertyValue('--ui-table-selector-inline')),
     paginationMinHeight:px(shellStyle.getPropertyValue('--ui-pagination-min-height')),
     paginationControl:px(shellStyle.getPropertyValue('--ui-pagination-control')),
     paginationBlock:px(shellStyle.getPropertyValue('--ui-pagination-block')),
@@ -149,7 +174,6 @@ for(const viewport of viewports){
    expect(close(current.header.width,baseline.header.width),`${current.route}: header width`).toBeTruthy()
    expect(close(current.header.height,current.tokens.headerHeight),`${current.route}: header token height`).toBeTruthy()
    expect(close(current.header.height,baseline.header.height),`${current.route}: header height`).toBeTruthy()
-
    expect(close(current.main.x,baseline.main.x),`${current.route}: main x-axis`).toBeTruthy()
    expect(close(current.main.width,baseline.main.width),`${current.route}: main width`).toBeTruthy()
    expect(close(current.main.paddingLeft,current.tokens.pageInline),`${current.route}: left gutter token`).toBeTruthy()
@@ -157,7 +181,6 @@ for(const viewport of viewports){
    expect(close(current.main.paddingTop,current.tokens.pageBlockStart),`${current.route}: top spacing token`).toBeTruthy()
    expect(close(current.main.paddingLeft,baseline.main.paddingLeft),`${current.route}: left gutter`).toBeTruthy()
    expect(close(current.main.paddingRight,baseline.main.paddingRight),`${current.route}: right gutter`).toBeTruthy()
-
    if(current.heading&&baseline.heading)expect(close(current.heading.y,baseline.heading.y),`${current.route}: page heading vertical axis`).toBeTruthy()
    if(current.iconControl){
     expect(close(current.iconControl.width,current.tokens.controlMd),`${current.route}: icon control width`).toBeTruthy()
@@ -190,26 +213,25 @@ for(const viewport of viewports){
    for(const sample of current.kpis){
     totals.kpis++
     expect(close(sample.minHeight,current.tokens.kpiMinHeight),`${current.route} ${sample.selector}: KPI min-height token`).toBeTruthy()
-    expect(close(sample.paddingTop,current.tokens.kpiPadding),`${current.route} ${sample.selector}: KPI top padding`).toBeTruthy()
-    expect(close(sample.paddingRight,current.tokens.kpiPadding),`${current.route} ${sample.selector}: KPI right padding`).toBeTruthy()
-    expect(close(sample.paddingBottom,current.tokens.kpiPadding),`${current.route} ${sample.selector}: KPI bottom padding`).toBeTruthy()
-    expect(close(sample.paddingLeft,current.tokens.kpiPadding),`${current.route} ${sample.selector}: KPI left padding`).toBeTruthy()
+    for(const [edge,value] of [['top',sample.paddingTop],['right',sample.paddingRight],['bottom',sample.paddingBottom],['left',sample.paddingLeft]] as const)expect(close(value,current.tokens.kpiPadding),`${current.route} ${sample.selector}: KPI ${edge} padding`).toBeTruthy()
    }
    for(const sample of current.tableHeaders){
     totals.tableHeaders++
+    const inline=sample.isSelector?current.tokens.tableSelectorInline:current.tokens.tableCellInline
     expect(close(sample.paddingTop,current.tokens.tableCellBlock),`${current.route} ${sample.selector}: table header top padding`).toBeTruthy()
     expect(close(sample.paddingBottom,current.tokens.tableCellBlock),`${current.route} ${sample.selector}: table header bottom padding`).toBeTruthy()
-    expect(close(sample.paddingLeft,current.tokens.tableCellInline),`${current.route} ${sample.selector}: table header left padding`).toBeTruthy()
-    expect(close(sample.paddingRight,current.tokens.tableCellInline),`${current.route} ${sample.selector}: table header right padding`).toBeTruthy()
+    expect(close(sample.paddingLeft,inline),`${current.route} ${sample.selector}: table header left padding`).toBeTruthy()
+    expect(close(sample.paddingRight,inline),`${current.route} ${sample.selector}: table header right padding`).toBeTruthy()
     expect(close(sample.fontSize,11),`${current.route} ${sample.selector}: table header font-size`).toBeTruthy()
    }
    for(const sample of current.tableCells){
     totals.tableCells++
+    const inline=sample.isSelector?current.tokens.tableSelectorInline:current.tokens.tableCellInline
     expect(sample.height,`${current.route} ${sample.selector}: table row height`).toBeGreaterThanOrEqual(current.tokens.tableRowHeight-tolerance)
     expect(close(sample.paddingTop,current.tokens.tableCellBlock),`${current.route} ${sample.selector}: table cell top padding`).toBeTruthy()
     expect(close(sample.paddingBottom,current.tokens.tableCellBlock),`${current.route} ${sample.selector}: table cell bottom padding`).toBeTruthy()
-    expect(close(sample.paddingLeft,current.tokens.tableCellInline),`${current.route} ${sample.selector}: table cell left padding`).toBeTruthy()
-    expect(close(sample.paddingRight,current.tokens.tableCellInline),`${current.route} ${sample.selector}: table cell right padding`).toBeTruthy()
+    expect(close(sample.paddingLeft,inline),`${current.route} ${sample.selector}: table cell left padding`).toBeTruthy()
+    expect(close(sample.paddingRight,inline),`${current.route} ${sample.selector}: table cell right padding`).toBeTruthy()
     expect(close(sample.fontSize,12),`${current.route} ${sample.selector}: table cell font-size`).toBeTruthy()
    }
    for(const sample of current.paginations){
@@ -227,12 +249,6 @@ for(const viewport of viewports){
    }
   }
 
-  expect(totals.defaultControls,'default control family must be exercised').toBeGreaterThan(0)
-  expect(totals.compactControls,'compact control family must be exercised').toBeGreaterThan(0)
-  expect(totals.kpis,'KPI family must be exercised').toBeGreaterThan(0)
-  expect(totals.tableHeaders,'table header family must be exercised').toBeGreaterThan(0)
-  expect(totals.tableCells,'table cell family must be exercised').toBeGreaterThan(0)
-  expect(totals.paginations,'pagination family must be exercised').toBeGreaterThan(0)
-  expect(totals.paginationControls,'pagination controls must be exercised').toBeGreaterThan(0)
+  for(const [family,total] of Object.entries(totals))expect(total,`${family} must be exercised`).toBeGreaterThan(0)
  })
 }

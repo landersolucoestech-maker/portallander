@@ -12,7 +12,7 @@ const ContractsPage=lazy(()=>import('../modules/contracts/ContractsPage'))
 const AgendaPage=lazy(()=>import('../modules/agenda/AgendaPage'))
 const ChatPage=lazy(()=>import('../modules/chat/ChatPage'))
 const ChatAutomationSettingsPage=lazy(()=>import('../modules/chat/ChatAutomationSettingsPage'))
-const RHPage=lazy(()=>import('../modules/rh/RHPage'))
+const HRPage=lazy(()=>import('../modules/hr/HRPage'))
 const MetricsPage=lazy(()=>import('../modules/analytics/MetricsPage'))
 const MarketingPage=lazy(()=>import('../modules/marketing/MarketingPage'))
 const ReportsPage=lazy(()=>import('../modules/reports/ReportsPage'))
@@ -50,7 +50,7 @@ function InternalRoutes(){return <Suspense fallback={null}><Routes>
   <Route path="/app/agenda" element={protectedRoute(<AgendaPage/>)}/>
   <Route path="/app/chat" element={protectedRoute(<ChatPage/>)}/>
   <Route path="/app/chat/settings" element={protectedRoute(<ChatAutomationSettingsPage/>)}/>
-  <Route path="/app/rh" element={protectedRoute(<RHPage/>)}/>
+  <Route path="/app/rh" element={protectedRoute(<HRPage/>)}/>
   <Route path="/app/metricas" element={protectedRoute(<MetricsPage/>)}/>
   <Route path="/app/marketing/metricas" element={<LegacyMetricsRedirect/>}/>
   <Route path="/app/marketing/*" element={protectedRoute(<MarketingPage/>)}/>

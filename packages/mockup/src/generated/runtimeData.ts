@@ -23741,7 +23741,7 @@ export const generatedRuntimeData: Record<string, any> = {
       }
     }
   },
-  "mockRhSeed": {
+  "mockHrSeed": {
     "departments": [
       "Administrativo",
       "Comercial",

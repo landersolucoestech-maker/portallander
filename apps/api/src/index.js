@@ -12,7 +12,7 @@ import {handleMetricsRequest} from './metricsHttp.js'
 import {handleMarketingMetricsRequest} from './marketingMetricsHttp.js'
 import {handleNewsletterRequest} from './newsletterHttp.js'
 import {handlePageSectionRequest} from './pageSectionHttp.js'
-import {handleRhRequest} from './rhHttp.js'
+import {handleHrRequest} from './hrHttp.js'
 import {handleSectionConfigurationRequest} from './sectionConfigurationHttp.js'
 import {handleSettingsRequest} from './settingsHttp.js'
 import {handleSpotifyReleaseRequest} from './spotifyReleaseHttp.js'
@@ -31,7 +31,7 @@ const server=createServer((req,res)=>{
     if(await handleMetricsRequest(req,res))return
     if(await handleMarketingMetricsRequest(req,res))return
     if(await handleNewsletterRequest(req,res))return
-    if(await handleRhRequest(req,res))return
+    if(await handleHrRequest(req,res))return
     if(await handleSettingsRequest(req,res))return
     if(await handleSpotifyReleaseRequest(req,res))return
     if(await handleSectionConfigurationRequest(req,res))return

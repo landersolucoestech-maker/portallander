@@ -6,7 +6,7 @@ import {useAdminAuth} from '../../modules/access/adminAuthState'
 import {portalLogo} from '../branding/assets/brandAsset'
 import {appReadModel} from '../data/appReadModel'
 
-export type AdminArea='crm'|'contracts'|'finance'|'agenda'|'chat'|'rh'|'metrics'|'marketing'|'reports'|'settings'|'cms'
+export type AdminArea='crm'|'contracts'|'finance'|'agenda'|'chat'|'hr'|'metrics'|'marketing'|'reports'|'settings'|'cms'
 export type AdminNavLink=readonly [label:string,icon:LucideIcon,to:string]
 export type AdminNavGroup={label:string;icon:LucideIcon;to?:string;children:readonly AdminNavLink[]}
 export type AdminNavItem=AdminNavLink|AdminNavGroup
@@ -83,7 +83,7 @@ function PageHeader({context,header,actions}:{context:string;header?:PageHeaderC
 
 export function AdminShell({area,items,children,header,headerAction,headerActions}:{area:AdminArea;items:readonly AdminNavItem[];children:ReactNode;header?:PageHeaderConfig;headerAction?:AdminShellAction;headerActions?:readonly AdminShellAction[]}){
   const location=useLocation()
-  const context=area==='crm'?'CRM':area==='contracts'?'Contratos':area==='finance'?'Financeiro':area==='agenda'?'Agenda':area==='chat'?'Chat':area==='rh'?'RH':area==='metrics'?'Métricas':area==='marketing'?'Marketing':area==='reports'?'Relatórios':area==='settings'?'Configurações':'Site'
+  const context=area==='crm'?'CRM':area==='contracts'?'Contratos':area==='finance'?'Financeiro':area==='agenda'?'Agenda':area==='chat'?'Chat':area==='hr'?'RH':area==='metrics'?'Métricas':area==='marketing'?'Marketing':area==='reports'?'Relatórios':area==='settings'?'Configurações':'Site'
   const [expandedGroups,setExpandedGroups]=useState<Record<string,boolean>>({})
   const [sidebarCollapsed,setSidebarCollapsed]=useState(()=>typeof window!=='undefined'&&window.sessionStorage.getItem('portal-lander:admin-sidebar-collapsed')==='1')
   const rawActions=headerActions??(headerAction?[headerAction]:[])

@@ -42,7 +42,7 @@ export function createPublicApiDataProvider(snapshot:PublicEditorialSnapshot):Ap
   editorial:{pages:()=>clone(snapshot.pages),contents:()=>clone(snapshot.contents),media:()=>[]},
   home:{stories:()=>clone(stories),mostRead:()=>[],agenda:()=>[],heroArticles:()=>clone(articles),defaultHeroSlide:()=>clone(defaultSlide),defaultHeroConfig:()=>clone(heroConfig(defaultSlide))},
   agenda:{items:()=>[],events:()=>[],participants:()=>[],locations:()=>[]},
-  chat:{seed:()=>unsupported('chat')},rh:{seed:()=>unsupported('rh')},marketing:{seed:()=>clone(emptyMarketing)},reports:{seed:()=>unsupported('reports')},settings:{seed:()=>clone(emptySettings)},
+  chat:{seed:()=>unsupported('chat')},hr:{seed:()=>unsupported('hr')},marketing:{seed:()=>clone(emptyMarketing)},reports:{seed:()=>unsupported('reports')},settings:{seed:()=>clone(emptySettings)},
   advertising:{campaigns:()=>[],formats:()=>[],defaultHomeAdConfig:()=>clone(disabledHomeAd),defaultNewsAdConfig:()=>clone(disabledNewsAd)},
   branding:{config:()=>({headerImage:portalLogo,headerImageAlt:'Portal Lander',footerImage:portalLogo,footerImageAlt:'Portal Lander'}),socialChannels:()=>[]},
   collaboration:{types:()=>[{value:'noticia',label:'Notícia',active:true},{value:'video',label:'Vídeo',active:true},{value:'foto',label:'Foto',active:true},{value:'pauta',label:'Pauta',active:true}],guidelines:()=>[]},

@@ -24,7 +24,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ['src/modules/rh/RHPage.tsx'],
+    files: ['src/modules/hr/HRPage.tsx'],
     rules: {
       'react-hooks/exhaustive-deps': 'off',
     },

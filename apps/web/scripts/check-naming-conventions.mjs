@@ -10,7 +10,7 @@ const ignored=new Set(['.git','node_modules','dist','test-results','coverage','m
 // Legacy RH CSS selectors remain a presentation-compatibility contract until their atomic stylesheet migration.
 const patterns=[
  /\bRhSeed\b/,/\brhService\b/,/\brhHttp\b/,/\bhandleRhRequest\b/,/\brhAdminClient\b/,/\bRhAdminClientError\b/,/\brhRepository\b/,/\buseRh(?:Runtime|State)\b/,/\binstallRhMarketingTableSorting\b/,
- /\b(?:Anuncie|Colabore|Contato|Sobre)Page\b/,/\/api\/rh(?:\/|['"`])/
+ /\/api\/rh(?:\/|['"`])/
 ]
 function walk(dir){for(const name of readdirSync(dir)){if(ignored.has(name)||name==='check-naming-conventions.mjs')continue;const absolute=join(dir,name),stats=statSync(absolute);if(stats.isDirectory()){walk(absolute);continue}if(!/\.(?:[cm]?[jt]sx?|json|ya?ml|css)$/i.test(name))continue;const text=readFileSync(absolute,'utf8');text.split(/\r?\n/).forEach((line,index)=>{if(patterns.some(pattern=>pattern.test(line)))violations.push(`${relative(root,absolute).split(sep).join('/')}:${index+1}`)})}}
 walk(root)

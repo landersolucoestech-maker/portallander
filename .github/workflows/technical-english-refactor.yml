@@ -59,6 +59,20 @@ jobs:
           NODE
           bash /tmp/hr-technical-refactor.sh
 
+      - name: Remove migration-only scaffolding from certification tree
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f .github/workflows/hr-naming-migration.yml
+          rm -f .github/workflows/hr-english-migration.yml
+          node --input-type=module <<'NODE'
+          import {readFileSync,writeFileSync} from 'node:fs'
+          const path='docs/architecture/naming-conventions.md'
+          let text=readFileSync(path,'utf8')
+          text=text.replace('- `apps/web/src/modules` is the single canonical frontend domain tree. `src/features` must not exist.','- `apps/web/src/modules` is the single canonical frontend domain tree. Legacy domain trees are forbidden.')
+          writeFileSync(path,text)
+          NODE
+
       - name: Install dependencies
         run: npm ci
 

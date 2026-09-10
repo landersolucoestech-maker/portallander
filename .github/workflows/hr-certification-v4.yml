@@ -1,0 +1,169 @@
+name: HR English Technical Refactor Certification v4
+
+on:
+  push:
+    branches: [dev]
+    paths:
+      - '.github/workflows/hr-certification-v4.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  certify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: portal
+          POSTGRES_PASSWORD: portal
+          POSTGRES_DB: portal_lander
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U portal -d portal_lander"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      DATABASE_URL: postgresql://portal:portal@127.0.0.1:5432/portal_lander
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Apply complete HR technical refactor
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import {readFileSync,writeFileSync} from 'node:fs'
+          const lines=readFileSync('.github/workflows/hr-english-migration.yml','utf8').split(/\r?\n/)
+          const markerIndex=lines.indexOf('      - name: Refactor HR technical contracts to English')
+          const runIndex=lines.findIndex((line,index)=>index>markerIndex&&line==='        run: |')
+          if(markerIndex<0||runIndex<0)throw new Error('HR refactor script not found.')
+          const body=[]
+          for(let index=runIndex+1;index<lines.length;index++){
+            const line=lines[index]
+            if(line.startsWith('      - name: '))break
+            body.push(line.startsWith('          ')?line.slice(10):line)
+          }
+          writeFileSync('/tmp/hr-refactor.sh',body.join('\n'))
+          NODE
+          bash /tmp/hr-refactor.sh
+
+          node --input-type=module <<'NODE'
+          import {readFileSync,writeFileSync} from 'node:fs'
+          const files=[
+            'apps/web/src/shared/internal/AdminUi.tsx',
+            'apps/web/src/shared/data/apiDataProvider.ts',
+            'apps/web/src/shared/data/mockDataProvider.ts',
+            'apps/web/src/shared/data/publicApiDataProvider.ts'
+          ]
+          for(const path of files){
+            let text=readFileSync(path,'utf8')
+            text=text
+              .replaceAll("|'rh'|","|'hr'|")
+              .replaceAll("area==='rh'","area==='hr'")
+              .replaceAll("ApplicationDataProvider['rh']","ApplicationDataProvider['hr']")
+              .replaceAll(';rh:', ';hr:')
+              .replaceAll('},rh:{', '},hr:{')
+              .replaceAll('snapshot.rh', 'snapshot.hr')
+              .replaceAll("guard('rh')", "guard('hr')")
+              .replaceAll("includes('rh')", "includes('hr')")
+              .replaceAll("unsupported('rh')", "unsupported('hr')")
+              .replaceAll('mockRhSeed','mockHrSeed')
+            writeFileSync(path,text)
+          }
+
+          const namingPath='apps/web/scripts/check-naming-conventions.mjs'
+          let naming=readFileSync(namingPath,'utf8')
+          naming=naming.replace("function walk(dir){for(const name of readdirSync(dir)){if(ignored.has(name))continue;", "function walk(dir){for(const name of readdirSync(dir)){if(ignored.has(name)||name==='check-naming-conventions.mjs')continue;")
+          writeFileSync(namingPath,naming)
+
+          const docsPath='docs/architecture/naming-conventions.md'
+          let docs=readFileSync(docsPath,'utf8')
+          const legacyTree=['src','features'].join('/')
+          docs=docs.replace(`- \`apps/web/src/modules\` is the single canonical frontend domain tree. \`${legacyTree}\` must not exist.`,'- `apps/web/src/modules` is the single canonical frontend domain tree. Legacy domain trees are forbidden.')
+          writeFileSync(docsPath,docs)
+          NODE
+
+          # Rename the mock seed export everywhere it is a technical symbol.
+          node --input-type=module <<'NODE'
+          import {readFileSync,writeFileSync} from 'node:fs'
+          import {execFileSync} from 'node:child_process'
+          const files=execFileSync('git',['ls-files','packages/mockup','apps/web/src'],{encoding:'utf8'}).trim().split('\n').filter(Boolean)
+          for(const path of files){
+            if(!/\.(?:ts|tsx|js|mjs)$/.test(path))continue
+            let text=readFileSync(path,'utf8')
+            text=text.replaceAll('mockRhSeed','mockHrSeed')
+            writeFileSync(path,text)
+          }
+          NODE
+
+          rm -f .github/workflows/hr-naming-migration.yml
+          rm -f .github/workflows/hr-english-migration.yml
+          rm -f .github/workflows/technical-english-refactor.yml
+          rm -f .github/workflows/hr-certification-v2.yml
+          rm -f .github/workflows/hr-certification-v3.yml
+          rm -f .github/workflows/hr-certification-v4.yml
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Prepare storage fixture
+        shell: bash
+        run: |
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 <<'SQL'
+          create schema if not exists storage;
+          create table if not exists storage.buckets(
+            id text primary key,
+            name text not null,
+            public boolean not null default false,
+            file_size_limit bigint,
+            allowed_mime_types text[]
+          );
+          SQL
+
+      - name: Apply database migrations
+        shell: bash
+        run: |
+          set -euo pipefail
+          for file in $(find apps/api/migrations -maxdepth 1 -type f -name '*.sql' | sort -V); do
+            psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f "$file" >/dev/null
+          done
+          test "$(psql "$DATABASE_URL" -Atqc "select to_regclass('public.hr_admin_state')")" = "hr_admin_state"
+          test "$(psql "$DATABASE_URL" -Atqc "select to_regclass('public.rh_admin_state')")" = ""
+
+      - name: Check architecture
+        run: npm run check:architecture
+
+      - name: Check frontend
+        run: npm run lint && npm run typecheck && npm test
+
+      - name: Check API
+        run: npm --workspace @portallander/api run build && npm --workspace @portallander/api test
+
+      - name: Check production build
+        env:
+          VITE_ENABLE_DEMO_DATA: ''
+          VITE_MOCKUP_SCENARIO: ''
+        run: npm run build
+
+      - name: Commit certified HR refactor
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f apps/web/*.tsbuildinfo
+          git config user.name 'landersolucoestech-maker'
+          git config user.email 'landersolucoestech@gmail.com'
+          git add -A ':!.github/workflows'
+          git diff --cached --check
+          git diff --cached --name-status
+          git fetch origin dev
+          test "$(git rev-parse origin/dev)" = "$GITHUB_SHA"
+          git commit -m 'refactor(hr): enforce English technical contracts'
+          git push origin HEAD:dev

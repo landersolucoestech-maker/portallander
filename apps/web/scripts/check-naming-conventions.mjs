@@ -5,13 +5,11 @@ const forbiddenPaths=['apps/web/src/modules/rh','apps/api/src/rhService.js','app
 const violations=[]
 for(const path of forbiddenPaths)if(existsSync(join(root,path)))violations.push(`legacy technical path: ${path}`)
 const ignored=new Set(['.git','node_modules','dist','test-results','coverage','migrations','.github'])
+// Enforce universal English only at technical boundaries. Localized public/admin route slugs,
+// persisted CMS section ids and visible pt-BR copy are product contracts and are intentionally allowed.
 const patterns=[
  /\bRhSeed\b/,/\brhService\b/,/\brhHttp\b/,/\bhandleRhRequest\b/,/\brhAdminClient\b/,/\bRhAdminClientError\b/,/\brhRepository\b/,/\buseRh(?:Runtime|State)\b/,/\binstallRhMarketingTableSorting\b/,
- /\b(?:Anuncie|Colabore|Contato|Sobre)Page\b/,/\.rh-page\b/,/\.rh-table\b/,/\/api\/rh(?:\/|['"`])/,
- /\/app\/(?:rh|metricas|relatorios|configuracoes)(?:\/|['"`])/,
- /\/app\/site\/(?:paginas|secoes|cabecalho|rodape|configuracoes|conteudos|formularios|midia)(?:\/|['"`-])/,
- /\/app\/marketing\/(?:campanhas|calendario|tarefas|ia-criativa|metricas)(?:\/|['"`])/,
- /['"`](?:publicidade-lateral|anuncie-aqui|mais-lidas|em-destaque|ultimas-noticias|lancamentos|em-alta|sobre-hero|contato-hero|colabore-hero)['"`]/
+ /\b(?:Anuncie|Colabore|Contato|Sobre)Page\b/,/\.rh-page\b/,/\.rh-table\b/,/\/api\/rh(?:\/|['"`])/
 ]
 function walk(dir){for(const name of readdirSync(dir)){if(ignored.has(name)||name==='check-naming-conventions.mjs')continue;const absolute=join(dir,name),stats=statSync(absolute);if(stats.isDirectory()){walk(absolute);continue}if(!/\.(?:[cm]?[jt]sx?|json|ya?ml|css)$/i.test(name))continue;const text=readFileSync(absolute,'utf8');text.split(/\r?\n/).forEach((line,index)=>{if(patterns.some(pattern=>pattern.test(line)))violations.push(`${relative(root,absolute).split(sep).join('/')}:${index+1}`)})}}
 walk(root)

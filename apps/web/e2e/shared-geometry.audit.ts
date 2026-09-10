@@ -28,6 +28,19 @@ type Geometry={
  tokens:{headerHeight:number;pageInline:number;pageBlockStart:number;controlMd:number}
 }
 
+type BoxSample={selector:string;height:number;minHeight:number;paddingTop:number;paddingRight:number;paddingBottom:number;paddingLeft:number;fontSize:number}
+type ComponentGeometry={
+ route:string
+ tokens:{controlMd:number;controlSm:number;kpiMinHeight:number;kpiPadding:number;tableRowHeight:number;tableCellBlock:number;tableCellInline:number;paginationMinHeight:number;paginationControl:number;paginationBlock:number;paginationInline:number}
+ defaultControls:BoxSample[]
+ compactControls:BoxSample[]
+ kpis:BoxSample[]
+ tableHeaders:BoxSample[]
+ tableCells:BoxSample[]
+ paginations:BoxSample[]
+ paginationControls:BoxSample[]
+}
+
 const close=(a:number,b:number)=>Math.abs(a-b)<=tolerance
 
 async function openRoute(page:Page,route:string){
@@ -75,6 +88,51 @@ async function measure(page:Page,route:string):Promise<Geometry>{
  },route)
 }
 
+async function measureComponents(page:Page,route:string):Promise<ComponentGeometry>{
+ return page.evaluate(currentRoute=>{
+  const px=(value:string)=>Number.parseFloat(value)||0
+  const shell=document.querySelector<HTMLElement>('.app-shell')!
+  const shellStyle=getComputedStyle(shell)
+  const samples=(selector:string)=>Array.from(document.querySelectorAll<HTMLElement>(selector)).filter(node=>{
+   const rect=node.getBoundingClientRect(),style=getComputedStyle(node)
+   return rect.width>0&&rect.height>0&&style.display!=='none'&&style.visibility!=='hidden'
+  }).map(node=>{
+   const style=getComputedStyle(node),rect=node.getBoundingClientRect()
+   return {selector:`${node.tagName.toLowerCase()}.${Array.from(node.classList).join('.')}`,height:rect.height,minHeight:px(style.minHeight),paddingTop:px(style.paddingTop),paddingRight:px(style.paddingRight),paddingBottom:px(style.paddingBottom),paddingLeft:px(style.paddingLeft),fontSize:px(style.fontSize)}
+  })
+  const defaultSelector='.crm-btn,.agenda-toolbar .button,.agenda-toolbar select,.agenda-toolbar .agenda-icon-button,.contracts-filters select,.contracts-registry select,.finance-filters>input,.finance-filters>select,.finance-search,.contracts-search,.crm-search,.crm-filter-selects select,.crm-inline-select,.agenda-search,.marketing-primary,.marketing-secondary,.settings-primary,.settings-outline,.settings-danger'
+  const compactSelector='.rh-primary,.rh-secondary,.rh-danger-button,.rh-filters>input,.rh-filters>select,.rh-search,.rh-doc-selector select,.rh-field input,.rh-field select,.marketing-filters>select,.marketing-filters>input,.marketing-search,.marketing-calendar-toolbar>select,.marketing-period-button'
+  const kpiSelector='.admin-kpi,.crm-kpi,.finance-kpi,.contracts-kpi,.rh-kpi,.marketing-kpi,.dashboard-stat-card'
+  const tableHeaderSelector='.crm-table th,.finance-table th,.contracts-table th,.rh-table th,.marketing-table th,.settings-table-wrap th'
+  const tableCellSelector='.crm-table td,.finance-table td,.contracts-table td,.rh-table td,.marketing-table td,.settings-table-wrap td'
+  const paginationSelector='.crm-pagination,.finance-pagination,.contracts-pagination,.rh-pagination,.marketing-pagination,.tableview-pagination'
+  const paginationControlSelector='.crm-pagination button,.finance-pagination button,.contracts-pagination button,.rh-pagination button,.marketing-pagination button,.tableview-pagination button,.tableview-page-size select'
+  return {
+   route:currentRoute,
+   tokens:{
+    controlMd:px(shellStyle.getPropertyValue('--ui-control-md')),
+    controlSm:px(shellStyle.getPropertyValue('--ui-control-sm')),
+    kpiMinHeight:px(shellStyle.getPropertyValue('--ui-kpi-min-height')),
+    kpiPadding:px(shellStyle.getPropertyValue('--ui-kpi-padding')),
+    tableRowHeight:px(shellStyle.getPropertyValue('--ui-table-row-height')),
+    tableCellBlock:px(shellStyle.getPropertyValue('--ui-table-cell-block')),
+    tableCellInline:px(shellStyle.getPropertyValue('--ui-table-cell-inline')),
+    paginationMinHeight:px(shellStyle.getPropertyValue('--ui-pagination-min-height')),
+    paginationControl:px(shellStyle.getPropertyValue('--ui-pagination-control')),
+    paginationBlock:px(shellStyle.getPropertyValue('--ui-pagination-block')),
+    paginationInline:px(shellStyle.getPropertyValue('--ui-pagination-inline')),
+   },
+   defaultControls:samples(defaultSelector),
+   compactControls:samples(compactSelector),
+   kpis:samples(kpiSelector),
+   tableHeaders:samples(tableHeaderSelector),
+   tableCells:samples(tableCellSelector),
+   paginations:samples(paginationSelector),
+   paginationControls:samples(paginationControlSelector),
+  }
+ },route)
+}
+
 for(const viewport of viewports){
  test(`shared admin geometry is invariant at ${viewport.name}`,async({page})=>{
   await page.setViewportSize({width:viewport.width,height:viewport.height})
@@ -100,13 +158,81 @@ for(const viewport of viewports){
    expect(close(current.main.paddingLeft,baseline.main.paddingLeft),`${current.route}: left gutter`).toBeTruthy()
    expect(close(current.main.paddingRight,baseline.main.paddingRight),`${current.route}: right gutter`).toBeTruthy()
 
-   if(current.heading&&baseline.heading){
-    expect(close(current.heading.y,baseline.heading.y),`${current.route}: page heading vertical axis`).toBeTruthy()
-   }
+   if(current.heading&&baseline.heading)expect(close(current.heading.y,baseline.heading.y),`${current.route}: page heading vertical axis`).toBeTruthy()
    if(current.iconControl){
     expect(close(current.iconControl.width,current.tokens.controlMd),`${current.route}: icon control width`).toBeTruthy()
     expect(close(current.iconControl.height,current.tokens.controlMd),`${current.route}: icon control height`).toBeTruthy()
    }
   }
+ })
+
+ test(`shared admin components consume canonical geometry at ${viewport.name}`,async({page})=>{
+  await page.setViewportSize({width:viewport.width,height:viewport.height})
+  const measurements:ComponentGeometry[]=[]
+  for(const route of routes){
+   await openRoute(page,route)
+   measurements.push(await measureComponents(page,route))
+  }
+  console.log(`UI_COMPONENT_GEOMETRY ${viewport.name} ${JSON.stringify(measurements)}`)
+
+  const totals={defaultControls:0,compactControls:0,kpis:0,tableHeaders:0,tableCells:0,paginations:0,paginationControls:0}
+  for(const current of measurements){
+   for(const sample of current.defaultControls){
+    totals.defaultControls++
+    expect(sample.height,`${current.route} ${sample.selector}: default control height`).toBeGreaterThanOrEqual(current.tokens.controlMd-tolerance)
+    expect(close(sample.minHeight,current.tokens.controlMd),`${current.route} ${sample.selector}: default control min-height token`).toBeTruthy()
+   }
+   for(const sample of current.compactControls){
+    totals.compactControls++
+    expect(sample.height,`${current.route} ${sample.selector}: compact control height`).toBeGreaterThanOrEqual(current.tokens.controlSm-tolerance)
+    expect(close(sample.minHeight,current.tokens.controlSm),`${current.route} ${sample.selector}: compact control min-height token`).toBeTruthy()
+   }
+   for(const sample of current.kpis){
+    totals.kpis++
+    expect(close(sample.minHeight,current.tokens.kpiMinHeight),`${current.route} ${sample.selector}: KPI min-height token`).toBeTruthy()
+    expect(close(sample.paddingTop,current.tokens.kpiPadding),`${current.route} ${sample.selector}: KPI top padding`).toBeTruthy()
+    expect(close(sample.paddingRight,current.tokens.kpiPadding),`${current.route} ${sample.selector}: KPI right padding`).toBeTruthy()
+    expect(close(sample.paddingBottom,current.tokens.kpiPadding),`${current.route} ${sample.selector}: KPI bottom padding`).toBeTruthy()
+    expect(close(sample.paddingLeft,current.tokens.kpiPadding),`${current.route} ${sample.selector}: KPI left padding`).toBeTruthy()
+   }
+   for(const sample of current.tableHeaders){
+    totals.tableHeaders++
+    expect(close(sample.paddingTop,current.tokens.tableCellBlock),`${current.route} ${sample.selector}: table header top padding`).toBeTruthy()
+    expect(close(sample.paddingBottom,current.tokens.tableCellBlock),`${current.route} ${sample.selector}: table header bottom padding`).toBeTruthy()
+    expect(close(sample.paddingLeft,current.tokens.tableCellInline),`${current.route} ${sample.selector}: table header left padding`).toBeTruthy()
+    expect(close(sample.paddingRight,current.tokens.tableCellInline),`${current.route} ${sample.selector}: table header right padding`).toBeTruthy()
+    expect(close(sample.fontSize,11),`${current.route} ${sample.selector}: table header font-size`).toBeTruthy()
+   }
+   for(const sample of current.tableCells){
+    totals.tableCells++
+    expect(sample.height,`${current.route} ${sample.selector}: table row height`).toBeGreaterThanOrEqual(current.tokens.tableRowHeight-tolerance)
+    expect(close(sample.paddingTop,current.tokens.tableCellBlock),`${current.route} ${sample.selector}: table cell top padding`).toBeTruthy()
+    expect(close(sample.paddingBottom,current.tokens.tableCellBlock),`${current.route} ${sample.selector}: table cell bottom padding`).toBeTruthy()
+    expect(close(sample.paddingLeft,current.tokens.tableCellInline),`${current.route} ${sample.selector}: table cell left padding`).toBeTruthy()
+    expect(close(sample.paddingRight,current.tokens.tableCellInline),`${current.route} ${sample.selector}: table cell right padding`).toBeTruthy()
+    expect(close(sample.fontSize,12),`${current.route} ${sample.selector}: table cell font-size`).toBeTruthy()
+   }
+   for(const sample of current.paginations){
+    totals.paginations++
+    expect(close(sample.minHeight,current.tokens.paginationMinHeight),`${current.route} ${sample.selector}: pagination min-height`).toBeTruthy()
+    expect(close(sample.paddingTop,current.tokens.paginationBlock),`${current.route} ${sample.selector}: pagination top padding`).toBeTruthy()
+    expect(close(sample.paddingBottom,current.tokens.paginationBlock),`${current.route} ${sample.selector}: pagination bottom padding`).toBeTruthy()
+    expect(close(sample.paddingLeft,current.tokens.paginationInline),`${current.route} ${sample.selector}: pagination left padding`).toBeTruthy()
+    expect(close(sample.paddingRight,current.tokens.paginationInline),`${current.route} ${sample.selector}: pagination right padding`).toBeTruthy()
+   }
+   for(const sample of current.paginationControls){
+    totals.paginationControls++
+    expect(close(sample.height,current.tokens.paginationControl),`${current.route} ${sample.selector}: pagination control height`).toBeTruthy()
+    expect(close(sample.minHeight,current.tokens.paginationControl),`${current.route} ${sample.selector}: pagination control min-height`).toBeTruthy()
+   }
+  }
+
+  expect(totals.defaultControls,'default control family must be exercised').toBeGreaterThan(0)
+  expect(totals.compactControls,'compact control family must be exercised').toBeGreaterThan(0)
+  expect(totals.kpis,'KPI family must be exercised').toBeGreaterThan(0)
+  expect(totals.tableHeaders,'table header family must be exercised').toBeGreaterThan(0)
+  expect(totals.tableCells,'table cell family must be exercised').toBeGreaterThan(0)
+  expect(totals.paginations,'pagination family must be exercised').toBeGreaterThan(0)
+  expect(totals.paginationControls,'pagination controls must be exercised').toBeGreaterThan(0)
  })
 }

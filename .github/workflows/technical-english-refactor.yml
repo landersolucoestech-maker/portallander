@@ -1,0 +1,118 @@
+name: Technical English Refactor Certification
+
+on:
+  push:
+    branches: [dev]
+    paths:
+      - '.github/workflows/technical-english-refactor.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  certify-and-commit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: portal
+          POSTGRES_PASSWORD: portal
+          POSTGRES_DB: portal_lander
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U portal -d portal_lander"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      DATABASE_URL: postgresql://portal:portal@127.0.0.1:5432/portal_lander
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Execute canonical HR refactor script
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import {readFileSync,writeFileSync} from 'node:fs'
+          const path='.github/workflows/hr-english-migration.yml'
+          const lines=readFileSync(path,'utf8').split(/\r?\n/)
+          const marker='      - name: Refactor HR technical contracts to English'
+          const markerIndex=lines.indexOf(marker)
+          if(markerIndex<0)throw new Error('Canonical HR refactor step not found.')
+          const runIndex=lines.findIndex((line,index)=>index>markerIndex&&line==='        run: |')
+          if(runIndex<0)throw new Error('Canonical HR refactor run block not found.')
+          const body=[]
+          for(let index=runIndex+1;index<lines.length;index++){
+            const line=lines[index]
+            if(line.startsWith('      - name: '))break
+            body.push(line.startsWith('          ')?line.slice(10):line)
+          }
+          writeFileSync('/tmp/hr-technical-refactor.sh',body.join('\n'))
+          NODE
+          bash /tmp/hr-technical-refactor.sh
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Provision Supabase Storage compatibility fixture
+        shell: bash
+        run: |
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 <<'SQL'
+          create schema if not exists storage;
+          create table if not exists storage.buckets(
+            id text primary key,
+            name text not null,
+            public boolean not null default false,
+            file_size_limit bigint,
+            allowed_mime_types text[]
+          );
+          SQL
+
+      - name: Apply all migrations
+        shell: bash
+        run: |
+          set -euo pipefail
+          for file in $(find apps/api/migrations -maxdepth 1 -type f -name '*.sql' | sort -V); do
+            echo "Applying $file"
+            psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f "$file" >/dev/null
+          done
+          test "$(psql "$DATABASE_URL" -Atqc "select to_regclass('public.hr_admin_state')")" = "hr_admin_state"
+          test "$(psql "$DATABASE_URL" -Atqc "select to_regclass('public.rh_admin_state')")" = ""
+
+      - name: Certify architecture and naming
+        run: npm run check:architecture
+
+      - name: Certify frontend
+        run: npm run lint && npm run typecheck && npm test
+
+      - name: Certify API
+        run: npm --workspace @portallander/api run build && npm --workspace @portallander/api test
+
+      - name: Certify production build
+        env:
+          VITE_ENABLE_DEMO_DATA: ''
+          VITE_MOCKUP_SCENARIO: ''
+        run: npm run build
+
+      - name: Commit certified refactor
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f apps/web/*.tsbuildinfo
+          git config user.name 'landersolucoestech-maker'
+          git config user.email 'landersolucoestech@gmail.com'
+          git add -A ':!.github/workflows'
+          git diff --cached --check
+          git diff --cached --name-status
+          git fetch origin dev
+          test "$(git rev-parse origin/dev)" = "$GITHUB_SHA"
+          git commit -m 'refactor(hr): enforce English technical contracts'
+          git push origin HEAD:dev

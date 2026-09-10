@@ -1,0 +1,18 @@
+/* Portal Lander — canonical administrative table geometry.
+   Feature styles own semantic column layout and presentation only. */
+.workspace-main :is(.crm-table,.finance-table,.contracts-table,.rh-table,.marketing-table,.settings-table-wrap table) :is(th,td){
+  box-sizing:border-box;
+  padding-block:var(--ui-table-cell-block);
+  padding-inline:var(--ui-table-cell-inline);
+}
+.workspace-main :is(.crm-table,.finance-table,.contracts-table,.rh-table,.marketing-table,.settings-table-wrap table) td{
+  height:var(--ui-table-row-height);
+}
+
+/* Selector columns are intentionally compact and are not data-cell gutters. */
+.workspace-main :is(.crm-table,.finance-table,.contracts-table,.rh-table,.marketing-table,.settings-table-wrap table) :is(th,td):has(input[type='checkbox']),
+.workspace-main .crm-table :is(.crm-checkbox-cell,.select),
+.workspace-main .rh-table .check,
+.workspace-main .marketing-table .select{
+  padding-inline:var(--ui-table-selector-inline);
+}

@@ -25,7 +25,6 @@ const monthKey=(now:Date)=>`${now.getUTCFullYear()}-${String(now.getUTCMonth()+1
 const formatDate=(raw:string|undefined|null)=>{if(!raw)return '—';const date=new Date(raw);return Number.isFinite(date.getTime())?date.toLocaleDateString('pt-BR'):'—'}
 const formatTime=(raw:string|undefined|null)=>{if(!raw)return '—';const date=new Date(raw);return Number.isFinite(date.getTime())?date.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}):'—'}
 const formatMonth=(raw:string)=>{const [year,month]=raw.split('-').map(Number);if(!year||!month)return raw;const label=new Date(Date.UTC(year,month-1,1)).toLocaleDateString('pt-BR',{month:'long',year:'numeric',timeZone:'UTC'});return label.charAt(0).toUpperCase()+label.slice(1)}
-const pipelineLabels:Record<string,string>={novo:'Novo',contato_realizado:'Contato realizado',qualificado:'Qualificado',proposta:'Proposta',negociacao:'Negociação',fechado:'Fechado',perdido:'Perdido'}
 const performanceTabLabels:Record<'overview'|DashboardChannelPulse['key'],string>={overview:'Visão Geral',instagram:'Instagram',youtube:'YouTube',tiktok:'TikTok',site:'Site'}
 const developmentAnalytics=import.meta.env.DEV||import.meta.env.VITE_ENABLE_DEMO_DATA==='true'
 
@@ -126,11 +125,7 @@ export default function DashboardPage(){
  const growth=chartPoints.length>=2&&chartPoints[0].value>0?(chartPoints.at(-1)!.value-chartPoints[0].value)/chartPoints[0].value*100:null
  const leadTrend=percentageChange(data.crmSummary.newLeadsThisMonth,data.crmSummary.previousMonthNewLeads)
  const revenueTrend=percentageChange(data.financeSummary.monthRevenue,data.financeSummary.previousMonthRevenue)
- const funnelStages=['novo','contato_realizado','qualificado','proposta','negociacao']
- const funnelEntries=funnelStages.map(stage=>[stage,data.crmSummary.pipeline[stage]??0] as const)
- const funnelMax=Math.max(1,...funnelEntries.map(([,value])=>value))
  const todayAgenda=data.upcoming.slice(0,3)
- const conversion=Math.round(data.crmSummary.conversionRate*10)/10
  const taskItems=attention.slice(0,3)
 
  return <AdminShell area="crm" items={UNIFIED_ADMIN_NAV} header={{title:'DASHBOARD',description:`Visão Geral · ${formatMonth(data.period.month)}`}}>
@@ -187,11 +182,6 @@ export default function DashboardPage(){
      {agendaTab==='agenda'?<div className="dashboard-agenda-list">{todayAgenda.length?todayAgenda.map(event=><article key={event.id}><time dateTime={event.startsAt}><strong>{formatTime(event.startsAt)}</strong><small>{formatDate(event.startsAt)}</small></time><span className="dashboard-agenda-dot"/><div><strong>{event.title}</strong><p>{event.type||event.status}</p></div><span className="dashboard-status-pill">{event.status}</span></article>):<div className="dashboard-empty-inline"><strong>Nenhum compromisso próximo</strong><p>A agenda não possui eventos futuros nesta carga.</p></div>}</div>:<div className="dashboard-task-list">{taskItems.length?taskItems.map(item=><article key={item.id}><CheckSquare size={16}/><div><strong>{item.title}</strong><p>{item.detail}</p></div></article>):<div className="dashboard-empty-inline"><strong>Nenhuma tarefa pendente</strong><p>As fontes disponíveis não indicam ação pendente agora.</p></div>}</div>}
      <footer className="dashboard-agenda-footer"><div><CheckSquare size={18}/><span><strong>{taskItems.length} tarefas pendentes</strong><small>prioridades operacionais atuais</small></span></div><Link to="/app/agenda">Ver todas <ArrowRight size={14}/></Link></footer>
     </aside>
-   </section>
-
-   <section className="dashboard-reference-panel dashboard-funnel-panel" data-testid="dashboard-lead-distribution" aria-labelledby="dashboard-funnel-title">
-    <header className="dashboard-panel-heading"><div className="dashboard-title-with-icon"><span className="dashboard-section-icon"><BarChart3 size={20}/></span><div><h2 id="dashboard-funnel-title">Funil Comercial</h2><p>Acompanhe suas oportunidades</p></div></div><Link to="/app/crm">Abrir CRM <ArrowRight size={14}/></Link></header>
-    <div className="dashboard-funnel-body"><div className="dashboard-funnel-bars">{funnelEntries.map(([stage,total])=><div className="dashboard-funnel-row" key={stage}><span>{pipelineLabels[stage]??stage}</span><div><i style={{width:`${Math.max(total?8:0,(total/funnelMax)*100)}%`}}/></div><strong>{data.availability.crm?total:'—'}</strong></div>)}</div><aside className="dashboard-conversion-card"><BarChart3 size={24}/><span>Taxa de conversão</span><strong>{data.availability.crm?`${conversion.toFixed(1).replace(',0','').replace('.0','')}%`:'—'}</strong><small>de leads para clientes</small></aside></div>
    </section>
 
    <section className="dashboard-bottom-row" aria-label="Atividades e conteúdo">

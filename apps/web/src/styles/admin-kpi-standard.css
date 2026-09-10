@@ -1,8 +1,37 @@
-.app-shell .admin-kpi-grid{gap:16px!important}
-.app-shell .admin-kpi{box-sizing:border-box!important;height:auto!important;min-height:92px!important;padding:14px 16px!important;border:1px solid var(--admin-line)!important;border-radius:8px!important;background:var(--admin-surface,#fff)!important;box-shadow:none!important;overflow:hidden;display:flex!important;flex-direction:column!important;justify-content:space-between!important;gap:4px!important}
-.app-shell .admin-kpi-top{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:10px!important}
-.app-shell .admin-kpi-icon{box-sizing:border-box!important;width:34px!important;height:34px!important;min-width:34px!important;flex:0 0 34px!important;border-radius:8px!important;display:grid!important;place-items:center!important;color:var(--admin-accent)!important;background:var(--admin-accent-soft)!important;border:0!important}
-.app-shell .admin-kpi-label{font-size:9px!important;line-height:1.25!important;font-weight:750!important;letter-spacing:0!important;text-transform:none!important;color:#777!important}
-.app-shell .admin-kpi>strong{font-size:20px!important;line-height:1!important;font-weight:800!important;letter-spacing:-.03em!important;color:#181818!important;white-space:nowrap!important}
-.app-shell .admin-kpi>small{font-size:9px!important;line-height:1.35!important;font-weight:500!important;color:#999!important}
-@media(max-width:760px){.app-shell .admin-kpi{min-height:92px!important;padding:14px 16px!important}}
+.app-shell .admin-kpi-grid{gap:var(--ui-kpi-gap)}
+.app-shell .admin-kpi{
+  box-sizing:border-box;
+  height:auto;
+  min-height:var(--ui-kpi-min-height);
+  padding:var(--ui-kpi-padding);
+  border:1px solid var(--admin-line);
+  border-radius:var(--ui-radius-md);
+  background:var(--admin-surface,#fff);
+  box-shadow:none;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  gap:var(--ui-space-1);
+}
+.app-shell .admin-kpi-top{display:flex;align-items:center;justify-content:space-between;gap:var(--ui-space-2)}
+.app-shell .admin-kpi-icon{
+  box-sizing:border-box;
+  width:var(--ui-kpi-icon);
+  height:var(--ui-kpi-icon);
+  min-width:var(--ui-kpi-icon);
+  flex:0 0 var(--ui-kpi-icon);
+  border-radius:var(--ui-radius-md);
+  display:grid;
+  place-items:center;
+  color:var(--admin-accent);
+  background:var(--admin-accent-soft);
+  border:0;
+}
+.app-shell .admin-kpi-label{font-size:10px;line-height:1.25;font-weight:750;letter-spacing:0;text-transform:none;color:var(--ui-muted)}
+.app-shell .admin-kpi>strong{font-size:24px;line-height:1.05;font-weight:800;letter-spacing:-.03em;color:var(--ui-text-strong);white-space:nowrap}
+.app-shell .admin-kpi>small{font-size:10px;line-height:1.35;font-weight:500;color:var(--ui-muted)}
+
+@media(max-width:760px){
+  .app-shell .admin-kpi{min-height:var(--ui-kpi-min-height);padding:var(--ui-kpi-padding)}
+}

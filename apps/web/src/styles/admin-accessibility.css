@@ -1,26 +1,26 @@
-.sr-only{
+.sr-only,
+.settings-identity .settings-logo-input{
   position:absolute!important;
   width:1px!important;
   height:1px!important;
   padding:0!important;
-  margin:-1px!important;
   overflow:hidden!important;
-  clip:rect(0,0,0,0)!important;
+  clip-path:inset(50%)!important;
   white-space:nowrap!important;
   border:0!important;
 }
 
 .admin-skip-link{
   position:fixed;
-  left:16px;
-  top:12px;
+  left:var(--ui-space-4);
+  top:var(--ui-space-3);
   z-index:100;
   transform:translateY(-160%);
   background:#fff;
   color:#111;
-  border:2px solid #e30613;
-  border-radius:6px;
-  padding:9px 12px;
+  border:2px solid var(--ui-accent);
+  border-radius:var(--ui-radius-sm);
+  padding:9px var(--ui-space-3);
   font-size:12px;
   font-weight:800;
 }
@@ -33,9 +33,7 @@
 }
 
 .app-shell button:disabled,
-.app-shell [aria-disabled='true']{
-  cursor:not-allowed;
-}
+.app-shell [aria-disabled='true']{cursor:not-allowed}
 
 .sidebar nav a:focus-visible,
 .sidebar-bottom a:focus-visible{
@@ -51,15 +49,32 @@
 .table-card th{white-space:nowrap}
 .table-card tbody tr:focus-within{background:#fff7f7}
 
+/* Company identity actions are interactive; obsolete public-registration metadata stays hidden. */
+.settings-identity .settings-outline{
+  display:inline-flex;
+  visibility:visible;
+  opacity:1;
+  pointer-events:auto;
+  cursor:pointer;
+  position:relative;
+  z-index:2;
+}
+.settings-identity .settings-outline:disabled{
+  opacity:1;
+  pointer-events:auto;
+  cursor:pointer;
+}
+.settings-identity code,
+.settings-identity .settings-public-slug,
+.settings-identity [data-public-registration-slug]{display:none}
+
 /* Normal-size secondary copy must remain AA on the light administrative surfaces. */
 .app-shell .admin-notice p,
 .app-shell .admin-kpi>small,
 .app-shell .dashboard-stat-card small,
 .app-shell .dashboard-section-heading p,
 .app-shell .unified-kpi-card small,
-.app-shell .unified-card-heading p{
-  color:#667085!important;
-}
+.app-shell .unified-card-heading p{color:#667085!important}
 
 @media (prefers-reduced-motion:reduce){
   .app-shell *,

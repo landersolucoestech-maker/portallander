@@ -1,3 +1,4 @@
+@import './admin-foundations.css';
 @import './admin-system.css';
 @import './admin-operational.css';
 @import './admin-header.css';
@@ -34,7 +35,6 @@
 @import './admin-finance-reference.css';
 @import './admin-access-system.css';
 @import './admin-table-sort.css';
-@import './admin-requested-hotfix.css';
 @import './admin-pagination-unified.css';
 @import './admin-design-system.css';
 @import './admin-accessibility.css';

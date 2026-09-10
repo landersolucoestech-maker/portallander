@@ -1,150 +1,141 @@
-/* Portal Lander — canonical pagination skin.
-   CRM is the visual reference. This layer normalizes every admin TableView pagination
-   without changing each module's business/state logic. */
+/* Canonical TableView pagination geometry. All pagination variants share the
+   same shell, spacing, typography and control dimensions. */
 .app-shell :is(.crm-pagination,.finance-pagination,.contracts-pagination,.rh-pagination,.marketing-pagination,.tableview-pagination){
-  width:100%!important;
-  min-height:51px!important;
-  margin:0!important;
-  padding:10px 14px!important;
-  border:0!important;
-  border-top:1px solid #ededed!important;
-  border-radius:0!important;
-  background:#fff!important;
-  color:#777!important;
-  font-size:9px!important;
-  line-height:1.35!important;
-  box-sizing:border-box!important;
-  box-shadow:none!important;
+  width:100%;
+  min-height:var(--ui-pagination-min-height);
+  margin:0;
+  padding:var(--ui-pagination-block) var(--ui-pagination-inline);
+  border:0;
+  border-top:1px solid var(--ui-border);
+  border-radius:0;
+  background:var(--ui-surface);
+  color:var(--ui-muted);
+  font-size:11px;
+  line-height:1.35;
+  box-sizing:border-box;
+  box-shadow:none;
 }
 
-/* Legacy paginations (CRM, Financeiro, Contratos e RH) share the exact CRM geometry. */
 .app-shell :is(.crm-pagination,.finance-pagination,.contracts-pagination,.rh-pagination){
-  display:flex!important;
-  align-items:center!important;
-  justify-content:space-between!important;
-  gap:12px!important;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:var(--ui-pagination-gap);
 }
 .app-shell :is(.crm-pagination,.finance-pagination,.contracts-pagination,.rh-pagination)>span{
-  color:#777!important;
-  font-size:9px!important;
-  font-weight:400!important;
-  white-space:nowrap!important;
+  color:var(--ui-muted);
+  font-size:11px;
+  font-weight:400;
+  white-space:nowrap;
 }
 .app-shell :is(.crm-pagination,.finance-pagination,.contracts-pagination,.rh-pagination)>div{
-  display:flex!important;
-  align-items:center!important;
-  justify-content:flex-end!important;
-  gap:6px!important;
-  margin:0!important;
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:var(--ui-space-2);
+  margin:0;
 }
 
-/* Rich/shared paginator follows the same shell, spacing and control dimensions. */
 .app-shell :is(.marketing-pagination,.tableview-pagination){
-  display:grid!important;
-  grid-template-columns:minmax(0,1fr) auto minmax(0,1fr)!important;
-  align-items:center!important;
-  gap:12px!important;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);
+  align-items:center;
+  gap:var(--ui-pagination-gap);
 }
 .app-shell .tableview-pagination-summary{
-  display:flex!important;
-  align-items:center!important;
-  gap:5px!important;
-  min-width:0!important;
-  color:#777!important;
-  font-size:9px!important;
+  display:flex;
+  align-items:center;
+  gap:var(--ui-space-1);
+  min-width:0;
+  color:var(--ui-muted);
+  font-size:11px;
 }
 .app-shell .tableview-pagination-summary strong{
-  color:#222!important;
-  font-size:10px!important;
-  font-weight:600!important;
+  color:var(--ui-text);
+  font-size:11px;
+  font-weight:600;
 }
 .app-shell .tableview-pagination-range{
-  margin-left:7px!important;
-  padding-left:8px!important;
-  border-left:1px solid #ddd!important;
-  color:#999!important;
+  margin-left:var(--ui-space-2);
+  padding-left:var(--ui-space-2);
+  border-left:1px solid var(--ui-border-strong);
+  color:var(--ui-muted-soft);
 }
 .app-shell .tableview-pagination-center{
-  display:flex!important;
-  align-items:center!important;
-  justify-content:center!important;
-  gap:6px!important;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:var(--ui-space-2);
 }
 .app-shell .tableview-pagination-center>span{
-  min-width:112px!important;
-  text-align:center!important;
-  color:#777!important;
-  font-size:9px!important;
-  font-weight:400!important;
+  min-width:112px;
+  text-align:center;
+  color:var(--ui-muted);
+  font-size:11px;
+  font-weight:400;
 }
-.app-shell .tableview-pagination-center strong{color:#222!important;font-weight:600!important}
+.app-shell .tableview-pagination-center strong{color:var(--ui-text);font-weight:600}
 .app-shell .tableview-page-size{
-  justify-self:end!important;
-  display:flex!important;
-  align-items:center!important;
-  gap:7px!important;
-  color:#777!important;
-  font-size:9px!important;
+  justify-self:end;
+  display:flex;
+  align-items:center;
+  gap:var(--ui-space-2);
+  color:var(--ui-muted);
+  font-size:11px;
 }
 
-/* Every pagination button uses the CRM button treatment. */
 .app-shell :is(.crm-pagination,.finance-pagination,.contracts-pagination,.rh-pagination,.marketing-pagination,.tableview-pagination) button,
 .app-shell .tableview-page-size select{
-  min-height:30px!important;
-  height:30px!important;
-  border:1px solid #ddd!important;
-  border-radius:6px!important;
-  background:#fff!important;
-  color:#444!important;
-  font-family:var(--ui-font,'Montserrat',Arial,sans-serif)!important;
-  font-size:9px!important;
-  font-weight:400!important;
-  line-height:1!important;
-  box-shadow:none!important;
-  transition:background .15s ease,border-color .15s ease,color .15s ease!important;
+  min-height:var(--ui-pagination-control);
+  height:var(--ui-pagination-control);
+  border:1px solid var(--ui-border-strong);
+  border-radius:var(--ui-radius-sm);
+  background:var(--ui-surface);
+  color:#444;
+  font-family:var(--ui-font);
+  font-size:11px;
+  font-weight:400;
+  line-height:1;
+  box-shadow:none;
+  transition:background .15s ease,border-color .15s ease,color .15s ease;
 }
-.app-shell :is(.crm-pagination,.finance-pagination,.contracts-pagination,.rh-pagination) button{
-  padding:0 10px!important;
-}
+.app-shell :is(.crm-pagination,.finance-pagination,.contracts-pagination,.rh-pagination) button{padding:0 10px}
 .app-shell :is(.marketing-pagination,.tableview-pagination) .tableview-pagination-center button{
-  width:30px!important;
-  min-width:30px!important;
-  padding:0!important;
-  display:grid!important;
-  place-items:center!important;
+  width:var(--ui-pagination-control);
+  min-width:var(--ui-pagination-control);
+  padding:0;
+  display:grid;
+  place-items:center;
 }
-.app-shell .tableview-page-size select{padding:0 8px!important}
+.app-shell .tableview-page-size select{padding:0 var(--ui-space-2)}
 .app-shell :is(.crm-pagination,.finance-pagination,.contracts-pagination,.rh-pagination,.marketing-pagination,.tableview-pagination) button:hover:not(:disabled),
 .app-shell .tableview-page-size select:hover{
-  background:#f7f7f7!important;
-  border-color:#cfcfcf!important;
+  background:#f7f7f7;
+  border-color:#cfcfcf;
 }
 .app-shell :is(.crm-pagination,.finance-pagination,.contracts-pagination,.rh-pagination,.marketing-pagination,.tableview-pagination) button:disabled{
-  opacity:.45!important;
-  cursor:not-allowed!important;
+  opacity:.45;
+  cursor:not-allowed;
 }
 
-/* Paginations always attach visually to the table surface above them. */
 .app-shell :is(.crm-table-card,.finance-table-card,.contracts-table-card,.rh-table-card,.marketing-table-card,.tableview-surface):has(> :is(.crm-pagination,.finance-pagination,.contracts-pagination,.rh-pagination,.marketing-pagination,.tableview-pagination)){
-  overflow:hidden!important;
+  overflow:hidden;
 }
 
 @media(max-width:760px){
   .app-shell :is(.crm-pagination,.finance-pagination,.contracts-pagination,.rh-pagination){
-    flex-wrap:wrap!important;
-    justify-content:center!important;
-    text-align:center!important;
-    gap:9px!important;
+    flex-wrap:wrap;
+    justify-content:center;
+    text-align:center;
+    gap:var(--ui-pagination-gap-mobile);
   }
-  .app-shell :is(.crm-pagination,.finance-pagination,.contracts-pagination,.rh-pagination)>span{
-    width:100%!important;
-  }
+  .app-shell :is(.crm-pagination,.finance-pagination,.contracts-pagination,.rh-pagination)>span{width:100%}
   .app-shell :is(.marketing-pagination,.tableview-pagination){
-    grid-template-columns:1fr!important;
-    justify-items:center!important;
-    gap:9px!important;
+    grid-template-columns:1fr;
+    justify-items:center;
+    gap:var(--ui-pagination-gap-mobile);
   }
   .app-shell .tableview-pagination-summary,
-  .app-shell .tableview-page-size{justify-self:center!important}
-  .app-shell .tableview-pagination-range{display:none!important}
+  .app-shell .tableview-page-size{justify-self:center}
+  .app-shell .tableview-pagination-range{display:none}
 }

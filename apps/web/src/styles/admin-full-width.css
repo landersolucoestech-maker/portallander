@@ -2,12 +2,18 @@
   width:100%;
   max-width:none;
   margin:0;
-  padding:24px 24px 46px;
-  box-sizing:border-box;
+  padding:var(--ui-page-block-start) var(--ui-page-inline) var(--ui-page-block-end);
+}
+
+@media(max-width:1080px) and (min-width:761px){
+  .app-shell .workspace-main{
+    padding-left:var(--ui-page-inline-tablet);
+    padding-right:var(--ui-page-inline-tablet);
+  }
 }
 
 @media(max-width:760px){
   .app-shell .workspace-main{
-    padding:20px 16px 86px;
+    padding:var(--ui-page-block-start-mobile) var(--ui-page-inline-mobile) var(--ui-page-block-end-mobile);
   }
 }

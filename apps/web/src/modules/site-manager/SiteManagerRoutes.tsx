@@ -17,13 +17,12 @@ const SiteContentEditorPage=lazy(()=>import('./pages/SiteContentEditorPage').the
 const SiteContentsPage=lazy(()=>import('./pages/SiteContentsPage').then(module=>({default:module.SiteContentsPage})))
 const SiteFormEditorPage=lazy(()=>import('./pages/SiteFormEditorPage').then(module=>({default:module.SiteFormEditorPage})))
 const SiteFormsPage=lazy(()=>import('./pages/SiteFormsPage').then(module=>({default:module.SiteFormsPage})))
-const SiteManagerDashboardPage=lazy(()=>import('./pages/SiteManagerDashboardPage').then(module=>({default:module.SiteManagerDashboardPage})))
 const SiteMediaPage=lazy(()=>import('./pages/SiteMediaPage').then(module=>({default:module.SiteMediaPage})))
 const SiteSectionsPage=lazy(()=>import('./pages/SiteSectionsPage').then(module=>({default:module.SiteSectionsPage})))
 
 export default function SiteManagerRoutes(){
   return <Suspense fallback={null}><Routes>
-    <Route index element={<SiteManagerDashboardPage/>}/>
+    <Route index element={<Navigate to="/app/site/pages" replace/>}/>
     <Route path="home" element={<Navigate to="/app/site/pages" replace/>}/>
     <Route path="home/hero" element={<Navigate to="/app/site/pages/home/sections/hero" replace/>}/>
     <Route path="pages" element={<SiteSectionsPage/>}/>
@@ -59,5 +58,5 @@ export default function SiteManagerRoutes(){
     <Route path="media" element={<SiteMediaPage/>}/>
     <Route path="media-kit" element={<MediaKitPage/>}/>
     <Route path="media-kit/preview" element={<MediaKitPreviewPage/>}/>
-    <Route path="*" element={<Navigate to="/app/site" replace/>}/>
+    <Route path="*" element={<Navigate to="/app/site/pages" replace/>}/>
   </Routes></Suspense>}

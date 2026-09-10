@@ -1,0 +1,37 @@
+name: UI Audit Snapshot
+
+on:
+  push:
+    branches: [dev]
+    paths:
+      - '.github/workflows/ui-audit-snapshot.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  snapshot:
+    if: github.ref_name == 'dev'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Verify canonical dev ref
+        run: |
+          test "${GITHUB_REF_NAME}" = "dev"
+          test "$(git rev-parse HEAD)" = "${GITHUB_SHA}"
+      - name: Upload UI audit source snapshot
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-audit-source
+          retention-days: 1
+          include-hidden-files: true
+          path: |
+            apps/web/src
+            apps/web/e2e
+            apps/web/scripts
+            apps/web/package.json
+            apps/web/playwright.config.ts
+            package.json
+            package-lock.json

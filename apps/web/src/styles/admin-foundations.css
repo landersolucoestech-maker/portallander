@@ -61,8 +61,9 @@
   --ui-kpi-icon:34px;
 
   --ui-table-row-height:52px;
-  --ui-table-cell-block:12px;
-  --ui-table-cell-inline:14px;
+  --ui-table-cell-block:0px;
+  --ui-table-cell-inline:10px;
+  --ui-table-selector-inline:0px;
 
   --ui-pagination-min-height:52px;
   --ui-pagination-control:30px;

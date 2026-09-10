@@ -38,6 +38,15 @@
   --ui-header-inline-tablet:20px;
   --ui-header-inline-mobile:12px;
   --ui-header-action-gap:8px;
+  --ui-header-title-size:28px;
+  --ui-header-title-size-tablet:25px;
+  --ui-header-title-size-mobile:20px;
+  --ui-header-title-line-height:1;
+  --ui-header-description-size:10px;
+  --ui-header-description-line-height:1.1;
+  --ui-header-account-avatar:32px;
+  --ui-header-account-copy-width:118px;
+  --ui-header-account-copy-height:34px;
 
   --ui-page-inline:24px;
   --ui-page-inline-tablet:20px;
@@ -49,11 +58,17 @@
   --ui-page-gap:24px;
   --ui-page-gap-mobile:16px;
   --ui-card-gap:16px;
+  --ui-page-heading-copy-max-width:780px;
 
   --ui-control-sm:32px;
   --ui-control-md:36px;
   --ui-icon-control:36px;
   --ui-account-control:44px;
+  --ui-search-min-width:300px;
+  --ui-menu-row-height:40px;
+  --ui-menu-min-width:148px;
+  --ui-popover-width:280px;
+  --ui-account-popover-width:240px;
 
   --ui-kpi-min-height:96px;
   --ui-kpi-padding:16px;
@@ -64,6 +79,10 @@
   --ui-table-cell-block:0px;
   --ui-table-cell-inline:10px;
   --ui-table-selector-inline:0px;
+  --ui-table-selector-width:38px;
+  --ui-table-min-width:760px;
+  --ui-table-primary-min-width:220px;
+  --ui-badge-min-height:22px;
 
   --ui-pagination-min-height:52px;
   --ui-pagination-control:30px;
@@ -71,6 +90,7 @@
   --ui-pagination-inline:14px;
   --ui-pagination-gap:12px;
   --ui-pagination-gap-mobile:8px;
+  --ui-pagination-center-label-min-width:112px;
 
   --ui-sort-control-width:14px;
   --ui-sort-control-height:20px;

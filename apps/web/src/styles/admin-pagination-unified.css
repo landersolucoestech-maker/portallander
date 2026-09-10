@@ -16,126 +16,33 @@
   box-shadow:none;
 }
 
-.app-shell :is(.crm-pagination,.finance-pagination,.contracts-pagination,.rh-pagination){
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:var(--ui-pagination-gap);
-}
-.app-shell :is(.crm-pagination,.finance-pagination,.contracts-pagination,.rh-pagination)>span{
-  color:var(--ui-muted);
-  font-size:11px;
-  font-weight:400;
-  white-space:nowrap;
-}
-.app-shell :is(.crm-pagination,.finance-pagination,.contracts-pagination,.rh-pagination)>div{
-  display:flex;
-  align-items:center;
-  justify-content:flex-end;
-  gap:var(--ui-space-2);
-  margin:0;
-}
+.app-shell :is(.crm-pagination,.finance-pagination,.contracts-pagination,.rh-pagination){display:flex;align-items:center;justify-content:space-between;gap:var(--ui-pagination-gap)}
+.app-shell :is(.crm-pagination,.finance-pagination,.contracts-pagination,.rh-pagination)>span{color:var(--ui-muted);font-size:11px;font-weight:400;white-space:nowrap}
+.app-shell :is(.crm-pagination,.finance-pagination,.contracts-pagination,.rh-pagination)>div{display:flex;align-items:center;justify-content:flex-end;gap:var(--ui-space-2);margin:0}
 
-.app-shell :is(.marketing-pagination,.tableview-pagination){
-  display:grid;
-  grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);
-  align-items:center;
-  gap:var(--ui-pagination-gap);
-}
-.app-shell .tableview-pagination-summary{
-  display:flex;
-  align-items:center;
-  gap:var(--ui-space-1);
-  min-width:0;
-  color:var(--ui-muted);
-  font-size:11px;
-}
-.app-shell .tableview-pagination-summary strong{
-  color:var(--ui-text);
-  font-size:11px;
-  font-weight:600;
-}
-.app-shell .tableview-pagination-range{
-  margin-left:var(--ui-space-2);
-  padding-left:var(--ui-space-2);
-  border-left:1px solid var(--ui-border-strong);
-  color:var(--ui-muted-soft);
-}
-.app-shell .tableview-pagination-center{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:var(--ui-space-2);
-}
-.app-shell .tableview-pagination-center>span{
-  min-width:112px;
-  text-align:center;
-  color:var(--ui-muted);
-  font-size:11px;
-  font-weight:400;
-}
+.app-shell :is(.marketing-pagination,.tableview-pagination){display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:var(--ui-pagination-gap)}
+.app-shell .tableview-pagination-summary{display:flex;align-items:center;gap:var(--ui-space-1);min-width:0;color:var(--ui-muted);font-size:11px}
+.app-shell .tableview-pagination-summary strong{color:var(--ui-text);font-size:11px;font-weight:600}
+.app-shell .tableview-pagination-range{margin-left:var(--ui-space-2);padding-left:var(--ui-space-2);border-left:1px solid var(--ui-border-strong);color:var(--ui-muted-soft)}
+.app-shell .tableview-pagination-center{display:flex;align-items:center;justify-content:center;gap:var(--ui-space-2)}
+.app-shell .tableview-pagination-center>span{min-width:var(--ui-pagination-center-label-min-width);text-align:center;color:var(--ui-muted);font-size:11px;font-weight:400}
 .app-shell .tableview-pagination-center strong{color:var(--ui-text);font-weight:600}
-.app-shell .tableview-page-size{
-  justify-self:end;
-  display:flex;
-  align-items:center;
-  gap:var(--ui-space-2);
-  color:var(--ui-muted);
-  font-size:11px;
-}
+.app-shell .tableview-page-size{justify-self:end;display:flex;align-items:center;gap:var(--ui-space-2);color:var(--ui-muted);font-size:11px}
 
 .app-shell :is(.crm-pagination,.finance-pagination,.contracts-pagination,.rh-pagination,.marketing-pagination,.tableview-pagination) button,
-.app-shell .tableview-page-size select{
-  min-height:var(--ui-pagination-control);
-  height:var(--ui-pagination-control);
-  border:1px solid var(--ui-border-strong);
-  border-radius:var(--ui-radius-sm);
-  background:var(--ui-surface);
-  color:#444;
-  font-family:var(--ui-font);
-  font-size:11px;
-  font-weight:400;
-  line-height:1;
-  box-shadow:none;
-  transition:background .15s ease,border-color .15s ease,color .15s ease;
-}
-.app-shell :is(.crm-pagination,.finance-pagination,.contracts-pagination,.rh-pagination) button{padding:0 10px}
-.app-shell :is(.marketing-pagination,.tableview-pagination) .tableview-pagination-center button{
-  width:var(--ui-pagination-control);
-  min-width:var(--ui-pagination-control);
-  padding:0;
-  display:grid;
-  place-items:center;
-}
+.app-shell .tableview-page-size select{min-height:var(--ui-pagination-control);height:var(--ui-pagination-control);border:1px solid var(--ui-border-strong);border-radius:var(--ui-radius-sm);background:var(--ui-surface);color:#444;font-family:var(--ui-font);font-size:11px;font-weight:400;line-height:1;box-shadow:none;transition:background .15s ease,border-color .15s ease,color .15s ease}
+.app-shell :is(.crm-pagination,.finance-pagination,.contracts-pagination,.rh-pagination) button{padding:0 var(--ui-space-3)}
+.app-shell :is(.marketing-pagination,.tableview-pagination) .tableview-pagination-center button{width:var(--ui-pagination-control);min-width:var(--ui-pagination-control);padding:0;display:grid;place-items:center}
 .app-shell .tableview-page-size select{padding:0 var(--ui-space-2)}
-.app-shell :is(.crm-pagination,.finance-pagination,.contracts-pagination,.rh-pagination,.marketing-pagination,.tableview-pagination) button:hover:not(:disabled),
-.app-shell .tableview-page-size select:hover{
-  background:#f7f7f7;
-  border-color:#cfcfcf;
-}
-.app-shell :is(.crm-pagination,.finance-pagination,.contracts-pagination,.rh-pagination,.marketing-pagination,.tableview-pagination) button:disabled{
-  opacity:.45;
-  cursor:not-allowed;
-}
+.app-shell :is(.crm-pagination,.finance-pagination,.contracts-pagination,.rh-pagination,.marketing-pagination,.tableview-pagination) button:hover:not(:disabled),.app-shell .tableview-page-size select:hover{background:#f7f7f7;border-color:#cfcfcf}
+.app-shell :is(.crm-pagination,.finance-pagination,.contracts-pagination,.rh-pagination,.marketing-pagination,.tableview-pagination) button:disabled{opacity:.45;cursor:not-allowed}
 
-.app-shell :is(.crm-table-card,.finance-table-card,.contracts-table-card,.rh-table-card,.marketing-table-card,.tableview-surface):has(> :is(.crm-pagination,.finance-pagination,.contracts-pagination,.rh-pagination,.marketing-pagination,.tableview-pagination)){
-  overflow:hidden;
-}
+.app-shell :is(.crm-table-card,.finance-table-card,.contracts-table-card,.rh-table-card,.marketing-table-card,.tableview-surface):has(> :is(.crm-pagination,.finance-pagination,.contracts-pagination,.rh-pagination,.marketing-pagination,.tableview-pagination)){overflow:hidden}
 
 @media(max-width:760px){
-  .app-shell :is(.crm-pagination,.finance-pagination,.contracts-pagination,.rh-pagination){
-    flex-wrap:wrap;
-    justify-content:center;
-    text-align:center;
-    gap:var(--ui-pagination-gap-mobile);
-  }
+  .app-shell :is(.crm-pagination,.finance-pagination,.contracts-pagination,.rh-pagination){flex-wrap:wrap;justify-content:center;text-align:center;gap:var(--ui-pagination-gap-mobile)}
   .app-shell :is(.crm-pagination,.finance-pagination,.contracts-pagination,.rh-pagination)>span{width:100%}
-  .app-shell :is(.marketing-pagination,.tableview-pagination){
-    grid-template-columns:1fr;
-    justify-items:center;
-    gap:var(--ui-pagination-gap-mobile);
-  }
-  .app-shell .tableview-pagination-summary,
-  .app-shell .tableview-page-size{justify-self:center}
+  .app-shell :is(.marketing-pagination,.tableview-pagination){grid-template-columns:1fr;justify-items:center;gap:var(--ui-pagination-gap-mobile)}
+  .app-shell .tableview-pagination-summary,.app-shell .tableview-page-size{justify-self:center}
   .app-shell .tableview-pagination-range{display:none}
 }

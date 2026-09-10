@@ -48,13 +48,13 @@
 /* Marketing TableViews use compact selector + eight equal data columns, anchored left. */
 .workspace-main table.marketing-reference-table{display:block!important;width:100%!important;min-width:900px!important;table-layout:fixed!important}
 .workspace-main table.marketing-reference-table thead,.workspace-main table.marketing-reference-table tbody{display:block!important;width:100%!important}
-.workspace-main table.marketing-reference-table tr{display:grid!important;grid-template-columns:38px repeat(8,minmax(0,1fr))!important;width:100%!important}
+.workspace-main table.marketing-reference-table tr{display:grid!important;grid-template-columns:var(--ui-table-selector-width) repeat(8,minmax(0,1fr))!important;width:100%!important}
 .workspace-main table.marketing-reference-table th,.workspace-main table.marketing-reference-table td,.workspace-main table.marketing-reference-table .tabular,.workspace-main table.marketing-reference-table td.positive,.workspace-main table.marketing-reference-table td.negative,.workspace-main table.marketing-reference-table .actions{width:auto!important;min-width:0!important;max-width:none!important;text-align:left!important;box-sizing:border-box!important;overflow:hidden!important;text-overflow:ellipsis!important}
 .workspace-main table.marketing-reference-table .select{width:auto!important;min-width:0!important;max-width:none!important;text-align:center!important;display:grid!important;place-items:center!important}
 .workspace-main table.marketing-reference-table .table-row-actions,.workspace-main table.marketing-reference-table .crm-row-actions{justify-content:flex-start!important;margin-left:0!important;margin-right:auto!important}
 
 /* Status/badge family. */
-.crm-badge,.finance-type,.finance-status,.contracts-status,.rh-status,.marketing-status,.settings-badge{min-height:22px;padding:3px var(--ui-space-2);border-radius:999px;font-size:10px;font-weight:700;line-height:1.2}
+.crm-badge,.finance-type,.finance-status,.contracts-status,.rh-status,.marketing-status,.settings-badge{min-height:var(--ui-badge-min-height);padding:var(--ui-space-1) var(--ui-space-2);border-radius:999px;font-size:10px;font-weight:700;line-height:1.2}
 
 /* Common pagination. */
 .crm-pagination,.finance-pagination,.contracts-pagination,.rh-pagination,.marketing-pagination,.tableview-pagination{min-height:var(--ui-pagination-min-height);font-size:11px;color:var(--ui-muted)}
@@ -69,8 +69,8 @@
 .table-row-actions{position:relative;display:flex;justify-content:flex-end}
 .table-row-actions-trigger{width:var(--ui-control-sm);height:var(--ui-control-sm);border:0;border-radius:var(--ui-radius-sm);background:transparent;color:var(--ui-muted);display:grid;place-items:center;cursor:pointer}
 .table-row-actions-trigger:hover,.table-row-actions-trigger:focus-visible{background:#f2f4f7;color:var(--ui-text)}
-.table-row-actions-menu{position:absolute;right:0;top:var(--ui-control-md);z-index:60;min-width:148px;padding:5px;border:1px solid var(--ui-border);background:#fff}
-.table-row-actions-menu button{width:100%;height:var(--ui-control-sm);border:0;border-radius:5px;background:transparent;padding:0 10px;text-align:left;font-size:12px;color:#344054;cursor:pointer}
+.table-row-actions-menu{position:absolute;right:0;top:var(--ui-control-md);z-index:60;min-width:var(--ui-menu-min-width);padding:var(--ui-space-1);border:1px solid var(--ui-border);background:#fff}
+.table-row-actions-menu button{width:100%;height:var(--ui-control-sm);border:0;border-radius:var(--ui-radius-sm);background:transparent;padding:0 var(--ui-space-3);text-align:left;font-size:12px;color:#344054;cursor:pointer}
 .table-row-actions-menu button:hover,.table-row-actions-menu button:focus-visible{background:#f5f6f7}
 .table-row-actions-menu button.danger{color:var(--ui-danger)}
 
@@ -98,7 +98,7 @@
 
 /* Settings pruning is structural intent: no commercial/product-plan status labels in integrations. */
 .settings-integration-list .settings-status{display:none!important}
-.settings-integration-list article{grid-template-columns:44px minmax(0,1fr) auto}
+.settings-integration-list article{grid-template-columns:var(--ui-account-control) minmax(0,1fr) auto}
 
 /* Header actions remain reachable on mobile; secondary actions are suppressed where space is scarce. */
 @media(max-width:760px){
@@ -106,7 +106,7 @@
   .workspace-actions .workspace-header-secondary{display:none}
   .workspace-top.workspace-top-page{padding:0 var(--ui-header-inline-mobile)}
   .workspace-top.workspace-top-page .workspace-page-heading{min-width:0}
-  .workspace-top.workspace-top-page .workspace-page-heading h1{font-size:20px;max-width:42vw;overflow:hidden;text-overflow:ellipsis}
+  .workspace-top.workspace-top-page .workspace-page-heading h1{font-size:var(--ui-header-title-size-mobile);max-width:42vw;overflow:hidden;text-overflow:ellipsis}
   .workspace-top.workspace-top-page .workspace-page-heading p{display:none}
   .app-shell .workspace-main{padding:var(--ui-page-block-start-mobile) var(--ui-page-inline-mobile) var(--ui-page-block-end-mobile)}
   .crm-page,.finance-page,.contracts-page,.agenda-page,.chat-page,.chat-settings-page,.rh-page,.marketing-page,.reports-page,.settings-page,.dashboard-reference-page{gap:var(--ui-page-gap-mobile)}

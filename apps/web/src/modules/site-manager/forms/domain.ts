@@ -3,7 +3,7 @@ export type FormDestination='crm'|'content_collaborations'|'marketing'|'internal
 export type FormStatus='draft'|'active'|'inactive'
 export type FormFieldType='text'|'email'|'tel'|'textarea'|'select'|'radio'|'checkbox'|'url'|'file'|'date'|'number'|'hidden'
 export type FormAppearancePreset='portal'|'minimal'|'editorial'|'compact'|'highlight'
-export type FormEntryContext='contato'|'colabore'|'anuncie'
+export type FormEntryContext='contact'|'collaborate'|'advertise'
 
 export interface FormAppearance{
   preset:FormAppearancePreset

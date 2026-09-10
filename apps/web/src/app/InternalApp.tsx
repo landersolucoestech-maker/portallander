@@ -37,7 +37,6 @@ function LoginRoute(){
   return <LoginPage/>
 }
 
-function LegacyMetricsRedirect(){const location=useLocation();return <Navigate to={`/app/metricas${location.search}`} replace/>}
 const protectedRoute=(element:ReactNode)=><RequireAdmin>{element}</RequireAdmin>
 
 function InternalRoutes(){return <Suspense fallback={null}><Routes>
@@ -50,14 +49,11 @@ function InternalRoutes(){return <Suspense fallback={null}><Routes>
   <Route path="/app/agenda" element={protectedRoute(<AgendaPage/>)}/>
   <Route path="/app/chat" element={protectedRoute(<ChatPage/>)}/>
   <Route path="/app/chat/settings" element={protectedRoute(<ChatAutomationSettingsPage/>)}/>
-  <Route path="/app/rh" element={protectedRoute(<HRPage/>)}/>
-  <Route path="/app/metricas" element={protectedRoute(<MetricsPage/>)}/>
-  <Route path="/app/marketing/metricas" element={<LegacyMetricsRedirect/>}/>
+  <Route path="/app/hr" element={protectedRoute(<HRPage/>)}/>
+  <Route path="/app/metrics" element={protectedRoute(<MetricsPage/>)}/>
   <Route path="/app/marketing/*" element={protectedRoute(<MarketingPage/>)}/>
   <Route path="/app/reports" element={protectedRoute(<ReportsPage/>)}/>
-  <Route path="/app/relatorios" element={<Navigate to="/app/reports" replace/>}/>
   <Route path="/app/settings" element={protectedRoute(<SettingsPage/>)}/>
-  <Route path="/app/configuracoes" element={<Navigate to="/app/settings" replace/>}/>
   <Route path="/app/finance" element={protectedRoute(<FinanceMainPage/>)}/>
   <Route path="/app/finance/invoices" element={protectedRoute(<FinanceInvoicesPage/>)}/>
   <Route path="/app/finance/accounting" element={protectedRoute(<FinanceAccountingPage/>)}/>

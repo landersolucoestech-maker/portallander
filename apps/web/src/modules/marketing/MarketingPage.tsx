@@ -16,7 +16,7 @@ import './marketing-reference.css'
 import './marketing-reference-exact.css'
 import './marketing-ai-exact.css'
 import './marketing-table-controls.css'
-const tabFromPath=(path:string):MarketingTab|null=>path==='/app/marketing'||path==='/app/marketing/'?'overview':path==='/app/marketing/campanhas'?'campaigns':path==='/app/marketing/calendario'?'calendar':path==='/app/marketing/tarefas'?'tasks':path==='/app/marketing/briefings'?'briefings':path==='/app/marketing/ia-criativa'?'ai':null
+const tabFromPath=(path:string):MarketingTab|null=>path==='/app/marketing'||path==='/app/marketing/'?'overview':path==='/app/marketing/campaigns'?'campaigns':path==='/app/marketing/calendar'?'calendar':path==='/app/marketing/tasks'?'tasks':path==='/app/marketing/briefings'?'briefings':path==='/app/marketing/creative-ai'?'ai':null
 const title=(tab:MarketingTab)=>tab==='overview'?'Visão Geral':tab==='campaigns'?'Campanhas de Marketing':tab==='calendar'?'Marketing - Calendário de Conteúdo':tab==='tasks'?'Marketing · Tarefas':tab==='briefings'?'Briefings':'IA Criativa'
 const description=(tab:MarketingTab)=>tab==='overview'?'Cockpit operacional do setor de marketing':tab==='campaigns'?'Planeje, execute e monitore campanhas e tráfego pago':tab==='calendar'?'Programação de conteúdos':tab==='tasks'?'Núcleo operacional de tarefas':tab==='briefings'?'Origem estratégica dos projetos':'Criação, perfil, pitching, tendências, métricas e histórico.'
 const createLabel=(tab:MarketingTab)=>tab==='campaigns'?'Nova Campanha':tab==='calendar'?'Novo Conteúdo':tab==='tasks'?'Nova Tarefa':tab==='briefings'?'Novo Briefing':null

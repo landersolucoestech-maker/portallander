@@ -24,41 +24,40 @@ const SiteSectionsPage=lazy(()=>import('./pages/SiteSectionsPage').then(module=>
 export default function SiteManagerRoutes(){
   return <Suspense fallback={null}><Routes>
     <Route index element={<SiteManagerDashboardPage/>}/>
-    <Route path="home" element={<Navigate to="/app/site/paginas" replace/>}/>
-    <Route path="home/hero" element={<Navigate to="/app/site/paginas/home/secoes/hero" replace/>}/>
-    <Route path="paginas" element={<SiteSectionsPage/>}/>
-    <Route path="paginas/home/hero" element={<Navigate to="/app/site/paginas/home/secoes/hero" replace/>}/>
-    <Route path="paginas/home/secoes/hero" element={<HomeHeroSectionPage/>}/>
-    <Route path="paginas/home/secoes/publicidade-lateral" element={<HomeAdvertisingSectionPage sectionId="publicidade-lateral"/>}/>
-    <Route path="paginas/home/secoes/anuncie-aqui" element={<HomeAdvertisingSectionPage sectionId="anuncie-aqui"/>}/>
-    <Route path="paginas/home/secoes/mais-lidas" element={<HomeMostReadSectionPage/>}/>
-    <Route path="paginas/home/secoes/em-destaque" element={<HomeFeaturedSectionPage/>}/>
-    <Route path="paginas/home/secoes/ultimas-noticias" element={<HomeContentSectionPage sectionId="ultimas-noticias"/>}/>
-    <Route path="paginas/home/secoes/lancamentos" element={<HomeReleasesSectionPage/>}/>
-    <Route path="paginas/home/secoes/agenda" element={<HomeContentSectionPage sectionId="agenda"/>}/>
-    <Route path="paginas/home/secoes/em-alta" element={<HomeContentSectionPage sectionId="em-alta"/>}/>
-    <Route path="paginas/home/secoes/newsletter" element={<HomeNewsletterSectionPage/>}/>
-    <Route path="paginas/:pageId/secoes/editorial-hero" element={<GlobalHeroEditorPage sectionId="editorial-hero"/>}/>
-    <Route path="paginas/:pageId/secoes/institutional-hero" element={<GlobalHeroEditorPage sectionId="institutional-hero"/>}/>
-    <Route path="paginas/:pageId/secoes/legal-hero" element={<GlobalHeroEditorPage sectionId="legal-hero"/>}/>
-    <Route path="paginas/:pageId/secoes/sobre-hero" element={<GlobalHeroEditorPage sectionId="sobre-hero"/>}/>
-    <Route path="paginas/:pageId/secoes/contato-hero" element={<GlobalHeroEditorPage sectionId="contato-hero"/>}/>
-    <Route path="paginas/:pageId/secoes/colabore-hero" element={<GlobalHeroEditorPage sectionId="colabore-hero"/>}/>
-    <Route path="paginas/:pageId/secoes/:sectionId" element={<SectionConfigurationPage/>}/>
-    <Route path="secoes" element={<Navigate to="/app/site/paginas" replace/>}/>
-    <Route path="secoes/home/hero" element={<Navigate to="/app/site/paginas/home/secoes/hero" replace/>}/>
-    <Route path="secoes/home/rodape" element={<Navigate to="/app/settings" replace/>}/>
-    <Route path="cabecalho" element={<Navigate to="/app/settings" replace/>}/>
-    <Route path="rodape" element={<Navigate to="/app/settings" replace/>}/>
-    <Route path="configuracoes" element={<Navigate to="/app/settings" replace/>}/>
-    <Route path="conteudos" element={<SiteContentsPage/>}/>
-    <Route path="conteudos/colaboracoes" element={<SiteCollaborationsPage/>}/>
-    <Route path="conteudos/:contentId" element={<SiteContentEditorPage/>}/>
-    <Route path="formularios" element={<SiteFormsPage/>}/>
-    <Route path="formularios/:formId" element={<SiteFormEditorPage/>}/>
-    <Route path="midia" element={<SiteMediaPage/>}/>
-    <Route path="midia-kit" element={<MediaKitPage/>}/>
-    <Route path="midia-kit/preview" element={<MediaKitPreviewPage/>}/>
+    <Route path="home" element={<Navigate to="/app/site/pages" replace/>}/>
+    <Route path="home/hero" element={<Navigate to="/app/site/pages/home/sections/hero" replace/>}/>
+    <Route path="pages" element={<SiteSectionsPage/>}/>
+    <Route path="pages/home/hero" element={<Navigate to="/app/site/pages/home/sections/hero" replace/>}/>
+    <Route path="pages/home/sections/hero" element={<HomeHeroSectionPage/>}/>
+    <Route path="pages/home/sections/sidebar-advertising" element={<HomeAdvertisingSectionPage sectionId="sidebar-advertising"/>}/>
+    <Route path="pages/home/sections/advertising-cta" element={<HomeAdvertisingSectionPage sectionId="advertising-cta"/>}/>
+    <Route path="pages/home/sections/most-read" element={<HomeMostReadSectionPage/>}/>
+    <Route path="pages/home/sections/featured" element={<HomeFeaturedSectionPage/>}/>
+    <Route path="pages/home/sections/latest-news" element={<HomeContentSectionPage sectionId="latest-news"/>}/>
+    <Route path="pages/home/sections/releases" element={<HomeReleasesSectionPage/>}/>
+    <Route path="pages/home/sections/agenda" element={<HomeContentSectionPage sectionId="agenda"/>}/>
+    <Route path="pages/home/sections/trending" element={<HomeContentSectionPage sectionId="trending"/>}/>
+    <Route path="pages/home/sections/newsletter" element={<HomeNewsletterSectionPage/>}/>
+    <Route path="pages/:pageId/sections/editorial-hero" element={<GlobalHeroEditorPage sectionId="editorial-hero"/>}/>
+    <Route path="pages/:pageId/sections/institutional-hero" element={<GlobalHeroEditorPage sectionId="institutional-hero"/>}/>
+    <Route path="pages/:pageId/sections/legal-hero" element={<GlobalHeroEditorPage sectionId="legal-hero"/>}/>
+    <Route path="pages/:pageId/sections/about-hero" element={<GlobalHeroEditorPage sectionId="about-hero"/>}/>
+    <Route path="pages/:pageId/sections/contact-hero" element={<GlobalHeroEditorPage sectionId="contact-hero"/>}/>
+    <Route path="pages/:pageId/sections/collaborate-hero" element={<GlobalHeroEditorPage sectionId="collaborate-hero"/>}/>
+    <Route path="pages/:pageId/sections/:sectionId" element={<SectionConfigurationPage/>}/>
+    <Route path="sections" element={<Navigate to="/app/site/pages" replace/>}/>
+    <Route path="sections/home/hero" element={<Navigate to="/app/site/pages/home/sections/hero" replace/>}/>
+    <Route path="sections/home/footer" element={<Navigate to="/app/settings" replace/>}/>
+    <Route path="header" element={<Navigate to="/app/settings" replace/>}/>
+    <Route path="footer" element={<Navigate to="/app/settings" replace/>}/>
+    <Route path="settings" element={<Navigate to="/app/settings" replace/>}/>
+    <Route path="content" element={<SiteContentsPage/>}/>
+    <Route path="content/collaborations" element={<SiteCollaborationsPage/>}/>
+    <Route path="content/:contentId" element={<SiteContentEditorPage/>}/>
+    <Route path="forms" element={<SiteFormsPage/>}/>
+    <Route path="forms/:formId" element={<SiteFormEditorPage/>}/>
+    <Route path="media" element={<SiteMediaPage/>}/>
+    <Route path="media-kit" element={<MediaKitPage/>}/>
+    <Route path="media-kit/preview" element={<MediaKitPreviewPage/>}/>
     <Route path="*" element={<Navigate to="/app/site" replace/>}/>
-  </Routes></Suspense>
-}
+  </Routes></Suspense>}

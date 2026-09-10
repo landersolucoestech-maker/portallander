@@ -33,7 +33,8 @@ const close=(a:number,b:number)=>Math.abs(a-b)<=tolerance
 async function openRoute(page:Page,route:string){
  await page.goto(`${base}#${route}`,{waitUntil:'domcontentloaded'})
  await page.locator('#root').waitFor({state:'attached'})
- await page.waitForFunction(()=>Boolean(document.querySelector('.app-shell .workspace-main')))
+ await page.locator('.app-shell .workspace-main').waitFor({state:'visible'})
+ await page.locator('.app-shell .workspace-top').waitFor({state:'visible'})
  await page.evaluate(async()=>{try{if(document.fonts)await document.fonts.ready}catch{/* geometry remains measurable */}})
  await page.waitForTimeout(80)
 }

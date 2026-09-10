@@ -29,14 +29,14 @@ export default function SiteManagerRoutes(){
     <Route path="pages" element={<SiteSectionsPage/>}/>
     <Route path="pages/home/hero" element={<Navigate to="/app/site/pages/home/sections/hero" replace/>}/>
     <Route path="pages/home/sections/hero" element={<HomeHeroSectionPage/>}/>
-    <Route path="pages/home/sections/sidebar-advertising" element={<HomeAdvertisingSectionPage sectionId="sidebar-advertising"/>}/>
-    <Route path="pages/home/sections/advertising-cta" element={<HomeAdvertisingSectionPage sectionId="advertising-cta"/>}/>
+    <Route path="pages/home/sections/sidebar-advertising" element={<HomeAdvertisingSectionPage sectionId="publicidade-lateral"/>}/>
+    <Route path="pages/home/sections/advertising-cta" element={<HomeAdvertisingSectionPage sectionId="anuncie-aqui"/>}/>
     <Route path="pages/home/sections/most-read" element={<HomeMostReadSectionPage/>}/>
     <Route path="pages/home/sections/featured" element={<HomeFeaturedSectionPage/>}/>
-    <Route path="pages/home/sections/latest-news" element={<HomeContentSectionPage sectionId="latest-news"/>}/>
+    <Route path="pages/home/sections/latest-news" element={<HomeContentSectionPage sectionId="ultimas-noticias"/>}/>
     <Route path="pages/home/sections/releases" element={<HomeReleasesSectionPage/>}/>
     <Route path="pages/home/sections/agenda" element={<HomeContentSectionPage sectionId="agenda"/>}/>
-    <Route path="pages/home/sections/trending" element={<HomeContentSectionPage sectionId="trending"/>}/>
+    <Route path="pages/home/sections/trending" element={<HomeContentSectionPage sectionId="em-alta"/>}/>
     <Route path="pages/home/sections/newsletter" element={<HomeNewsletterSectionPage/>}/>
     <Route path="pages/:pageId/sections/editorial-hero" element={<GlobalHeroEditorPage sectionId="editorial-hero"/>}/>
     <Route path="pages/:pageId/sections/institutional-hero" element={<GlobalHeroEditorPage sectionId="institutional-hero"/>}/>

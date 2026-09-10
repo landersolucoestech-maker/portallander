@@ -1,4 +1,4 @@
-name: RH PostgreSQL Runtime Proof
+name: HR PostgreSQL Runtime Proof
 
 on:
   push:
@@ -9,11 +9,11 @@ permissions:
   contents: read
 
 concurrency:
-  group: rh-runtime-${{ github.ref }}
+  group: hr-runtime-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  rh-runtime:
+  hr-runtime:
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -21,11 +21,11 @@ jobs:
         env:
           POSTGRES_USER: portal
           POSTGRES_PASSWORD: portal
-          POSTGRES_DB: portal_rh_runtime
+          POSTGRES_DB: portal_hr_runtime
         ports:
           - 5432:5432
         options: >-
-          --health-cmd="pg_isready -U portal -d portal_rh_runtime"
+          --health-cmd="pg_isready -U portal -d portal_hr_runtime"
           --health-interval=5s
           --health-timeout=5s
           --health-retries=10
@@ -34,8 +34,8 @@ jobs:
       PGHOST: 127.0.0.1
       PGPORT: 5432
       PGUSER: portal
-      PGDATABASE: portal_rh_runtime
-      DATABASE_URL: postgresql://portal:portal@127.0.0.1:5432/portal_rh_runtime
+      PGDATABASE: portal_hr_runtime
+      DATABASE_URL: postgresql://portal:portal@127.0.0.1:5432/portal_hr_runtime
       NODE_ENV: test
     steps:
       - uses: actions/checkout@v4
@@ -69,5 +69,5 @@ jobs:
             echo "APPLY $migration"
             psql -v ON_ERROR_STOP=1 -f "$migration"
           done
-      - name: Prove authenticated RH lifecycle
-        run: node apps/api/scripts/verify-rh-runtime.mjs
+      - name: Prove authenticated HR lifecycle
+        run: node apps/api/scripts/verify-hr-runtime.mjs

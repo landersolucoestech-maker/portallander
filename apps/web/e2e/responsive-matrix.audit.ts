@@ -18,12 +18,12 @@ const routes=[
  {route:'/noticias/mercado-criativo-em-expansao',internal:false},
  {route:'/anuncie',internal:false},
  {route:'/app/dashboard',internal:true},
- {route:'/app/site/midia-kit',internal:true},
- {route:'/app/site/midia-kit/preview',internal:false},
- {route:'/app/metricas',internal:true},
+ {route:'/app/site/media-kit',internal:true},
+ {route:'/app/site/media-kit/preview',internal:false},
+ {route:'/app/metrics',internal:true},
 ]
 const safeName=(route:string)=>route==='/'?'home':route.replace(/^\//,'').replaceAll('/','-')
-async function openRoute(page:Page,route:string){await page.goto(`${base}#${route}`,{waitUntil:'domcontentloaded'});await page.locator('#root').waitFor({state:'attached'});await page.waitForFunction(()=>document.querySelector('#root')?.childElementCount!==0);await page.evaluate(async()=>{try{if(document.fonts)await Promise.race([document.fonts.ready,new Promise(resolve=>setTimeout(resolve,1200))])}catch{/* rendering remains testable */}});await page.waitForTimeout(120)}
+async function openRoute(page:Page,route:string){await page.goto(`${base}#${route}`,{waitUntil:'domcontentloaded'});await page.locator('#root').waitFor({state:'attached'});await page.waitForFunction(()=>document.querySelector('#root')?.childElementCount!==0);await page.evaluate(async()=>{try{if(document.fonts)await Promise.race([document.fonts.ready,new Promise(resolve=>setTimeout(resolve,1200))])}catch{/* rendering remains testable */}});await page.waitForTimeout(120);await expect.poll(()=>page.evaluate(()=>window.location.hash),{message:`${route}: route must not silently redirect`}).toBe(`#${route}`)}
 
 async function assertNoViewportRegression(page:Page,internal:boolean){
  const result=await page.evaluate(()=>{

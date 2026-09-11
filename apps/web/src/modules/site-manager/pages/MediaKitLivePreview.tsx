@@ -14,7 +14,7 @@ export function MediaKitLivePreview({kit}:{kit:MediaKitDraft}){
   const changeZoom=(value:number)=>setZoom(Math.min(85,Math.max(30,value)))
   return <aside className="site-media-kit-live-preview" aria-label="Live Preview do Mídia Kit" data-testid="media-kit-live-preview">
     <div className="site-media-kit-live-sticky">
-      <header className="site-media-kit-live-head"><div><span>LIVE PREVIEW</span><strong>Página {page} de {MEDIA_KIT_PAGE_COUNT}</strong></div><button type="button" onClick={()=>navigate('/app/site/midia-kit/preview')}><ExternalLink size={14}/>Abrir preview completo</button></header>
+      <header className="site-media-kit-live-head"><div><span>LIVE PREVIEW</span><strong>Página {page} de {MEDIA_KIT_PAGE_COUNT}</strong></div><button type="button" onClick={()=>navigate('/app/site/media-kit/preview')}><ExternalLink size={14}/>Abrir preview completo</button></header>
       <div className="site-media-kit-live-toolbar" aria-label="Controles do preview">
         <button type="button" aria-label="Página anterior" onClick={()=>setPage(current=>bounded(current-1))} disabled={page===1}><ChevronLeft size={16}/></button>
         <label><span>Página</span><select aria-label="Página do Mídia Kit" value={page} onChange={event=>setPage(bounded(Number(event.target.value)))}>{Array.from({length:MEDIA_KIT_PAGE_COUNT},(_,index)=><option key={index+1} value={index+1}>{index+1} de {MEDIA_KIT_PAGE_COUNT}</option>)}</select></label>

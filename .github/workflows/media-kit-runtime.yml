@@ -74,7 +74,7 @@ jobs:
             page.on('requestfailed',request=>failedRequests.push({url:request.url().replace(/([?&](?:token|access_token|refresh_token|client_secret|authorization)=)[^&]+/gi,'$1[REDACTED]'),reason:request.failure()?.errorText||'unknown'}))
             await mkdir('test-results/media-kit',{recursive:true})
 
-            await page.goto('http://127.0.0.1:4173/portallander/#/app/site/midia-kit',{waitUntil:'domcontentloaded'})
+            await page.goto('http://127.0.0.1:4173/portallander/#/app/site/media-kit',{waitUntil:'domcontentloaded'})
             const previewAction=page.getByRole('button',{name:'Preview completo',exact:true})
             try{
               await previewAction.waitFor({state:'visible',timeout:15000})
@@ -141,7 +141,7 @@ jobs:
             await previewAction.focus()
             if(await previewAction.evaluate(node=>document.activeElement!==node))throw new Error('Full preview action cannot receive keyboard focus')
             await page.keyboard.press('Enter')
-            await page.waitForURL(/#\/app\/site\/midia-kit\/preview$/,{timeout:10000})
+            await page.waitForURL(/#\/app\/site\/media-kit\/preview$/,{timeout:10000})
             console.log('MEDIA_KIT_PREVIEW_KEYBOARD_OPEN=PASS')
 
             try{

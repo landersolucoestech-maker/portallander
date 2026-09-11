@@ -1,5 +1,5 @@
-/* Portal Lander — canonical KPI geometry.
-   Feature CSS owns visual treatment and column count; this layer owns card size. */
+/* Portal Lander — canonical KPI geometry and visual hierarchy.
+   Feature CSS owns semantic column count only; this layer owns KPI card size and presentation. */
 .app-shell .workspace-main :is(
   .admin-kpi,
   .crm-kpi,
@@ -39,19 +39,108 @@
   align-items:stretch;
 }
 
-/* AdminKpi-specific presentation. Geometry above is shared by every KPI family. */
-.app-shell .admin-kpi{
-  box-shadow:none;
+/* Shared KPI surface. */
+.app-shell .workspace-main :is(.admin-kpi,.crm-kpi,.contracts-kpi,.finance-kpi,.rh-kpi,.marketing-kpi){
   overflow:hidden;
+  border:1px solid var(--ui-border);
+  border-radius:var(--ui-radius-md);
+  background:var(--ui-surface);
+  box-shadow:none;
+}
+
+/* Canonical KPI labels. Keep selectors markup-aware so icon spans are not styled as labels. */
+.app-shell .admin-kpi-label,
+.app-shell .crm-kpi>div>span,
+.app-shell .contracts-kpi>div>span,
+.app-shell .finance-kpi>div>span,
+.app-shell .rh-kpi small,
+.app-shell .marketing-kpi span:not(.marketing-kpi-icon){
+  display:block;
+  margin:0;
+  color:var(--ui-muted)!important;
+  font-size:10px!important;
+  line-height:1.25!important;
+  font-weight:750!important;
+  letter-spacing:0!important;
+  text-transform:none!important;
+}
+
+/* Canonical KPI values. */
+.app-shell .admin-kpi>strong,
+.app-shell .crm-kpi>div>strong,
+.app-shell .contracts-kpi>div>strong,
+.app-shell .finance-kpi>div>strong,
+.app-shell .rh-kpi strong,
+.app-shell .marketing-kpi strong{
+  display:block;
+  margin:6px 0 0!important;
+  color:var(--ui-text-strong)!important;
+  font-size:24px!important;
+  line-height:1.05!important;
+  font-weight:800!important;
+  letter-spacing:-.03em!important;
+  font-variant-numeric:tabular-nums;
+  white-space:nowrap;
+}
+
+/* Optional KPI detail/caption. */
+.app-shell .admin-kpi>small,
+.app-shell .finance-kpi>div>small,
+.app-shell .rh-kpi em,
+.app-shell .marketing-kpi small{
+  display:block;
+  margin:2px 0 0!important;
+  color:var(--ui-muted-soft)!important;
+  font-size:10px!important;
+  line-height:1.35!important;
+  font-weight:500!important;
+  font-style:normal;
+}
+
+/* Canonical icon container for all direct KPI families. */
+.app-shell .admin-kpi-icon,
+.app-shell .crm-kpi>i,
+.app-shell .contracts-kpi>i,
+.app-shell .finance-kpi>i,
+.app-shell .rh-kpi>span:first-child,
+.app-shell .marketing-kpi-icon{
+  box-sizing:border-box;
+  width:var(--ui-kpi-icon)!important;
+  height:var(--ui-kpi-icon)!important;
+  min-width:var(--ui-kpi-icon)!important;
+  flex:0 0 var(--ui-kpi-icon)!important;
+  display:grid;
+  place-items:center;
+  border:0!important;
+  border-radius:var(--ui-radius-md)!important;
+  background:var(--ui-surface-subtle)!important;
+  color:var(--ui-muted)!important;
+}
+
+.app-shell :is(
+  .admin-kpi-icon,
+  .crm-kpi>i,
+  .contracts-kpi>i,
+  .finance-kpi>i,
+  .rh-kpi>span:first-child,
+  .marketing-kpi-icon
+) svg{
+  width:16px!important;
+  height:16px!important;
+}
+
+/* AdminKpi uses its own top-row wrapper; geometry is shared above. */
+.app-shell .admin-kpi{
   gap:var(--ui-space-1);
 }
 .app-shell .admin-kpi-top{gap:var(--ui-space-2)}
-.app-shell .admin-kpi-icon{
-  min-width:var(--ui-kpi-icon);
-  flex:0 0 var(--ui-kpi-icon);
-  border-radius:var(--ui-radius-md);
-  border:0;
+
+/* Legacy flex KPI families keep content and icon aligned to the same start line. */
+.app-shell .workspace-main :is(.crm-kpi,.contracts-kpi,.finance-kpi,.marketing-kpi){
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:var(--ui-space-3);
 }
-.app-shell .admin-kpi-label{font-size:10px;line-height:1.25;font-weight:750;letter-spacing:0;text-transform:none;color:var(--ui-muted)}
-.app-shell .admin-kpi>strong{font-size:24px;line-height:1.05;font-weight:800;letter-spacing:-.03em;color:var(--ui-text-strong);white-space:nowrap}
-.app-shell .admin-kpi>small{font-size:10px;line-height:1.35;font-weight:500;color:var(--ui-muted)}
+.app-shell .workspace-main :is(.crm-kpi,.contracts-kpi,.finance-kpi,.marketing-kpi)>div{
+  min-width:0;
+}

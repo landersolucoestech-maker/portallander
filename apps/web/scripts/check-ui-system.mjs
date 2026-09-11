@@ -54,7 +54,7 @@ const rowMenu=await read('src/shared/internal/TableRowActionMenu.tsx')
 for(const required of ['Visualizar','Editar','Excluir','role="menu"','role="menuitem"','ArrowDown','ArrowUp'])if(!rowMenu.includes(required))failures.push(`Menu de ações compartilhado deve preservar: ${required}`)
 const sortHeader=await read('src/shared/internal/TableSortHeader.tsx')
 for(const required of ['TableSortHeader','TableSortState','aria-pressed','crm-sort-header'])if(!sortHeader.includes(required))failures.push(`Cabeçalho de ordenação compartilhado deve preservar: ${required}`)
-const canonicalSortConsumers=['src/modules/crm/CrmPage.tsx','src/modules/finance/FinanceMainPage.tsx','src/modules/finance/FinanceInvoicesPage.tsx','src/modules/finance/FinanceRegistryPage.tsx','src/modules/contracts/components/TemplatesPanel.tsx']
+const canonicalSortConsumers=['src/modules/crm/CrmPage.tsx','src/modules/finance/FinanceMainPage.tsx','src/modules/finance/FinanceInvoicesPage.tsx','src/modules/finance/FinanceRegistryPage.tsx','src/modules/contracts/ContractsPage.tsx','src/modules/contracts/components/TemplatesPanel.tsx']
 for(const path of canonicalSortConsumers){const source=await read(path);if(!source.includes('TableSortHeader'))failures.push(`${path}: tabela ordenável deve reutilizar TableSortHeader.`)}
 const tableSortEnhancer=await read('src/shared/internal/tableSortEnhancer.ts')
 if(!tableSortEnhancer.includes('.rh-page .rh-table'))failures.push('Ordenação compartilhada deve alcançar as tabelas reais de RH (.rh-page .rh-table).')

@@ -76,6 +76,10 @@
 .app-shell .unified-kpi-card small,
 .app-shell .unified-card-heading p{color:#667085!important}
 
+/* Dashboard secondary copy previously fell just below AA, and chart/date labels were materially lighter. */
+.app-shell .unified-dashboard :is(p,small),
+.app-shell .unified-dashboard .dashboard-chart-labels span{color:#646c76!important}
+
 @media (prefers-reduced-motion:reduce){
   .app-shell *,
   .workspace-picker *{

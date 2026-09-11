@@ -10,7 +10,7 @@ const statusOptions:readonly ['all'|CollaborationStatus,string][]=[['all','Todos
 const statusLabel=Object.fromEntries(statusOptions.filter(([value])=>value!=='all')) as Record<CollaborationStatus,string>
 const priorityLabel={low:'Baixa',normal:'Normal',high:'Alta'} as const
 
-function ContentTabs(){return <div className="admin-toolbar"><div className="admin-toolbar-group"><Link className="button outline" to="/app/site/conteudos"><Newspaper size={15}/>Publicações</Link><Link className="button" to="/app/site/conteudos/colaboracoes"><Inbox size={15}/>Colaborações recebidas</Link></div></div>}
+function ContentTabs(){return <div className="admin-toolbar"><div className="admin-toolbar-group"><Link className="button outline" to="/app/site/content"><Newspaper size={15}/>Publicações</Link><Link className="button" to="/app/site/content/collaborations"><Inbox size={15}/>Colaborações recebidas</Link></div></div>}
 
 export function SiteCollaborationsPage(){
   const [items,setItems]=useState<ContentCollaboration[]>([])

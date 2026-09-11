@@ -5,17 +5,21 @@ import {UNIFIED_ADMIN_NAV} from './adminNavigation'
 const isGroup=(item:AdminNavItem):item is AdminNavGroup=>!Array.isArray(item)
 
 describe('admin navigation',()=>{
-  it('keeps exactly the approved administrative workspace modules',()=>{
+  it('keeps exactly the implemented administrative modules',()=>{
     const labels=UNIFIED_ADMIN_NAV.map(item=>isGroup(item)?item.label:item[0])
-    expect(labels).toEqual(['Dashboard','CRM','Financeiro','Agenda','Chat','RH','Métricas','Site','Marketing','Configurações'])
+    expect(labels).toEqual(['Dashboard','CRM','Contratos','Financeiro','Agenda','Chat','RH','Métricas','Editorial','Site','Marketing','Relatórios','Configurações'])
   })
 
   it('preserves the required canonical routes in the unified shell',()=>{
     const serialized=JSON.stringify(UNIFIED_ADMIN_NAV)
-    for(const route of ['/app/dashboard','/app/crm','/app/finance','/app/finance/invoices','/app/finance/accounting','/app/agenda','/app/chat','/app/hr','/app/metrics','/app/site/content','/app/site/media','/app/site/pages','/app/site/forms','/app/site/media-kit','/app/marketing','/app/settings'])expect(serialized).toContain(route)
+    for(const route of ['/app/dashboard','/app/crm','/app/contracts','/app/finance','/app/finance/invoices','/app/finance/accounting','/app/agenda','/app/chat','/app/hr','/app/metrics','/app/editorial','/app/editorial/content','/app/site/content','/app/site/media','/app/site/pages','/app/site/forms','/app/site/media-kit','/app/marketing','/app/reports','/app/settings'])expect(serialized).toContain(route)
     expect(serialized).not.toContain('/app/marketing/metrics')
-    expect(serialized).not.toContain('/app/contracts')
-    expect(serialized).not.toContain('/app/reports')
+  })
+
+  it('keeps Editorial with both implemented administrative views',()=>{
+    const editorial=UNIFIED_ADMIN_NAV.find(item=>isGroup(item)&&item.label==='Editorial')
+    expect(editorial&&isGroup(editorial)?editorial.children.map(child=>child[0]):[]).toEqual(['Páginas editoriais','Conteúdos editoriais'])
+    expect(editorial&&isGroup(editorial)?editorial.children.map(child=>child[2]):[]).toEqual(['/app/editorial','/app/editorial/content'])
   })
 
   it('keeps Marketing with its six legitimate submodules and without Metrics ownership',()=>{

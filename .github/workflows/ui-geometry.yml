@@ -6,6 +6,7 @@ on:
     paths:
       - 'apps/web/src/**'
       - 'apps/web/e2e/shared-geometry.audit.ts'
+      - 'apps/web/e2e/row-actions-geometry.audit.ts'
       - 'apps/web/package.json'
       - 'package-lock.json'
       - '.github/workflows/ui-geometry.yml'
@@ -57,7 +58,7 @@ jobs:
           exit 1
       - name: Enforce cross-page geometry
         working-directory: apps/web
-        run: npx playwright test e2e/shared-geometry.audit.ts --reporter=line
+        run: npx playwright test e2e/shared-geometry.audit.ts e2e/row-actions-geometry.audit.ts --reporter=line
       - name: Upload geometry traces
         if: failure()
         uses: actions/upload-artifact@v4

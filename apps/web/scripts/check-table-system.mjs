@@ -67,10 +67,29 @@ for(const [path,source] of [['FinanceMainPage.tsx',financeMain],['FinanceInvoice
   if(!table.includes("input[type='checkbox']"))failures.push(`${path}: checkbox inline legado exige override canônico no table system.`)
 }
 
+const financeAccounting=await read('src/modules/finance/FinanceAccountingPage.tsx')
+const financeStyles=await read('src/styles/admin-finance.css')
+for(const token of [
+  '<colgroup>',
+  'className="accounting-category-col"',
+  'className="numeric accounting-number-col"',
+  'className="numeric positive accounting-number-col"',
+  'className="numeric negative accounting-number-col"',
+])if(!financeAccounting.includes(token))failures.push(`Contabilidade deve preservar o contrato semântico de coluna: ${token}.`)
+if(financeAccounting.includes('tableHeaderStyle')||financeAccounting.includes('tableCellStyle'))failures.push('Contabilidade não pode sobrescrever alinhamento de TableView com estilos inline locais.')
+for(const rule of [
+  '.accounting-result-table{table-layout:fixed}',
+  '.accounting-result-table col.accounting-category-col{width:36%}',
+  '.accounting-result-table col.accounting-number-col{width:16%}',
+  '.accounting-result-table :is(th,td).accounting-number-col{text-align:right!important',
+  '.accounting-result-table th.accounting-number-col .crm-sort-header{width:100%;justify-content:flex-end}',
+])if(!financeStyles.includes(rule))failures.push(`Contabilidade deve preservar geometria/alinhamento determinístico: ${rule}.`)
+if(financeStyles.includes('.accounting-result-table th,.accounting-result-table td'))failures.push('Contabilidade não pode forçar todas as colunas para a esquerda; colunas numéricas são alinhadas à direita.')
+
 if(failures.length){
   console.error('TableView invariants failed:')
   failures.forEach(item=>console.error(`- ${item}`))
   process.exit(1)
 }
 
-console.log('TableView contract OK — headers 11px, cells 12px, secondary text/badges 10px, rows 52px, selector 38px e ações/números alinhados semanticamente.')
+console.log('TableView contract OK — headers 11px, cells 12px, secondary text/badges 10px, rows 52px, selector 38px, ações/números alinhados semanticamente e Contabilidade com colunas determinísticas.')

@@ -69,8 +69,8 @@ export function SiteContentsPage(){
   const createDraft=async()=>{
     if(!defaultPageId)return
     setError('')
-    if(!persisted){const draft=contentDraftRepository.create(defaultPageId);setLocalRevision(value=>value+1);navigate(`/app/site/conteudos/${draft.id}`);return}
-    try{const created=await createAdminEditorialContent(blankContent(defaultPageId));navigate(`/app/site/conteudos/${created.id}`)}
+    if(!persisted){const draft=contentDraftRepository.create(defaultPageId);setLocalRevision(value=>value+1);navigate(`/app/site/content/${draft.id}`);return}
+    try{const created=await createAdminEditorialContent(blankContent(defaultPageId));navigate(`/app/site/content/${created.id}`)}
     catch(caught){setError(caught instanceof Error?caught.message:'Não foi possível criar o conteúdo.')}
   }
 
@@ -97,13 +97,13 @@ export function SiteContentsPage(){
   }
 
   return <AdminShell area="cms" items={SITE_MANAGER_NAV} header={{title:'Conteúdos',description:'Gerencie publicações, rascunhos editoriais e materiais enviados pelo público sem misturar os fluxos.'}} headerAction={{label:'Novo conteúdo',icon:Plus,onClick:()=>void createDraft(),disabled:!defaultPageId,disabledReason:!defaultPageId?'Crie primeiro uma página de conteúdo.':undefined}}>
-    <div className="admin-toolbar"><div className="admin-toolbar-group"><Link className="button" to="/app/site/conteudos"><Newspaper size={15}/>Publicações</Link><Link className="button outline" to="/app/site/conteudos/colaboracoes"><Inbox size={15}/>Colaborações recebidas</Link></div></div>
+    <div className="admin-toolbar"><div className="admin-toolbar-group"><Link className="button" to="/app/site/content"><Newspaper size={15}/>Publicações</Link><Link className="button outline" to="/app/site/content/collaborations"><Inbox size={15}/>Colaborações recebidas</Link></div></div>
 
     <AdminNotice title={persisted?'Persistência editorial conectada':development?'Modo de desenvolvimento liberado':'Conteúdo local'} description={persisted?'Conteúdos são criados, editados, publicados e excluídos pela API. O runtime público exibe apenas registros publicados e ativos.':development?'Você pode criar, abrir, editar e excluir tanto conteúdos novos quanto conteúdos já existentes. Alterações sobre seeds são overrides locais reversíveis.':'As alterações ficam isoladas neste navegador.'}/>
     {loading&&<AdminNotice title="Sincronizando conteúdos" description="Carregando páginas e conteúdos diretamente da API do Portal Lander."/>}
     {error&&<AdminNotice title="Falha na operação" description={error}/>} 
 
-    <div className="tableview-surface cms-tableview-surface"><section className="table-card"><table><thead><tr><th>Conteúdo</th><th>Página</th><th>Slug</th><th>Status</th><th>Autor</th><th>Atualização</th><th>Ações</th></tr></thead><tbody>{contents.map(content=><tr key={content.id}><td><div className="table-primary"><span className="table-avatar"><FileText size={15}/></span><div><b>{content.title}</b><small>{content.summary||'Sem resumo'}</small></div></div></td><td>{pageTitle(content.pageId)}</td><td>/{content.slug}</td><td><span className={`status ${content.status}`}>{content.status}</span></td><td>{content.author||'—'}</td><td>{new Date(content.updatedAt).toLocaleDateString('pt-BR')}</td><td><TableRowActionMenu label={content.title} onEdit={()=>navigate(`/app/site/conteudos/${content.id}`)} onView={persisted?()=>void togglePublication(content):undefined} viewLabel={isPublicContent(content)?'Retirar do ar':'Publicar'} onDelete={()=>persisted?void removeRemote(content):removeLocal(content)}/></td></tr>)}</tbody></table></section></div>
+    <div className="tableview-surface cms-tableview-surface"><section className="table-card"><table><thead><tr><th>Conteúdo</th><th>Página</th><th>Slug</th><th>Status</th><th>Autor</th><th>Atualização</th><th className="actions">Ações</th></tr></thead><tbody>{contents.map(content=><tr key={content.id}><td><div className="table-primary"><span className="table-avatar"><FileText size={15}/></span><div><b>{content.title}</b><small>{content.summary||'Sem resumo'}</small></div></div></td><td>{pageTitle(content.pageId)}</td><td>/{content.slug}</td><td><span className={`status ${content.status}`}>{content.status}</span></td><td>{content.author||'—'}</td><td>{new Date(content.updatedAt).toLocaleDateString('pt-BR')}</td><td className="actions"><TableRowActionMenu label={content.title} onEdit={()=>navigate(`/app/site/content/${content.id}`)} onView={persisted?()=>void togglePublication(content):undefined} viewLabel={isPublicContent(content)?'Retirar do ar':'Publicar'} onDelete={()=>persisted?void removeRemote(content):removeLocal(content)}/></td></tr>)}</tbody></table></section></div>
     <ImportCandidatesPanel enabled={persisted}/>
   </AdminShell>
 }

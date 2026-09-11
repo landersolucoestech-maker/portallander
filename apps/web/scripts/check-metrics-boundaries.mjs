@@ -32,6 +32,9 @@ requireTokens('MetricsPage.tsx',metrics,[
   'function SiteRows(',
   'className="metrics-site-kpis"',
   'className="metrics-site-card-grid"',
+  'SiteCard title="Comportamento"',
+  'SiteCard title="Estado editorial"',
+  'SiteCard title="Resultados"',
   'metrics-instagram-tab',
   'metrics-tiktok-tab',
   'metrics-youtube-tab',
@@ -60,6 +63,16 @@ forbidTokens('MetricsPage.tsx',metrics,[
   'Views / usuário',
   'UNAVAILABLE —',
 ])
+
+const siteTabStart=metrics.indexOf('function SiteTab(')
+const siteTabEnd=metrics.indexOf('function SourceTab(',siteTabStart)
+const siteTab=siteTabStart>=0&&siteTabEnd>siteTabStart?metrics.slice(siteTabStart,siteTabEnd):''
+const siteKpiCalls=siteTab.match(/<SiteKpiGrid\b/g)?.length??0
+if(siteKpiCalls!==1)failures.push(`MetricsPage.tsx deve possuir exatamente uma faixa de KPIs na aba Site; encontrado: ${siteKpiCalls}`)
+const firstKpi=siteTab.indexOf('<SiteKpiGrid')
+const firstSection=siteTab.indexOf('<SiteSection')
+if(firstKpi<0||firstSection<0||firstKpi>firstSection)failures.push('MetricsPage.tsx deve manter a única faixa de KPIs antes de qualquer TableView/seção analítica')
+
 requireTokens('metricsClient.ts',client,['/api/metrics','loadDevelopmentMetricsOverview'])
 forbidTokens('metricsClient.ts',client,["@portallander/mockup",'getMockupMetricsOverview'])
 requireTokens('analytics/client.ts',analyticsClient,['loadDevelopmentMetricsOverview',"await import('@portallander/mockup')",'getMockupMetricsOverview'])
@@ -83,4 +96,4 @@ requireTokens('admin-metrics.css',metricsStyles,[
 forbidTokens('admin-metrics.css',metricsStyles,['marketing-metric-strip','marketing-card','marketing-summary'])
 
 if(failures.length){console.error('Falha nos boundaries do módulo Métricas:');failures.forEach(item=>console.error(`- ${item}`));process.exit(1)}
-console.log('Metrics boundaries OK — módulo global em /app/metrics, cinco abas por fonte e aba Site com superfície própria: três seções claras, AdminKpi canônico, tipografia Montserrat, grade 4/2/1 responsiva, cards 2/1 colunas, rows de 56px e sem jargão técnico ou componentes visuais herdados de Marketing.')
+console.log('Metrics boundaries OK — módulo global em /app/metrics; aba Site com uma única faixa de 4 KPIs no topo e, depois dela, somente seções analíticas/TableViews de audiência, conteúdo e conversões.')

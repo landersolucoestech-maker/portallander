@@ -40,6 +40,8 @@
 .workspace-main table.accounting-result-table td.positive,.workspace-main table.accounting-result-table td.negative{text-align:left!important}
 .workspace-main table .actions,.workspace-main table .actions-col,.workspace-main table .crm-actions-column,.workspace-main table .crm-actions-cell{text-align:right!important}
 .workspace-main table .table-row-actions{justify-content:flex-end!important;margin-left:auto!important;margin-right:0!important}
+.workspace-main table .actions-center{text-align:center!important}
+.workspace-main table .actions-center .table-row-actions{justify-content:center!important;margin-left:auto!important;margin-right:auto!important}
 
 /* RH TableViews intentionally use equal-width data columns anchored left. */
 .workspace-main table.rh-table th,.workspace-main table.rh-table td,.workspace-main table.rh-table .numeric,.workspace-main table.rh-table .tabular,.workspace-main table.rh-table td.positive,.workspace-main table.rh-table td.negative,.workspace-main table.rh-table .actions,.workspace-main table.rh-table .actions-col{text-align:left!important}

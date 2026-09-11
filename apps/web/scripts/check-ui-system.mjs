@@ -54,6 +54,8 @@ const rowMenu=await read('src/shared/internal/TableRowActionMenu.tsx')
 for(const required of ['Visualizar','Editar','Excluir','role="menu"','role="menuitem"','ArrowDown','ArrowUp'])if(!rowMenu.includes(required))failures.push(`Menu de ações compartilhado deve preservar: ${required}`)
 const sortHeader=await read('src/shared/internal/TableSortHeader.tsx')
 for(const required of ['TableSortHeader','TableSortState','aria-pressed','crm-sort-header'])if(!sortHeader.includes(required))failures.push(`Cabeçalho de ordenação compartilhado deve preservar: ${required}`)
+const canonicalSortConsumers=['src/modules/crm/CrmPage.tsx','src/modules/finance/FinanceMainPage.tsx','src/modules/finance/FinanceInvoicesPage.tsx','src/modules/finance/FinanceRegistryPage.tsx','src/modules/contracts/components/TemplatesPanel.tsx']
+for(const path of canonicalSortConsumers){const source=await read(path);if(!source.includes('TableSortHeader'))failures.push(`${path}: tabela ordenável deve reutilizar TableSortHeader.`)}
 const tableSortEnhancer=await read('src/shared/internal/tableSortEnhancer.ts')
 if(!tableSortEnhancer.includes('.rh-page .rh-table'))failures.push('Ordenação compartilhada deve alcançar as tabelas reais de RH (.rh-page .rh-table).')
 if(tableSortEnhancer.includes('.hr-page .hr-table'))failures.push('Ordenação compartilhada não pode depender do seletor legado inexistente .hr-page .hr-table.')
@@ -77,6 +79,7 @@ const sourceFiles=(await walk('src')).filter(path=>['.tsx','.ts','.css'].include
 for(const path of sourceFiles){
  const source=await read(path)
  if(source.includes('crm-row-actions')||source.includes('crm-row-menu'))failures.push(`${path}: implementação legada de ações por linha detectada; use TableRowActionMenu.`)
+ if(path.startsWith('src/modules/')&&/function\s+\w*SortHeader\s*\(/.test(source))failures.push(`${path}: implementação local de cabeçalho de ordenação detectada; use TableSortHeader.`)
  if(source.includes('style={{')&&!path.endsWith('shared/public/PublicChrome.tsx'))warnings.push(`${path}: estilo inline detectado; manter somente se for valor realmente dinâmico.`)
  if(path.endsWith('.css')){
    const tiny=[...source.matchAll(/font-size:\s*([0-7](?:\.\d+)?)px/g)].length

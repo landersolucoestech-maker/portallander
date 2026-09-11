@@ -115,6 +115,13 @@ requireTokens('admin-metrics.css',metricsStyles,[
   '.metrics-section-head',
   '.metrics-kpi-grid',
   'grid-template-columns:repeat(4,minmax(0,1fr))',
+  '.metrics-kpi-grid .admin-kpi',
+  'position:relative',
+  'justify-content:flex-start',
+  '.metrics-kpi-grid .admin-kpi-top',
+  'padding-right:calc(var(--ui-kpi-icon) + var(--ui-space-2))',
+  '.metrics-kpi-grid .admin-kpi-icon',
+  'position:absolute',
   '.metrics-card-grid',
   'grid-template-columns:repeat(2,minmax(0,1fr))',
   '.metrics-card',
@@ -126,6 +133,7 @@ requireTokens('admin-metrics.css',metricsStyles,[
   'var(--ui-card-gap)',
 ])
 forbidTokens('admin-metrics.css',metricsStyles,['marketing-metric-strip','marketing-card','marketing-summary','marketing-performance-chart'])
+if(/\.metrics-kpi-grid \.admin-kpi-top\{[^}]*height:var\(--ui-kpi-icon\)/s.test(metricsStyles))failures.push('admin-metrics.css não pode reservar a altura inteira do ícone dentro do fluxo vertical do KPI; isso recorta valor/detalhe no card canônico de 104px')
 
 if(failures.length){console.error('Falha nos boundaries do módulo Métricas:');failures.forEach(item=>console.error(`- ${item}`));process.exit(1)}
-console.log('Metrics boundaries OK — Visão Geral, Site, Instagram, TikTok e YouTube compartilham grid 4-KPI, cards 2x, tipografia, rows e espaçamento; Site mantém KPIs apenas no topo e canais sociais não usam o painel antigo de gráfico/barra única.')
+console.log('Metrics boundaries OK — Visão Geral, Site, Instagram, TikTok e YouTube compartilham grid 4-KPI, cards 2x, tipografia, rows e espaçamento; KPI reserva o ícone fora do fluxo vertical para não recortar valor/detalhe; Site mantém KPIs apenas no topo e canais sociais não usam o painel antigo de gráfico/barra única.')

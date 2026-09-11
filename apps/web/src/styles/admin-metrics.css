@@ -125,9 +125,12 @@
 }
 
 .app-shell .metrics-kpi-grid .admin-kpi{
+  position:relative;
   box-sizing:border-box;
   margin:0;
   overflow:hidden;
+  justify-content:flex-start;
+  gap:0;
   border-color:var(--ui-border);
   border-radius:var(--ui-radius-md);
   background:var(--ui-surface);
@@ -135,9 +138,11 @@
 }
 
 .app-shell .metrics-kpi-grid .admin-kpi-top{
+  display:block;
   min-width:0;
-  height:var(--ui-kpi-icon);
-  gap:var(--ui-space-2);
+  min-height:0;
+  height:auto;
+  padding-right:calc(var(--ui-kpi-icon) + var(--ui-space-2));
 }
 
 .app-shell .metrics-kpi-grid .admin-kpi-label{
@@ -152,6 +157,9 @@
 }
 
 .app-shell .metrics-kpi-grid .admin-kpi-icon{
+  position:absolute;
+  top:var(--ui-kpi-padding);
+  right:var(--ui-kpi-padding);
   width:var(--ui-kpi-icon);
   height:var(--ui-kpi-icon);
   flex:0 0 var(--ui-kpi-icon);
@@ -167,7 +175,7 @@
 }
 
 .app-shell .metrics-kpi-grid .admin-kpi>strong{
-  margin:0;
+  margin:6px 0 0;
   overflow:hidden;
   color:var(--ui-text-strong);
   font-size:24px;
@@ -180,7 +188,7 @@
 }
 
 .app-shell .metrics-kpi-grid .admin-kpi>small{
-  margin:0;
+  margin:2px 0 0;
   overflow:hidden;
   color:var(--ui-muted-soft);
   font-size:10px;

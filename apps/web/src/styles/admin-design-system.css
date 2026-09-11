@@ -27,6 +27,7 @@
 
 /* KPI family: preserve module layout/count, normalize hierarchy and geometry. */
 .admin-kpi,.crm-kpi,.finance-kpi,.contracts-kpi,.rh-kpi,.marketing-kpi,.dashboard-stat-card{min-height:var(--ui-kpi-min-height);padding:var(--ui-kpi-padding)}
+.app-shell .marketing-kpi{min-height:var(--ui-kpi-min-height)!important;padding:var(--ui-kpi-padding)!important}
 .crm-kpi span,.finance-kpi span,.contracts-kpi span,.rh-kpi small,.marketing-kpi small,.dashboard-stat-card span{font-size:11px;line-height:1.35;color:var(--ui-muted)}
 .crm-kpi strong,.finance-kpi strong,.contracts-kpi strong,.rh-kpi strong,.marketing-kpi strong,.dashboard-stat-card strong{font-size:24px;line-height:1.05;color:var(--ui-text-strong);font-weight:700}
 

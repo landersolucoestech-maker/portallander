@@ -70,7 +70,8 @@
   --ui-popover-width:280px;
   --ui-account-popover-width:240px;
 
-  --ui-kpi-min-height:96px;
+  --ui-kpi-height:104px;
+  --ui-kpi-min-height:var(--ui-kpi-height);
   --ui-kpi-padding:16px;
   --ui-kpi-gap:16px;
   --ui-kpi-icon:34px;

@@ -1,6 +1,46 @@
-/* AdminKpi-specific presentation only. Shared geometry is owned by admin-system.css and admin-foundations.css. */
+/* Portal Lander — canonical KPI geometry.
+   Feature CSS owns visual treatment and column count; this layer owns card size. */
+.app-shell .workspace-main :is(
+  .admin-kpi,
+  .crm-kpi,
+  .contracts-kpi,
+  .finance-kpi,
+  .rh-kpi,
+  .marketing-kpi,
+  .dashboard-stat-card,
+  .marketing-metric-strip>article,
+  .settings-user-kpis>article,
+  .settings-public-stats>div
+){
+  box-sizing:border-box!important;
+  width:100%!important;
+  min-width:0!important;
+  height:var(--ui-kpi-height)!important;
+  min-height:var(--ui-kpi-height)!important;
+  padding:var(--ui-kpi-padding)!important;
+  margin:0!important;
+  align-self:stretch;
+}
+
+.app-shell .workspace-main :is(
+  .admin-kpi-grid,
+  .admin-dashboard-kpis,
+  .crm-kpis,
+  .contracts-kpis,
+  .finance-kpis,
+  .rh-kpis,
+  .marketing-kpis,
+  .marketing-metric-strip,
+  .dashboard-reference-kpis,
+  .settings-user-kpis,
+  .settings-public-stats
+){
+  gap:var(--ui-kpi-gap)!important;
+  align-items:stretch;
+}
+
+/* AdminKpi-specific presentation. Geometry above is shared by every KPI family. */
 .app-shell .admin-kpi{
-  height:auto;
   box-shadow:none;
   overflow:hidden;
   gap:var(--ui-space-1);

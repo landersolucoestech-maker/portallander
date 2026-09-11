@@ -1,297 +1,54 @@
 /* Portal Lander — canonical administrative TableView contract.
-   Feature styles own semantic column widths; this layer owns surface, density,
-   typography, selector/action alignment and common numeric treatment. */
+   Feature styles may own semantic column widths; this layer owns surface,
+   density, typography, padding and semantic alignment everywhere. */
 
-.app-shell .workspace-main :is(
-  .crm-table-card,
-  .finance-table-card,
-  .contracts-table-card,
-  .rh-table-card,
-  .marketing-table-card,
-  .tableview-surface
-){
-  min-width:0;
-  border:1px solid var(--ui-border);
-  border-radius:var(--ui-radius-lg);
-  background:var(--ui-surface);
-  box-shadow:none;
-}
+.app-shell .workspace-main :is(.table-card,.crm-table-card,.finance-table-card,.contracts-table-card,.rh-table-card,.marketing-table-card,.tableview-surface){min-width:0;overflow:hidden;border:1px solid var(--ui-border);border-radius:var(--ui-radius-lg);background:var(--ui-surface);box-shadow:none}
 
-.app-shell .workspace-main :is(
-  .crm-table-head,
-  .finance-table-card>header,
-  .contracts-table-card>header,
-  .rh-table-card>header,
-  .marketing-table-card>header,
-  .tableview-surface>header
-){
-  box-sizing:border-box;
-  min-height:64px;
-  padding:var(--ui-space-3) var(--ui-space-4);
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:var(--ui-space-4);
-  border-bottom:1px solid var(--ui-border);
-}
+.app-shell .workspace-main :is(.crm-table-head,.finance-table-card>header,.contracts-table-card>header,.rh-table-card>header,.marketing-table-card>header,.tableview-surface>header,.table-card>header){box-sizing:border-box;min-height:var(--ui-card-header-min-height);padding:var(--ui-card-header-block) var(--ui-card-header-inline);display:flex;align-items:center;justify-content:space-between;gap:var(--ui-card-gap);border-bottom:1px solid var(--ui-border)}
+.app-shell .workspace-main :is(.crm-table-head,.finance-table-card>header,.contracts-table-card>header,.rh-table-card>header,.marketing-table-card>header,.tableview-surface>header,.table-card>header) h3{margin:0;color:var(--ui-text-strong);font-family:var(--ui-font);font-size:var(--ui-type-card-title)!important;font-weight:var(--ui-weight-heavy)!important;line-height:var(--ui-line-tight)}
+.app-shell .workspace-main :is(.crm-table-head,.finance-table-card>header,.contracts-table-card>header,.rh-table-card>header,.marketing-table-card>header,.tableview-surface>header,.table-card>header) p{margin:var(--ui-space-1) 0 0;color:var(--ui-muted);font-family:var(--ui-font);font-size:var(--ui-type-micro)!important;font-weight:var(--ui-weight-medium);line-height:var(--ui-line-normal)}
 
-.app-shell .workspace-main :is(
-  .crm-table-head,
-  .finance-table-card>header,
-  .contracts-table-card>header,
-  .rh-table-card>header,
-  .marketing-table-card>header,
-  .tableview-surface>header
-) h3{
-  margin:0;
-  color:var(--ui-text-strong);
-  font-family:var(--ui-font);
-  font-size:13px;
-  font-weight:800;
-  line-height:1.25;
-}
+.app-shell .workspace-main :is(.table-card table,.crm-table,.finance-table,.contracts-table,.rh-table,.marketing-table,.settings-table-wrap table){width:100%;border-collapse:collapse;font-family:var(--ui-font);table-layout:auto}
+.app-shell .workspace-main .accounting-result-table{table-layout:fixed!important}
 
-.app-shell .workspace-main :is(
-  .crm-table-head,
-  .finance-table-card>header,
-  .contracts-table-card>header,
-  .rh-table-card>header,
-  .marketing-table-card>header,
-  .tableview-surface>header
-) p{
-  margin:var(--ui-space-1) 0 0;
-  color:var(--ui-muted);
-  font-family:var(--ui-font);
-  font-size:10px;
-  font-weight:500;
-  line-height:1.35;
-}
+.app-shell .workspace-main :is(.table-card table,.crm-table,.finance-table,.contracts-table,.rh-table,.marketing-table,.settings-table-wrap table) :is(th,td){box-sizing:border-box;padding-block:var(--ui-table-cell-block)!important;padding-inline:var(--ui-table-cell-inline)!important;vertical-align:middle!important}
+.app-shell .workspace-main :is(.table-card table,.crm-table,.finance-table,.contracts-table,.rh-table,.marketing-table,.settings-table-wrap table) th{height:var(--ui-table-head-height)!important;border-bottom:1px solid var(--ui-border);background:var(--ui-surface-subtle);color:var(--ui-muted);font-size:var(--ui-type-label)!important;font-weight:var(--ui-weight-semibold)!important;line-height:1!important;letter-spacing:0!important;text-align:left;text-transform:none!important;white-space:nowrap}
+.app-shell .workspace-main :is(.table-card table,.crm-table,.finance-table,.contracts-table,.rh-table,.marketing-table,.settings-table-wrap table) td{height:var(--ui-table-row-height)!important;border-bottom:1px solid var(--ui-border);color:#475467;font-size:var(--ui-type-body)!important;font-weight:var(--ui-weight-regular);line-height:var(--ui-line-normal);text-align:left}
+.app-shell .workspace-main :is(.table-card table,.crm-table,.finance-table,.contracts-table,.rh-table,.marketing-table,.settings-table-wrap table) tbody tr:last-child td{border-bottom:0}
+.app-shell .workspace-main :is(.table-card table,.crm-table,.finance-table,.contracts-table,.rh-table,.marketing-table,.settings-table-wrap table) tbody tr:hover{background:#fffafa}
 
-.app-shell .workspace-main :is(
-  .crm-table,
-  .finance-table,
-  .contracts-table,
-  .rh-table,
-  .marketing-table,
-  .settings-table-wrap table
-){
-  width:100%;
-  border-collapse:collapse;
-  font-family:var(--ui-font);
-  table-layout:auto;
-}
+.app-shell .workspace-main :is(.table-card table,.crm-table,.finance-table,.contracts-table,.rh-table,.marketing-table,.settings-table-wrap table) td strong{color:var(--ui-text-strong);font-size:var(--ui-type-body)!important;font-weight:var(--ui-weight-bold);line-height:1.3}
+.app-shell .workspace-main :is(.table-card table,.crm-table,.finance-table,.contracts-table,.rh-table,.marketing-table,.settings-table-wrap table) td small{color:var(--ui-muted-soft);font-size:var(--ui-type-micro)!important;font-weight:var(--ui-weight-medium);line-height:1.3}
 
-.app-shell .workspace-main :is(
-  .crm-table,
-  .finance-table,
-  .contracts-table,
-  .rh-table,
-  .marketing-table,
-  .settings-table-wrap table
-) :is(th,td){
-  box-sizing:border-box;
-  padding-block:var(--ui-table-cell-block)!important;
-  padding-inline:var(--ui-table-cell-inline)!important;
-  vertical-align:middle;
-}
-
-.app-shell .workspace-main :is(
-  .crm-table,
-  .finance-table,
-  .contracts-table,
-  .rh-table,
-  .marketing-table,
-  .settings-table-wrap table
-) th{
-  height:calc(var(--ui-control-md) + var(--ui-space-1));
-  border-bottom:1px solid var(--ui-border);
-  background:var(--ui-surface-subtle);
-  color:var(--ui-muted);
-  font-size:11px!important;
-  font-weight:650!important;
-  line-height:1;
-  letter-spacing:0!important;
-  text-align:left;
-  text-transform:none!important;
-  white-space:nowrap;
-}
-
-.app-shell .workspace-main :is(
-  .crm-table,
-  .finance-table,
-  .contracts-table,
-  .rh-table,
-  .marketing-table,
-  .settings-table-wrap table
-) td{
-  height:var(--ui-table-row-height)!important;
-  border-bottom:1px solid var(--ui-border);
-  color:#475467;
-  font-size:12px!important;
-  font-weight:400;
-  line-height:1.35;
-  text-align:left;
-}
-
-.app-shell .workspace-main :is(
-  .crm-table,
-  .finance-table,
-  .contracts-table,
-  .rh-table,
-  .marketing-table,
-  .settings-table-wrap table
-) tbody tr:last-child td{
-  border-bottom:0;
-}
-
-.app-shell .workspace-main :is(
-  .crm-table,
-  .finance-table,
-  .contracts-table,
-  .rh-table,
-  .marketing-table,
-  .settings-table-wrap table
-) tbody tr:hover{
-  background:#fffafa;
-}
-
-/* Primary/secondary cell hierarchy. */
-.app-shell .workspace-main :is(
-  .crm-table,
-  .finance-table,
-  .contracts-table,
-  .rh-table,
-  .marketing-table,
-  .settings-table-wrap table
-) td strong{
-  color:var(--ui-text-strong);
-  font-size:12px!important;
-  font-weight:700;
-  line-height:1.3;
-}
-
-.app-shell .workspace-main :is(
-  .crm-table,
-  .finance-table,
-  .contracts-table,
-  .rh-table,
-  .marketing-table,
-  .settings-table-wrap table
-) td small{
-  color:var(--ui-muted-soft);
-  font-size:10px!important;
-  font-weight:500;
-  line-height:1.3;
-}
-
-/* Selector columns: one shared width and true horizontal centering. */
-.app-shell .workspace-main :is(
-  .crm-table,
-  .finance-table,
-  .contracts-table,
-  .rh-table,
-  .marketing-table,
-  .settings-table-wrap table
-) :is(th,td):has(input[type='checkbox']),
+/* Selector columns: one width and true horizontal centering. */
+.app-shell .workspace-main :is(.table-card table,.crm-table,.finance-table,.contracts-table,.rh-table,.marketing-table,.settings-table-wrap table) :is(th,td):has(input[type='checkbox']),
 .app-shell .workspace-main .crm-table :is(.crm-checkbox-cell,.select),
 .app-shell .workspace-main .contracts-table .contracts-checkbox-cell,
 .app-shell .workspace-main .rh-table .check,
-.app-shell .workspace-main .marketing-table .select{
-  width:var(--ui-table-selector-width)!important;
-  min-width:var(--ui-table-selector-width)!important;
-  max-width:var(--ui-table-selector-width)!important;
-  padding-inline:var(--ui-table-selector-inline)!important;
-  text-align:center!important;
-}
+.app-shell .workspace-main .marketing-table .select{width:var(--ui-table-selector-width)!important;min-width:var(--ui-table-selector-width)!important;max-width:var(--ui-table-selector-width)!important;padding-inline:var(--ui-table-selector-inline)!important;text-align:center!important}
+.app-shell .workspace-main :is(.table-card table,.crm-table,.finance-table,.contracts-table,.rh-table,.marketing-table,.settings-table-wrap table) input[type='checkbox']{width:15px;height:15px;margin:0 auto;display:block;accent-color:var(--ui-text-strong)}
 
-.app-shell .workspace-main :is(
-  .crm-table,
-  .finance-table,
-  .contracts-table,
-  .rh-table,
-  .marketing-table,
-  .settings-table-wrap table
-) input[type='checkbox']{
-  width:15px;
-  height:15px;
-  margin:0 auto;
-  display:block;
-  accent-color:var(--ui-text-strong);
-}
+/* Semantic alignment: identity/text left; numeric right; status/selector center; actions right. */
+.app-shell .workspace-main :is(.table-card table,.crm-table,.finance-table,.contracts-table,.rh-table,.marketing-table,.settings-table-wrap table) :is(.numeric,.tabular,.positive,.negative,.accounting-number-col){font-variant-numeric:tabular-nums;text-align:right!important;white-space:nowrap}
+/* Raise specificity above old feature !important rules without changing semantics. */
+.app-shell .workspace-main .crm-page .crm-table :is(.numeric,.tabular,.positive,.negative),
+.app-shell .workspace-main .finance-page .finance-table :is(.numeric,.tabular,.positive,.negative,.accounting-number-col),
+.app-shell .workspace-main .contracts-page .contracts-table :is(.numeric,.tabular,.positive,.negative),
+.app-shell .workspace-main .rh-page .rh-table :is(.numeric,.tabular,.positive,.negative),
+.app-shell .workspace-main .marketing-page .marketing-table :is(.numeric,.tabular,.positive,.negative){font-variant-numeric:tabular-nums;text-align:right!important;white-space:nowrap}
+.app-shell .workspace-main :is(.table-card table,.crm-table,.finance-table,.contracts-table,.rh-table,.marketing-table,.settings-table-wrap table) th:is(.numeric,.tabular,.accounting-number-col) .crm-sort-header{width:100%;justify-content:flex-end!important}
+.app-shell .workspace-main :is(.table-card table,.crm-table,.finance-table,.contracts-table,.rh-table,.marketing-table,.settings-table-wrap table) :is(.status-col,.state-col,.center,.actions-center){text-align:center!important}
 
-/* Semantic value columns. Never infer numbers from nth-child positions. */
-.app-shell .workspace-main :is(
-  .crm-table,
-  .finance-table,
-  .contracts-table,
-  .rh-table,
-  .marketing-table,
-  .settings-table-wrap table
-) :is(.numeric,.tabular,.positive,.negative){
-  font-variant-numeric:tabular-nums;
-  text-align:right!important;
-  white-space:nowrap;
-}
+.app-shell .workspace-main :is(.table-card table,.crm-table,.finance-table,.contracts-table,.rh-table,.marketing-table,.settings-table-wrap table) :is(th.actions-col,td.actions,td.actions-col,.actions,.crm-actions-column,.crm-actions-cell){width:var(--ui-table-action-width);min-width:var(--ui-table-action-width);text-align:right!important;white-space:nowrap}
+.app-shell .workspace-main :is(.table-card table,.crm-table,.finance-table,.contracts-table,.rh-table,.marketing-table,.settings-table-wrap table) :is(td.actions,td.actions-col,.actions,.crm-actions-cell)>*{margin-left:auto!important;margin-right:0!important}
+.app-shell .workspace-main table .table-row-actions{justify-content:flex-end!important;margin-left:auto!important;margin-right:0!important}
+.app-shell .workspace-main table .actions-center .table-row-actions{justify-content:center!important;margin-left:auto!important;margin-right:auto!important}
 
-/* Action columns always occupy a compact, right-aligned gutter. */
-.app-shell .workspace-main :is(
-  .crm-table,
-  .finance-table,
-  .contracts-table,
-  .rh-table,
-  .marketing-table,
-  .settings-table-wrap table
-) :is(th.actions-col,td.actions,td.actions-col,.actions){
-  width:64px;
-  min-width:64px;
-  text-align:right!important;
-  white-space:nowrap;
-}
+/* Sort controls align to the same axis as column content. */
+.app-shell .workspace-main .crm-sort-header{display:inline-flex;align-items:center;justify-content:flex-start;gap:var(--ui-space-1);white-space:nowrap}
+.app-shell .workspace-main .crm-sort-header>[role='group']{display:inline-flex;align-items:center;gap:0;margin:0}
+.app-shell .workspace-main .crm-sort-header>[role='group']>button{width:var(--ui-sort-control-width);min-width:var(--ui-sort-control-width);height:var(--ui-sort-control-height);min-height:var(--ui-sort-control-height)!important;padding:0!important;margin:0;border:0;background:transparent;color:var(--ui-muted-soft);font-size:var(--ui-type-sort)!important;font-weight:var(--ui-weight-bold);line-height:1;text-align:center}
 
-.app-shell .workspace-main :is(
-  .crm-table,
-  .finance-table,
-  .contracts-table,
-  .rh-table,
-  .marketing-table,
-  .settings-table-wrap table
-) :is(td.actions,td.actions-col,.actions)>*{
-  margin-left:auto!important;
-  margin-right:0!important;
-}
+.app-shell .workspace-main :is(.status,.crm-badge,.contracts-status,.finance-type,.finance-status,.rh-status,.marketing-status,.settings-badge){box-sizing:border-box;min-height:var(--ui-badge-min-height)!important;padding:var(--ui-space-1) var(--ui-space-2)!important;display:inline-flex;align-items:center;justify-content:center;border-radius:999px;font-family:var(--ui-font);font-size:var(--ui-type-micro)!important;font-weight:var(--ui-weight-bold)!important;line-height:1.2;white-space:nowrap}
 
-/* Status/type badges use one density; feature CSS may keep semantic colors. */
-.app-shell .workspace-main :is(
-  .crm-badge,
-  .contracts-status,
-  .finance-type,
-  .finance-status,
-  .rh-status,
-  .marketing-status
-){
-  box-sizing:border-box;
-  min-height:var(--ui-badge-min-height)!important;
-  padding:var(--ui-space-1) var(--ui-space-2)!important;
-  display:inline-flex;
-  align-items:center;
-  border-radius:999px;
-  font-family:var(--ui-font);
-  font-size:10px!important;
-  font-weight:700!important;
-  line-height:1.2;
-  white-space:nowrap;
-}
-
-@media(max-width:760px){
-  .app-shell .workspace-main :is(
-    .crm-table-head,
-    .finance-table-card>header,
-    .contracts-table-card>header,
-    .rh-table-card>header,
-    .marketing-table-card>header,
-    .tableview-surface>header
-  ){
-    align-items:flex-start;
-    flex-direction:column;
-  }
-}
+@media(max-width:760px){.app-shell .workspace-main :is(.crm-table-head,.finance-table-card>header,.contracts-table-card>header,.rh-table-card>header,.marketing-table-card>header,.tableview-surface>header,.table-card>header){align-items:flex-start;flex-direction:column}}

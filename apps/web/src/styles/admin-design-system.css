@@ -1,128 +1,141 @@
-/* Portal Lander — shared administrative component contract.
-   Geometry values come exclusively from admin-foundations.css. This layer
-   maps semantic component families to those canonical tokens. */
+/* Portal Lander — canonical administrative component contract.
+   Typography, controls, surfaces and component rhythm are centralized here.
+   Feature CSS owns semantic layout/content only; it must not invent a second scale. */
 .app-shell{
   font-family:var(--ui-font);
+  font-size:var(--ui-type-body);
+  line-height:var(--ui-line-normal);
   min-height:100dvh;
 }
 .app-shell,.app-shell *{box-sizing:border-box}
 .app-shell>.workspace{min-width:0;min-height:100dvh;background:var(--ui-bg)}
-.app-shell .workspace-main{min-width:0;min-height:calc(100dvh - var(--ui-header-height));overflow-x:clip}
+.app-shell .workspace-main{min-width:0;min-height:calc(100dvh - var(--ui-header-height));overflow-x:clip;color:var(--ui-text);font-family:var(--ui-font);font-size:var(--ui-type-body);line-height:var(--ui-line-normal)}
 
-/* One visual rhythm for top-level internal pages. */
-.crm-page,.finance-page,.contracts-page,.agenda-page,.chat-page,.chat-settings-page,.rh-page,.marketing-page,.reports-page,.settings-page,.dashboard-reference-page{gap:var(--ui-page-gap)}
+/* Baseline text hierarchy for every admin module, including Site editors. */
+.app-shell .workspace-main h1{font-family:var(--ui-font);font-size:var(--ui-type-dialog-title)!important;font-weight:var(--ui-weight-heavy);line-height:var(--ui-line-tight)}
+.app-shell .workspace-main h2{font-family:var(--ui-font);font-size:var(--ui-type-section-title)!important;font-weight:var(--ui-weight-bold);line-height:var(--ui-line-tight)}
+.app-shell .workspace-main h3{font-family:var(--ui-font);font-size:var(--ui-type-card-title)!important;font-weight:var(--ui-weight-bold);line-height:var(--ui-line-tight)}
+.app-shell .workspace-main p{font-family:var(--ui-font);font-size:var(--ui-type-label)!important;line-height:var(--ui-line-relaxed)}
+.app-shell .workspace-main small{font-family:var(--ui-font);font-size:var(--ui-type-micro)!important;line-height:var(--ui-line-normal)}
+.app-shell .workspace-main label{font-family:var(--ui-font);font-size:var(--ui-type-label)!important;line-height:var(--ui-line-normal)}
+
+/* One visual rhythm for every internal module. */
+:is(.crm-page,.finance-page,.contracts-page,.agenda-page,.chat-page,.chat-settings-page,.rh-page,.marketing-page,.reports-page,.settings-page,.dashboard-reference-page,.metrics-page,.site-pages-page,.site-content-page,.site-media-page,.site-forms-page){gap:var(--ui-page-gap)}
+
+/* Canonical card/header typography. */
+.app-shell .workspace-main :is(.admin-card-head,.crm-table-head,.finance-table-card>header,.contracts-table-card>header,.rh-table-card>header,.marketing-table-card>header,.metrics-card>header,.settings-card>header,.site-pages-structure-header) h3{
+  margin:0;color:var(--ui-text-strong);font-size:var(--ui-type-card-title)!important;font-weight:var(--ui-weight-heavy);line-height:var(--ui-line-tight);letter-spacing:0
+}
+.app-shell .workspace-main :is(.admin-card-head,.crm-table-head,.finance-table-card>header,.contracts-table-card>header,.rh-table-card>header,.marketing-table-card>header,.metrics-card>header,.settings-card>header,.site-pages-structure-header) p{
+  margin:var(--ui-space-1) 0 0;color:var(--ui-muted);font-size:var(--ui-type-micro)!important;font-weight:var(--ui-weight-medium);line-height:var(--ui-line-normal)
+}
+.app-shell .workspace-main :is(.metrics-section-head,.settings-section-head,.reports-section-head,.site-pages-structure-header) h2,
+.app-shell .workspace-main .admin-card-head h2{margin:0;color:var(--ui-text-strong);font-size:var(--ui-type-section-title)!important;font-weight:var(--ui-weight-bold);line-height:var(--ui-line-tight);letter-spacing:-.01em}
 
 /* Shared surface language. */
-.crm-table-card,.finance-table-card,.contracts-table-card,.agenda-calendar-card,.agenda-mini-month,.chat-card,.rh-table-card,.rh-upload-card,.rh-doc-selector,.marketing-card,.marketing-table-card,.marketing-month,.marketing-week-day,.marketing-year-grid article,.reports-entity-list,.settings-card,.dashboard-reference-panel,.dashboard-stat-card{border-color:var(--ui-border);border-radius:var(--ui-radius-lg);background:var(--ui-surface)}
+:is(.admin-card,.table-card,.crm-table-card,.finance-table-card,.contracts-table-card,.agenda-calendar-card,.agenda-mini-month,.chat-card,.rh-table-card,.rh-upload-card,.rh-doc-selector,.marketing-card,.marketing-table-card,.metrics-card,.marketing-month,.marketing-week-day,.marketing-year-grid article,.reports-entity-list,.settings-card,.dashboard-reference-panel,.dashboard-stat-card,.site-pages-management,.site-pages-structure,.site-pages-global-settings){border-color:var(--ui-border);border-radius:var(--ui-radius-lg);background:var(--ui-surface);box-shadow:none}
+.app-shell .workspace-main :is(.admin-card,.settings-card,.dashboard-reference-panel){padding:var(--ui-card-padding)}
+.app-shell .workspace-main :is(.crm-table-head,.finance-table-card>header,.contracts-table-card>header,.rh-table-card>header,.marketing-table-card>header,.metrics-card>header,.tableview-surface>header,.site-pages-structure-header){min-height:var(--ui-card-header-min-height);padding:var(--ui-card-header-block) var(--ui-card-header-inline);align-items:center;gap:var(--ui-card-gap)}
+.app-shell .workspace-main :is(.site-pages-management,.site-pages-global-settings){padding:var(--ui-card-padding);gap:var(--ui-card-gap)}
 
-/* Controls: compact and default sizes have a single canonical source. */
+/* Controls and forms: one height, one type scale, one horizontal rhythm. */
 .app-shell input,.app-shell select,.app-shell textarea,.app-shell button{font-family:var(--ui-font)}
-.crm-btn,.agenda-toolbar .button,.agenda-toolbar select,.agenda-toolbar .agenda-icon-button,.contracts-filters select,.contracts-registry select,.finance-filters>input,.finance-filters>select,.finance-search,.contracts-search,.crm-search,.crm-filter-selects select,.crm-inline-select,.agenda-search,.marketing-primary,.marketing-secondary,.settings-primary,.settings-outline,.settings-danger{min-height:var(--ui-control-md)}
-.rh-primary,.rh-secondary,.rh-danger-button,.rh-filters>input,.rh-filters>select,.rh-search,.rh-doc-selector select,.rh-field input,.rh-field select,.marketing-filters>select,.marketing-filters>input,.marketing-search,.marketing-calendar-toolbar>select,.marketing-period-button,.tableview-pagination-center button,.tableview-page-size select{min-height:var(--ui-control-sm)}
+.app-shell .workspace-main :is(input:not([type='checkbox']):not([type='radio']),select,button){font-size:var(--ui-type-control)!important;line-height:var(--ui-line-tight)}
+.app-shell .workspace-main textarea{font-size:var(--ui-type-control)!important;line-height:var(--ui-line-normal)}
+.app-shell .workspace-main :is(.crm-field,.finance-field,.rh-field,.agenda-field,.contracts-section label,.contracts-template-editor label,.contracts-inline-editor label,.contracts-variable-editor label,.contracts-document-step label,.contracts-party label,.contracts-signer-edit label,.settings-field,.site-pages-selector){font-size:var(--ui-type-label)!important;font-weight:var(--ui-weight-semibold);line-height:var(--ui-line-normal);color:var(--ui-text)}
+.app-shell .workspace-main :is(.crm-field,.finance-field,.rh-field,.agenda-field,.settings-field) :is(input,select),
+.app-shell .workspace-main :is(.contracts-section,.contracts-template-editor,.contracts-inline-editor,.contracts-variable-editor,.contracts-document-step,.contracts-party,.contracts-signer-edit) :is(input,select),
+.app-shell .workspace-main .site-pages-selector select,
+.app-shell .workspace-main :is(.crm-search,.contracts-search,.finance-search,.rh-search,.marketing-search,.agenda-search,.searchbox){min-height:var(--ui-control-md);padding-inline:var(--ui-control-inline);gap:var(--ui-control-gap)}
+.app-shell .workspace-main :is(.crm-field,.finance-field,.rh-field,.agenda-field,.settings-field) textarea,
+.app-shell .workspace-main :is(.contracts-section,.contracts-template-editor,.contracts-inline-editor,.contracts-variable-editor,.contracts-document-step) textarea{min-height:88px;padding:var(--ui-space-3) var(--ui-control-inline)}
 
-/* Normal form typography. Dense calendar/chat microcopy remains a justified exception. */
-.crm-search input,.contracts-search input,.finance-search input,.crm-filter-selects select,.crm-inline-select,.contracts-filters select,.contracts-registry select,.finance-filters>input,.finance-filters>select{font-size:12px}
-.crm-field,.finance-field,.contracts-section label,.contracts-template-editor label,.contracts-inline-editor label,.contracts-variable-editor label,.contracts-document-step label,.contracts-party label,.contracts-signer-edit label,.agenda-field{font-size:12px}
-.crm-field input,.crm-field select,.crm-field textarea,.crm-interaction-form input,.crm-interaction-form select,.finance-field input,.finance-field select,.finance-field textarea,.contracts-section input,.contracts-section select,.contracts-section textarea,.contracts-template-editor input,.contracts-template-editor select,.contracts-template-editor textarea,.contracts-inline-editor input,.contracts-variable-editor input,.contracts-variable-editor select,.contracts-document-step input,.contracts-document-step select,.contracts-document-step textarea,.contracts-party input,.contracts-party select,.contracts-signer-edit input,.contracts-signer-edit select,.agenda-field input,.agenda-field select,.agenda-field textarea,.agenda-select-like{font-size:13px}
+/* Filter/tool bars share the same container padding and spacing. */
+.app-shell .workspace-main :is(.crm-filters,.finance-filters,.contracts-filters,.rh-filters,.marketing-filters,.admin-toolbar){gap:var(--ui-filter-gap)!important}
+.app-shell .workspace-main :is(.crm-filters,.finance-filters,.contracts-filters,.rh-filters,.marketing-filters){padding:var(--ui-filter-padding)!important;border-color:var(--ui-border);border-radius:var(--ui-radius-lg);background:var(--ui-surface)}
+.app-shell .workspace-main :is(.crm-filters,.finance-filters,.contracts-filters,.rh-filters,.marketing-filters) :is(input:not([type='checkbox']):not([type='radio']),select),
+.app-shell .workspace-main :is(.crm-search,.contracts-search,.finance-search,.rh-search,.marketing-search){min-height:var(--ui-control-md)!important}
 
-/* KPI family: preserve module layout/count, normalize hierarchy and geometry. */
-.admin-kpi,.crm-kpi,.finance-kpi,.contracts-kpi,.rh-kpi,.marketing-kpi,.dashboard-stat-card{min-height:var(--ui-kpi-min-height);padding:var(--ui-kpi-padding)}
-.app-shell .marketing-kpi{min-height:var(--ui-kpi-min-height)!important;padding:var(--ui-kpi-padding)!important}
-.crm-kpi span,.finance-kpi span,.contracts-kpi span,.rh-kpi small,.marketing-kpi small,.dashboard-stat-card span{font-size:11px;line-height:1.35;color:var(--ui-muted)}
-.crm-kpi strong,.finance-kpi strong,.contracts-kpi strong,.rh-kpi strong,.marketing-kpi strong,.dashboard-stat-card strong{font-size:24px;line-height:1.05;color:var(--ui-text-strong);font-weight:700}
+/* Buttons use one copy size and geometry; icon-only buttons keep square dimensions. */
+.app-shell .workspace-main :is(.button,.crm-btn,.rh-primary,.rh-secondary,.rh-danger-button,.marketing-primary,.marketing-secondary,.settings-primary,.settings-outline,.settings-danger,.reports-primary,.reports-outline,.site-pages-public-link,.site-sections-configure){min-height:var(--ui-control-md);padding-inline:var(--ui-control-inline);gap:var(--ui-control-gap);border-radius:var(--ui-radius-md);font-size:var(--ui-type-label)!important;font-weight:var(--ui-weight-bold);line-height:1;align-items:center;justify-content:center}
 
-/* Tables: one density; semantic numeric/action alignment is explicit. */
-.crm-table th,.finance-table th,.contracts-table th,.rh-table th,.marketing-table th,.settings-table-wrap th{font-size:11px;font-weight:650;color:var(--ui-muted)}
-.crm-table td,.finance-table td,.contracts-table td,.rh-table td,.marketing-table td,.settings-table-wrap td{font-size:12px;color:#475467}
-.crm-table td,.finance-table td,.contracts-table td,.marketing-table td{height:var(--ui-table-row-height)}
-.crm-link strong,.finance-link strong,.contracts-title-link strong,.marketing-table strong,.rh-table strong{font-size:12px}
-.crm-link small,.finance-link small,.finance-cell-sub,.contracts-title-link small,.marketing-table small,.rh-table small{font-size:10px}
-.workspace-main table .numeric,.workspace-main table .tabular,.workspace-main table td.positive,.workspace-main table td.negative{text-align:right!important;font-variant-numeric:tabular-nums}
-.workspace-main table.accounting-result-table td.positive,.workspace-main table.accounting-result-table td.negative{text-align:left!important}
-.workspace-main table .actions,.workspace-main table .actions-col,.workspace-main table .crm-actions-column,.workspace-main table .crm-actions-cell{text-align:right!important}
-.workspace-main table .table-row-actions{justify-content:flex-end!important;margin-left:auto!important;margin-right:0!important}
-.workspace-main table .actions-center{text-align:center!important}
-.workspace-main table .actions-center .table-row-actions{justify-content:center!important;margin-left:auto!important;margin-right:auto!important}
+/* Tabs: same height, padding and text hierarchy across modules. */
+.app-shell .workspace-main :is(.crm-tabs,.finance-tabs,.contracts-tabs,.rh-tabs,.marketing-tabs,.settings-tabs,.chat-domain-tabs,.chat-settings-tabs,.marketing-platform-tabs-exact){gap:var(--ui-space-1)}
+.app-shell .workspace-main :is(.crm-tabs,.finance-tabs,.contracts-tabs,.rh-tabs,.marketing-tabs,.settings-tabs,.chat-domain-tabs,.chat-settings-tabs,.marketing-platform-tabs-exact) button{min-height:var(--ui-control-md)!important;padding:0 var(--ui-space-3)!important;font-size:var(--ui-type-label)!important;font-weight:var(--ui-weight-semibold)!important;line-height:1;align-items:center;justify-content:center}
 
-/* RH TableViews intentionally use equal-width data columns anchored left. */
-.workspace-main table.rh-table th,.workspace-main table.rh-table td,.workspace-main table.rh-table .numeric,.workspace-main table.rh-table .tabular,.workspace-main table.rh-table td.positive,.workspace-main table.rh-table td.negative,.workspace-main table.rh-table .actions,.workspace-main table.rh-table .actions-col{text-align:left!important}
-.workspace-main table.rh-table .table-row-actions{justify-content:flex-start!important;margin-left:0!important;margin-right:auto!important}
+/* KPI family: one geometry and hierarchy; modules may only choose column count. */
+.app-shell .workspace-main :is(.admin-kpi,.crm-kpi,.finance-kpi,.contracts-kpi,.rh-kpi,.marketing-kpi,.dashboard-stat-card,.marketing-metric-strip>article,.settings-user-kpis>article,.settings-public-stats>div){box-sizing:border-box;width:100%;min-width:0;height:var(--ui-kpi-height)!important;min-height:var(--ui-kpi-height)!important;margin:0;padding:var(--ui-kpi-padding)!important;border:1px solid var(--ui-border);border-radius:var(--ui-radius-lg);background:var(--ui-surface);box-shadow:none;align-self:stretch}
+.app-shell .workspace-main :is(.admin-kpi-label,.crm-kpi span,.finance-kpi span,.contracts-kpi span,.rh-kpi small,.marketing-kpi small,.dashboard-stat-card span,.marketing-metric-strip>article>span,.settings-user-kpis>article>span,.settings-public-stats>div>span){color:var(--ui-muted)!important;font-size:var(--ui-type-micro)!important;font-weight:var(--ui-weight-bold)!important;line-height:1.25!important;letter-spacing:0!important;text-transform:none!important}
+.app-shell .workspace-main :is(.admin-kpi,.crm-kpi,.finance-kpi,.contracts-kpi,.rh-kpi,.marketing-kpi,.dashboard-stat-card,.marketing-metric-strip>article,.settings-user-kpis>article,.settings-public-stats>div)>strong,
+.app-shell .workspace-main :is(.crm-kpi,.finance-kpi,.contracts-kpi)>div>strong{color:var(--ui-text-strong)!important;font-size:var(--ui-type-kpi-value)!important;font-weight:var(--ui-weight-heavy)!important;line-height:1.05!important;letter-spacing:-.03em!important;font-variant-numeric:tabular-nums}
+.app-shell .workspace-main :is(.admin-kpi,.crm-kpi,.finance-kpi,.contracts-kpi,.rh-kpi,.marketing-kpi,.dashboard-stat-card) :is(small,.admin-kpi-detail){color:var(--ui-muted-soft)!important;font-size:var(--ui-type-micro)!important;line-height:1.25!important}
+.app-shell .workspace-main :is(.admin-kpi-icon,.crm-kpi i,.finance-kpi i,.contracts-kpi i,.rh-kpi i,.marketing-kpi i){width:var(--ui-kpi-icon)!important;height:var(--ui-kpi-icon)!important;min-width:var(--ui-kpi-icon);flex:0 0 var(--ui-kpi-icon);border-radius:var(--ui-radius-md)}
 
-/* Marketing TableViews use compact selector + eight equal data columns, anchored left. */
-.workspace-main table.marketing-reference-table{display:block!important;width:100%!important;min-width:900px!important;table-layout:fixed!important}
-.workspace-main table.marketing-reference-table thead,.workspace-main table.marketing-reference-table tbody{display:block!important;width:100%!important}
-.workspace-main table.marketing-reference-table tr{display:grid!important;grid-template-columns:var(--ui-table-selector-width) repeat(8,minmax(0,1fr))!important;width:100%!important}
-.workspace-main table.marketing-reference-table th,.workspace-main table.marketing-reference-table td,.workspace-main table.marketing-reference-table .tabular,.workspace-main table.marketing-reference-table td.positive,.workspace-main table.marketing-reference-table td.negative,.workspace-main table.marketing-reference-table .actions{width:auto!important;min-width:0!important;max-width:none!important;text-align:left!important;box-sizing:border-box!important;overflow:hidden!important;text-overflow:ellipsis!important}
-.workspace-main table.marketing-reference-table .select{width:auto!important;min-width:0!important;max-width:none!important;text-align:center!important;display:grid!important;place-items:center!important}
-.workspace-main table.marketing-reference-table .table-row-actions{justify-content:flex-start!important;margin-left:0!important;margin-right:auto!important}
+/* Site section manager follows the same text/padding scale. */
+.app-shell .workspace-main .site-pages-management-heading>strong{font-size:var(--ui-type-section-title)!important;font-weight:var(--ui-weight-bold)}
+.app-shell .workspace-main :is(.site-pages-management-heading>small,.site-pages-eyebrow,.site-pages-context,.site-sections-head,.site-sections-name small,.site-sections-status){font-size:var(--ui-type-micro)!important}
+.app-shell .workspace-main .site-sections-name b{font-size:var(--ui-type-body)!important}
+.app-shell .workspace-main .site-sections-head{padding:var(--ui-space-2) var(--ui-card-padding);gap:var(--ui-card-gap)}
+.app-shell .workspace-main .site-sections-row{min-height:64px;padding:var(--ui-space-2) var(--ui-card-padding);gap:var(--ui-card-gap)}
+.app-shell .workspace-main .site-pages-context{padding:var(--ui-space-2) var(--ui-space-3);gap:var(--ui-space-2)}
 
 /* Status/badge family. */
-.crm-badge,.finance-type,.finance-status,.contracts-status,.rh-status,.marketing-status,.settings-badge{min-height:var(--ui-badge-min-height);padding:var(--ui-space-1) var(--ui-space-2);border-radius:999px;font-size:10px;font-weight:700;line-height:1.2}
+.app-shell .workspace-main :is(.status,.crm-badge,.finance-type,.finance-status,.contracts-status,.rh-status,.marketing-status,.settings-badge){box-sizing:border-box;min-height:var(--ui-badge-min-height)!important;padding:var(--ui-space-1) var(--ui-space-2)!important;border-radius:999px;font-size:var(--ui-type-micro)!important;font-weight:var(--ui-weight-bold)!important;line-height:1.2;white-space:nowrap;align-items:center;justify-content:center}
 
-/* Common pagination. */
-.crm-pagination,.finance-pagination,.contracts-pagination,.rh-pagination,.marketing-pagination,.tableview-pagination{min-height:var(--ui-pagination-min-height);font-size:11px;color:var(--ui-muted)}
-.crm-pagination button,.finance-pagination button,.contracts-pagination button,.rh-pagination button,.marketing-pagination button,.tableview-pagination-center button,.tableview-page-size select{min-height:var(--ui-pagination-control);font-size:11px;border-color:var(--ui-border-strong);border-radius:var(--ui-radius-sm)}
-.tableview-pagination-summary,.tableview-page-size,.tableview-pagination-center>span{font-size:11px}
+/* Pagination: one footer rhythm across every TableView. */
+.app-shell .workspace-main :is(.crm-pagination,.finance-pagination,.contracts-pagination,.rh-pagination,.marketing-pagination,.tableview-pagination){box-sizing:border-box;min-height:var(--ui-pagination-min-height)!important;padding:var(--ui-pagination-block) var(--ui-pagination-inline)!important;gap:var(--ui-pagination-gap);align-items:center;color:var(--ui-muted);font-size:var(--ui-type-label)!important}
+.app-shell .workspace-main :is(.crm-pagination,.finance-pagination,.contracts-pagination,.rh-pagination,.marketing-pagination,.tableview-pagination) :is(button,select){min-height:var(--ui-pagination-control)!important;font-size:var(--ui-type-label)!important;border-radius:var(--ui-radius-sm)}
+.app-shell .workspace-main :is(.tableview-pagination-summary,.tableview-page-size,.tableview-pagination-center>span){font-size:var(--ui-type-label)!important}
 
-/* Shared overlays and floating surfaces. */
-.crm-modal,.finance-modal,.agenda-modal,.chat-modal,.marketing-modal,.reports-import-dialog,.rh-modal,.settings-modal,.workspace-popover,.rh-menu-pop,.marketing-menu-pop,.chat-popover,.agenda-participant-menu,.table-row-actions-menu{border-radius:var(--ui-radius-lg);box-shadow:var(--ui-shadow-popover)}
-.crm-modal,.finance-modal,.agenda-modal,.chat-modal,.marketing-modal,.reports-import-dialog,.rh-modal,.settings-modal{max-height:min(92vh,calc(100dvh - var(--ui-page-gap)))}
+/* Modals: one header/body/footer spacing and readable type scale. */
+:is(.crm-modal,.finance-modal,.agenda-modal,.chat-modal,.marketing-modal,.reports-import-dialog,.rh-modal,.settings-modal,.workspace-popover,.rh-menu-pop,.marketing-menu-pop,.chat-popover,.agenda-participant-menu,.table-row-actions-menu){border-radius:var(--ui-radius-lg);box-shadow:var(--ui-shadow-popover)}
+:is(.crm-modal,.finance-modal,.agenda-modal,.chat-modal,.marketing-modal,.reports-import-dialog,.rh-modal,.settings-modal){max-height:min(92vh,calc(100dvh - var(--ui-page-gap)))}
+.app-shell :is(.crm-modal,.finance-modal,.agenda-modal,.chat-modal,.marketing-modal,.reports-import-dialog,.rh-modal,.settings-modal)>header{padding:var(--ui-card-header-block) var(--ui-card-padding);gap:var(--ui-space-3)}
+.app-shell :is(.crm-modal,.finance-modal,.agenda-modal,.chat-modal,.marketing-modal,.reports-import-dialog,.rh-modal,.settings-modal)>header h2{margin:0;font-size:var(--ui-type-dialog-title)!important;font-weight:var(--ui-weight-heavy);line-height:var(--ui-line-tight)}
+.app-shell :is(.crm-modal,.finance-modal,.agenda-modal,.chat-modal,.marketing-modal,.reports-import-dialog,.rh-modal,.settings-modal)>header p{font-size:var(--ui-type-label)!important;line-height:var(--ui-line-normal);color:var(--ui-muted)}
+
+/* Empty/error/notice states share readable copy and spacing. */
+.app-shell .workspace-main :is(.admin-empty,.finance-empty,.crm-empty,.rh-empty,.marketing-empty,.metrics-empty-state){padding:var(--ui-space-6);text-align:center}
+.app-shell .workspace-main :is(.admin-empty,.finance-empty,.crm-empty,.rh-empty,.marketing-empty,.metrics-empty-state) strong{font-size:var(--ui-type-body)!important;line-height:var(--ui-line-normal)}
+.app-shell .workspace-main :is(.admin-empty,.finance-empty,.crm-empty,.rh-empty,.marketing-empty,.metrics-empty-state) p{font-size:var(--ui-type-label)!important;line-height:var(--ui-line-relaxed);color:var(--ui-muted)}
+.app-shell .workspace-main .admin-notice{padding:var(--ui-card-padding);gap:var(--ui-space-3)}
+.app-shell .workspace-main .admin-notice strong{font-size:var(--ui-type-body)!important}
+.app-shell .workspace-main .admin-notice p{font-size:var(--ui-type-label)!important;line-height:var(--ui-line-normal)}
 
 /* Shared row action menu is the canonical action affordance. */
 .table-row-actions{position:relative;display:flex;justify-content:flex-end}
 .table-row-actions-trigger{width:var(--ui-control-sm);height:var(--ui-control-sm);border:0;border-radius:var(--ui-radius-sm);background:transparent;color:var(--ui-muted);display:grid;place-items:center;cursor:pointer}
 .table-row-actions-trigger:hover,.table-row-actions-trigger:focus-visible{background:#f2f4f7;color:var(--ui-text)}
 .table-row-actions-menu{position:absolute;right:0;top:var(--ui-control-md);z-index:60;min-width:var(--ui-menu-min-width);padding:var(--ui-space-1);border:1px solid var(--ui-border);background:#fff}
-.table-row-actions-menu button{width:100%;height:var(--ui-control-sm);border:0;border-radius:var(--ui-radius-sm);background:transparent;padding:0 var(--ui-space-3);text-align:left;font-size:12px;color:#344054;cursor:pointer}
+.table-row-actions-menu button{width:100%;height:var(--ui-control-sm);border:0;border-radius:var(--ui-radius-sm);background:transparent;padding:0 var(--ui-space-3);text-align:left;font-size:var(--ui-type-body)!important;color:#344054;cursor:pointer}
 .table-row-actions-menu button:hover,.table-row-actions-menu button:focus-visible{background:#f5f6f7}
 .table-row-actions-menu button.danger{color:var(--ui-danger)}
 
-/* Focus is consistent even where module CSS removed native outlines. */
+/* Focus is consistent even where feature CSS removed native outlines. */
 .app-shell input:focus-visible,.app-shell select:focus-visible,.app-shell textarea:focus-visible,.app-shell button:focus-visible,.app-shell a:focus-visible{outline:2px solid var(--ui-accent);outline-offset:2px}
 .app-shell input:disabled,.app-shell select:disabled,.app-shell textarea:disabled,.app-shell button:disabled{cursor:not-allowed}
-
-/* Popovers/dropdowns do not escape narrow viewports. */
 .workspace-popover,.rh-menu-pop,.marketing-menu-pop,.chat-popover,.table-row-actions-menu{max-width:min(320px,calc(100vw - var(--ui-page-gap)))}
 
-/* Chat is intentionally denser than CRUD modules, but microcopy remains readable. */
-.chat-domain-tabs button,.chat-settings-tabs button,.chat-search-field input,.chat-filter-grid select,.chat-composer-tools select,.chat-internal-message p,.chat-support-message p,.chat-field input,.chat-field textarea,.chat-settings-card input,.chat-settings-card select,.chat-settings-card textarea{font-size:10px!important}
-.chat-internal-item strong,.chat-support-list strong,.chat-thread-head strong,.chat-conversation-head strong,.chat-modal h2{font-size:11px}
-.chat-internal-item span,.chat-list-empty p,.chat-thread-empty p,.chat-help,.chat-ops h3{font-size:9px}
+/* Dense modules remain compact, but never drop below canonical microcopy. */
+.chat-domain-tabs button,.chat-settings-tabs button,.chat-search-field input,.chat-filter-grid select,.chat-composer-tools select,.chat-internal-message p,.chat-support-message p,.chat-field input,.chat-field textarea,.chat-settings-card input,.chat-settings-card select,.chat-settings-card textarea,.chat-internal-item strong,.chat-support-list strong,.chat-thread-head strong,.chat-conversation-head strong,.chat-internal-item span,.chat-list-empty p,.chat-thread-empty p,.chat-help,.chat-ops h3{font-size:var(--ui-type-micro)!important}
 .chat-support-layout,.chat-internal-layout{min-height:0;height:clamp(560px,calc(100dvh - 190px),820px)}
-
-/* Calendar cells may stay compact; controls and modal content use the common scale. */
-.agenda-toolbar select,.agenda-search input{font-size:12px}
-.agenda-period-label{font-size:12px}
-.agenda-modal>header h2{font-size:18px}
-.agenda-modal>header p{font-size:11px}
-
-/* Reports keeps reference-compact row actions while receiving shared focus/viewport behavior. */
-.reports-outline,.reports-primary,.reports-template-row button{min-height:var(--ui-pagination-control)}
-
-/* Settings pruning is structural intent: no commercial/product-plan status labels in integrations. */
+.agenda-toolbar select,.agenda-search input,.agenda-period-label{font-size:var(--ui-type-control)!important}
 .settings-integration-list .settings-status{display:none!important}
 .settings-integration-list article{grid-template-columns:var(--ui-account-control) minmax(0,1fr) auto}
 
-/* Header actions remain reachable on mobile; secondary actions are suppressed where space is scarce. */
 @media(max-width:760px){
-  .workspace-actions .workspace-primary-action{display:inline-flex;max-width:132px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:9px;padding:0 var(--ui-space-2)}
+  .workspace-actions .workspace-primary-action{display:inline-flex;max-width:132px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:var(--ui-type-micro)!important;padding:0 var(--ui-space-2)}
   .workspace-actions .workspace-header-secondary{display:none}
   .workspace-top.workspace-top-page{padding:0 var(--ui-header-inline-mobile)}
   .workspace-top.workspace-top-page .workspace-page-heading{min-width:0}
   .workspace-top.workspace-top-page .workspace-page-heading h1{font-size:var(--ui-header-title-size-mobile);max-width:42vw;overflow:hidden;text-overflow:ellipsis}
   .workspace-top.workspace-top-page .workspace-page-heading p{display:none}
   .app-shell .workspace-main{padding:var(--ui-page-block-start-mobile) var(--ui-page-inline-mobile) var(--ui-page-block-end-mobile)}
-  .crm-page,.finance-page,.contracts-page,.agenda-page,.chat-page,.chat-settings-page,.rh-page,.marketing-page,.reports-page,.settings-page,.dashboard-reference-page{gap:var(--ui-page-gap-mobile)}
-  .crm-kpis,.finance-kpis,.contracts-kpis,.rh-kpis,.marketing-kpis-4,.marketing-kpis-5,.dashboard-reference-kpis,.settings-user-kpis{grid-template-columns:1fr}
-  .crm-filters,.finance-filters,.contracts-filters,.rh-filters,.marketing-filters{width:100%}
-  .crm-modal,.finance-modal,.agenda-modal,.chat-modal,.marketing-modal,.reports-import-dialog,.rh-modal,.settings-modal{width:min(100%,calc(100vw - var(--ui-space-4)));max-height:calc(100dvh - var(--ui-space-4));border-radius:var(--ui-radius-md)}
+  :is(.crm-page,.finance-page,.contracts-page,.agenda-page,.chat-page,.chat-settings-page,.rh-page,.marketing-page,.reports-page,.settings-page,.dashboard-reference-page,.metrics-page,.site-pages-page,.site-content-page,.site-media-page,.site-forms-page){gap:var(--ui-page-gap-mobile)}
+  :is(.crm-kpis,.finance-kpis,.contracts-kpis,.rh-kpis,.marketing-kpis-4,.marketing-kpis-5,.dashboard-reference-kpis,.settings-user-kpis,.metrics-kpi-grid){grid-template-columns:1fr!important}
+  :is(.crm-filters,.finance-filters,.contracts-filters,.rh-filters,.marketing-filters){width:100%}
+  :is(.crm-modal,.finance-modal,.agenda-modal,.chat-modal,.marketing-modal,.reports-import-dialog,.rh-modal,.settings-modal){width:min(100%,calc(100vw - var(--ui-space-4)));max-height:calc(100dvh - var(--ui-space-4));border-radius:var(--ui-radius-md)}
   .workspace-main table{max-width:100%}
 }
-
-@media(max-width:1080px) and (min-width:761px){
-  .app-shell .workspace-main{padding-left:var(--ui-page-inline-tablet);padding-right:var(--ui-page-inline-tablet)}
-}
-
-@media(prefers-reduced-motion:reduce){
-  .app-shell *{scroll-behavior:auto!important;transition-duration:.01ms!important;animation-duration:.01ms!important;animation-iteration-count:1!important}
-}
+@media(max-width:1080px) and (min-width:761px){.app-shell .workspace-main{padding-left:var(--ui-page-inline-tablet);padding-right:var(--ui-page-inline-tablet)}}
+@media(prefers-reduced-motion:reduce){.app-shell *{scroll-behavior:auto!important;transition-duration:.01ms!important;animation-duration:.01ms!important;animation-iteration-count:1!important}}

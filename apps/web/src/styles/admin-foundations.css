@@ -1,6 +1,6 @@
-/* Portal Lander — canonical administrative geometry and spacing tokens.
-   Structural dimensions live here. Shared/layout CSS consumes these tokens;
-   feature CSS must not redefine equivalent geometry. */
+/* Portal Lander — canonical administrative geometry, typography and spacing tokens.
+   Structural and typographic dimensions live here. Shared/layout CSS consumes
+   these tokens; feature CSS must not redefine equivalent geometry. */
 .app-shell{
   --ui-font:'Montserrat',Arial,sans-serif;
 
@@ -17,6 +17,24 @@
   --ui-danger:#b42318;
   --ui-success:#027a48;
   --ui-warning:#b54708;
+
+  --ui-type-micro:10px;
+  --ui-type-label:11px;
+  --ui-type-body:12px;
+  --ui-type-control:12px;
+  --ui-type-card-title:13px;
+  --ui-type-sort:13px;
+  --ui-type-section-title:16px;
+  --ui-type-dialog-title:18px;
+  --ui-type-kpi-value:24px;
+  --ui-line-tight:1.2;
+  --ui-line-normal:1.4;
+  --ui-line-relaxed:1.55;
+  --ui-weight-regular:400;
+  --ui-weight-medium:500;
+  --ui-weight-semibold:650;
+  --ui-weight-bold:750;
+  --ui-weight-heavy:800;
 
   --ui-space-1:4px;
   --ui-space-2:8px;
@@ -58,10 +76,16 @@
   --ui-page-gap:24px;
   --ui-page-gap-mobile:16px;
   --ui-card-gap:16px;
+  --ui-card-padding:16px;
+  --ui-card-header-block:12px;
+  --ui-card-header-inline:16px;
+  --ui-card-header-min-height:60px;
   --ui-page-heading-copy-max-width:780px;
 
   --ui-control-sm:32px;
   --ui-control-md:36px;
+  --ui-control-inline:12px;
+  --ui-control-gap:8px;
   --ui-icon-control:36px;
   --ui-account-control:44px;
   --ui-search-min-width:300px;
@@ -69,6 +93,8 @@
   --ui-menu-min-width:148px;
   --ui-popover-width:280px;
   --ui-account-popover-width:240px;
+  --ui-filter-padding:8px;
+  --ui-filter-gap:8px;
 
   --ui-kpi-height:104px;
   --ui-kpi-min-height:var(--ui-kpi-height);
@@ -76,19 +102,21 @@
   --ui-kpi-gap:16px;
   --ui-kpi-icon:34px;
 
-  --ui-table-row-height:52px;
+  --ui-table-head-height:40px;
+  --ui-table-row-height:48px;
   --ui-table-cell-block:0px;
-  --ui-table-cell-inline:10px;
+  --ui-table-cell-inline:12px;
   --ui-table-selector-inline:0px;
   --ui-table-selector-width:38px;
   --ui-table-min-width:760px;
   --ui-table-primary-min-width:220px;
+  --ui-table-action-width:64px;
   --ui-badge-min-height:22px;
 
-  --ui-pagination-min-height:52px;
+  --ui-pagination-min-height:48px;
   --ui-pagination-control:30px;
-  --ui-pagination-block:10px;
-  --ui-pagination-inline:14px;
+  --ui-pagination-block:8px;
+  --ui-pagination-inline:12px;
   --ui-pagination-gap:12px;
   --ui-pagination-gap-mobile:8px;
   --ui-pagination-center-label-min-width:112px;

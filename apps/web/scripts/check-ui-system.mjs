@@ -16,10 +16,9 @@ const assertCascadeTail=(source,expected,message)=>{
 }
 
 const adminEntry=await read('src/styles/admin-entry.css')
-assertCascadeTail(adminEntry,["@import './admin-design-system.css';","@import './admin-table-system.css';","@import './admin-accessibility.css';"],'Cascade administrativa deve terminar em admin-design-system.css → admin-table-system.css → admin-accessibility.css; nenhuma folha arbitrária pode vir depois da camada final de acessibilidade.')
+assertCascadeTail(adminEntry,["@import './admin-design-system.css';","@import './admin-table-system.css';","@import './admin-accessibility.css';"],'Cascade administrativa deve terminar em admin-design-system.css → admin-table-system.css → admin-accessibility.css; nenhuma folha de módulo pode sobrescrever o contrato canônico.')
 if(!adminEntry.includes("@import './admin-access-system.css';"))failures.push('Páginas de acesso devem carregar o baseline tipográfico/interacional interno.')
-if(adminEntry.includes('admin-table-alignment.css'))failures.push('A camada global de alinhamento de tabelas não pode voltar; alinhamento deve ser semântico.')
-if(adminEntry.includes('admin-settings-pruning.css'))failures.push('Configurações não pode depender de pruning por CSS para esconder funcionalidades.')
+for(const forbidden of ['admin-table-alignment.css','admin-settings-pruning.css','admin-finance-accounting.css'])if(adminEntry.includes(forbidden))failures.push(`Cascade administrativa não pode depender da camada paralela: ${forbidden}`)
 for(const path of ['src/styles/admin-foundations.css','src/styles/admin-design-system.css','src/styles/admin-table-system.css','src/styles/admin-access-system.css','src/styles/admin-accessibility.css'])if(!(await exists(path)))failures.push(`Design system interno exige ${path}.`)
 
 const publicStyles=await read('src/styles/public-styles.css')
@@ -29,10 +28,31 @@ for(const path of ['src/styles/public-layout-system.css','src/styles/public-corr
 const indexHtml=await read('index.html')
 for(const font of ['Bebas+Neue','Montserrat'])if(!indexHtml.includes(font))failures.push(`Fonte carregada obrigatória ausente: ${font}.`)
 if(indexHtml.includes('.news-reference-page .pl-page-hero'))failures.push('Layout visual da página de notícias não pode permanecer hardcoded em index.html.')
+
 const adminFoundations=await read('src/styles/admin-foundations.css')
-for(const required of ["--ui-font:'Montserrat'",'--ui-control-sm:32px','--ui-control-md:36px','--ui-page-gap:24px'])if(!adminFoundations.includes(required))failures.push(`Fundações administrativas devem preservar: ${required}`)
+for(const required of [
+ "--ui-font:'Montserrat'",
+ '--ui-type-micro:10px','--ui-type-label:11px','--ui-type-body:12px','--ui-type-control:12px','--ui-type-card-title:13px','--ui-type-section-title:16px','--ui-type-dialog-title:18px','--ui-type-kpi-value:24px',
+ '--ui-control-sm:32px','--ui-control-md:36px','--ui-page-gap:24px','--ui-card-padding:16px','--ui-card-header-min-height:60px','--ui-filter-padding:8px','--ui-filter-gap:8px',
+ '--ui-table-head-height:40px','--ui-table-row-height:48px','--ui-table-cell-inline:12px','--ui-pagination-min-height:48px',
+])if(!adminFoundations.includes(required))failures.push(`Fundações administrativas devem preservar: ${required}`)
+
 const adminDesign=await read('src/styles/admin-design-system.css')
-for(const required of ['min-height:100dvh','prefers-reduced-motion','workspace-primary-action{display:inline-flex'])if(!adminDesign.includes(required))failures.push(`Design system administrativo deve preservar: ${required}`)
+for(const required of [
+ 'min-height:100dvh','prefers-reduced-motion','workspace-primary-action{display:inline-flex',
+ 'Controls and forms: one height, one type scale, one horizontal rhythm.',
+ 'Filter/tool bars share the same container padding and spacing.',
+ 'Tabs: same height, padding and text hierarchy across modules.',
+ 'KPI family: one geometry and hierarchy',
+ 'Pagination: one footer rhythm across every TableView.',
+ 'Modals: one header/body/footer spacing and readable type scale.',
+ 'font-size:var(--ui-type-control)!important','font-size:var(--ui-type-micro)!important','padding:var(--ui-filter-padding)!important',
+])if(!adminDesign.includes(required))failures.push(`Design system administrativo deve preservar: ${required}`)
+if(/font-size:\s*[0-9](?:\.\d+)?px/.test(adminDesign))failures.push('admin-design-system.css não pode voltar a declarar escala tipográfica numérica local; use tokens --ui-type-* (exceto controles gráficos sem texto).')
+
+const adminTable=await read('src/styles/admin-table-system.css')
+for(const required of ['height:var(--ui-table-head-height)!important','height:var(--ui-table-row-height)!important','padding-inline:var(--ui-table-cell-inline)!important','font-size:var(--ui-type-label)!important','font-size:var(--ui-type-body)!important','font-size:var(--ui-type-micro)!important','accounting-number-col'])if(!adminTable.includes(required))failures.push(`TableView canônica deve preservar: ${required}`)
+
 const accessDesign=await read('src/styles/admin-access-system.css')
 for(const required of ["font-family:'Montserrat'",'min-height:100dvh','focus-visible','prefers-reduced-motion'])if(!accessDesign.includes(required))failures.push(`Baseline de acesso deve preservar: ${required}`)
 
@@ -82,11 +102,11 @@ for(const path of sourceFiles){
  if(path.startsWith('src/modules/')&&/function\s+\w*SortHeader\s*\(/.test(source))failures.push(`${path}: implementação local de cabeçalho de ordenação detectada; use TableSortHeader.`)
  if(source.includes('style={{')&&!path.endsWith('shared/public/PublicChrome.tsx'))warnings.push(`${path}: estilo inline detectado; manter somente se for valor realmente dinâmico.`)
  if(path.endsWith('.css')){
-   const tiny=[...source.matchAll(/font-size:\s*([0-7](?:\.\d+)?)px/g)].length
-   if(tiny)warnings.push(`${path}: ${tiny} declaração(ões) tipográfica(s) abaixo de 8px; revisar como exceção de alta densidade.`)
+   const tiny=[...source.matchAll(/font-size:\s*([0-9](?:\.\d+)?)px/g)].filter(match=>Number(match[1])<10).length
+   if(tiny)warnings.push(`${path}: ${tiny} declaração(ões) tipográfica(s) legadas abaixo de 10px; a camada canônica deve prevalecer e a origem deve ser removida quando o módulo for tocado.`)
  }
 }
 
 if(warnings.length){console.log('UI audit warnings:');warnings.forEach(item=>console.log(`- ${item}`))}
 if(failures.length){console.error('UI system invariants failed:');failures.forEach(item=>console.error(`- ${item}`));process.exit(1)}
-console.log(`UI system invariants OK (${sourceFiles.length} arquivos inspecionados, ${warnings.length} avisos não bloqueantes).`)
+console.log(`UI system invariants OK (${sourceFiles.length} arquivos inspecionados, ${warnings.length} avisos legados não bloqueantes; tipografia/controles/cards/KPIs/TableViews/tabs/filtros/paginação/modais centralizados).`)

@@ -6,18 +6,21 @@ const failures=[]
 
 const foundations=await read('src/styles/admin-foundations.css')
 for(const token of [
-  '--ui-table-row-height:52px',
+  '--ui-table-head-height:40px',
+  '--ui-table-row-height:48px',
   '--ui-table-cell-block:0px',
-  '--ui-table-cell-inline:10px',
+  '--ui-table-cell-inline:12px',
   '--ui-table-selector-inline:0px',
   '--ui-table-selector-width:38px',
   '--ui-table-min-width:760px',
   '--ui-table-primary-min-width:220px',
+  '--ui-table-action-width:64px',
   '--ui-badge-min-height:22px',
 ])if(!foundations.includes(token))failures.push(`Fundação TableView deve preservar ${token}.`)
 
 const table=await read('src/styles/admin-table-system.css')
 for(const selector of [
+  '.table-card',
   '.crm-table',
   '.finance-table',
   '.contracts-table',
@@ -33,6 +36,8 @@ for(const selector of [
   '.numeric',
   '.tabular',
   '.actions-col',
+  '.accounting-result-table',
+  '.accounting-number-col',
   '.crm-badge',
   '.contracts-status',
   '.finance-status',
@@ -41,14 +46,14 @@ for(const selector of [
 ])if(!table.includes(selector))failures.push(`Contrato TableView não cobre ${selector}.`)
 
 for(const rule of [
+  'height:var(--ui-table-head-height)!important',
   'height:var(--ui-table-row-height)!important',
   'padding-block:var(--ui-table-cell-block)!important',
   'padding-inline:var(--ui-table-cell-inline)!important',
-  'font-size:11px!important',
-  'font-size:12px!important',
-  'font-size:10px!important',
+  'font-size:var(--ui-type-label)!important',
+  'font-size:var(--ui-type-body)!important',
+  'font-size:var(--ui-type-micro)!important',
   'width:var(--ui-table-selector-width)!important',
-  'text-align:center!important',
   'font-variant-numeric:tabular-nums',
   'text-align:right!important',
   'min-height:var(--ui-badge-min-height)!important',
@@ -59,6 +64,7 @@ const designIndex=entry.indexOf("@import './admin-design-system.css';")
 const tableIndex=entry.indexOf("@import './admin-table-system.css';")
 const accessibilityIndex=entry.indexOf("@import './admin-accessibility.css';")
 if(!(designIndex>=0&&tableIndex>designIndex&&accessibilityIndex>tableIndex))failures.push('admin-table-system.css deve permanecer na cauda canônica, depois do design system e antes de accessibility.')
+if(entry.includes("@import './admin-finance-accounting.css';"))failures.push('Contabilidade não pode manter uma camada de densidade paralela após o TableView canônico.')
 
 const financeMain=await read('src/modules/finance/FinanceMainPage.tsx')
 const financeInvoices=await read('src/modules/finance/FinanceInvoicesPage.tsx')
@@ -81,10 +87,8 @@ for(const rule of [
   '.accounting-result-table{table-layout:fixed}',
   '.accounting-result-table col.accounting-category-col{width:36%}',
   '.accounting-result-table col.accounting-number-col{width:16%}',
-  '.accounting-result-table :is(th,td).accounting-number-col{text-align:right!important',
-  '.accounting-result-table th.accounting-number-col .crm-sort-header{width:100%;justify-content:flex-end}',
-])if(!financeStyles.includes(rule))failures.push(`Contabilidade deve preservar geometria/alinhamento determinístico: ${rule}.`)
-if(financeStyles.includes('.accounting-result-table th,.accounting-result-table td'))failures.push('Contabilidade não pode forçar todas as colunas para a esquerda; colunas numéricas são alinhadas à direita.')
+])if(!financeStyles.includes(rule))failures.push(`Contabilidade deve preservar apenas a largura semântica no CSS do domínio: ${rule}.`)
+if(financeStyles.includes('.accounting-result-table th,.accounting-result-table td'))failures.push('Contabilidade não pode forçar padding/alinhamento de todas as células; densidade pertence ao TableView canônico.')
 
 if(failures.length){
   console.error('TableView invariants failed:')
@@ -92,4 +96,4 @@ if(failures.length){
   process.exit(1)
 }
 
-console.log('TableView contract OK — headers 11px, cells 12px, secondary text/badges 10px, rows 52px, selector 38px, ações/números alinhados semanticamente e Contabilidade com colunas determinísticas.')
+console.log('TableView contract OK — header 40px, rows 48px, padding inline 12px, tipografia 11/12/10 e alinhamento semântico único em todos os módulos.')

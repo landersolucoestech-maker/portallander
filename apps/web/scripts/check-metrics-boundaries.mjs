@@ -7,6 +7,7 @@ const forbidTokens=(path,source,tokens)=>{for(const token of tokens)if(source.in
 const app=await read('src/app/InternalApp.tsx')
 const nav=await read('src/shared/internal/adminNavigation.ts')
 const marketing=await read('src/modules/marketing/MarketingPage.tsx')
+const marketingMetrics=await read('src/modules/marketing/pages/MarketingMetrics.tsx')
 const metrics=await read('src/modules/analytics/MetricsPage.tsx')
 const client=await read('src/modules/analytics/metricsClient.ts')
 const analyticsClient=await read('src/modules/analytics/client.ts')
@@ -18,6 +19,7 @@ forbidTokens('InternalApp.tsx',app,['path="/app/metricas"','path="/app/marketing
 requireTokens('adminNavigation.ts',nav,["['Métricas',BarChart3,'/app/metrics']"])
 forbidTokens('adminNavigation.ts',nav,["['Métricas',BarChart3,'/app/metricas']","['Métricas',BarChart3,'/app/marketing/metricas']","['Métricas',BarChart3,'/app/marketing/metrics']"])
 forbidTokens('MarketingPage.tsx',marketing,['MarketingMetrics','/app/marketing/metricas','/app/marketing/metrics'])
+
 requireTokens('MetricsPage.tsx',metrics,[
   "const TABS=[['geral','Visão Geral'],['site','Site'],['instagram','Instagram'],['tiktok','TikTok'],['youtube','YouTube']] as const",
   "const INTERNAL_METRICS_RANGE:MetricsRange='30d'",
@@ -26,15 +28,18 @@ requireTokens('MetricsPage.tsx',metrics,[
   'testId="metrics-site-analytics"',
   'testId="metrics-site-content"',
   'testId="metrics-site-conversions"',
-  'function SiteSection(',
-  'function SiteKpiGrid(',
-  'function SiteCard(',
-  'function SiteRows(',
-  'className="metrics-site-kpis"',
-  'className="metrics-site-card-grid"',
-  'SiteCard title="Comportamento"',
-  'SiteCard title="Estado editorial"',
-  'SiteCard title="Resultados"',
+  'function MetricsSection(',
+  'function MetricsKpiGrid(',
+  'function MetricsCard(',
+  'function MetricsRows(',
+  'className="metrics-overview-grid"',
+  'className="metrics-kpi-grid"',
+  'className="metrics-card-grid"',
+  'MetricsCard title="Comportamento"',
+  'MetricsCard title="Estado editorial"',
+  'MetricsCard title="Resultados"',
+  'className="metrics-social-source"',
+  'embeddedAdmin',
   'metrics-instagram-tab',
   'metrics-tiktok-tab',
   'metrics-youtube-tab',
@@ -57,6 +62,7 @@ forbidTokens('MetricsPage.tsx',metrics,[
   '128400','548200','48200','268000','415000',
   'function MetricStrip(',
   'marketing-metric-strip marketing-metric-strip-exact',
+  'marketing-analytics-grid marketing-analytics-reference',
   'content_collaborations',
   'entryContext',
   'newVsReturning',
@@ -67,11 +73,35 @@ forbidTokens('MetricsPage.tsx',metrics,[
 const siteTabStart=metrics.indexOf('function SiteTab(')
 const siteTabEnd=metrics.indexOf('function SourceTab(',siteTabStart)
 const siteTab=siteTabStart>=0&&siteTabEnd>siteTabStart?metrics.slice(siteTabStart,siteTabEnd):''
-const siteKpiCalls=siteTab.match(/<SiteKpiGrid\b/g)?.length??0
+const siteKpiCalls=siteTab.match(/<MetricsKpiGrid\b/g)?.length??0
 if(siteKpiCalls!==1)failures.push(`MetricsPage.tsx deve possuir exatamente uma faixa de KPIs na aba Site; encontrado: ${siteKpiCalls}`)
-const firstKpi=siteTab.indexOf('<SiteKpiGrid')
-const firstSection=siteTab.indexOf('<SiteSection')
+const firstKpi=siteTab.indexOf('<MetricsKpiGrid')
+const firstSection=siteTab.indexOf('<MetricsSection')
 if(firstKpi<0||firstSection<0||firstKpi>firstSection)failures.push('MetricsPage.tsx deve manter a única faixa de KPIs antes de qualquer TableView/seção analítica')
+
+requireTokens('MarketingMetrics.tsx',marketingMetrics,[
+  'embeddedAdmin?:boolean',
+  'if(embeddedAdmin)',
+  'className="metrics-social"',
+  'className="metrics-kpi-grid"',
+  'className="metrics-section metrics-social-section"',
+  'Indicadores complementares',
+  'Comparação com período anterior',
+  'Conteúdo vinculado',
+  'Sem conteúdo com vínculo analítico comprovado neste período.',
+])
+const embeddedStart=marketingMetrics.indexOf('if(embeddedAdmin)')
+const embeddedEnd=marketingMetrics.indexOf('const maxReach',embeddedStart)
+const embeddedSocial=embeddedStart>=0&&embeddedEnd>embeddedStart?marketingMetrics.slice(embeddedStart,embeddedEnd):''
+forbidTokens('MarketingMetrics.tsx [embeddedAdmin]',embeddedSocial,[
+  'marketing-performance-chart',
+  'marketing-metric-strip',
+  'marketing-analytics-grid',
+  'marketing-ranking',
+  'UNAVAILABLE —',
+])
+const embeddedKpis=embeddedSocial.match(/<AdminKpi\b/g)?.length??0
+if(embeddedKpis!==1)failures.push(`MarketingMetrics.tsx deve renderizar a faixa social por um único map de AdminKpi; encontrado: ${embeddedKpis}`)
 
 requireTokens('metricsClient.ts',client,['/api/metrics','loadDevelopmentMetricsOverview'])
 forbidTokens('metricsClient.ts',client,["@portallander/mockup",'getMockupMetricsOverview'])
@@ -80,20 +110,22 @@ requireTokens('admin-entry.css',adminEntry,["@import './admin-metrics.css';"])
 requireTokens('admin-metrics.css',metricsStyles,[
   '.metrics-page',
   'font-family:var(--ui-font)',
-  '.metrics-site-section',
-  '.metrics-site-section-head',
-  '.metrics-site-kpis',
+  '.metrics-overview-grid',
+  '.metrics-section',
+  '.metrics-section-head',
+  '.metrics-kpi-grid',
   'grid-template-columns:repeat(4,minmax(0,1fr))',
-  '.metrics-site-card-grid',
+  '.metrics-card-grid',
   'grid-template-columns:repeat(2,minmax(0,1fr))',
-  '.metrics-site-card',
-  '.metrics-site-row',
+  '.metrics-card',
+  '.metrics-row',
   'min-height:56px',
+  '.metrics-social',
   'var(--ui-kpi-icon)',
   'var(--ui-kpi-gap)',
   'var(--ui-card-gap)',
 ])
-forbidTokens('admin-metrics.css',metricsStyles,['marketing-metric-strip','marketing-card','marketing-summary'])
+forbidTokens('admin-metrics.css',metricsStyles,['marketing-metric-strip','marketing-card','marketing-summary','marketing-performance-chart'])
 
 if(failures.length){console.error('Falha nos boundaries do módulo Métricas:');failures.forEach(item=>console.error(`- ${item}`));process.exit(1)}
-console.log('Metrics boundaries OK — módulo global em /app/metrics; aba Site com uma única faixa de 4 KPIs no topo e, depois dela, somente seções analíticas/TableViews de audiência, conteúdo e conversões.')
+console.log('Metrics boundaries OK — Visão Geral, Site, Instagram, TikTok e YouTube compartilham grid 4-KPI, cards 2x, tipografia, rows e espaçamento; Site mantém KPIs apenas no topo e canais sociais não usam o painel antigo de gráfico/barra única.')

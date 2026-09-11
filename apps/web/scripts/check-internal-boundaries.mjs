@@ -23,6 +23,13 @@ requireModuleSources('InternalApp.tsx',internalApp,[
  '../modules/access/CrmModuleRoutes',
  '../modules/dashboard/DashboardPage',
  '../modules/contracts/ContractsPage',
+ '../modules/agenda/AgendaPage',
+ '../modules/chat/ChatPage',
+ '../modules/hr/HRPage',
+ '../modules/analytics/MetricsPage',
+ '../modules/editorial/EditorialAdminPage',
+ '../modules/marketing/MarketingPage',
+ '../modules/reports/ReportsPage',
  '../modules/finance/FinanceMainPage',
  '../modules/finance/FinanceInvoicesPage',
  '../modules/finance/FinanceAccountingPage',
@@ -39,6 +46,14 @@ requireTokens('InternalApp.tsx',internalApp,[
  'path="/app/dashboard"',
  'path="/app/crm/*"',
  'path="/app/contracts"',
+ 'path="/app/agenda"',
+ 'path="/app/chat"',
+ 'path="/app/hr"',
+ 'path="/app/metrics"',
+ 'path="/app/editorial"',
+ 'path="/app/editorial/content"',
+ 'path="/app/marketing/*"',
+ 'path="/app/reports"',
  'path="/app/finance"',
  'path="/app/finance/invoices"',
  'path="/app/finance/accounting"',
@@ -75,6 +90,7 @@ requireTokens('adminNavigation.ts',adminNavigation,[
  'UNIFIED_ADMIN_NAV',
  "['Dashboard',LayoutDashboard,'/app/dashboard']",
  "['CRM',ContactRound,'/app/crm']",
+ "['Contratos',FileText,'/app/contracts']",
  "label:'Financeiro'",
  "['Transações',Landmark,'/app/finance']",
  "['Notas Fiscais',ReceiptText,'/app/finance/invoices']",
@@ -82,6 +98,10 @@ requireTokens('adminNavigation.ts',adminNavigation,[
  "['Agenda',CalendarDays,'/app/agenda']",
  "['Chat',MessageCircle,'/app/chat']",
  "['RH',UsersRound,'/app/hr']",
+ "['Métricas',BarChart3,'/app/metrics']",
+ "label:'Editorial'",
+ "['Páginas editoriais',Layers3,'/app/editorial']",
+ "['Conteúdos editoriais',FileText,'/app/editorial/content']",
  "label:'Site'",
  "['Conteúdos',FileText,'/app/site/content']",
  "['Mídias',Images,'/app/site/media']",
@@ -89,10 +109,11 @@ requireTokens('adminNavigation.ts',adminNavigation,[
  "['Formulários',ClipboardList,'/app/site/forms']",
  "['Mídia Kit',Newspaper,'/app/site/media-kit']",
  "label:'Marketing'",
+ "['Relatórios',BarChart3,'/app/reports']",
  "['Configurações',Settings,'/app/settings']"
 ])
 forbidTokens('adminNavigation.ts',adminNavigation,['CRM_WORKSPACE_NAV','WORKSPACE_NAV','/app/workspaces'])
-for(const forbidden of ["['Dashboard',LayoutDashboard,'/app/crm']",'/app/crm/dashboard','/app/crm/integrations','Integrações','PlugZap',"['Categorias',Tags,'/app/finance/categories']","/app/finance/automations","['Contratos',FileText,'/app/contracts']","['Relatórios'"])if(adminNavigation.includes(forbidden))failures.push(`adminNavigation contém item proibido ou removido: ${forbidden}`)
+for(const forbidden of ["['Dashboard',LayoutDashboard,'/app/crm']",'/app/crm/dashboard','/app/crm/integrations','Integrações','PlugZap',"['Categorias',Tags,'/app/finance/categories']","/app/finance/automations"])if(adminNavigation.includes(forbidden))failures.push(`adminNavigation contém item proibido ou removido: ${forbidden}`)
 
 const crmPage=await read('src/modules/crm/CrmPage.tsx')
 requireTokens('CrmPage.tsx',crmPage,['UNIFIED_ADMIN_NAV',"title:'CRM'",'Gerencie contatos, leads e relacionamentos comerciais do Portal Lander.','crm-tabs','role="tablist"','Novo Contato','Novo Lead','LeadFormModal','ContactFormModal','Total de Leads','Total de Contatos'])
@@ -154,4 +175,4 @@ requireTokens('MediaKitPage.tsx',mediaKitPage,['data-testid="media-kit-automatic
 for(const forbidden of ['Adicionar métrica','Metric key','Account ID','Property ID','<span>Provider</span>','<span>Conta</span>','Compatibilidade de dados manuais legados','Usuários mensais','Visualizações mensais','Alcance social','Valor manual'])if(mediaKitPage.includes(forbidden))failures.push(`Mídia Kit não pode reintroduzir configuração técnica ou audiência manual no fluxo principal: ${forbidden}`)
 
 if(failures.length){console.error('Falha nos boundaries da aplicação:');failures.forEach(item=>console.error(`- ${item}`));process.exit(1)}
-console.log('Application boundaries OK — administração unificada; @portallander/mockup canônico; Mídia Kit automático sem configuração técnica/manual; sem arquitetura legada de workspaces ou src/mocks')
+console.log('Application boundaries OK — administração unificada com todos os módulos implementados navegáveis; @portallander/mockup canônico; Mídia Kit automático sem configuração técnica/manual; sem arquitetura legada de workspaces ou src/mocks')

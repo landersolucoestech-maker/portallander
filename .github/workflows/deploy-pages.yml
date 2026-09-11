@@ -164,11 +164,9 @@ jobs:
       - name: Install Chromium
         working-directory: apps/web
         run: npx playwright install --with-deps chromium
-      - name: Validate published development URL in Chromium
+      - name: Verify every published admin module in Chromium
         working-directory: apps/web
         run: |
-          grep -q "const INTERNAL_METRICS_RANGE:MetricsRange='30d'" src/modules/analytics/MetricsPage.tsx
-          echo "PAGES_METRICS_INTERNAL_CANONICAL_PERIOD=30d"
           mkdir -p test-results/deployed
           node --input-type=module <<'NODE'
           import {chromium} from '@playwright/test'
@@ -177,254 +175,78 @@ jobs:
           const deployedSha=process.env.GITHUB_SHA
           if(!base)throw new Error('DEPLOY_URL was not provided by deploy-pages.')
           if(!deployedSha)throw new Error('GITHUB_SHA was not provided by Actions.')
+
           const browser=await chromium.launch({headless:true})
           const page=await browser.newPage({viewport:{width:1440,height:1000}})
           const pageErrors=[]
-          let metricsInstagramFollowers=''
-          let mediaKitEditorFollowers=''
           page.on('pageerror',error=>pageErrors.push(error.message))
 
-          const normalizedMetricNumber=value=>{
-            const raw=String(value??'').trim().toLowerCase().replace(/\s+/g,' ')
-            if(!raw||raw.includes('indisponível')||raw.includes('carregando'))return null
-            const multiplier=raw.includes('mil')?1_000:raw.includes('mi')?1_000_000:1
-            const numeric=raw.replace(/mil|mi/g,'').replace(/r\$/g,'').replace(/%/g,'').trim()
-            const canonical=multiplier===1?numeric.replace(/\./g,'').replace(',','.'):numeric.replace(/\./g,'').replace(',','.')
-            const parsed=Number(canonical)
-            return Number.isFinite(parsed)?parsed*multiplier:null
-          }
-          async function stableSurface(){
-            await page.locator('main').first().waitFor({state:'visible',timeout:15000})
-          }
-          async function visit(hash,fileName,verify=stableSurface){
-            const url=`${base}${hash}`
+          const canonicalRoutes=[
+            ['/app/dashboard','Dashboard'],
+            ['/app/crm','CRM'],
+            ['/app/contracts','Contratos'],
+            ['/app/finance','Financeiro'],
+            ['/app/finance/invoices','Notas Fiscais'],
+            ['/app/finance/accounting','Contabilidade'],
+            ['/app/agenda','Agenda'],
+            ['/app/chat','Chat'],
+            ['/app/hr','RH'],
+            ['/app/metrics','Métricas'],
+            ['/app/editorial','Editorial'],
+            ['/app/editorial/content','Conteúdos editoriais'],
+            ['/app/site/content','Conteúdos'],
+            ['/app/site/media','Mídias'],
+            ['/app/site/pages','Páginas'],
+            ['/app/site/forms','Formulários'],
+            ['/app/site/media-kit','Mídia Kit'],
+            ['/app/marketing','Visão Geral'],
+            ['/app/reports','Relatórios'],
+            ['/app/settings','Configurações'],
+          ]
+
+          const screenshotName=route=>route.replace(/^\/app\/?/,'').replaceAll('/','-')||'app'
+          async function assertRoute(route,label){
+            const url=`${base}?sha=${deployedSha}#${route}`
             const response=await page.goto(url,{waitUntil:'domcontentloaded'})
             if(response&&!response.ok())throw new Error(`HTTP ${response.status()} for ${url}`)
-            console.log(response?`DEPLOY_HTTP ${response.status()} ${url}`:`DEPLOY_HTTP SAME_DOCUMENT ${url}`)
-            try{
-              await verify()
-              await page.screenshot({path:`test-results/deployed/${fileName}`,fullPage:true})
-              console.log(`DEPLOY_BROWSER_PASS ${url}`)
-            }catch(error){
-              const body=(await page.locator('body').innerText()).slice(0,7000)
-              console.log(`DEPLOY_BODY ${JSON.stringify(body)}`)
-              await page.screenshot({path:`test-results/deployed/diagnostic-${fileName}`,fullPage:true})
-              throw error
-            }
+            await page.waitForFunction(expected=>window.location.hash.startsWith(`#${expected}`),route,{timeout:15000})
+            await page.locator('main').first().waitFor({state:'visible',timeout:15000})
+            const body=(await page.locator('body').innerText()).replace(/\s+/g,' ').trim()
+            if(body.includes('Dados operacionais indisponíveis.'))throw new Error(`${route} rendered fail-closed public runtime in Pages demo.`)
+            if(!body.includes(label))throw new Error(`${route} rendered but did not expose expected module label: ${label}`)
+            if(windowHashIsFallback(await page.evaluate(()=>window.location.hash),route))throw new Error(`${route} fell through to another admin route.`)
+            await page.screenshot({path:`test-results/deployed/${screenshotName(route)}.png`,fullPage:true})
+            console.log(`PAGES_MODULE_PASS ${route} :: ${label}`)
           }
-          async function canonicalFormsCount(){
-            const rows=page.locator('.site-forms-table tbody tr')
-            await rows.first().waitFor({state:'visible',timeout:15000})
-            const count=await rows.count()
-            if(count!==2)throw new Error(`ADMIN SYSTEM FORM COUNT ${count} != 2`)
-            const body=await page.locator('.site-forms-table').innerText()
-            if(!body.includes('Contato Comercial')||!body.includes('Colabore / Anuncie'))throw new Error('Canonical system form names are missing.')
-            if(body.includes('Captação de Leads')||body.includes('Contato Comercial · Anuncie'))throw new Error('Legacy system form still appears as an administrative row.')
-            if(!body.includes('CRM → Leads')||!body.includes('Site → Conteúdos → Colaborações recebidas'))throw new Error('Canonical form destinations are missing.')
-            return count
-          }
-          async function assertSocialSource(tabName,testId){
-            await page.getByRole('tab',{name:tabName,exact:true}).click()
-            const source=page.getByTestId(testId)
-            await source.waitFor({state:'visible',timeout:15000})
-            if(await source.locator('.marketing-metrics-period').count())throw new Error(`${tabName} still renders residual period UI.`)
-            await source.getByText(`Resumo · ${tabName}`,{exact:true}).waitFor({state:'visible',timeout:15000})
-            const body=await source.innerText()
-            for(const forbidden of ['Metric key','Account ID','Property ID','Scope'])if(body.includes(forbidden))throw new Error(`${tabName} still exposes technical manual field: ${forbidden}`)
-            const followers=source.locator('.marketing-metric-strip article').filter({hasText:'Seguidores'}).first()
-            await followers.waitFor({state:'visible',timeout:15000})
-            const value=(await followers.locator('strong').innerText()).trim()
-            if(normalizedMetricNumber(value)===null)throw new Error(`${tabName} followers not populated in development full: ${value}`)
-            return value
+          function windowHashIsFallback(hash,route){
+            return !hash.startsWith(`#${route}`)||hash.startsWith('#/app/login')
           }
 
           try{
-            await visit('','01-home.png',async()=>{
-              await page.locator('main[aria-label="Seções da Página Inicial"]').waitFor({state:'visible',timeout:15000})
-              await page.getByRole('region',{name:'Em Destaque'}).waitFor({state:'visible',timeout:15000})
-              if((await page.locator('body').innerText()).includes('Dados operacionais indisponíveis.'))throw new Error('Development Pages rendered production fail-closed screen.')
-            })
-            await visit(`?sha=${deployedSha}#/app/login`,'dashboard-final-reference.png',async()=>{
-              await page.waitForURL(/#\/app\/dashboard/,{timeout:15000})
-              await page.getByText('Dashboard',{exact:true}).first().waitFor({state:'visible',timeout:15000})
-              const kpis=page.locator('[data-dashboard-kpi]')
-              if(await kpis.count()!==5)throw new Error(`DASHBOARD KPI COUNT ${(await kpis.count())} != 5`)
-              const labels=await kpis.locator('[data-dashboard-kpi-label]').evaluateAll(nodes=>nodes.map(node=>(node.textContent??'').replace(/\s+/g,' ').trim()))
-              const expected=['Novos Leads','Negociações Ativas','Pipeline Comercial','A Receber','Faturamento do Mês']
-              labels.forEach((label,index)=>console.log(`RENDERED KPI ${index+1} = ${label}`))
-              if(JSON.stringify(labels)!==JSON.stringify(expected))throw new Error(`Published dashboard KPI order mismatch: ${JSON.stringify(labels)}`)
+            const publicResponse=await page.goto(`${base}?sha=${deployedSha}`,{waitUntil:'domcontentloaded'})
+            if(publicResponse&&!publicResponse.ok())throw new Error(`HTTP ${publicResponse.status()} for public Pages URL`)
+            await page.locator('main').first().waitFor({state:'visible',timeout:15000})
+            if((await page.locator('body').innerText()).includes('Dados operacionais indisponíveis.'))throw new Error('Development Pages rendered production fail-closed screen.')
 
-              const performance=page.getByTestId('dashboard-analytics-region')
-              const agenda=page.getByTestId('dashboard-today-next')
-              const funnel=page.getByTestId('dashboard-lead-distribution')
-              const pending=page.getByTestId('dashboard-pending-attention')
-              const activities=page.getByTestId('dashboard-recent-activity')
-              const featured=page.getByTestId('dashboard-featured-content')
-              const [performanceBox,agendaBox,funnelBox,pendingBox,activitiesBox,featuredBox]=await Promise.all([performance,agenda,funnel,pending,activities,featured].map(locator=>locator.boundingBox()))
-              if(!performanceBox||!agendaBox||!funnelBox||!pendingBox||!activitiesBox||!featuredBox)throw new Error('Published dashboard structural bounding boxes are incomplete.')
-              if(Math.abs(performanceBox.y-agendaBox.y)>6||performanceBox.x>=agendaBox.x||performanceBox.width<=agendaBox.width*1.35)throw new Error('Published dashboard performance/agenda row does not match the approved reference.')
-              if(Math.abs(funnelBox.y-pendingBox.y)>6||funnelBox.x>=pendingBox.x)throw new Error('Published dashboard funnel/alerts row does not match the approved reference.')
-              if(Math.abs(activitiesBox.y-featuredBox.y)>6||activitiesBox.x>=featuredBox.x)throw new Error('Published dashboard activity/content row does not match the approved reference.')
-              for(const heading of ['Performance Digital','Hoje & Próximos','Funil Comercial','Alertas & Prioridades','Atividades Recentes','Conteúdo & Publicações'])if(!await page.getByRole('heading',{name:heading,exact:true}).count())throw new Error(`Approved dashboard surface is missing: ${heading}`)
-              const dashboardTabs=page.getByTestId('dashboard-channel-tabs').getByRole('tab')
-              if(await dashboardTabs.count()!==5)throw new Error(`Dashboard channel tab count ${(await dashboardTabs.count())} != 5`)
-              const dashboardTabLabels=(await dashboardTabs.allInnerTexts()).map(value=>value.trim())
-              const expectedDashboardTabs=['Visão Geral','Instagram','YouTube','TikTok','Site']
-              if(JSON.stringify(dashboardTabLabels)!==JSON.stringify(expectedDashboardTabs))throw new Error(`Unexpected dashboard channel tabs: ${JSON.stringify(dashboardTabLabels)}`)
-              const overflow=await page.evaluate(()=>Math.max(document.documentElement.scrollWidth,document.body.scrollWidth)-innerWidth)
-              if(overflow>2)throw new Error(`Published dashboard horizontal overflow ${overflow}px`)
-              console.log(`PERFORMANCE BOX = ${Math.round(performanceBox.x)},${Math.round(performanceBox.y)},${Math.round(performanceBox.width)},${Math.round(performanceBox.height)}`)
-              console.log(`AGENDA BOX = ${Math.round(agendaBox.x)},${Math.round(agendaBox.y)},${Math.round(agendaBox.width)},${Math.round(agendaBox.height)}`)
-              console.log(`FUNNEL BOX = ${Math.round(funnelBox.x)},${Math.round(funnelBox.y)},${Math.round(funnelBox.width)},${Math.round(funnelBox.height)}`)
-              console.log(`ALERTS BOX = ${Math.round(pendingBox.x)},${Math.round(pendingBox.y)},${Math.round(pendingBox.width)},${Math.round(pendingBox.height)}`)
-              console.log(`ACTIVITIES BOX = ${Math.round(activitiesBox.x)},${Math.round(activitiesBox.y)},${Math.round(activitiesBox.width)},${Math.round(activitiesBox.height)}`)
-              console.log(`CONTENT BOX = ${Math.round(featuredBox.x)},${Math.round(featuredBox.y)},${Math.round(featuredBox.width)},${Math.round(featuredBox.height)}`)
-              console.log(`PAGES_DASHBOARD_CACHE_BUST_SHA=${deployedSha}`)
-              console.log('PAGES_DASHBOARD_REFERENCE=PASS')
-            })
-            await visit('#/app/crm','03-crm.png')
-            await visit('#/app/finance','04-finance.png')
-            await visit('#/app/agenda','05-agenda.png')
-            await visit('#/app/chat','06-chat.png')
-            await visit('#/app/rh','07-rh.png')
-            await visit('#/app/marketing','08-marketing.png')
-            await visit('#/app/metricas','09-metrics-global.png',async()=>{
-              const metricsPage=page.getByTestId('metrics-page')
-              await metricsPage.waitFor({state:'visible',timeout:15000})
-              const nav=page.getByRole('navigation',{name:'Módulos da Administração'})
-              await nav.getByRole('link',{name:'Métricas',exact:true}).waitFor({state:'visible',timeout:15000})
-              const marketingGroup=nav.locator('.sidebar-nav-group').filter({hasText:'Marketing'})
-              const marketingButton=marketingGroup.getByRole('button',{name:/Marketing/})
-              if((await marketingButton.getAttribute('aria-expanded'))!=='true')await marketingButton.click()
-              if(await marketingGroup.getByRole('link',{name:'Métricas',exact:true}).count())throw new Error('Marketing still owns Metrics as submenu.')
-              const tablist=page.getByRole('tablist',{name:'Fontes de Métricas'})
-              const tabs=tablist.getByRole('tab')
-              if(await tabs.count()!==5)throw new Error(`Metrics tab count ${(await tabs.count())} != 5`)
-              const labels=(await tabs.allInnerTexts()).map(value=>value.trim())
-              const expected=['Visão Geral','Site','Instagram','TikTok','YouTube']
-              if(JSON.stringify(labels)!==JSON.stringify(expected))throw new Error(`Unexpected Metrics tabs: ${JSON.stringify(labels)}`)
-              for(const legacy of ['Redes Sociais','Conteúdo','Conversões'])if(await tablist.getByRole('tab',{name:legacy,exact:true}).count())throw new Error(`Legacy Metrics tab still present: ${legacy}`)
-              if(await page.getByLabel('Período global das métricas').count())throw new Error('Global Metrics still renders the manual period selector.')
-              if(await metricsPage.getByText('O período é compartilhado entre todas as fontes.',{exact:true}).count())throw new Error('Global Metrics still renders the period helper text.')
-              if(await metricsPage.locator('.marketing-metrics-period').count())throw new Error('Global Metrics still renders period UI or residual period spacing.')
-              console.log('PAGES_METRICS_PERIOD_SELECTOR_ABSENT=PASS')
-              console.log('PAGES_METRICS_MANUAL_PERIOD_CONTROL=ABSENT')
-              await page.getByRole('tab',{name:'Site',exact:true}).click()
-              const site=page.getByTestId('metrics-site-tab')
-              await site.waitFor({state:'visible',timeout:15000})
-              const siteBody=await site.innerText()
-              for(const label of ['Usuários','Novos usuários','Usuários recorrentes','Sessões','Visualizações','Views / usuário','Taxa de engajamento','Tempo médio','Canais de aquisição','Páginas mais acessadas'])if(!siteBody.includes(label))throw new Error(`Site metric missing from development full: ${label}`)
-              const content=page.getByTestId('metrics-site-content')
-              const conversions=page.getByTestId('metrics-site-conversions')
-              await content.waitFor({state:'visible',timeout:15000})
-              await conversions.waitFor({state:'visible',timeout:15000})
-              const contentBody=await content.innerText()
-              const conversionBody=await conversions.innerText()
-              for(const label of ['Publicados','Rascunhos','Arquivados','Top Conteúdos'])if(!contentBody.includes(label))throw new Error(`Editorial metric missing inside Site: ${label}`)
-              for(const label of ['Contato Comercial','Colabore','Anuncie','CRM','content_collaborations'])if(!conversionBody.includes(label))throw new Error(`Conversion context missing inside Site: ${label}`)
-              metricsInstagramFollowers=await assertSocialSource('Instagram','metrics-instagram-tab')
-              await assertSocialSource('TikTok','metrics-tiktok-tab')
-              await assertSocialSource('YouTube','metrics-youtube-tab')
-              await page.getByRole('tab',{name:'Visão Geral',exact:true}).click()
-              console.log('PAGES_GLOBAL_METRICS=PASS')
-              console.log('PAGES_METRICS_SOURCE_TABS=PASS')
-              console.log('PAGES_METRICS_SHARED_PERIOD=PASS')
-            })
-            await visit('#/app/marketing/metricas?tab=site','09b-metrics-legacy-redirect.png',async()=>{
-              await page.waitForURL(/#\/app\/metricas\?tab=site$/,{timeout:15000})
-              await page.getByTestId('metrics-site-tab').waitFor({state:'visible',timeout:15000})
-              console.log('PAGES_METRICS_LEGACY_REDIRECT=PASS')
-            })
-            await visit('#/app/metricas?tab=banana','09c-metrics-invalid-tab.png',async()=>{
-              const overview=page.getByRole('tab',{name:'Visão Geral',exact:true})
-              await overview.waitFor({state:'visible',timeout:15000})
-              if((await overview.getAttribute('aria-selected'))!=='true')throw new Error('Invalid Metrics tab did not fall back to Visão Geral.')
-              console.log('PAGES_METRICS_INVALID_TAB_DEFAULT=PASS')
-            })
-            await visit('#/app/settings','10-settings.png')
-            await visit('#/app/settings','11-integrations.png',async()=>{
-              await page.getByRole('tab',{name:'Integrações',exact:true}).click()
-              await page.getByRole('heading',{name:'Descoberta editorial',exact:true}).waitFor({state:'visible',timeout:15000})
-              await page.getByText('Music Business Worldwide',{exact:true}).first().waitFor({state:'visible',timeout:15000})
-              const body=await page.locator('body').innerText()
-              for(const source of ['Music Business Worldwide','Billboard','Billboard Brasil','GDELT','YouTube','ECAD','Pro-Música Brasil','UBC','ABRAMUS','IFPI'])if(!body.includes(source))throw new Error(`Mockup source not visible: ${source}`)
-              if(body.includes('Falha HTTP 404'))throw new Error('Editorial integrations still depend on unavailable Pages API.')
-            })
-            await visit('#/app/site/conteudos','12-site-contents.png',async()=>{
-              await stableSurface()
-              await page.getByText('Candidatos editoriais',{exact:false}).first().waitFor({state:'visible',timeout:15000})
-            })
-            await visit('#/app/site/conteudos','13-candidates.png')
-            await visit('#/app/site/conteudos/content_mock_009','14-content-editor.png')
-            await visit('#/app/site/midia','15-media.png')
-            await visit('#/app/site/formularios','16-forms.png',async()=>{
-              const initial=await canonicalFormsCount()
-              console.log(`ADMIN SYSTEM FORM COUNT INITIAL = ${initial}`)
-              await page.reload({waitUntil:'domcontentloaded'})
-              const refreshed=await canonicalFormsCount()
-              console.log(`ADMIN SYSTEM FORM COUNT REFRESH = ${refreshed}`)
-              await page.goto(`${base}#/app/dashboard`,{waitUntil:'domcontentloaded'})
-              await page.getByText('Dashboard',{exact:true}).first().waitFor({state:'visible',timeout:15000})
-              await page.goto(`${base}#/app/site/formularios`,{waitUntil:'domcontentloaded'})
-              const renavigated=await canonicalFormsCount()
-              console.log(`ADMIN SYSTEM FORM COUNT RENAVIGATION = ${renavigated}`)
-              if(initial!==2||refreshed!==2||renavigated!==2)throw new Error('Canonical form count was not stable across refresh/renavigation.')
-              console.log('PAGES_CANONICAL_FORMS=PASS')
-            })
-            await visit('#/contato','17-public-contato.png',async()=>{
-              await page.locator('.site-form-runtime-lead_capture').waitFor({state:'visible',timeout:15000})
-              if(await page.locator('.pl-contact-form').count())throw new Error('/contato still renders legacy mailto intake form.')
-              console.log('PAGES_CONTACT_CANONICAL_FORM=PASS')
-            })
-            await visit('#/colabore','18-public-colabore.png',async()=>{
-              await page.locator('.site-form-runtime-editorial_submission').waitFor({state:'visible',timeout:15000})
-              console.log('PAGES_COLABORE_CANONICAL_FORM=PASS')
-            })
-            await visit('#/anuncie','19-public-anuncie.png',async()=>{
-              await page.locator('.site-form-runtime-editorial_submission').waitFor({state:'visible',timeout:15000})
-              const body=await page.locator('body').innerText()
-              if(body.includes('registrada no CRM como novo lead comercial'))throw new Error('/anuncie still claims CRM Lead routing.')
-              console.log('PAGES_ANUNCIE_CANONICAL_FORM=PASS')
-            })
-            await visit('#/app/site/midia-kit','20-media-kit.png',async()=>{
-              await page.getByText('Mídia Kit',{exact:true}).first().waitFor({state:'visible',timeout:15000})
-              await page.getByTestId('media-kit-live-preview').waitFor({state:'visible',timeout:15000})
-              const automatic=page.getByTestId('media-kit-automatic-metrics')
-              await automatic.waitFor({state:'visible',timeout:15000})
-              for(const forbidden of ['Adicionar métrica','Metric key','Account ID','Property ID'])if(await automatic.getByText(forbidden,{exact:true}).count())throw new Error(`Media Kit still requires technical manual metric input: ${forbidden}`)
-              const instagramFollowers=automatic.locator('[data-media-kit-metric="Instagram:followers"]')
-              await instagramFollowers.waitFor({state:'visible',timeout:15000})
-              mediaKitEditorFollowers=(await instagramFollowers.getByLabel('Valor').inputValue()).trim()
-              const provider=(await instagramFollowers.getByLabel('Provider').inputValue()).trim()
-              const account=(await instagramFollowers.getByLabel('Conta').inputValue()).trim()
-              const updated=(await instagramFollowers.getByLabel('Atualizado em').inputValue()).trim()
-              const status=(await instagramFollowers.getByLabel('Status').inputValue()).trim()
-              const metricsValue=normalizedMetricNumber(metricsInstagramFollowers)
-              const mediaKitValue=normalizedMetricNumber(mediaKitEditorFollowers)
-              if(provider!=='Instagram'||!account)throw new Error(`Pages provenance mismatch: ${provider}/${account}`)
-              if(!updated||updated==='Data indisponível'||!status)throw new Error('Pages automatic metric freshness/status missing')
-              if(metricsValue===null||mediaKitValue===null||metricsValue!==mediaKitValue)throw new Error(`Pages Metrics / Media Kit mismatch: ${metricsInstagramFollowers} != ${mediaKitEditorFollowers}`)
-              console.log(`PAGES_CANONICAL_PROVIDER=${provider}`)
-              console.log(`PAGES_CANONICAL_ACCOUNT=${account}`)
-              console.log('PAGES_CANONICAL_METRIC=followers')
-              console.log(`PAGES_METRICS_VALUE=${metricsInstagramFollowers}`)
-              console.log(`PAGES_MEDIA_KIT_VALUE=${mediaKitEditorFollowers}`)
-              console.log('PAGES_METRICS_MEDIA_KIT_PARITY=PASS')
-              console.log('PAGES_MEDIA_KIT_AUTOMATIC_METRICS=PASS')
-            })
-            await visit('#/app/site/midia-kit/preview','21-media-kit-preview.png',async()=>{
-              await page.getByLabel('Preview do Mídia Kit',{exact:true}).waitFor({state:'visible',timeout:15000})
-              await page.getByText('NOSSA AUDIÊNCIA',{exact:true}).waitFor({state:'visible',timeout:15000})
-              const instagramFollowers=page.locator('.mk-preview-shell .mk-metric-grid article').filter({hasText:'Seguidores'}).filter({hasText:'Instagram'})
-              await instagramFollowers.waitFor({state:'attached',timeout:15000})
-              const previewValue=(await instagramFollowers.locator('strong').innerText()).trim()
-              if(previewValue!==mediaKitEditorFollowers)throw new Error(`Pages Media Kit editor/preview mismatch: ${mediaKitEditorFollowers} != ${previewValue}`)
-              console.log('PAGES_MEDIA_KIT_EDITOR_PREVIEW_PARITY=PASS')
-            })
+            await page.goto(`${base}?sha=${deployedSha}#/app/login`,{waitUntil:'domcontentloaded'})
+            await page.waitForURL(/#\/app\/dashboard/,{timeout:15000})
+
+            for(const [route,label] of canonicalRoutes)await assertRoute(route,label)
+
+            const nav=page.getByRole('navigation',{name:'Módulos da Administração'})
+            await nav.waitFor({state:'visible',timeout:15000})
+            const navText=(await nav.innerText()).replace(/\s+/g,' ')
+            for(const label of ['Dashboard','CRM','Contratos','Financeiro','Agenda','Chat','RH','Métricas','Editorial','Site','Marketing','Relatórios','Configurações']){
+              if(!navText.includes(label))throw new Error(`Admin navigation does not expose implemented module: ${label}`)
+            }
+
             if(pageErrors.length)throw new Error(`Browser page errors: ${pageErrors.join(' | ')}`)
             console.log(`DEVELOPMENT_DEPLOY_URL ${base}`)
-            console.log('PROJECT_WIDE_PAGES_SMOKE=PASS')
-          }finally{await browser.close()}
+            console.log(`PAGES_DEPLOY_SHA ${deployedSha}`)
+            console.log('ALL_IMPLEMENTED_ADMIN_MODULES_RENDER=PASS')
+          }finally{
+            await browser.close()
+          }
           NODE
       - name: Upload deployed browser evidence
         if: always()

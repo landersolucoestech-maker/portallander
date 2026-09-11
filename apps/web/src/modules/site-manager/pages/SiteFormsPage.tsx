@@ -62,18 +62,18 @@ export function SiteFormsPage(){
 
   const createForm=async()=>{
     setError('')
-    if(!persisted){const form=formDraftRepository.create();setDrafts(formDraftRepository.list());navigate(`/app/site/formularios/${form.id}`);return}
-    try{const form=await createAdminSiteForm(newFormDefinition());navigate(`/app/site/formularios/${form.id}`)}
+    if(!persisted){const form=formDraftRepository.create();setDrafts(formDraftRepository.list());navigate(`/app/site/forms/${form.id}`);return}
+    try{const form=await createAdminSiteForm(newFormDefinition());navigate(`/app/site/forms/${form.id}`)}
     catch(caught){setError(caught instanceof Error?caught.message:'Não foi possível criar o formulário.')}
   }
 
   const duplicateForm=async(form:SiteFormDefinition)=>{
     if(form.source==='system')return
     setError('')
-    if(!persisted){const draft=formDraftRepository.duplicate(form);setDrafts(formDraftRepository.list());navigate(`/app/site/formularios/${draft.id}`);return}
+    if(!persisted){const draft=formDraftRepository.duplicate(form);setDrafts(formDraftRepository.list());navigate(`/app/site/forms/${draft.id}`);return}
     const suffix=crypto.randomUUID().slice(0,8)
     const copy:SiteFormDefinition={...structuredClone(form),id:`form-${crypto.randomUUID()}`,name:`${form.name} — cópia`,slug:`${form.slug}-copia-${suffix}`,version:1,status:'draft',source:'custom'}
-    try{const created=await createAdminSiteForm(copy);navigate(`/app/site/formularios/${created.id}`)}
+    try{const created=await createAdminSiteForm(copy);navigate(`/app/site/forms/${created.id}`)}
     catch(caught){setError(caught instanceof Error?caught.message:'Não foi possível duplicar o formulário.')}
   }
 
@@ -85,7 +85,7 @@ export function SiteFormsPage(){
     catch(caught){setError(caught instanceof Error?caught.message:'Não foi possível excluir o formulário.')}
   }
 
-  const openForm=(form:SiteFormDefinition)=>navigate(`/app/site/formularios/${form.id}`)
+  const openForm=(form:SiteFormDefinition)=>navigate(`/app/site/forms/${form.id}`)
 
   return <AdminShell area="cms" items={SITE_MANAGER_NAV} header={{title:'Formulários',description:'Defina formulários do site sem misturar configuração, publicação e operação dos dados recebidos.'}} headerAction={{label:'Novo formulário',icon:Plus,onClick:()=>void createForm()}}>
     <AdminNotice title="Fonte central de formulários" description={persisted?'O CMS está conectado às definições versionadas da API. Salvar cria ou atualiza um rascunho persistente; publicar promove uma versão imutável para o runtime público.':'Este build está sem sessão persistente da API. Em desenvolvimento, os rascunhos continuam isolados no navegador e nunca são publicados por engano.'}/>

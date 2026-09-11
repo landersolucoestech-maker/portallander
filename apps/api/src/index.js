@@ -9,7 +9,6 @@ import {handleCrmRequest} from './crmHttp.js'
 import {handleFinanceRequest} from './financeHttp.js'
 import {handleIntegrationProviderRequest} from './integrationProviderHttp.js'
 import {handleMetricsRequest} from './metricsHttp.js'
-import {handleMarketingMetricsRequest} from './marketingMetricsHttp.js'
 import {handleNewsletterRequest} from './newsletterHttp.js'
 import {handlePageSectionRequest} from './pageSectionHttp.js'
 import {handleHrRequest} from './hrHttp.js'
@@ -29,7 +28,6 @@ const server=createServer((req,res)=>{
     if(await handleFinanceRequest(req,res))return
     if(await handleIntegrationProviderRequest(req,res))return
     if(await handleMetricsRequest(req,res))return
-    if(await handleMarketingMetricsRequest(req,res))return
     if(await handleNewsletterRequest(req,res))return
     if(await handleHrRequest(req,res))return
     if(await handleSettingsRequest(req,res))return

@@ -3,6 +3,10 @@ import {requireAdmin} from './http.js'
 import {corsHeaders,handleOptions,sendJson} from './httpSupport.js'
 import {metricsService} from './metricsService.js'
 
+const CANONICAL_PATH='/api/metrics'
+const LEGACY_MARKETING_PATH='/api/marketing/metrics'
+const METRICS_PATHS=new Set([CANONICAL_PATH,LEGACY_MARKETING_PATH])
+
 async function requireMetricsAdmin(req){
   const actor=await requireAdmin(req)
   if(actor.mode!=='session')throw new HttpError(403,'Esta operação exige sessão administrativa atribuível.','ATTRIBUTABLE_ADMIN_SESSION_REQUIRED')
@@ -11,8 +15,9 @@ async function requireMetricsAdmin(req){
 
 export async function handleMetricsRequest(req,res){
   const url=new URL(req.url||'/',`http://${req.headers.host||'localhost'}`),path=url.pathname.replace(/\/+$/,'')||'/'
-  if(path!=='/api/metrics')return false
-  const cors=corsHeaders(req,{methods:'GET,OPTIONS'})
+  if(!METRICS_PATHS.has(path))return false
+  const legacy=path===LEGACY_MARKETING_PATH
+  const cors={...corsHeaders(req,{methods:'GET,OPTIONS'}),...(legacy?{deprecation:'true',link:`<${CANONICAL_PATH}>; rel="successor-version"`}:{})}
   if(handleOptions(req,res,{methods:'GET,OPTIONS'}))return true
   try{
     await requireMetricsAdmin(req)

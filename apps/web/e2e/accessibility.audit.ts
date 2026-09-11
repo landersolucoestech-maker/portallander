@@ -10,10 +10,10 @@ const routes=[
  {route:'/contato',internal:false},
  {route:'/anuncie',internal:false},
  {route:'/app/dashboard',internal:true},
- {route:'/app/site/midia-kit',internal:true},
- {route:'/app/site/midia-kit/preview',internal:true},
- {route:'/app/site/formularios/collaborate',internal:true},
- {route:'/app/marketing/metricas',internal:true},
+ {route:'/app/site/media-kit',internal:true},
+ {route:'/app/site/media-kit/preview',internal:true},
+ {route:'/app/site/forms/collaborate',internal:true},
+ {route:'/app/metrics',internal:true},
 ]
 
 async function openRoute(page:Page,route:string){
@@ -21,6 +21,7 @@ async function openRoute(page:Page,route:string){
  await page.locator('#root').waitFor({state:'attached'})
  await page.waitForFunction(()=>document.querySelector('#root')?.childElementCount!==0)
  await page.waitForTimeout(120)
+ await expect.poll(()=>page.evaluate(()=>window.location.hash),{message:`${route}: route must not silently redirect`}).toBe(`#${route}`)
 }
 
 const semanticAudit=async(page:Page)=>page.evaluate(()=>{
@@ -69,4 +70,4 @@ for(const item of routes){
 }
 
 test('accessibility tree exposes the primary document landmark',async({page})=>{await openRoute(page,'/');expect(await page.locator('body').ariaSnapshot()).toContain('main')})
-for(const route of ['/', '/noticias', '/sobre', '/anuncie', '/app/dashboard', '/app/site/midia-kit', '/app/site/midia-kit/preview'])test(`measurable text contrast ${route}`,async({page})=>{await openRoute(page,route);expect(await contrastAudit(page),'measurable foreground/background text pairs must meet WCAG AA contrast').toEqual([])})
+for(const route of ['/', '/noticias', '/sobre', '/anuncie', '/app/dashboard', '/app/site/media-kit', '/app/site/media-kit/preview'])test(`measurable text contrast ${route}`,async({page})=>{await openRoute(page,route);expect(await contrastAudit(page),'measurable foreground/background text pairs must meet WCAG AA contrast').toEqual([])})

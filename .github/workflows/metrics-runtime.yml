@@ -42,12 +42,15 @@ jobs:
             exit 1
           fi
           grep -q "const INTERNAL_METRICS_RANGE:MetricsRange='30d'" apps/web/src/modules/analytics/MetricsPage.tsx
+          ! grep -F "/app/metricas" apps/web/src/modules/analytics/MetricsPage.tsx
+          ! grep -F "content_collaborations" apps/web/src/modules/analytics/MetricsPage.tsx
           echo "REUSABLE RUNTIME HARDCODED METRICS IN UI = 0"
           echo "METRICS_INTERNAL_CANONICAL_PERIOD=30d"
+          echo "METRICS_CANONICAL_ROUTE=/app/metrics"
       - name: Install Chromium
         working-directory: apps/web
         run: npx playwright install --with-deps chromium
-      - name: Validate published Metrics module, canonical parity and capture evidence
+      - name: Validate published Metrics module, geometry and canonical parity
         working-directory: apps/web
         run: |
           mkdir -p test-results/metrics-pages
@@ -67,33 +70,51 @@ jobs:
           const screenshot=async name=>page.screenshot({path:`test-results/metrics-pages/${name}`,fullPage:true})
           const normalizedNumber=value=>{
             const raw=String(value??'').trim().toLowerCase().replace(/\s+/g,' ')
-            if(!raw||raw.includes('indisponível')||raw.includes('carregando'))return null
+            if(!raw||raw.includes('indisponível')||raw.includes('carregando')||raw==='—')return null
             const multiplier=raw.includes('mil')?1_000:raw.includes('mi')?1_000_000:1
             const numeric=raw.replace(/mil|mi/g,'').replace(/r\$/g,'').replace(/%/g,'').trim()
             const canonical=multiplier===1?numeric.replace(/\./g,'').replace(',','.'):numeric.replace(/\./g,'').replace(',','.')
             const parsed=Number(canonical)
             return Number.isFinite(parsed)?parsed*multiplier:null
           }
-          const sourceFollower=async(testId,provider)=>{
+          const assertCanonicalKpis=async(root,label)=>{
+            const cards=root.locator('.metrics-kpi-grid .admin-kpi')
+            const count=await cards.count()
+            if(count!==4)throw new Error(`${label} KPI count ${count} != 4`)
+            const geometry=await cards.evaluateAll(nodes=>nodes.map(node=>{
+              const rect=node.getBoundingClientRect()
+              const style=getComputedStyle(node)
+              return {width:rect.width,height:rect.height,paddingTop:style.paddingTop,paddingRight:style.paddingRight,paddingBottom:style.paddingBottom,paddingLeft:style.paddingLeft}
+            }))
+            for(const [index,card] of geometry.entries()){
+              if(Math.abs(card.height-104)>1)throw new Error(`${label} KPI ${index+1} height ${card.height} != 104`)
+              for(const [side,value] of Object.entries({top:card.paddingTop,right:card.paddingRight,bottom:card.paddingBottom,left:card.paddingLeft}))if(value!=='16px')throw new Error(`${label} KPI ${index+1} padding-${side} ${value} != 16px`)
+            }
+            const widths=geometry.map(card=>card.width)
+            if(Math.max(...widths)-Math.min(...widths)>1)throw new Error(`${label} KPI widths are not equal: ${JSON.stringify(widths)}`)
+          }
+          const socialFollower=async(testId,provider)=>{
             const source=page.getByTestId(testId)
             await source.waitFor({state:'visible',timeout:20000})
             if(await source.locator('.marketing-metrics-period').count())throw new Error(`${provider} still renders residual period UI.`)
-            await source.getByText(`Resumo · ${provider}`,{exact:true}).waitFor({state:'visible',timeout:20000})
-            const card=source.locator('.marketing-metric-strip article').filter({hasText:'Seguidores'}).first()
-            await card.waitFor({state:'visible',timeout:20000})
-            const display=(await card.locator('strong').innerText()).trim()
+            for(const title of ['Indicadores complementares','Comparação com período anterior','Conteúdo vinculado'])await source.getByRole('heading',{name:title,exact:true}).waitFor({state:'visible',timeout:20000})
+            if(await source.locator('.marketing-metric-strip,.marketing-performance-chart,.marketing-ranking').count())throw new Error(`${provider} still renders legacy Marketing metrics surfaces.`)
+            await assertCanonicalKpis(source,provider)
+            const row=source.locator('.metrics-row').filter({hasText:'Seguidores'}).first()
+            await row.waitFor({state:'visible',timeout:20000})
+            const display=(await row.locator('b').innerText()).trim()
             if(normalizedNumber(display)===null)throw new Error(`${provider} followers is not populated in development full: ${display}`)
             const body=await source.innerText()
-            for(const forbidden of ['Metric key','Account ID','Property ID','Adicionar métrica'])if(body.includes(forbidden))throw new Error(`Campo técnico manual vazou para ${provider}: ${forbidden}`)
+            for(const forbidden of ['Metric key','Account ID','Property ID','Adicionar métrica','content_collaborations'])if(body.includes(forbidden))throw new Error(`Campo técnico manual vazou para ${provider}: ${forbidden}`)
             return display
           }
           try{
-            await goto('#/app/metricas')
+            await goto('#/app/metrics')
             const metricsPage=page.getByTestId('metrics-page')
             await metricsPage.waitFor({state:'visible',timeout:20000})
             const metricsLink=page.getByRole('link',{name:'Métricas',exact:true})
             await metricsLink.waitFor({state:'visible'})
-            if((await metricsLink.getAttribute('href'))!=='#/app/metricas')throw new Error('Métricas não está exposta como item principal canônico.')
+            if((await metricsLink.getAttribute('href'))!=='#/app/metrics')throw new Error('Métricas não está exposta pela rota canônica /app/metrics.')
             const tablist=page.getByRole('tablist',{name:'Fontes de Métricas'})
             const tabs=tablist.getByRole('tab')
             if(await tabs.count()!==5)throw new Error(`Metrics tab count ${(await tabs.count())} != 5`)
@@ -113,52 +134,38 @@ jobs:
             console.log('METRICS_TOP_LEVEL_NAV=PASS')
             console.log('METRICS_OVERVIEW=PASS')
             console.log('METRICS_PERIOD_SELECTOR_ABSENT=PASS')
-            console.log('METRICS_MANUAL_PERIOD_CONTROL=ABSENT')
 
             await page.getByRole('tab',{name:'Site',exact:true}).click()
             const site=page.getByTestId('metrics-site-tab')
             await site.waitFor({state:'visible',timeout:20000})
+            await assertCanonicalKpis(site,'Site')
             const siteBody=await site.innerText()
-            for(const label of ['Usuários','Novos usuários','Usuários recorrentes','Sessões','Visualizações','Views / usuário','Taxa de engajamento','Tempo médio','Canais de aquisição','Páginas mais acessadas','Conteúdos mais acessados'])if(!siteBody.includes(label))throw new Error(`Métrica Site ausente: ${label}`)
+            for(const label of ['Usuários','Sessões','Visualizações','Engajamento','Tráfego e comportamento','Aquisição por canal','Comportamento','Páginas mais acessadas','Publicação e desempenho','Estado editorial','Publicações recentes','Conteúdos com mais visualizações','Resultados dos formulários','Resultados','Conversões por origem'])if(!siteBody.includes(label))throw new Error(`Superfície Site ausente: ${label}`)
+            for(const technical of ['content_collaborations','Views / usuário','newVsReturning','entryContext'])if(siteBody.includes(technical))throw new Error(`Jargão técnico/legado vazou para Site: ${technical}`)
             const content=page.getByTestId('metrics-site-content')
             const conversions=page.getByTestId('metrics-site-conversions')
             await content.waitFor({state:'visible',timeout:20000})
             await conversions.waitFor({state:'visible',timeout:20000})
-            const contentBody=await content.innerText()
-            const conversionBody=await conversions.innerText()
-            for(const label of ['Publicados','Rascunhos','Arquivados','Top Conteúdos'])if(!contentBody.includes(label))throw new Error(`Editorial metric missing inside Site: ${label}`)
-            for(const label of ['Contato Comercial','Colabore','Anuncie','CRM','content_collaborations'])if(!conversionBody.includes(label))throw new Error(`Conversion pipeline missing inside Site: ${label}`)
             await screenshot('metrics-site.png')
             console.log('METRICS_SITE_FULL=PASS')
-            console.log('METRICS_CONTENT_INSIDE_SITE=PASS')
-            console.log('METRICS_CONVERSIONS_INSIDE_SITE=PASS')
+            console.log('METRICS_SITE_KPI_GEOMETRY=PASS')
 
             await page.getByRole('tab',{name:'Instagram',exact:true}).click()
-            const metricsInstagramFollowers=await sourceFollower('metrics-instagram-tab','Instagram')
+            const metricsInstagramFollowers=await socialFollower('metrics-instagram-tab','Instagram')
             await screenshot('metrics-instagram.png')
             console.log('METRICS_INSTAGRAM_AUTOMATIC=PASS')
 
             await page.getByRole('tab',{name:'TikTok',exact:true}).click()
-            await sourceFollower('metrics-tiktok-tab','TikTok')
+            await socialFollower('metrics-tiktok-tab','TikTok')
             await screenshot('metrics-tiktok.png')
             console.log('METRICS_TIKTOK_AUTOMATIC=PASS')
 
             await page.getByRole('tab',{name:'YouTube',exact:true}).click()
-            await sourceFollower('metrics-youtube-tab','YouTube')
+            await socialFollower('metrics-youtube-tab','YouTube')
             await screenshot('metrics-youtube.png')
             console.log('METRICS_YOUTUBE_AUTOMATIC=PASS')
 
-            await page.getByRole('tab',{name:'Visão Geral',exact:true}).click()
-            await page.getByTestId('metrics-overview-tab').waitFor({state:'visible',timeout:20000})
-            console.log('METRICS_INTERNAL_CANONICAL_PERIOD=30d')
-            console.log('METRICS_SHARED_PERIOD=PASS')
-
-            await goto('#/app/marketing/metricas?tab=instagram')
-            await page.waitForURL(/#\/app\/metricas\?tab=instagram$/,{timeout:10000})
-            await page.getByTestId('metrics-instagram-tab').waitFor({state:'visible',timeout:20000})
-            console.log('METRICS_LEGACY_REDIRECT=PASS')
-
-            await goto('#/app/metricas?tab=banana')
+            await goto('#/app/metrics?tab=banana')
             const overview=page.getByRole('tab',{name:'Visão Geral',exact:true})
             await overview.waitFor({state:'visible',timeout:20000})
             if((await overview.getAttribute('aria-selected'))!=='true')throw new Error('Invalid Metrics tab did not fall back to Visão Geral.')
@@ -187,8 +194,8 @@ jobs:
             console.log(`MEDIA_KIT_VALUE=${mediaKitFollowers}`)
             console.log('METRICS_MEDIA_KIT_CANONICAL_METRIC_PARITY=PASS')
 
-            console.log('METRICS_SINGLE_PAGE=PASS')
             if(errors.length)throw new Error(`Page errors: ${JSON.stringify(errors)}`)
+            console.log('METRICS_SINGLE_PAGE=PASS')
           }finally{await browser.close()}
           NODE
       - name: Upload Metrics Pages evidence

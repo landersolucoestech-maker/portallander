@@ -1,4 +1,4 @@
-import {BarChart3,CheckCircle2,FileText,Globe2,Target,TrendingUp,Users} from 'lucide-react'
+import {BarChart3,Globe2,TrendingUp,Users} from 'lucide-react'
 import type {LucideIcon} from 'lucide-react'
 import {useEffect,useState,type ReactNode} from 'react'
 import {useSearchParams} from 'react-router-dom'
@@ -94,46 +94,52 @@ function SiteTab({data}:{data:MetricsResponse}){
  const overview=data.ga4.overview
  const topContent=data.ga4.status==='available'?data.ga4.pages.filter(page=>data.editorial.latest.some(content=>page.path.includes(`/${content.slug}`))):[]
  return <div className="metrics-site" data-testid="metrics-site-tab">
+  <SiteKpiGrid items={[
+   ['Usuários',valueLabel(overview.users?.value),'Ativos no período',Users],
+   ['Sessões',valueLabel(overview.sessions?.value),'Visitas iniciadas',Globe2],
+   ['Visualizações',valueLabel(overview.pageviews?.value),'Páginas visualizadas',BarChart3],
+   ['Engajamento',percentLabel(overview.engagementRate?.value),'Taxa de sessões engajadas',TrendingUp],
+  ]}/>
+
   <SiteSection testId="metrics-site-analytics" eyebrow="Audiência" title="Tráfego e comportamento" description="Dados do Google Analytics 4 para entender alcance, recorrência e navegação.">
    {data.ga4.status==='available'?<>
-    <SiteKpiGrid items={[
-     ['Usuários',valueLabel(overview.users?.value),'Ativos no período',Users],
-     ['Novos usuários',valueLabel(overview.newUsers?.value),'Primeira visita no período',Users],
-     ['Usuários recorrentes',valueLabel(data.ga4.returningUsers?.value),'Retornaram no período',Users],
-     ['Sessões',valueLabel(overview.sessions?.value),'Visitas iniciadas',Globe2],
-     ['Visualizações',valueLabel(overview.pageviews?.value),'Páginas visualizadas',BarChart3],
-     ['Visualizações / usuário',decimalLabel(overview.pageviewsPerUser?.value),'Média por usuário',Target],
-     ['Engajamento',percentLabel(overview.engagementRate?.value),'Taxa de sessões engajadas',TrendingUp],
-     ['Tempo médio',durationLabel(overview.averageSessionDuration?.value),'Duração média da sessão',CheckCircle2],
-    ]}/>
     <div className="metrics-site-card-grid">
      <SiteCard title="Aquisição por canal" description="Principais origens de tráfego por sessões e usuários."><SiteRows rows={data.ga4.acquisition.slice(0,6).map(item=>[item.channel,valueLabel(item.sessions),`${valueLabel(item.users)} usuários`])}/></SiteCard>
+     <SiteCard title="Comportamento" description="Recorrência, profundidade e duração das visitas."><SiteRows rows={[
+      ['Novos usuários',valueLabel(overview.newUsers?.value),'Primeira visita no período'],
+      ['Usuários recorrentes',valueLabel(data.ga4.returningUsers?.value),'Retornaram no período'],
+      ['Visualizações / usuário',decimalLabel(overview.pageviewsPerUser?.value),'Média de páginas por usuário'],
+      ['Tempo médio',durationLabel(overview.averageSessionDuration?.value),'Duração média da sessão'],
+     ]}/></SiteCard>
+    </div>
+    <div className="metrics-site-card-grid metrics-site-card-grid-single">
      <SiteCard title="Páginas mais acessadas" description="As seis páginas com maior volume de visualizações."><SiteRows rows={data.ga4.pages.slice(0,6).map(item=>[item.title||item.path,valueLabel(item.pageviews),`${valueLabel(item.users)} usuários · ${item.path}`])}/></SiteCard>
     </div>
    </>:<AdminNotice title={data.ga4.reason==='GA4_NOT_CONFIGURED'?'GA4 não configurado':'Dados do Site indisponíveis'} description={data.ga4.message||'Nenhum valor fictício é usado quando a integração real do Google Analytics 4 não está disponível.'}/>} 
   </SiteSection>
 
   <SiteSection testId="metrics-site-content" eyebrow="Conteúdo" title="Publicação e desempenho" description="Estado editorial atual e desempenho dos conteúdos que possuem vínculo seguro com o GA4.">
-   <SiteKpiGrid items={[
-    ['Publicados',valueLabel(data.editorial.counts.published),'Total atualmente publicado',FileText],
-    ['Novos no período',valueLabel(data.editorial.counts.publishedInPeriod),'Publicados nos últimos 30 dias',CheckCircle2],
-    ['Rascunhos',valueLabel(data.editorial.counts.drafts),'Aguardando publicação',FileText],
-    ['Arquivados',valueLabel(data.editorial.counts.archived),'Fora de exibição',FileText],
-   ]}/>
    <div className="metrics-site-card-grid">
+    <SiteCard title="Estado editorial" description="Situação atual do conteúdo persistido no site."><SiteRows rows={[
+     ['Publicados',valueLabel(data.editorial.counts.published),'Total atualmente publicado'],
+     ['Novos no período',valueLabel(data.editorial.counts.publishedInPeriod),'Publicados nos últimos 30 dias'],
+     ['Rascunhos',valueLabel(data.editorial.counts.drafts),'Aguardando publicação'],
+     ['Arquivados',valueLabel(data.editorial.counts.archived),'Fora de exibição'],
+    ]}/></SiteCard>
     <SiteCard title="Publicações recentes" description="Últimos conteúdos registrados na fonte editorial persistida.">{data.editorial.latest.length?<SiteRows rows={data.editorial.latest.slice(0,6).map(item=>[item.title,publicationDateLabel(item.publishedAt),item.pageTitle||'Conteúdo editorial'])}/>:<SiteEmpty>Nenhum conteúdo publicado foi encontrado.</SiteEmpty>}</SiteCard>
+   </div>
+   <div className="metrics-site-card-grid metrics-site-card-grid-single">
     <SiteCard title="Conteúdos com mais visualizações" description="Desempenho dos conteúdos relacionados com segurança às páginas do GA4.">{topContent.length?<SiteRows rows={topContent.slice(0,6).map(item=>[item.title||item.path,valueLabel(item.pageviews),`${valueLabel(item.users)} usuários · ${item.path}`])}/>:<SiteEmpty>Não foi possível relacionar conteúdos publicados às páginas do GA4 neste período.</SiteEmpty>}</SiteCard>
    </div>
   </SiteSection>
 
   <SiteSection testId="metrics-site-conversions" eyebrow="Conversões" title="Resultados dos formulários" description="Submissões aceitas e encaminhadas pelos fluxos de conversão do site.">
-   <SiteKpiGrid items={[
-    ['Submissões',valueLabel(data.conversions.total),'Total aceito no período',CheckCircle2],
-    ['Leads criados',valueLabel(data.conversions.leadsCreated),'Enviados ao CRM',Users],
-    ['Colaborações',valueLabel(data.conversions.collaborationsCreated),'Recebidas por Colabore',FileText],
-    ['Anuncie',valueLabel(data.conversions.contexts.anuncie),'Recebidas por Anuncie',Target],
-   ]}/>
-   <div className="metrics-site-card-grid metrics-site-card-grid-single">
+   <div className="metrics-site-card-grid">
+    <SiteCard title="Resultados" description="Resultados consolidados gerados pelos formulários do site."><SiteRows rows={[
+     ['Submissões',valueLabel(data.conversions.total),'Total aceito no período'],
+     ['Leads criados',valueLabel(data.conversions.leadsCreated),'Enviados ao CRM'],
+     ['Colaborações',valueLabel(data.conversions.collaborationsCreated),'Recebidas pelo fluxo Colabore'],
+    ]}/></SiteCard>
     <SiteCard title="Conversões por origem" description="Distribuição das submissões conforme o ponto de entrada no site."><SiteRows rows={[
      ['Contato Comercial',valueLabel(data.conversions.contexts.contato),'Direcionado ao CRM como lead'],
      ['Colabore',valueLabel(data.conversions.contexts.colabore),'Direcionado ao fluxo de colaboração'],

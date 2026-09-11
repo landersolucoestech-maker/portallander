@@ -5,6 +5,7 @@ on:
     branches: [dev]
     paths:
       - 'apps/web/src/**'
+      - 'apps/web/scripts/check-ui-system.mjs'
       - 'apps/web/e2e/shared-geometry.audit.ts'
       - 'apps/web/e2e/row-actions-geometry.audit.ts'
       - 'apps/web/package.json'

@@ -45,7 +45,7 @@ async function measureTableActions(page:Page):Promise<Sample[]>{
    const row=Array.from(table.querySelectorAll<HTMLTableRowElement>('tbody tr')).find(item=>visible(item)&&item.cells[index]?.querySelector('.table-row-actions-trigger'))
    const trigger=row?.cells[index]?.querySelector<HTMLElement>('.table-row-actions-trigger')
    if(!row||!trigger||!headerText||!visible(trigger))return []
-   const style=getComputedStyle(header),headerBox=header.getBoundingClientRect(),triggerBox=trigger.getBoundingClientRect()
+   const style=getComputedStyle(header),triggerBox=trigger.getBoundingClientRect()
    const raw=style.textAlign
    const side:'left'|'center'|'right'=raw==='right'||raw==='end'?'right':raw==='center'?'center':'left'
    const headerAnchor=side==='right'?headerText.right:side==='center'?(headerText.left+headerText.right)/2:headerText.left

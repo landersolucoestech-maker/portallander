@@ -10,6 +10,8 @@ const marketing=await read('src/modules/marketing/MarketingPage.tsx')
 const metrics=await read('src/modules/analytics/MetricsPage.tsx')
 const client=await read('src/modules/analytics/metricsClient.ts')
 const analyticsClient=await read('src/modules/analytics/client.ts')
+const adminEntry=await read('src/styles/admin-entry.css')
+const metricsStyles=await read('src/styles/admin-metrics.css')
 
 requireTokens('InternalApp.tsx',app,["../modules/analytics/MetricsPage",'path="/app/metrics"'])
 forbidTokens('InternalApp.tsx',app,['path="/app/metricas"','path="/app/marketing/metricas"','path="/app/marketing/metrics"','LegacyMetricsRedirect'])
@@ -21,6 +23,17 @@ forbidTokens('MetricsPage.tsx',metrics,['Período global das métricas','O perí
 requireTokens('metricsClient.ts',client,['/api/metrics','loadDevelopmentMetricsOverview'])
 forbidTokens('metricsClient.ts',client,["@portallander/mockup",'getMockupMetricsOverview'])
 requireTokens('analytics/client.ts',analyticsClient,['loadDevelopmentMetricsOverview',"await import('@portallander/mockup')",'getMockupMetricsOverview'])
+requireTokens('admin-entry.css',adminEntry,["@import './admin-metrics.css';"])
+requireTokens('admin-metrics.css',metricsStyles,[
+  '[data-testid="metrics-site-tab"]',
+  '.marketing-metric-strip',
+  'grid-template-columns:repeat(4,minmax(0,1fr))',
+  '.marketing-analytics-grid',
+  'grid-template-columns:repeat(2,minmax(0,1fr))',
+  '.marketing-summary-reference p',
+  'var(--ui-kpi-icon)',
+  'var(--ui-card-gap)',
+])
 
 if(failures.length){console.error('Falha nos boundaries do módulo Métricas:');failures.forEach(item=>console.error(`- ${item}`));process.exit(1)}
-console.log('Metrics boundaries OK — módulo global em /app/metrics, rota única, cinco abas por fonte (Visão Geral, Site, Instagram, TikTok e YouTube), Site consolida editorial/conversões, período interno canônico de 30 dias sem seletor manual, Marketing sem ownership, UI sem KPI de fixture e mockup mediado pelo adapter analítico.')
+console.log('Metrics boundaries OK — módulo global em /app/metrics, rota única, cinco abas por fonte (Visão Geral, Site, Instagram, TikTok e YouTube), Site consolida editorial/conversões com KPIs 4x e cards analíticos responsivos padronizados, período interno canônico de 30 dias sem seletor manual, Marketing sem ownership, UI sem KPI de fixture e mockup mediado pelo adapter analítico.')

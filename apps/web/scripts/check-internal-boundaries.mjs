@@ -27,7 +27,6 @@ requireModuleSources('InternalApp.tsx',internalApp,[
  '../modules/chat/ChatPage',
  '../modules/hr/HRPage',
  '../modules/analytics/MetricsPage',
- '../modules/editorial/EditorialAdminPage',
  '../modules/marketing/MarketingPage',
  '../modules/reports/ReportsPage',
  '../modules/finance/FinanceMainPage',
@@ -50,8 +49,6 @@ requireTokens('InternalApp.tsx',internalApp,[
  'path="/app/chat"',
  'path="/app/hr"',
  'path="/app/metrics"',
- 'path="/app/editorial"',
- 'path="/app/editorial/content"',
  'path="/app/marketing/*"',
  'path="/app/reports"',
  'path="/app/finance"',
@@ -62,7 +59,7 @@ requireTokens('InternalApp.tsx',internalApp,[
  'path="/app/settings"',
  'path="/app/site/*"',
 ])
-forbidTokens('InternalApp.tsx',internalApp,['WorkspacePage','CrmWorkspace','/app/workspaces','workspace selection'])
+forbidTokens('InternalApp.tsx',internalApp,['WorkspacePage','CrmWorkspace','/app/workspaces','workspace selection','EditorialAdminPage','/app/editorial'])
 
 const authContext=await read('src/modules/access/AdminAuthContext.tsx')
 requireTokens('AdminAuthContext.tsx',authContext,[
@@ -83,7 +80,9 @@ for(const removed of [
  'src/modules/access/WorkspacePage.tsx',
  'src/modules/access/CrmWorkspace.tsx',
  'src/styles/admin-workspaces.css',
-])if(await exists(removed))failures.push(`${removed} pertence à arquitetura antiga de múltiplos workspaces e deve permanecer removido.`)
+ 'src/modules/editorial/EditorialAdminPage.tsx',
+ 'src/modules/editorial/components/EditorialAdmin.tsx',
+])if(await exists(removed))failures.push(`${removed} pertence à arquitetura administrativa removida e deve permanecer removido.`)
 
 const adminNavigation=await read('src/shared/internal/adminNavigation.ts')
 requireTokens('adminNavigation.ts',adminNavigation,[
@@ -99,9 +98,6 @@ requireTokens('adminNavigation.ts',adminNavigation,[
  "['Chat',MessageCircle,'/app/chat']",
  "['RH',UsersRound,'/app/hr']",
  "['Métricas',BarChart3,'/app/metrics']",
- "label:'Editorial'",
- "['Páginas editoriais',Layers3,'/app/editorial']",
- "['Conteúdos editoriais',FileText,'/app/editorial/content']",
  "label:'Site'",
  "['Conteúdos',FileText,'/app/site/content']",
  "['Mídias',Images,'/app/site/media']",
@@ -112,7 +108,7 @@ requireTokens('adminNavigation.ts',adminNavigation,[
  "['Relatórios',BarChart3,'/app/reports']",
  "['Configurações',Settings,'/app/settings']"
 ])
-forbidTokens('adminNavigation.ts',adminNavigation,['CRM_WORKSPACE_NAV','WORKSPACE_NAV','/app/workspaces'])
+forbidTokens('adminNavigation.ts',adminNavigation,['CRM_WORKSPACE_NAV','WORKSPACE_NAV','/app/workspaces',"label:'Editorial'",'/app/editorial'])
 for(const forbidden of ["['Dashboard',LayoutDashboard,'/app/crm']",'/app/crm/dashboard','/app/crm/integrations','Integrações','PlugZap',"['Categorias',Tags,'/app/finance/categories']","/app/finance/automations"])if(adminNavigation.includes(forbidden))failures.push(`adminNavigation contém item proibido ou removido: ${forbidden}`)
 
 const crmPage=await read('src/modules/crm/CrmPage.tsx')
@@ -175,4 +171,4 @@ requireTokens('MediaKitPage.tsx',mediaKitPage,['data-testid="media-kit-automatic
 for(const forbidden of ['Adicionar métrica','Metric key','Account ID','Property ID','<span>Provider</span>','<span>Conta</span>','Compatibilidade de dados manuais legados','Usuários mensais','Visualizações mensais','Alcance social','Valor manual'])if(mediaKitPage.includes(forbidden))failures.push(`Mídia Kit não pode reintroduzir configuração técnica ou audiência manual no fluxo principal: ${forbidden}`)
 
 if(failures.length){console.error('Falha nos boundaries da aplicação:');failures.forEach(item=>console.error(`- ${item}`));process.exit(1)}
-console.log('Application boundaries OK — administração unificada com todos os módulos implementados navegáveis; @portallander/mockup canônico; Mídia Kit automático sem configuração técnica/manual; sem arquitetura legada de workspaces ou src/mocks')
+console.log('Application boundaries OK — administração unificada sem módulos duplicados; @portallander/mockup canônico; Mídia Kit automático sem configuração técnica/manual; sem arquitetura legada de workspaces ou src/mocks')

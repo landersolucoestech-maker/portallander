@@ -54,8 +54,6 @@ jobs:
         uses: actions/checkout@v4
       - name: Setup Node
         uses: actions/setup-node@v4
-        with:
-          node-version: 22
       - name: Configure Pages
         uses: actions/configure-pages@v5
       - name: Install monorepo
@@ -101,8 +99,6 @@ jobs:
         uses: actions/checkout@v4
       - name: Setup Node
         uses: actions/setup-node@v4
-        with:
-          node-version: 22
       - name: Install monorepo
         run: npm ci
       - name: Build explicit browser demo fixture
@@ -157,8 +153,6 @@ jobs:
         uses: actions/checkout@v4
       - name: Setup Node
         uses: actions/setup-node@v4
-        with:
-          node-version: 22
       - name: Install monorepo
         run: npm ci
       - name: Install Chromium
@@ -192,8 +186,6 @@ jobs:
             ['/app/chat','Chat'],
             ['/app/hr','RH'],
             ['/app/metrics','Métricas'],
-            ['/app/editorial','Editorial'],
-            ['/app/editorial/content','Conteúdos editoriais'],
             ['/app/site/content','Conteúdos'],
             ['/app/site/media','Mídias'],
             ['/app/site/pages','Páginas'],
@@ -236,7 +228,7 @@ jobs:
             const nav=page.getByRole('navigation',{name:'Módulos da Administração'})
             await nav.waitFor({state:'visible',timeout:15000})
             const navText=(await nav.innerText()).replace(/\s+/g,' ')
-            for(const label of ['Dashboard','CRM','Contratos','Financeiro','Agenda','Chat','RH','Métricas','Editorial','Site','Marketing','Relatórios','Configurações']){
+            for(const label of ['Dashboard','CRM','Contratos','Financeiro','Agenda','Chat','RH','Métricas','Site','Marketing','Relatórios','Configurações']){
               if(!navText.includes(label))throw new Error(`Admin navigation does not expose implemented module: ${label}`)
             }
 

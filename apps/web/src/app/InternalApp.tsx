@@ -14,7 +14,6 @@ const ChatPage=lazy(()=>import('../modules/chat/ChatPage'))
 const ChatAutomationSettingsPage=lazy(()=>import('../modules/chat/ChatAutomationSettingsPage'))
 const HRPage=lazy(()=>import('../modules/hr/HRPage'))
 const MetricsPage=lazy(()=>import('../modules/analytics/MetricsPage'))
-const EditorialAdminPage=lazy(()=>import('../modules/editorial/EditorialAdminPage'))
 const MarketingPage=lazy(()=>import('../modules/marketing/MarketingPage'))
 const ReportsPage=lazy(()=>import('../modules/reports/ReportsPage'))
 const SettingsPage=lazy(()=>import('../modules/settings/SettingsPage'))
@@ -52,8 +51,6 @@ function InternalRoutes(){return <Suspense fallback={null}><Routes>
   <Route path="/app/chat/settings" element={protectedRoute(<ChatAutomationSettingsPage/>)}/>
   <Route path="/app/hr" element={protectedRoute(<HRPage/>)}/>
   <Route path="/app/metrics" element={protectedRoute(<MetricsPage/>)}/>
-  <Route path="/app/editorial" element={protectedRoute(<EditorialAdminPage/>)}/>
-  <Route path="/app/editorial/content" element={protectedRoute(<EditorialAdminPage/>)}/>
   <Route path="/app/marketing/*" element={protectedRoute(<MarketingPage/>)}/>
   <Route path="/app/reports" element={protectedRoute(<ReportsPage/>)}/>
   <Route path="/app/settings" element={protectedRoute(<SettingsPage/>)}/>

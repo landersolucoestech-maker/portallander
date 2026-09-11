@@ -7,11 +7,6 @@ export type AdminCapability = {
 }
 
 export const ADMIN_CAPABILITIES = {
-  editorialPersistence: {
-    state:'unavailable',
-    label:'Persistência editorial',
-    description:'Páginas e conteúdos utilizam atualmente um snapshot read-only empacotado no frontend.',
-  },
   mediaStorage: {
     state:'unavailable',
     label:'Storage de mídia',

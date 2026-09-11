@@ -14,12 +14,16 @@ const forbiddenTokens=[
   'CrmWorkspace',
   'workspace-selection',
   'admin-workspaces.css',
+  '/app/editorial',
+  'EditorialAdminPage',
 ]
 const removedPaths=[
   'modules/access/WorkspacePage.tsx',
   'modules/access/CrmWorkspace.tsx',
   'modules/access/mocks/index.ts',
   'styles/admin-workspaces.css',
+  'modules/editorial/EditorialAdminPage.tsx',
+  'modules/editorial/components/EditorialAdmin.tsx',
 ]
 
 async function exists(path){
@@ -42,7 +46,7 @@ for(const [root,label] of [[srcRoot,'src'],[e2eRoot,'e2e']]){
   for(const path of await walk(root)){
     const source=await readFile(path,'utf8')
     const rel=relative(root,path).replaceAll('\\','/')
-    for(const token of forbiddenTokens)if(source.includes(token))failures.push(`${label}/${rel} reintroduziu arquitetura de múltiplos workspaces: ${token}`)
+    for(const token of forbiddenTokens)if(source.includes(token))failures.push(`${label}/${rel} reintroduziu arquitetura administrativa removida: ${token}`)
   }
 }
 
@@ -51,4 +55,4 @@ if(failures.length){
   failures.forEach(item=>console.error(`- ${item}`))
   process.exit(1)
 }
-console.log('Unified admin architecture OK — página de Workspace e arquitetura de múltiplos workspaces removidas')
+console.log('Unified admin architecture OK — módulos administrativos duplicados permanecem removidos')

@@ -14,10 +14,6 @@ export const UNIFIED_ADMIN_NAV:readonly AdminNavItem[]=[
   ['Chat',MessageCircle,'/app/chat'],
   ['RH',UsersRound,'/app/hr'],
   ['Métricas',BarChart3,'/app/metrics'],
-  {label:'Editorial',icon:Newspaper,to:'/app/editorial',children:[
-    ['Páginas editoriais',Layers3,'/app/editorial'],
-    ['Conteúdos editoriais',FileText,'/app/editorial/content'],
-  ]},
   {label:'Site',icon:Layers3,to:'/app/site/pages',children:[
     ['Conteúdos',FileText,'/app/site/content'],
     ['Mídias',Images,'/app/site/media'],

@@ -1,28 +1,65 @@
-/* Métricas — superfície administrativa canônica.
-   A aba Site possui composição própria e não herda geometria visual dos cards de Marketing. */
+/* Métricas — contrato visual único para Visão Geral, Site e canais sociais. */
 
 .app-shell .metrics-page{
+  display:grid;
+  gap:var(--ui-card-gap);
+  min-width:0;
   font-family:var(--ui-font);
 }
 
-.app-shell .metrics-site{
-  display:grid;
-  gap:var(--ui-page-gap);
+.app-shell .metrics-page>.marketing-platform-tabs-exact{
+  min-height:46px;
+  margin:0;
+  padding:4px;
+  gap:4px;
+  align-items:center;
+  border:1px solid var(--ui-border);
+  border-radius:var(--ui-radius-md);
+  background:var(--ui-surface);
+}
+
+.app-shell .metrics-page>.marketing-platform-tabs-exact button{
+  min-width:0;
+  height:36px;
+  padding:0 12px;
+  justify-content:center;
+  font-family:var(--ui-font);
+  font-size:11px;
+  font-weight:650;
+  line-height:1;
+}
+
+.app-shell .metrics-overview-grid,
+.app-shell .metrics-site,
+.app-shell .metrics-social{
   min-width:0;
 }
 
-.app-shell .metrics-site-section{
+.app-shell .metrics-overview-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:var(--ui-card-gap);
+  align-items:stretch;
+}
+
+.app-shell .metrics-site,
+.app-shell .metrics-social{
+  display:grid;
+  gap:var(--ui-page-gap);
+}
+
+.app-shell .metrics-section{
   display:grid;
   gap:var(--ui-card-gap);
   min-width:0;
 }
 
-.app-shell .metrics-site-section+.metrics-site-section{
+.app-shell .metrics-site .metrics-section+.metrics-section{
   padding-top:var(--ui-page-gap);
   border-top:1px solid var(--ui-border);
 }
 
-.app-shell .metrics-site-section-head{
+.app-shell .metrics-section-head{
   display:flex;
   align-items:flex-end;
   justify-content:space-between;
@@ -30,12 +67,12 @@
   min-width:0;
 }
 
-.app-shell .metrics-site-section-head>div{
+.app-shell .metrics-section-head>div{
   min-width:0;
   max-width:760px;
 }
 
-.app-shell .metrics-site-section-head>div>span{
+.app-shell .metrics-section-head>div>span{
   display:block;
   margin-bottom:5px;
   color:var(--ui-accent);
@@ -46,7 +83,7 @@
   text-transform:uppercase;
 }
 
-.app-shell .metrics-site-section-head h2{
+.app-shell .metrics-section-head h2{
   margin:0;
   color:var(--ui-text-strong);
   font-size:18px;
@@ -55,14 +92,14 @@
   line-height:1.2;
 }
 
-.app-shell .metrics-site-section-head p{
+.app-shell .metrics-section-head p{
   margin:5px 0 0;
   color:var(--ui-muted);
   font-size:11px;
   line-height:1.5;
 }
 
-.app-shell .metrics-site-section-head>small{
+.app-shell .metrics-section-head>small{
   flex:0 0 auto;
   min-height:26px;
   padding:0 9px;
@@ -75,34 +112,35 @@
   justify-content:center;
   font-size:9px;
   font-weight:750;
+  line-height:1;
   white-space:nowrap;
 }
 
-/* KPIs: um único contrato visual, baseado em AdminKpi. */
-.app-shell .metrics-site-kpis{
+/* KPI: quatro colunas no desktop em todas as abas do módulo. */
+.app-shell .metrics-kpi-grid{
   display:grid;
   grid-template-columns:repeat(4,minmax(0,1fr));
   gap:var(--ui-kpi-gap);
   align-items:stretch;
 }
 
-.app-shell .metrics-site-kpis .admin-kpi{
+.app-shell .metrics-kpi-grid .admin-kpi{
   box-sizing:border-box;
   margin:0;
+  overflow:hidden;
   border-color:var(--ui-border);
   border-radius:var(--ui-radius-md);
   background:var(--ui-surface);
   box-shadow:none;
-  overflow:hidden;
 }
 
-.app-shell .metrics-site-kpis .admin-kpi-top{
+.app-shell .metrics-kpi-grid .admin-kpi-top{
   min-width:0;
   height:var(--ui-kpi-icon);
   gap:var(--ui-space-2);
 }
 
-.app-shell .metrics-site-kpis .admin-kpi-label{
+.app-shell .metrics-kpi-grid .admin-kpi-label{
   min-width:0;
   overflow:hidden;
   color:var(--ui-muted);
@@ -113,7 +151,7 @@
   white-space:nowrap;
 }
 
-.app-shell .metrics-site-kpis .admin-kpi-icon{
+.app-shell .metrics-kpi-grid .admin-kpi-icon{
   width:var(--ui-kpi-icon);
   height:var(--ui-kpi-icon);
   flex:0 0 var(--ui-kpi-icon);
@@ -123,12 +161,12 @@
   color:var(--ui-muted);
 }
 
-.app-shell .metrics-site-kpis .admin-kpi-icon svg{
+.app-shell .metrics-kpi-grid .admin-kpi-icon svg{
   width:16px;
   height:16px;
 }
 
-.app-shell .metrics-site-kpis .admin-kpi>strong{
+.app-shell .metrics-kpi-grid .admin-kpi>strong{
   margin:0;
   overflow:hidden;
   color:var(--ui-text-strong);
@@ -141,7 +179,7 @@
   white-space:nowrap;
 }
 
-.app-shell .metrics-site-kpis .admin-kpi>small{
+.app-shell .metrics-kpi-grid .admin-kpi>small{
   margin:0;
   overflow:hidden;
   color:var(--ui-muted-soft);
@@ -152,20 +190,23 @@
   white-space:nowrap;
 }
 
-/* Cards: colunas equivalentes, cabeçalhos e paddings idênticos. */
-.app-shell .metrics-site-card-grid{
+/* Cards analíticos: mesma coluna, header, padding e densidade em todas as abas. */
+.app-shell .metrics-card-grid{
   display:grid;
   grid-template-columns:repeat(2,minmax(0,1fr));
   gap:var(--ui-card-gap);
-  align-items:start;
+  align-items:stretch;
 }
 
-.app-shell .metrics-site-card-grid-single{
+.app-shell .metrics-card-grid-single{
   grid-template-columns:1fr;
 }
 
-.app-shell .metrics-site-card{
+.app-shell .metrics-card{
+  display:grid;
+  grid-template-rows:auto minmax(0,1fr);
   min-width:0;
+  height:100%;
   overflow:hidden;
   border:1px solid var(--ui-border);
   border-radius:var(--ui-radius-md);
@@ -173,7 +214,7 @@
   box-shadow:none;
 }
 
-.app-shell .metrics-site-card>header{
+.app-shell .metrics-card>header{
   min-height:70px;
   padding:14px var(--ui-space-4);
   display:flex;
@@ -182,7 +223,7 @@
   border-bottom:1px solid var(--ui-border);
 }
 
-.app-shell .metrics-site-card>header h3{
+.app-shell .metrics-card>header h3{
   margin:0;
   color:var(--ui-text-strong);
   font-size:14px;
@@ -191,24 +232,25 @@
   line-height:1.3;
 }
 
-.app-shell .metrics-site-card>header p{
+.app-shell .metrics-card>header p{
   margin:4px 0 0;
   color:var(--ui-muted);
   font-size:10px;
+  font-weight:500;
   line-height:1.45;
 }
 
-.app-shell .metrics-site-card-body{
+.app-shell .metrics-card-body{
   min-width:0;
   padding:0 var(--ui-space-4) 4px;
 }
 
-.app-shell .metrics-site-rows{
+.app-shell .metrics-rows{
   display:grid;
   min-width:0;
 }
 
-.app-shell .metrics-site-row{
+.app-shell .metrics-row{
   min-height:56px;
   padding:9px 0;
   display:grid;
@@ -218,17 +260,18 @@
   border-bottom:1px solid #f0f2f5;
 }
 
-.app-shell .metrics-site-row:last-child{
+.app-shell .metrics-row:last-child{
   border-bottom:0;
 }
 
-.app-shell .metrics-site-row>div{
+.app-shell .metrics-row>div{
   min-width:0;
   display:grid;
   gap:3px;
+  align-content:center;
 }
 
-.app-shell .metrics-site-row>div>strong{
+.app-shell .metrics-row>div>strong{
   min-width:0;
   overflow:hidden;
   color:var(--ui-text);
@@ -239,16 +282,18 @@
   white-space:nowrap;
 }
 
-.app-shell .metrics-site-row>div>small{
+.app-shell .metrics-row>div>small{
   min-width:0;
   color:var(--ui-muted-soft);
   font-size:10px;
+  font-weight:500;
   line-height:1.35;
   overflow-wrap:anywhere;
 }
 
-.app-shell .metrics-site-row>b{
-  max-width:180px;
+.app-shell .metrics-row>b{
+  align-self:center;
+  max-width:220px;
   overflow:hidden;
   color:var(--ui-text-strong);
   font-size:13px;
@@ -260,70 +305,84 @@
   white-space:nowrap;
 }
 
-.app-shell .metrics-site-empty{
+.app-shell .metrics-empty-state{
   min-height:160px;
   padding:var(--ui-space-6);
   display:grid;
   place-items:center;
+  align-content:center;
+  gap:5px;
   color:var(--ui-muted-soft);
   font-size:11px;
   line-height:1.55;
   text-align:center;
 }
 
-.app-shell .metrics-site-section .admin-notice{
+.app-shell .metrics-empty-state strong{
+  color:var(--ui-text);
+  font-size:12px;
+}
+
+.app-shell .metrics-empty-state-compact{
+  min-height:112px;
+}
+
+.app-shell .metrics-section .admin-notice{
   margin:0;
 }
 
 @media(max-width:1200px){
-  .app-shell .metrics-site-kpis{
+  .app-shell .metrics-kpi-grid{
     grid-template-columns:repeat(2,minmax(0,1fr));
   }
 }
 
 @media(max-width:960px){
-  .app-shell .metrics-site-card-grid{
+  .app-shell .metrics-overview-grid,
+  .app-shell .metrics-card-grid{
     grid-template-columns:1fr;
   }
 }
 
 @media(max-width:640px){
-  .app-shell .metrics-site{
+  .app-shell .metrics-page{
     gap:var(--ui-page-gap-mobile);
   }
 
-  .app-shell .metrics-site-section{
+  .app-shell .metrics-site,
+  .app-shell .metrics-social,
+  .app-shell .metrics-section{
     gap:var(--ui-page-gap-mobile);
   }
 
-  .app-shell .metrics-site-section+.metrics-site-section{
+  .app-shell .metrics-site .metrics-section+.metrics-section{
     padding-top:var(--ui-page-gap-mobile);
   }
 
-  .app-shell .metrics-site-section-head{
+  .app-shell .metrics-section-head{
     align-items:flex-start;
     flex-direction:column;
     gap:var(--ui-space-2);
   }
 
-  .app-shell .metrics-site-section-head h2{
+  .app-shell .metrics-section-head h2{
     font-size:16px;
   }
 
-  .app-shell .metrics-site-kpis{
+  .app-shell .metrics-kpi-grid{
     grid-template-columns:1fr;
   }
 
-  .app-shell .metrics-site-card>header{
+  .app-shell .metrics-card>header{
     min-height:auto;
   }
 
-  .app-shell .metrics-site-row{
+  .app-shell .metrics-row{
     grid-template-columns:minmax(0,1fr) auto;
     gap:var(--ui-space-3);
   }
 
-  .app-shell .metrics-site-row>b{
+  .app-shell .metrics-row>b{
     max-width:120px;
   }
 }

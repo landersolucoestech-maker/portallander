@@ -8,7 +8,6 @@ import {getRuntimeDataProvider} from '../../shared/data/runtimeDataProvider'
 import {marketingRepository} from '../marketing/repository'
 import type {MarketingSeed} from '../marketing/domain'
 import {compact} from '../marketing/domain'
-import {Card} from '../marketing/MarketingUi'
 import {MarketingMetrics} from '../marketing/pages/MarketingMetrics'
 import {analyticsClient} from './client'
 import type {AnalyticsDataStatus,AnalyticsMetric} from './domain'
@@ -25,8 +24,8 @@ const DISPLAYABLE_STATUSES=new Set<AnalyticsDataStatus>(['LIVE','CACHED','MANUAL
 const SOCIAL_PROVIDERS={instagram:'Instagram',tiktok:'TikTok',youtube:'YouTube'} as const
 const INTERNAL_METRICS_RANGE:MetricsRange='30d'
 
-type SiteKpiItem=readonly [label:string,value:string,detail:string,icon:LucideIcon]
-type SiteRow=readonly string[]
+type MetricsKpiItem=readonly [label:string,value:string,detail:string,icon:LucideIcon]
+type MetricsRow=readonly string[]
 
 const dateText=(date:Date)=>date.toISOString().slice(0,10)
 const shiftDate=(value:string,days:number)=>{const date=new Date(`${value}T12:00:00.000Z`);date.setUTCDate(date.getUTCDate()+days);return dateText(date)}
@@ -45,11 +44,9 @@ const publicationDateLabel=(value:string|null|undefined)=>value?new Intl.DateTim
 const usable=(metric:AnalyticsMetric)=>metric.value!==null&&DISPLAYABLE_STATUSES.has(metric.dataStatus)
 const socialOnly=(metrics:AnalyticsMetric[])=>metrics.filter(metric=>usable(metric)&&metric.provider!=='google-analytics')
 
-function SummaryRows({rows}:{rows:ReadonlyArray<ReadonlyArray<string>>}){return <div className="marketing-summary marketing-summary-reference">{rows.map((row,index)=>{const [label='',value='',detail='']=row;return <p key={`${label}-${index}`}><span>{label}</span><strong>{value}</strong><small>{detail}</small></p>})}</div>}
-
-function SiteSection({testId,eyebrow,title,description,children}:{testId:string;eyebrow:string;title:string;description:string;children:ReactNode}){
- return <section className="metrics-site-section" data-testid={testId}>
-  <header className="metrics-site-section-head">
+function MetricsSection({testId,eyebrow,title,description,children}:{testId:string;eyebrow:string;title:string;description:string;children:ReactNode}){
+ return <section className="metrics-section" data-testid={testId}>
+  <header className="metrics-section-head">
    <div><span>{eyebrow}</span><h2>{title}</h2><p>{description}</p></div>
    <small>Últimos 30 dias</small>
   </header>
@@ -57,36 +54,36 @@ function SiteSection({testId,eyebrow,title,description,children}:{testId:string;
  </section>
 }
 
-function SiteKpiGrid({items}:{items:ReadonlyArray<SiteKpiItem>}){
- return <div className="metrics-site-kpis">{items.map(([label,value,detail,Icon])=><AdminKpi key={label} label={label} value={value} detail={detail} icon={<Icon size={16}/>}/>)}</div>
+function MetricsKpiGrid({items}:{items:ReadonlyArray<MetricsKpiItem>}){
+ return <div className="metrics-kpi-grid">{items.map(([label,value,detail,Icon])=><AdminKpi key={label} label={label} value={value} detail={detail} icon={<Icon size={16}/>}/>)}</div>
 }
 
-function SiteCard({title,description,children}:{title:string;description:string;children:ReactNode}){
- return <article className="metrics-site-card"><header><h3>{title}</h3><p>{description}</p></header><div className="metrics-site-card-body">{children}</div></article>
+function MetricsCard({title,description,children}:{title:string;description:string;children:ReactNode}){
+ return <article className="metrics-card"><header><h3>{title}</h3><p>{description}</p></header><div className="metrics-card-body">{children}</div></article>
 }
 
-function SiteRows({rows}:{rows:ReadonlyArray<SiteRow>}){
- return <div className="metrics-site-rows">{rows.map((row,index)=>{const [label='',value='',detail='']=row;return <div className="metrics-site-row" key={`${label}-${index}`}><div><strong>{label}</strong><small>{detail}</small></div><b>{value}</b></div>})}</div>
+function MetricsRows({rows}:{rows:ReadonlyArray<MetricsRow>}){
+ return <div className="metrics-rows">{rows.map((row,index)=>{const [label='',value='',detail='']=row;return <div className="metrics-row" key={`${label}-${index}`}><div><strong>{label}</strong><small>{detail}</small></div><b>{value}</b></div>})}</div>
 }
 
-function SiteEmpty({children}:{children:ReactNode}){return <div className="metrics-site-empty">{children}</div>}
+function MetricsEmpty({children}:{children:ReactNode}){return <div className="metrics-empty-state">{children}</div>}
 
 function OverviewTab({data,socialMetrics}:{data:MetricsResponse;socialMetrics:AnalyticsMetric[]}){
  const social=socialOnly(socialMetrics),impressions=aggregateMetric(social,'impressions'),engagement=aggregateMetric(social,'engagement'),clicks=aggregateMetric(social,'clicks'),followers=aggregateMetric(social,'followers')
  const site=data.ga4.overview
- return <div className="marketing-analytics-grid marketing-analytics-reference" data-testid="metrics-overview-tab">
-  <Card title="Site" description={data.ga4.status==='available'?'Google Analytics 4 · fonte canônica':'GA4 não configurado ou indisponível'}><SummaryRows rows={[
-   ['Usuários',valueLabel(site.users?.value),'usuários ativos no período'],['Sessões',valueLabel(site.sessions?.value),'sessões no período'],['Visualizações',valueLabel(site.pageviews?.value),'visualizações de página'],['Engajamento',percentLabel(site.engagementRate?.value),'taxa de engajamento GA4'],
-  ]}/></Card>
-  <Card title="Canais sociais" description="Snapshots canônicos por integração"><SummaryRows rows={[
-   ['Impressões',valueLabel(impressions),'agregação permitida pelo catálogo'],['Engajamento',valueLabel(engagement),'interações normalizadas'],['Cliques',valueLabel(clicks),'cliques normalizados'],['Seguidores',valueLabel(followers),followers===null?'mantidos por provider; não somados':'snapshot compatível'],
-  ]}/></Card>
-  <Card title="Conteúdo do Site" description="Dados editoriais canônicos"><SummaryRows rows={[
-   ['Publicados',valueLabel(data.editorial.counts.published),'conteúdos publicados'],['No período',valueLabel(data.editorial.counts.publishedInPeriod),'publicados no período'],['Rascunhos',valueLabel(data.editorial.counts.drafts),'estado editorial'],['Arquivados',valueLabel(data.editorial.counts.archived),'estado editorial'],
-  ]}/></Card>
-  <Card title="Conversões do Site" description="Resultados derivados dos pipelines canônicos"><SummaryRows rows={[
-   ['Submissões',valueLabel(data.conversions.total),'submissões aceitas'],['Leads',valueLabel(data.conversions.leadsCreated),'Contato Comercial → CRM'],['Colaborações',valueLabel(data.conversions.collaborationsCreated),'Colabore / Anuncie'],['Anuncie',valueLabel(data.conversions.contexts.anuncie),'origem Anuncie'],
-  ]}/></Card>
+ return <div className="metrics-overview-grid" data-testid="metrics-overview-tab">
+  <MetricsCard title="Site" description={data.ga4.status==='available'?'Google Analytics 4 · fonte canônica':'GA4 não configurado ou indisponível'}><MetricsRows rows={[
+   ['Usuários',valueLabel(site.users?.value),'Usuários ativos no período'],['Sessões',valueLabel(site.sessions?.value),'Sessões no período'],['Visualizações',valueLabel(site.pageviews?.value),'Visualizações de página'],['Engajamento',percentLabel(site.engagementRate?.value),'Taxa de engajamento GA4'],
+  ]}/></MetricsCard>
+  <MetricsCard title="Canais sociais" description="Indicadores agregados das integrações conectadas"><MetricsRows rows={[
+   ['Impressões',valueLabel(impressions),'Agregação permitida pelo catálogo'],['Engajamento',valueLabel(engagement),'Interações normalizadas'],['Cliques',valueLabel(clicks),'Cliques normalizados'],['Seguidores',valueLabel(followers),followers===null?'Mantidos por canal; não somados':'Snapshot agregado compatível'],
+  ]}/></MetricsCard>
+  <MetricsCard title="Conteúdo do Site" description="Situação editorial do conteúdo persistido"><MetricsRows rows={[
+   ['Publicados',valueLabel(data.editorial.counts.published),'Conteúdos publicados'],['No período',valueLabel(data.editorial.counts.publishedInPeriod),'Publicados nos últimos 30 dias'],['Rascunhos',valueLabel(data.editorial.counts.drafts),'Aguardando publicação'],['Arquivados',valueLabel(data.editorial.counts.archived),'Fora de exibição'],
+  ]}/></MetricsCard>
+  <MetricsCard title="Conversões do Site" description="Resultados dos fluxos de formulário"><MetricsRows rows={[
+   ['Submissões',valueLabel(data.conversions.total),'Submissões aceitas'],['Leads',valueLabel(data.conversions.leadsCreated),'Contato Comercial → CRM'],['Colaborações',valueLabel(data.conversions.collaborationsCreated),'Recebidas por Colabore'],['Anuncie',valueLabel(data.conversions.contexts.anuncie),'Recebidas por Anuncie'],
+  ]}/></MetricsCard>
  </div>
 }
 
@@ -94,63 +91,63 @@ function SiteTab({data}:{data:MetricsResponse}){
  const overview=data.ga4.overview
  const topContent=data.ga4.status==='available'?data.ga4.pages.filter(page=>data.editorial.latest.some(content=>page.path.includes(`/${content.slug}`))):[]
  return <div className="metrics-site" data-testid="metrics-site-tab">
-  <SiteKpiGrid items={[
+  <MetricsKpiGrid items={[
    ['Usuários',valueLabel(overview.users?.value),'Ativos no período',Users],
    ['Sessões',valueLabel(overview.sessions?.value),'Visitas iniciadas',Globe2],
    ['Visualizações',valueLabel(overview.pageviews?.value),'Páginas visualizadas',BarChart3],
    ['Engajamento',percentLabel(overview.engagementRate?.value),'Taxa de sessões engajadas',TrendingUp],
   ]}/>
 
-  <SiteSection testId="metrics-site-analytics" eyebrow="Audiência" title="Tráfego e comportamento" description="Dados do Google Analytics 4 para entender alcance, recorrência e navegação.">
+  <MetricsSection testId="metrics-site-analytics" eyebrow="Audiência" title="Tráfego e comportamento" description="Dados do Google Analytics 4 para entender alcance, recorrência e navegação.">
    {data.ga4.status==='available'?<>
-    <div className="metrics-site-card-grid">
-     <SiteCard title="Aquisição por canal" description="Principais origens de tráfego por sessões e usuários."><SiteRows rows={data.ga4.acquisition.slice(0,6).map(item=>[item.channel,valueLabel(item.sessions),`${valueLabel(item.users)} usuários`])}/></SiteCard>
-     <SiteCard title="Comportamento" description="Recorrência, profundidade e duração das visitas."><SiteRows rows={[
+    <div className="metrics-card-grid">
+     <MetricsCard title="Aquisição por canal" description="Principais origens de tráfego por sessões e usuários."><MetricsRows rows={data.ga4.acquisition.slice(0,6).map(item=>[item.channel,valueLabel(item.sessions),`${valueLabel(item.users)} usuários`])}/></MetricsCard>
+     <MetricsCard title="Comportamento" description="Recorrência, profundidade e duração das visitas."><MetricsRows rows={[
       ['Novos usuários',valueLabel(overview.newUsers?.value),'Primeira visita no período'],
       ['Usuários recorrentes',valueLabel(data.ga4.returningUsers?.value),'Retornaram no período'],
       ['Visualizações / usuário',decimalLabel(overview.pageviewsPerUser?.value),'Média de páginas por usuário'],
       ['Tempo médio',durationLabel(overview.averageSessionDuration?.value),'Duração média da sessão'],
-     ]}/></SiteCard>
+     ]}/></MetricsCard>
     </div>
-    <div className="metrics-site-card-grid metrics-site-card-grid-single">
-     <SiteCard title="Páginas mais acessadas" description="As seis páginas com maior volume de visualizações."><SiteRows rows={data.ga4.pages.slice(0,6).map(item=>[item.title||item.path,valueLabel(item.pageviews),`${valueLabel(item.users)} usuários · ${item.path}`])}/></SiteCard>
+    <div className="metrics-card-grid metrics-card-grid-single">
+     <MetricsCard title="Páginas mais acessadas" description="As seis páginas com maior volume de visualizações."><MetricsRows rows={data.ga4.pages.slice(0,6).map(item=>[item.title||item.path,valueLabel(item.pageviews),`${valueLabel(item.users)} usuários · ${item.path}`])}/></MetricsCard>
     </div>
    </>:<AdminNotice title={data.ga4.reason==='GA4_NOT_CONFIGURED'?'GA4 não configurado':'Dados do Site indisponíveis'} description={data.ga4.message||'Nenhum valor fictício é usado quando a integração real do Google Analytics 4 não está disponível.'}/>} 
-  </SiteSection>
+  </MetricsSection>
 
-  <SiteSection testId="metrics-site-content" eyebrow="Conteúdo" title="Publicação e desempenho" description="Estado editorial atual e desempenho dos conteúdos que possuem vínculo seguro com o GA4.">
-   <div className="metrics-site-card-grid">
-    <SiteCard title="Estado editorial" description="Situação atual do conteúdo persistido no site."><SiteRows rows={[
+  <MetricsSection testId="metrics-site-content" eyebrow="Conteúdo" title="Publicação e desempenho" description="Estado editorial atual e desempenho dos conteúdos que possuem vínculo seguro com o GA4.">
+   <div className="metrics-card-grid">
+    <MetricsCard title="Estado editorial" description="Situação atual do conteúdo persistido no site."><MetricsRows rows={[
      ['Publicados',valueLabel(data.editorial.counts.published),'Total atualmente publicado'],
      ['Novos no período',valueLabel(data.editorial.counts.publishedInPeriod),'Publicados nos últimos 30 dias'],
      ['Rascunhos',valueLabel(data.editorial.counts.drafts),'Aguardando publicação'],
      ['Arquivados',valueLabel(data.editorial.counts.archived),'Fora de exibição'],
-    ]}/></SiteCard>
-    <SiteCard title="Publicações recentes" description="Últimos conteúdos registrados na fonte editorial persistida.">{data.editorial.latest.length?<SiteRows rows={data.editorial.latest.slice(0,6).map(item=>[item.title,publicationDateLabel(item.publishedAt),item.pageTitle||'Conteúdo editorial'])}/>:<SiteEmpty>Nenhum conteúdo publicado foi encontrado.</SiteEmpty>}</SiteCard>
+    ]}/></MetricsCard>
+    <MetricsCard title="Publicações recentes" description="Últimos conteúdos registrados na fonte editorial persistida.">{data.editorial.latest.length?<MetricsRows rows={data.editorial.latest.slice(0,6).map(item=>[item.title,publicationDateLabel(item.publishedAt),item.pageTitle||'Conteúdo editorial'])}/>:<MetricsEmpty>Nenhum conteúdo publicado foi encontrado.</MetricsEmpty>}</MetricsCard>
    </div>
-   <div className="metrics-site-card-grid metrics-site-card-grid-single">
-    <SiteCard title="Conteúdos com mais visualizações" description="Desempenho dos conteúdos relacionados com segurança às páginas do GA4.">{topContent.length?<SiteRows rows={topContent.slice(0,6).map(item=>[item.title||item.path,valueLabel(item.pageviews),`${valueLabel(item.users)} usuários · ${item.path}`])}/>:<SiteEmpty>Não foi possível relacionar conteúdos publicados às páginas do GA4 neste período.</SiteEmpty>}</SiteCard>
+   <div className="metrics-card-grid metrics-card-grid-single">
+    <MetricsCard title="Conteúdos com mais visualizações" description="Desempenho dos conteúdos relacionados com segurança às páginas do GA4.">{topContent.length?<MetricsRows rows={topContent.slice(0,6).map(item=>[item.title||item.path,valueLabel(item.pageviews),`${valueLabel(item.users)} usuários · ${item.path}`])}/>:<MetricsEmpty>Não foi possível relacionar conteúdos publicados às páginas do GA4 neste período.</MetricsEmpty>}</MetricsCard>
    </div>
-  </SiteSection>
+  </MetricsSection>
 
-  <SiteSection testId="metrics-site-conversions" eyebrow="Conversões" title="Resultados dos formulários" description="Submissões aceitas e encaminhadas pelos fluxos de conversão do site.">
-   <div className="metrics-site-card-grid">
-    <SiteCard title="Resultados" description="Resultados consolidados gerados pelos formulários do site."><SiteRows rows={[
+  <MetricsSection testId="metrics-site-conversions" eyebrow="Conversões" title="Resultados dos formulários" description="Submissões aceitas e encaminhadas pelos fluxos de conversão do site.">
+   <div className="metrics-card-grid">
+    <MetricsCard title="Resultados" description="Resultados consolidados gerados pelos formulários do site."><MetricsRows rows={[
      ['Submissões',valueLabel(data.conversions.total),'Total aceito no período'],
      ['Leads criados',valueLabel(data.conversions.leadsCreated),'Enviados ao CRM'],
      ['Colaborações',valueLabel(data.conversions.collaborationsCreated),'Recebidas pelo fluxo Colabore'],
-    ]}/></SiteCard>
-    <SiteCard title="Conversões por origem" description="Distribuição das submissões conforme o ponto de entrada no site."><SiteRows rows={[
+    ]}/></MetricsCard>
+    <MetricsCard title="Conversões por origem" description="Distribuição das submissões conforme o ponto de entrada no site."><MetricsRows rows={[
      ['Contato Comercial',valueLabel(data.conversions.contexts.contato),'Direcionado ao CRM como lead'],
      ['Colabore',valueLabel(data.conversions.contexts.colabore),'Direcionado ao fluxo de colaboração'],
      ['Anuncie',valueLabel(data.conversions.contexts.anuncie),'Direcionado ao fluxo comercial de publicidade'],
-    ]}/></SiteCard>
+    ]}/></MetricsCard>
    </div>
-  </SiteSection>
+  </MetricsSection>
  </div>
 }
 
-function SourceTab({provider,state,dates,testId}:{provider:string;state:MarketingSeed;dates:ReturnType<typeof selectedRange>;testId:string}){return <div data-testid={testId}><MarketingMetrics state={state} providerOverride={provider} periodStart={dates.periodStart} periodEnd={dates.periodEnd} previousPeriodStart={dates.previousPeriodStart} previousPeriodEnd={dates.previousPeriodEnd} hidePeriodControl/></div>}
+function SourceTab({provider,state,dates,testId}:{provider:string;state:MarketingSeed;dates:ReturnType<typeof selectedRange>;testId:string}){return <div className="metrics-social-source" data-testid={testId}><MarketingMetrics state={state} providerOverride={provider} periodStart={dates.periodStart} periodEnd={dates.periodEnd} previousPeriodStart={dates.previousPeriodStart} previousPeriodEnd={dates.previousPeriodEnd} hidePeriodControl embeddedAdmin/></div>}
 
 export default function MetricsPage(){
  const [searchParams,setSearchParams]=useSearchParams(),requested=searchParams.get('tab') as MetricsTab|null,tab:MetricsTab=requested&&VALID_TABS.has(requested)?requested:'geral'
@@ -172,7 +169,7 @@ export default function MetricsPage(){
  return <AdminShell area="metrics" items={UNIFIED_ADMIN_NAV} header={{title:'Métricas',description:'Analytics global organizado por fonte e canal de dados'}}><section className="marketing-page metrics-page" data-testid="metrics-page">
   <div className="marketing-platform-tabs marketing-platform-tabs-exact" role="tablist" aria-label="Fontes de Métricas">{TABS.map(([key,label])=><button key={key} type="button" role="tab" aria-selected={tab===key} className={tab===key?'active':''} onClick={()=>selectTab(key)}>{label}</button>)}</div>
   {!loading&&error&&<AdminNotice title="Métricas indisponíveis" description={`${error} Nenhum valor mock é usado como fallback em produção.`}/>} 
-  {loading&&!data?<div className="marketing-empty">Carregando métricas canônicas…</div>:data?<>
+  {loading&&!data?<div className="metrics-empty-state">Carregando métricas canônicas…</div>:data?<>
    {tab==='geral'&&<OverviewTab data={data} socialMetrics={socialMetrics}/>} 
    {tab==='site'&&<SiteTab data={data}/>} 
    {tab==='instagram'&&<SourceTab provider={SOCIAL_PROVIDERS.instagram} state={metricState} dates={dates} testId="metrics-instagram-tab"/>} 

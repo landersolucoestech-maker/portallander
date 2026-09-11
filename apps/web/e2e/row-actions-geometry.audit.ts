@@ -30,8 +30,8 @@ async function openRoute(page:Page,route:string){
  await page.goto(`${base}#${route}`,{waitUntil:'domcontentloaded'})
  await page.locator('#root').waitFor({state:'attached'})
  await page.locator('.app-shell .workspace-main').waitFor({state:'visible'})
- await page.getByRole('columnheader',{name:/^Ações$/i}).first().waitFor({state:'visible'})
- await page.locator('.table-row-actions-trigger').first().waitFor({state:'visible'})
+ await expect(page.getByRole('columnheader',{name:/^Ações$/i}).first(),`${route}: action header must render`).toBeVisible({timeout:12000})
+ await expect(page.locator('.table-row-actions-trigger').first(),`${route}: canonical action trigger must render`).toBeVisible({timeout:12000})
  await page.evaluate(async()=>{try{if(document.fonts)await document.fonts.ready}catch{/* geometry remains measurable */}})
 }
 
@@ -59,16 +59,16 @@ async function measureTableActions(page:Page):Promise<Sample[]>{
 }
 
 for(const viewport of viewports){
- test(`row action geometry is canonical at ${viewport.name}`,async({page})=>{
-  await page.setViewportSize({width:viewport.width,height:viewport.height})
-  for(const route of routes){
+ for(const route of routes){
+  test(`${route} row action geometry is canonical at ${viewport.name}`,async({page})=>{
+   await page.setViewportSize({width:viewport.width,height:viewport.height})
    await openRoute(page,route)
    await expect(page.locator('.crm-row-actions'),`${route}: legacy row action menu must not render`).toHaveCount(0)
    const samples=await measureTableActions(page)
    expect(samples.length,`${route}: action column must be exercised`).toBeGreaterThan(0)
    for(const sample of samples)expect(sample.delta,`${route} ${sample.header}: ${sample.side} action anchor`).toBeLessThanOrEqual(tolerance)
-  }
- })
+  })
+ }
 }
 
 test('contract templates use the canonical action menu and aligned action rail',async({page})=>{

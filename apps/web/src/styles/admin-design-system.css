@@ -39,11 +39,11 @@
 .workspace-main table .numeric,.workspace-main table .tabular,.workspace-main table td.positive,.workspace-main table td.negative{text-align:right!important;font-variant-numeric:tabular-nums}
 .workspace-main table.accounting-result-table td.positive,.workspace-main table.accounting-result-table td.negative{text-align:left!important}
 .workspace-main table .actions,.workspace-main table .actions-col,.workspace-main table .crm-actions-column,.workspace-main table .crm-actions-cell{text-align:right!important}
-.workspace-main table .table-row-actions,.workspace-main table .crm-row-actions{justify-content:flex-end!important;margin-left:auto!important;margin-right:0!important}
+.workspace-main table .table-row-actions{justify-content:flex-end!important;margin-left:auto!important;margin-right:0!important}
 
 /* RH TableViews intentionally use equal-width data columns anchored left. */
 .workspace-main table.rh-table th,.workspace-main table.rh-table td,.workspace-main table.rh-table .numeric,.workspace-main table.rh-table .tabular,.workspace-main table.rh-table td.positive,.workspace-main table.rh-table td.negative,.workspace-main table.rh-table .actions,.workspace-main table.rh-table .actions-col{text-align:left!important}
-.workspace-main table.rh-table .table-row-actions,.workspace-main table.rh-table .crm-row-actions{justify-content:flex-start!important;margin-left:0!important;margin-right:auto!important}
+.workspace-main table.rh-table .table-row-actions{justify-content:flex-start!important;margin-left:0!important;margin-right:auto!important}
 
 /* Marketing TableViews use compact selector + eight equal data columns, anchored left. */
 .workspace-main table.marketing-reference-table{display:block!important;width:100%!important;min-width:900px!important;table-layout:fixed!important}
@@ -51,7 +51,7 @@
 .workspace-main table.marketing-reference-table tr{display:grid!important;grid-template-columns:var(--ui-table-selector-width) repeat(8,minmax(0,1fr))!important;width:100%!important}
 .workspace-main table.marketing-reference-table th,.workspace-main table.marketing-reference-table td,.workspace-main table.marketing-reference-table .tabular,.workspace-main table.marketing-reference-table td.positive,.workspace-main table.marketing-reference-table td.negative,.workspace-main table.marketing-reference-table .actions{width:auto!important;min-width:0!important;max-width:none!important;text-align:left!important;box-sizing:border-box!important;overflow:hidden!important;text-overflow:ellipsis!important}
 .workspace-main table.marketing-reference-table .select{width:auto!important;min-width:0!important;max-width:none!important;text-align:center!important;display:grid!important;place-items:center!important}
-.workspace-main table.marketing-reference-table .table-row-actions,.workspace-main table.marketing-reference-table .crm-row-actions{justify-content:flex-start!important;margin-left:0!important;margin-right:auto!important}
+.workspace-main table.marketing-reference-table .table-row-actions{justify-content:flex-start!important;margin-left:0!important;margin-right:auto!important}
 
 /* Status/badge family. */
 .crm-badge,.finance-type,.finance-status,.contracts-status,.rh-status,.marketing-status,.settings-badge{min-height:var(--ui-badge-min-height);padding:var(--ui-space-1) var(--ui-space-2);border-radius:999px;font-size:10px;font-weight:700;line-height:1.2}
@@ -62,7 +62,7 @@
 .tableview-pagination-summary,.tableview-page-size,.tableview-pagination-center>span{font-size:11px}
 
 /* Shared overlays and floating surfaces. */
-.crm-modal,.finance-modal,.agenda-modal,.chat-modal,.marketing-modal,.reports-import-dialog,.rh-modal,.settings-modal,.workspace-popover,.crm-row-menu,.rh-menu-pop,.marketing-menu-pop,.chat-popover,.agenda-participant-menu,.table-row-actions-menu{border-radius:var(--ui-radius-lg);box-shadow:var(--ui-shadow-popover)}
+.crm-modal,.finance-modal,.agenda-modal,.chat-modal,.marketing-modal,.reports-import-dialog,.rh-modal,.settings-modal,.workspace-popover,.rh-menu-pop,.marketing-menu-pop,.chat-popover,.agenda-participant-menu,.table-row-actions-menu{border-radius:var(--ui-radius-lg);box-shadow:var(--ui-shadow-popover)}
 .crm-modal,.finance-modal,.agenda-modal,.chat-modal,.marketing-modal,.reports-import-dialog,.rh-modal,.settings-modal{max-height:min(92vh,calc(100dvh - var(--ui-page-gap)))}
 
 /* Shared row action menu is the canonical action affordance. */
@@ -79,7 +79,7 @@
 .app-shell input:disabled,.app-shell select:disabled,.app-shell textarea:disabled,.app-shell button:disabled{cursor:not-allowed}
 
 /* Popovers/dropdowns do not escape narrow viewports. */
-.workspace-popover,.crm-row-menu,.rh-menu-pop,.marketing-menu-pop,.chat-popover,.table-row-actions-menu{max-width:min(320px,calc(100vw - var(--ui-page-gap)))}
+.workspace-popover,.rh-menu-pop,.marketing-menu-pop,.chat-popover,.table-row-actions-menu{max-width:min(320px,calc(100vw - var(--ui-page-gap)))}
 
 /* Chat is intentionally denser than CRUD modules, but microcopy remains readable. */
 .chat-domain-tabs button,.chat-settings-tabs button,.chat-search-field input,.chat-filter-grid select,.chat-composer-tools select,.chat-internal-message p,.chat-support-message p,.chat-field input,.chat-field textarea,.chat-settings-card input,.chat-settings-card select,.chat-settings-card textarea{font-size:10px!important}

@@ -1,18 +1,297 @@
-/* Portal Lander — canonical administrative table geometry.
-   Feature styles own semantic column layout and presentation only. */
-.workspace-main :is(.crm-table,.finance-table,.contracts-table,.rh-table,.marketing-table,.settings-table-wrap table) :is(th,td){
-  box-sizing:border-box;
-  padding-block:var(--ui-table-cell-block);
-  padding-inline:var(--ui-table-cell-inline);
-}
-.workspace-main :is(.crm-table,.finance-table,.contracts-table,.rh-table,.marketing-table,.settings-table-wrap table) td{
-  height:var(--ui-table-row-height);
+/* Portal Lander — canonical administrative TableView contract.
+   Feature styles own semantic column widths; this layer owns surface, density,
+   typography, selector/action alignment and common numeric treatment. */
+
+.app-shell .workspace-main :is(
+  .crm-table-card,
+  .finance-table-card,
+  .contracts-table-card,
+  .rh-table-card,
+  .marketing-table-card,
+  .tableview-surface
+){
+  min-width:0;
+  border:1px solid var(--ui-border);
+  border-radius:var(--ui-radius-lg);
+  background:var(--ui-surface);
+  box-shadow:none;
 }
 
-/* Selector columns are intentionally compact and are not data-cell gutters. */
-.workspace-main :is(.crm-table,.finance-table,.contracts-table,.rh-table,.marketing-table,.settings-table-wrap table) :is(th,td):has(input[type='checkbox']),
-.workspace-main .crm-table :is(.crm-checkbox-cell,.select),
-.workspace-main .rh-table .check,
-.workspace-main .marketing-table .select{
-  padding-inline:var(--ui-table-selector-inline);
+.app-shell .workspace-main :is(
+  .crm-table-head,
+  .finance-table-card>header,
+  .contracts-table-card>header,
+  .rh-table-card>header,
+  .marketing-table-card>header,
+  .tableview-surface>header
+){
+  box-sizing:border-box;
+  min-height:64px;
+  padding:var(--ui-space-3) var(--ui-space-4);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:var(--ui-space-4);
+  border-bottom:1px solid var(--ui-border);
+}
+
+.app-shell .workspace-main :is(
+  .crm-table-head,
+  .finance-table-card>header,
+  .contracts-table-card>header,
+  .rh-table-card>header,
+  .marketing-table-card>header,
+  .tableview-surface>header
+) h3{
+  margin:0;
+  color:var(--ui-text-strong);
+  font-family:var(--ui-font);
+  font-size:13px;
+  font-weight:800;
+  line-height:1.25;
+}
+
+.app-shell .workspace-main :is(
+  .crm-table-head,
+  .finance-table-card>header,
+  .contracts-table-card>header,
+  .rh-table-card>header,
+  .marketing-table-card>header,
+  .tableview-surface>header
+) p{
+  margin:var(--ui-space-1) 0 0;
+  color:var(--ui-muted);
+  font-family:var(--ui-font);
+  font-size:10px;
+  font-weight:500;
+  line-height:1.35;
+}
+
+.app-shell .workspace-main :is(
+  .crm-table,
+  .finance-table,
+  .contracts-table,
+  .rh-table,
+  .marketing-table,
+  .settings-table-wrap table
+){
+  width:100%;
+  border-collapse:collapse;
+  font-family:var(--ui-font);
+  table-layout:auto;
+}
+
+.app-shell .workspace-main :is(
+  .crm-table,
+  .finance-table,
+  .contracts-table,
+  .rh-table,
+  .marketing-table,
+  .settings-table-wrap table
+) :is(th,td){
+  box-sizing:border-box;
+  padding-block:var(--ui-table-cell-block)!important;
+  padding-inline:var(--ui-table-cell-inline)!important;
+  vertical-align:middle;
+}
+
+.app-shell .workspace-main :is(
+  .crm-table,
+  .finance-table,
+  .contracts-table,
+  .rh-table,
+  .marketing-table,
+  .settings-table-wrap table
+) th{
+  height:calc(var(--ui-control-md) + var(--ui-space-1));
+  border-bottom:1px solid var(--ui-border);
+  background:var(--ui-surface-subtle);
+  color:var(--ui-muted);
+  font-size:11px!important;
+  font-weight:650!important;
+  line-height:1;
+  letter-spacing:0!important;
+  text-align:left;
+  text-transform:none!important;
+  white-space:nowrap;
+}
+
+.app-shell .workspace-main :is(
+  .crm-table,
+  .finance-table,
+  .contracts-table,
+  .rh-table,
+  .marketing-table,
+  .settings-table-wrap table
+) td{
+  height:var(--ui-table-row-height)!important;
+  border-bottom:1px solid var(--ui-border);
+  color:#475467;
+  font-size:12px!important;
+  font-weight:400;
+  line-height:1.35;
+  text-align:left;
+}
+
+.app-shell .workspace-main :is(
+  .crm-table,
+  .finance-table,
+  .contracts-table,
+  .rh-table,
+  .marketing-table,
+  .settings-table-wrap table
+) tbody tr:last-child td{
+  border-bottom:0;
+}
+
+.app-shell .workspace-main :is(
+  .crm-table,
+  .finance-table,
+  .contracts-table,
+  .rh-table,
+  .marketing-table,
+  .settings-table-wrap table
+) tbody tr:hover{
+  background:#fffafa;
+}
+
+/* Primary/secondary cell hierarchy. */
+.app-shell .workspace-main :is(
+  .crm-table,
+  .finance-table,
+  .contracts-table,
+  .rh-table,
+  .marketing-table,
+  .settings-table-wrap table
+) td strong{
+  color:var(--ui-text-strong);
+  font-size:12px!important;
+  font-weight:700;
+  line-height:1.3;
+}
+
+.app-shell .workspace-main :is(
+  .crm-table,
+  .finance-table,
+  .contracts-table,
+  .rh-table,
+  .marketing-table,
+  .settings-table-wrap table
+) td small{
+  color:var(--ui-muted-soft);
+  font-size:10px!important;
+  font-weight:500;
+  line-height:1.3;
+}
+
+/* Selector columns: one shared width and true horizontal centering. */
+.app-shell .workspace-main :is(
+  .crm-table,
+  .finance-table,
+  .contracts-table,
+  .rh-table,
+  .marketing-table,
+  .settings-table-wrap table
+) :is(th,td):has(input[type='checkbox']),
+.app-shell .workspace-main .crm-table :is(.crm-checkbox-cell,.select),
+.app-shell .workspace-main .contracts-table .contracts-checkbox-cell,
+.app-shell .workspace-main .rh-table .check,
+.app-shell .workspace-main .marketing-table .select{
+  width:var(--ui-table-selector-width)!important;
+  min-width:var(--ui-table-selector-width)!important;
+  max-width:var(--ui-table-selector-width)!important;
+  padding-inline:var(--ui-table-selector-inline)!important;
+  text-align:center!important;
+}
+
+.app-shell .workspace-main :is(
+  .crm-table,
+  .finance-table,
+  .contracts-table,
+  .rh-table,
+  .marketing-table,
+  .settings-table-wrap table
+) input[type='checkbox']{
+  width:15px;
+  height:15px;
+  margin:0 auto;
+  display:block;
+  accent-color:var(--ui-text-strong);
+}
+
+/* Semantic value columns. Never infer numbers from nth-child positions. */
+.app-shell .workspace-main :is(
+  .crm-table,
+  .finance-table,
+  .contracts-table,
+  .rh-table,
+  .marketing-table,
+  .settings-table-wrap table
+) :is(.numeric,.tabular,.positive,.negative){
+  font-variant-numeric:tabular-nums;
+  text-align:right!important;
+  white-space:nowrap;
+}
+
+/* Action columns always occupy a compact, right-aligned gutter. */
+.app-shell .workspace-main :is(
+  .crm-table,
+  .finance-table,
+  .contracts-table,
+  .rh-table,
+  .marketing-table,
+  .settings-table-wrap table
+) :is(th.actions-col,td.actions,td.actions-col,.actions){
+  width:64px;
+  min-width:64px;
+  text-align:right!important;
+  white-space:nowrap;
+}
+
+.app-shell .workspace-main :is(
+  .crm-table,
+  .finance-table,
+  .contracts-table,
+  .rh-table,
+  .marketing-table,
+  .settings-table-wrap table
+) :is(td.actions,td.actions-col,.actions)>*{
+  margin-left:auto!important;
+  margin-right:0!important;
+}
+
+/* Status/type badges use one density; feature CSS may keep semantic colors. */
+.app-shell .workspace-main :is(
+  .crm-badge,
+  .contracts-status,
+  .finance-type,
+  .finance-status,
+  .rh-status,
+  .marketing-status
+){
+  box-sizing:border-box;
+  min-height:var(--ui-badge-min-height)!important;
+  padding:var(--ui-space-1) var(--ui-space-2)!important;
+  display:inline-flex;
+  align-items:center;
+  border-radius:999px;
+  font-family:var(--ui-font);
+  font-size:10px!important;
+  font-weight:700!important;
+  line-height:1.2;
+  white-space:nowrap;
+}
+
+@media(max-width:760px){
+  .app-shell .workspace-main :is(
+    .crm-table-head,
+    .finance-table-card>header,
+    .contracts-table-card>header,
+    .rh-table-card>header,
+    .marketing-table-card>header,
+    .tableview-surface>header
+  ){
+    align-items:flex-start;
+    flex-direction:column;
+  }
 }

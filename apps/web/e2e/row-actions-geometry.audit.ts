@@ -13,6 +13,9 @@ const routes=[
  '/app/marketing/campaigns',
  '/app/marketing/tasks',
  '/app/marketing/briefings',
+ '/app/site/content',
+ '/app/site/media',
+ '/app/site/forms',
 ] as const
 const viewports=[
  {name:'mobile',width:390,height:844},

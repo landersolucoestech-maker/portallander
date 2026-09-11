@@ -1,7 +1,7 @@
 type SortDirection='asc'|'desc'
 type SortState={column:number;direction:SortDirection}
 
-const TABLE_SCOPE='.hr-page .hr-table,.marketing-page .marketing-campaign-table,.marketing-page .marketing-task-table,.marketing-page .marketing-briefing-table'
+const TABLE_SCOPE='.rh-page .rh-table,.marketing-page .marketing-campaign-table,.marketing-page .marketing-task-table,.marketing-page .marketing-briefing-table'
 const states=new WeakMap<HTMLTableElement,SortState>()
 let applying=false
 

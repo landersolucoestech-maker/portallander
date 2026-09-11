@@ -43,7 +43,7 @@ type ComponentGeometry={
  route:string
  tokens:{
   controlMd:number
-  controlSm:number
+  controlFont:number
   kpiMinHeight:number
   kpiPadding:number
   tableRowHeight:number
@@ -55,8 +55,7 @@ type ComponentGeometry={
   paginationBlock:number
   paginationInline:number
  }
- defaultControls:BoxSample[]
- compactControls:BoxSample[]
+ controls:BoxSample[]
  kpis:BoxSample[]
  tableHeaders:BoxSample[]
  tableCells:BoxSample[]
@@ -124,8 +123,15 @@ async function measureComponents(page:Page,route:string):Promise<ComponentGeomet
    const isSelector=node.matches('.crm-checkbox-cell,.check,.select')||Boolean(node.querySelector('input[type="checkbox"]'))
    return {selector:`${node.tagName.toLowerCase()}.${Array.from(node.classList).join('.')}`,height:rect.height,minHeight:px(style.minHeight),paddingTop:px(style.paddingTop),paddingRight:px(style.paddingRight),paddingBottom:px(style.paddingBottom),paddingLeft:px(style.paddingLeft),fontSize:px(style.fontSize),isSelector}
   })
-  const defaultSelector='.crm-btn,.agenda-toolbar .button,.agenda-toolbar select,.agenda-toolbar .agenda-icon-button,.contracts-filters select,.contracts-registry select,.finance-filters>input,.finance-filters>select,.finance-search,.contracts-search,.crm-search,.crm-filter-selects select,.crm-inline-select,.agenda-search,.marketing-primary,.marketing-secondary,.settings-primary,.settings-outline,.settings-danger'
-  const compactSelector='.rh-primary,.rh-secondary,.rh-danger-button,.rh-filters>input,.rh-filters>select,.rh-search input,.rh-doc-selector select,.rh-field input,.rh-field select,.marketing-filters>select,.marketing-filters>input,.marketing-search,.marketing-calendar-toolbar>select,.marketing-period-button'
+  const controlSelector=[
+   '.crm-btn','.agenda-toolbar .button','.agenda-toolbar select','.agenda-toolbar .agenda-icon-button',
+   '.contracts-filters select','.contracts-registry select','.finance-filters>input','.finance-filters>select','.finance-search',
+   '.contracts-search','.crm-search','.crm-filter-selects select','.crm-inline-select','.agenda-search',
+   '.marketing-primary','.marketing-secondary','.settings-primary','.settings-outline','.settings-danger',
+   '.rh-primary','.rh-secondary','.rh-danger-button','.rh-filters>input','.rh-filters>select','.rh-search input',
+   '.rh-doc-selector select','.rh-field input','.rh-field select','.marketing-filters>select','.marketing-filters>input',
+   '.marketing-search','.marketing-calendar-toolbar>select','.marketing-period-button',
+  ].join(',')
   const kpiSelector='.admin-kpi,.crm-kpi,.finance-kpi,.contracts-kpi,.rh-kpi,.marketing-kpi,.dashboard-stat-card'
   const tableHeaderSelector='.crm-table th,.finance-table th,.contracts-table th,.rh-table th,.marketing-table th,.settings-table-wrap th'
   const tableCellSelector='.crm-table td,.finance-table td,.contracts-table td,.rh-table td,.marketing-table td,.settings-table-wrap td'
@@ -135,7 +141,7 @@ async function measureComponents(page:Page,route:string):Promise<ComponentGeomet
    route:currentRoute,
    tokens:{
     controlMd:px(shellStyle.getPropertyValue('--ui-control-md')),
-    controlSm:px(shellStyle.getPropertyValue('--ui-control-sm')),
+    controlFont:px(shellStyle.getPropertyValue('--ui-type-control')),
     kpiMinHeight:px(shellStyle.getPropertyValue('--ui-kpi-min-height')),
     kpiPadding:px(shellStyle.getPropertyValue('--ui-kpi-padding')),
     tableRowHeight:px(shellStyle.getPropertyValue('--ui-table-row-height')),
@@ -147,8 +153,7 @@ async function measureComponents(page:Page,route:string):Promise<ComponentGeomet
     paginationBlock:px(shellStyle.getPropertyValue('--ui-pagination-block')),
     paginationInline:px(shellStyle.getPropertyValue('--ui-pagination-inline')),
    },
-   defaultControls:samples(defaultSelector),
-   compactControls:samples(compactSelector),
+   controls:samples(controlSelector),
    kpis:samples(kpiSelector),
    tableHeaders:samples(tableHeaderSelector),
    tableCells:samples(tableCellSelector),
@@ -198,17 +203,13 @@ for(const viewport of viewports){
   }
   console.log(`UI_COMPONENT_GEOMETRY ${viewport.name} ${JSON.stringify(measurements)}`)
 
-  const totals={defaultControls:0,compactControls:0,kpis:0,tableHeaders:0,tableCells:0,paginations:0,paginationControls:0}
+  const totals={controls:0,kpis:0,tableHeaders:0,tableCells:0,paginations:0,paginationControls:0}
   for(const current of measurements){
-   for(const sample of current.defaultControls){
-    totals.defaultControls++
-    expect(sample.height,`${current.route} ${sample.selector}: default control height`).toBeGreaterThanOrEqual(current.tokens.controlMd-tolerance)
-    expect(close(sample.minHeight,current.tokens.controlMd),`${current.route} ${sample.selector}: default control min-height token`).toBeTruthy()
-   }
-   for(const sample of current.compactControls){
-    totals.compactControls++
-    expect(sample.height,`${current.route} ${sample.selector}: compact control height`).toBeGreaterThanOrEqual(current.tokens.controlSm-tolerance)
-    expect(close(sample.minHeight,current.tokens.controlSm),`${current.route} ${sample.selector}: compact control min-height token`).toBeTruthy()
+   for(const sample of current.controls){
+    totals.controls++
+    expect(sample.height,`${current.route} ${sample.selector}: control height`).toBeGreaterThanOrEqual(current.tokens.controlMd-tolerance)
+    expect(close(sample.minHeight,current.tokens.controlMd),`${current.route} ${sample.selector}: control min-height token`).toBeTruthy()
+    expect(close(sample.fontSize,current.tokens.controlFont),`${current.route} ${sample.selector}: control font-size token`).toBeTruthy()
    }
    for(const sample of current.kpis){
     totals.kpis++

@@ -1,5 +1,6 @@
 import {BarChart3,CheckCircle2,Globe2,MousePointer2,Target,TrendingUp,Users} from 'lucide-react'
-import {useEffect,useMemo,useState} from 'react'
+import {useEffect,useMemo,useState,type ReactNode} from 'react'
+import {AdminKpi} from '../../../shared/internal/AdminUi'
 import {analyticsClient} from '../../analytics/client'
 import type {AnalyticsMetric,AnalyticsDataStatus} from '../../analytics/domain'
 import {aggregateMetric} from '../../analytics/metricCatalog'
@@ -11,7 +12,8 @@ import {Card,Empty,pct} from '../MarketingUi'
 const DISPLAYABLE_STATUSES=new Set<AnalyticsDataStatus>(['LIVE','CACHED','MANUAL','STALE'])
 const METRIC_KEYS=['reach','impressions','clicks','engagement','conversions','followers','spend'] as const
 
-type MarketingMetricsProps={state:MarketingSeed;periodStart?:string;periodEnd?:string;previousPeriodStart?:string;previousPeriodEnd?:string;hidePeriodControl?:boolean;providerOverride?:string}
+type MarketingMetricsProps={state:MarketingSeed;periodStart?:string;periodEnd?:string;previousPeriodStart?:string;previousPeriodEnd?:string;hidePeriodControl?:boolean;providerOverride?:string;embeddedAdmin?:boolean}
+type EmbeddedRow=readonly [label:string,value:string,detail:string]
 
 function monthRange(period:string){
   if(!/^\d{4}-\d{2}$/.test(period))return {}
@@ -36,8 +38,14 @@ function sourceLabel(metrics:AnalyticsMetric[]){
   const updated=metrics.map(metric=>metric.normalizedAt||metric.collectedAt).filter(Boolean).sort().at(-1)
   return updated?`Atualizado em ${new Date(updated).toLocaleString('pt-BR')}`:'Proveniência disponível na API'
 }
+function EmbeddedRows({rows}:{rows:ReadonlyArray<EmbeddedRow>}){
+  return <div className="metrics-rows">{rows.map(([label,value,detail],index)=><div className="metrics-row" key={`${label}-${index}`}><div><strong>{label}</strong><small>{detail}</small></div><b>{value}</b></div>)}</div>
+}
+function EmbeddedCard({title,description,children}:{title:string;description:string;children:ReactNode}){
+  return <article className="metrics-card"><header><h3>{title}</h3><p>{description}</p></header><div className="metrics-card-body">{children}</div></article>
+}
 
-export function MarketingMetrics({state,periodStart,periodEnd,previousPeriodStart,previousPeriodEnd,hidePeriodControl=false,providerOverride}:MarketingMetricsProps){
+export function MarketingMetrics({state,periodStart,periodEnd,previousPeriodStart,previousPeriodEnd,hidePeriodControl=false,providerOverride,embeddedAdmin=false}:MarketingMetricsProps){
   const [provider,setProvider]=useState('all')
   const [period,setPeriod]=useState(()=>new Date().toISOString().slice(0,7))
   const [metrics,setMetrics]=useState<AnalyticsMetric[]>([])
@@ -63,12 +71,49 @@ export function MarketingMetrics({state,periodStart,periodEnd,previousPeriodStar
   const previousTotals=useMemo(()=>Object.fromEntries(METRIC_KEYS.map(key=>[key,safeAggregate(previousBase,key)])) as Record<(typeof METRIC_KEYS)[number],number|null>,[previousBase])
   const ctr=totals.clicks!==null&&totals.impressions!==null&&totals.impressions>0?pct(totals.clicks,totals.impressions):null
   const previousCtr=previousTotals.clicks!==null&&previousTotals.impressions!==null&&previousTotals.impressions>0?pct(previousTotals.clicks,previousTotals.impressions):null
-  const maxReach=Math.max(...base.filter(metric=>metric.metricKey==='reach'&&usable(metric)).map(metric=>metric.value??0),1)
-  const chartMetrics=base.filter(metric=>metric.metricKey==='reach'&&usable(metric))
   const ranked=useMemo(()=>buildContentReachRanking(state.contents,base),[state.contents,base])
   const comparisons={impressions:comparisonLabel(comparePeriods(totals.impressions,previousTotals.impressions)),clicks:comparisonLabel(comparePeriods(totals.clicks,previousTotals.clicks)),engagement:comparisonLabel(comparePeriods(totals.engagement,previousTotals.engagement)),conversions:comparisonLabel(comparePeriods(totals.conversions,previousTotals.conversions)),spend:comparisonLabel(comparePeriods(totals.spend,previousTotals.spend)),ctr:comparisonLabel(comparePeriods(ctr,previousCtr))}
 
   const changePeriod=(next:string)=>{setError('');setPeriod(next)}
+
+  if(embeddedAdmin){
+    const displayValue=(value:string)=>loading?'—':value
+    return <div className="metrics-social">
+      {!loading&&error&&<div className="metrics-empty-state"><strong>Analytics indisponível</strong><span>{error} Nenhum valor fictício foi usado como fallback.</span></div>}
+      <div className="metrics-kpi-grid">{[
+        ['Alcance',displayValue(valueLabel(totals.reach)),'Pessoas alcançadas',Users],
+        ['Impressões',displayValue(valueLabel(totals.impressions)),'Exibições no período',BarChart3],
+        ['Cliques',displayValue(valueLabel(totals.clicks)),ctr===null?'CTR indisponível':`CTR ${ctr.toFixed(2)}%`,MousePointer2],
+        ['Engajamento',displayValue(valueLabel(totals.engagement)),'Interações no período',TrendingUp],
+      ].map(([label,value,detail,Icon])=><AdminKpi key={String(label)} label={String(label)} value={String(value)} detail={String(detail)} icon={<Icon size={16}/>}/>)}</div>
+      <section className="metrics-section metrics-social-section">
+        <header className="metrics-section-head">
+          <div><span>Canal social</span><h2>{activeProvider} · desempenho</h2><p>{sourceLabel(base)}</p></div>
+          <small>Últimos 30 dias</small>
+        </header>
+        <div className="metrics-card-grid">
+          <EmbeddedCard title="Indicadores complementares" description="Métricas que complementam os quatro KPIs principais do canal."><EmbeddedRows rows={[
+            ['Seguidores',valueLabel(totals.followers),'Snapshot atual compatível'],
+            ['Conversões',valueLabel(totals.conversions),comparisons.conversions],
+            ['CTR',ctr===null?'INDISPONÍVEL':`${ctr.toFixed(2)}%`,comparisons.ctr],
+            ['Investimento',valueLabel(totals.spend,'money'),comparisons.spend],
+          ]}/></EmbeddedCard>
+          <EmbeddedCard title="Comparação com período anterior" description="Variações apresentadas somente quando os períodos são comparáveis."><EmbeddedRows rows={[
+            ['Impressões',valueLabel(totals.impressions),comparisons.impressions],
+            ['Cliques',valueLabel(totals.clicks),comparisons.clicks],
+            ['Engajamento',valueLabel(totals.engagement),comparisons.engagement],
+            ['Conversões',valueLabel(totals.conversions),comparisons.conversions],
+          ]}/></EmbeddedCard>
+        </div>
+        <div className="metrics-card-grid metrics-card-grid-single">
+          <EmbeddedCard title="Conteúdo vinculado" description="Ranking somente quando há vínculo analítico real e agregação semanticamente segura.">{ranked.length?<EmbeddedRows rows={ranked.slice(0,6).map(item=>[item.content.title,compact(item.value),`${item.content.type}${item.provider?` · ${item.provider}`:''}`])}/>:<div className="metrics-empty-state metrics-empty-state-compact">Sem conteúdo com vínculo analítico comprovado neste período.</div>}</EmbeddedCard>
+        </div>
+      </section>
+    </div>
+  }
+
+  const maxReach=Math.max(...base.filter(metric=>metric.metricKey==='reach'&&usable(metric)).map(metric=>metric.value??0),1)
+  const chartMetrics=base.filter(metric=>metric.metricKey==='reach'&&usable(metric))
 
   return <>
     {!providerOverride&&<div className="marketing-platform-tabs marketing-platform-tabs-exact"><button type="button" className={provider==='all'?'active':''} onClick={()=>setProvider('all')}><Globe2 size={14}/>Visão Geral</button>{providers.map(name=><button type="button" key={name} className={provider===name?'active':''} onClick={()=>setProvider(name)}><span className="marketing-platform-dot"/>{name}</button>)}</div>}
@@ -86,6 +131,6 @@ export function MarketingMetrics({state,periodStart,periodEnd,previousPeriodStar
       <Card title={activeProvider==='all'?'Evolução consolidada':`${activeProvider} · evolução`} description={sourceLabel(base)}>{chartMetrics.length?<div className="marketing-performance-chart"><div className="marketing-chart-y"><span>100%</span><span>75%</span><span>50%</span><span>25%</span><span>0</span></div><div className="marketing-chart-columns">{chartMetrics.map(metric=><div key={metric.id}><div className="marketing-chart-column-bar"><i style={{height:`${Math.max(8,Math.min(100,pct(metric.value??0,maxReach)))}%`}}/></div><span>{metric.provider||metric.scopeId}</span></div>)}</div></div>:<Empty empty text="Série histórica indisponível para o período selecionado."/>}</Card>
       <Card title={activeProvider==='all'?'Resumo consolidado':`Resumo · ${activeProvider}`} description="Agregação e comparação somente quando semanticamente seguras"><div className="marketing-summary marketing-summary-reference"><p><span>Seguidores</span><strong>{valueLabel(totals.followers)}</strong><small>snapshot atual compatível</small></p><p><span>Impressões</span><strong>{valueLabel(totals.impressions)}</strong><small>{comparisons.impressions}</small></p><p><span>Engajamento</span><strong>{valueLabel(totals.engagement)}</strong><small>{comparisons.engagement}</small></p><p><span>Alcance</span><strong>{valueLabel(totals.reach)}</strong><small>não aditivo</small></p><p><span>Cliques</span><strong>{valueLabel(totals.clicks)}</strong><small>{comparisons.clicks}</small></p><p><span>CTR</span><strong>{ctr===null?'INDISPONÍVEL':`${ctr.toFixed(2)}%`}</strong><small>{comparisons.ctr}</small></p><p><span>Conversões</span><strong>{valueLabel(totals.conversions)}</strong><small>{comparisons.conversions}</small></p><p><span>Investimento</span><strong>{valueLabel(totals.spend,'money')}</strong><small>{comparisons.spend}</small></p></div></Card>
     </div>
-    <section className="marketing-card marketing-ranking marketing-ranking-exact"><header><h3>{activeProvider==='all'?'Top Conteúdos':`Ranking · ${activeProvider}`}</h3><p>Ranking somente quando a métrica possui vínculo real com o conteúdo e pode ser agregada sem perda semântica.</p></header><div className="marketing-card-body">{ranked.length?<><div className="marketing-ranking-header"><span>Posição</span><span>Conteúdo</span><span>Contexto/Campanha</span><span>Resultado</span><span>Plataforma</span></div><div className="marketing-ranking-list marketing-content-ranking">{ranked.slice(0,8).map((item,index)=><article key={item.content.id}><span className="marketing-rank">{index+1}</span><div className="marketing-ranking-main"><strong>{item.content.title}</strong><small>{item.content.type}</small></div><div className="marketing-ranking-main"><strong>{item.content.subject||item.content.campaign||item.content.context||'—'}</strong></div><div><strong>{compact(item.value)}</strong><small>Alcance</small></div><div><strong>{item.provider||'—'}</strong></div></article>)}</div></>:<Empty empty text="UNAVAILABLE — não existe vínculo analítico e agregação semântica comprovados para conteúdo neste período."/>}</div></section>
+    <section className="marketing-card marketing-ranking marketing-ranking-exact"><header><h3>{activeProvider==='all'?'Top Conteúdos':`Ranking · ${activeProvider}`}</h3><p>Ranking somente quando a métrica possui vínculo real com o conteúdo e pode ser agregada sem perda semântica.</p></header><div className="marketing-card-body">{ranked.length?<><div className="marketing-ranking-header"><span>Posição</span><span>Conteúdo</span><span>Contexto/Campanha</span><span>Resultado</span><span>Plataforma</span></div><div className="marketing-ranking-list marketing-content-ranking">{ranked.slice(0,8).map((item,index)=><article key={item.content.id}><span className="marketing-rank">{index+1}</span><div className="marketing-ranking-main"><strong>{item.content.title}</strong><small>{item.content.type}</small></div><div className="marketing-ranking-main"><strong>{item.content.subject||item.content.campaign||item.content.context||'—'}</strong></div><div><strong>{compact(item.value)}</strong><small>Alcance</small></div><div><strong>{item.provider||'—'}</strong></div></article>)}</div></>:<Empty empty text="Não existe vínculo analítico e agregação semântica comprovados para conteúdo neste período."/>}</div></section>
   </>
 }

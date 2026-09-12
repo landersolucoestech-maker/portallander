@@ -84,7 +84,7 @@
 }
 .app-shell .workspace-main table.accounting-result-table:not(.tableview-freeform){table-layout:fixed!important}
 
-/* Geometry and one universal left axis are shared by every column. */
+/* Geometry and one universal left data axis are shared by every data column. */
 .app-shell .workspace-main table:not(.tableview-freeform) :is(th,td){
   box-sizing:border-box!important;
   padding-block:var(--ui-table-cell-block)!important;
@@ -120,16 +120,15 @@
 .app-shell .workspace-main table:not(.tableview-freeform) tbody tr:hover{background:#fffafa}
 
 /* Column-axis contract.
-   Every visible TableView column starts on the same left axis, including selectors,
-   identity, auxiliary values, numeric values, status and actions. Semantic classes
-   may still own widths, tabular-number rendering and colors, never another axis. */
+   Data columns start on the same left axis. The narrow selector rail is the deliberate
+   exception: its checkbox is centered inside the canonical 38px selector column. */
 .app-shell .workspace-main table:not(.tableview-freeform) :is(th,td):has(input[type='checkbox']),
 .app-shell .workspace-main table:not(.tableview-freeform) :is(.crm-checkbox-cell,.select,.contracts-checkbox-cell,.check){
   width:var(--ui-table-selector-width)!important;
   min-width:var(--ui-table-selector-width)!important;
   max-width:var(--ui-table-selector-width)!important;
   padding-inline:var(--ui-table-selector-inline)!important;
-  text-align:left!important;
+  text-align:center!important;
 }
 .app-shell .workspace-main table:not(.tableview-freeform) :is(th,td):first-child:not(:has(input[type='checkbox'])){
   text-align:left!important;
@@ -147,7 +146,7 @@
   box-sizing:border-box!important;
   width:15px!important;
   height:15px!important;
-  margin:0!important;
+  margin:0 auto!important;
   padding:0!important;
   display:block!important;
   accent-color:var(--ui-text-strong);
@@ -168,7 +167,7 @@
 }
 .app-shell .workspace-main table:not(.tableview-freeform) :is(.table-primary,.crm-link,.finance-link,.contracts-title-link){min-width:var(--ui-table-primary-min-width)}
 
-/* Numeric and explicit state classes preserve semantics without changing the axis. */
+/* Numeric and explicit state classes preserve semantics without changing the data axis. */
 .app-shell .workspace-main table:not(.tableview-freeform) :is(
   .numeric,.tabular,.money,.currency,.amount,.percent,.percentage,
   .positive,.negative,.accounting-number-col
@@ -179,7 +178,7 @@
 }
 .app-shell .workspace-main table:not(.tableview-freeform) :is(.status-col,.state-col,.center,.actions-center){text-align:left!important}
 
-/* Actions keep the same narrow gutter but are left-anchored like every other column. */
+/* Actions keep the same narrow gutter but are left-anchored like every data column. */
 .app-shell .workspace-main table:not(.tableview-freeform) :is(
   th.actions-col,td.actions,td.actions-col,.actions,.crm-actions-column,.crm-actions-cell
 ){
@@ -286,22 +285,25 @@
   line-height:1!important;
 }
 
-/* Known high-specificity Finance legacy cannot override the universal left axis. */
+/* Known high-specificity Finance legacy cannot override the universal left data axis. */
 .app-shell .workspace-main .finance-page .finance-table :is(
   .numeric,.tabular,.money,.currency,.amount,.percent,.percentage,.positive,.negative,.accounting-number-col
 ){text-align:left!important;font-variant-numeric:tabular-nums!important}
 .app-shell .workspace-main .finance-page .finance-table :is(td.actions,td.actions-col,.actions,.crm-actions-cell){text-align:left!important}
 .app-shell .workspace-main .finance-page .finance-table :is(td.actions,td.actions-col,.actions,.crm-actions-cell)>*{margin-left:0!important;margin-right:auto!important;justify-content:flex-start!important}
 
-/* Final alignment lock: no domain TableView can reintroduce centered or right-aligned
-   columns. Internal badge/icon content may center inside its own compact control, but
-   the table cell, header, sortable label and row-action rail always start at the left. */
+/* Final alignment lock: domain TableViews cannot reintroduce centered or right-aligned
+   data columns. The selector rail is intentionally centered so its checkbox remains
+   geometrically centered inside the canonical narrow selector column. */
 .app-shell .workspace-main table:not(.tableview-freeform) :is(th,td){text-align:left!important}
 .app-shell .workspace-main table:not(.tableview-freeform) :is(
   .numeric,.tabular,.money,.currency,.amount,.percent,.percentage,
   .positive,.negative,.accounting-number-col,.status-col,.state-col,.center,.actions-center,
   th.actions-col,td.actions,td.actions-col,.actions,.crm-actions-column,.crm-actions-cell
 ){text-align:left!important}
+.app-shell .workspace-main table:not(.tableview-freeform) :is(th,td):has(input[type='checkbox']),
+.app-shell .workspace-main table:not(.tableview-freeform) :is(.crm-checkbox-cell,.select,.contracts-checkbox-cell,.check){text-align:center!important}
+.app-shell .workspace-main table:not(.tableview-freeform) input[type='checkbox']{margin:0 auto!important}
 .app-shell .workspace-main table:not(.tableview-freeform) .crm-sort-header{justify-content:flex-start!important}
 .app-shell .workspace-main table:not(.tableview-freeform) .table-row-actions{justify-content:flex-start!important;margin-left:0!important;margin-right:auto!important}
 

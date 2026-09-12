@@ -23,10 +23,11 @@ async function openRoute(page:Page,route:string){
   await page.waitForTimeout(80)
 }
 
-test('every administrative TableView uses one left alignment axis',async({page})=>{
+test('administrative TableViews left-align data and center selector checkboxes',async({page})=>{
   await page.setViewportSize({width:1440,height:900})
   let exercisedTables=0
-  let exercisedCells=0
+  let exercisedDataCells=0
+  let exercisedSelectors=0
 
   for(const route of routes){
     await openRoute(page,route)
@@ -42,19 +43,38 @@ test('every administrative TableView uses one left alignment axis',async({page})
       const rowActions=tables.flatMap(table=>Array.from(table.querySelectorAll<HTMLElement>('.table-row-actions')).filter(visible))
       return {
         tables:tables.length,
-        cells:cells.map(node=>({tag:node.tagName,className:node.className,textAlign:getComputedStyle(node).textAlign})),
+        cells:cells.map(node=>{
+          const checkbox=node.querySelector<HTMLInputElement>('input[type="checkbox"]')
+          const isSelector=Boolean(checkbox)||node.matches('.crm-checkbox-cell,.select,.contracts-checkbox-cell,.check')
+          let checkboxCenterDelta:number|null=null
+          if(checkbox&&visible(checkbox)){
+            const cellRect=node.getBoundingClientRect()
+            const checkboxRect=checkbox.getBoundingClientRect()
+            checkboxCenterDelta=Math.abs((cellRect.left+cellRect.width/2)-(checkboxRect.left+checkboxRect.width/2))
+          }
+          return {tag:node.tagName,className:node.className,textAlign:getComputedStyle(node).textAlign,isSelector,checkboxCenterDelta}
+        }),
         sortHeaders:sortHeaders.map(node=>getComputedStyle(node).justifyContent),
         rowActions:rowActions.map(node=>getComputedStyle(node).justifyContent),
       }
     })
 
     exercisedTables+=sample.tables
-    exercisedCells+=sample.cells.length
-    for(const cell of sample.cells)expect(cell.textAlign,`${route} ${cell.tag}.${cell.className}: TableView cell axis`).toBe('left')
+    for(const cell of sample.cells){
+      if(cell.isSelector){
+        exercisedSelectors++
+        expect(cell.textAlign,`${route} ${cell.tag}.${cell.className}: selector rail axis`).toBe('center')
+        if(cell.checkboxCenterDelta!==null)expect(cell.checkboxCenterDelta,`${route} ${cell.tag}.${cell.className}: checkbox geometric centering`).toBeLessThanOrEqual(1.5)
+      }else{
+        exercisedDataCells++
+        expect(cell.textAlign,`${route} ${cell.tag}.${cell.className}: data column axis`).toBe('left')
+      }
+    }
     for(const alignment of sample.sortHeaders)expect(alignment,`${route}: sortable header axis`).toBe('flex-start')
     for(const alignment of sample.rowActions)expect(alignment,`${route}: row actions axis`).toBe('flex-start')
   }
 
   expect(exercisedTables,'administrative TableViews must be exercised').toBeGreaterThan(0)
-  expect(exercisedCells,'administrative TableView cells must be exercised').toBeGreaterThan(0)
+  expect(exercisedDataCells,'administrative data cells must be exercised').toBeGreaterThan(0)
+  expect(exercisedSelectors,'administrative selector rails must be exercised').toBeGreaterThan(0)
 })

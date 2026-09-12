@@ -36,6 +36,7 @@ for(const token of [
   'width:var(--ui-table-action-width)!important',
   'font-variant-numeric:tabular-nums!important',
   'text-align:left!important',
+  'text-align:center!important',
   'justify-content:flex-start!important',
   'min-height:var(--ui-badge-min-height)!important',
   ':has(.table-row-actions-trigger) th:last-child',
@@ -52,12 +53,12 @@ for(const token of [
 ])if(!table.includes(token))failures.push(`Contrato TableView universal deve preservar: ${token}.`)
 
 if(!/\.app-shell \.workspace-main table:not\(\.tableview-freeform\)\s*\{/.test(table))failures.push('TableView canônico deve aplicar geometria diretamente a todo table do workspace administrativo.')
-if(!/table:not\(\.tableview-freeform\) :is\(th,td\)\s*\{[^}]*padding-block:var\(--ui-table-cell-block\)!important;[^}]*padding-inline:var\(--ui-table-cell-inline\)!important;[^}]*text-align:left!important;/s.test(table))failures.push('Todas as células administrativas devem consumir o mesmo padding e o mesmo eixo esquerdo canônico.')
-if(!/table:not\(\.tableview-freeform\) th\s*\{[^}]*height:var\(--ui-table-head-height\)!important;[^}]*text-align:left!important;/s.test(table))failures.push('Headers administrativos devem usar altura canônica e alinhamento à esquerda.')
-if(!/table:not\(\.tableview-freeform\) td\s*\{[^}]*height:var\(--ui-table-row-height\)!important;[^}]*text-align:left!important;/s.test(table))failures.push('Rows administrativas devem usar altura canônica e alinhamento à esquerda.')
+if(!/table:not\(\.tableview-freeform\) :is\(th,td\)\s*\{[^}]*padding-block:var\(--ui-table-cell-block\)!important;[^}]*padding-inline:var\(--ui-table-cell-inline\)!important;[^}]*text-align:left!important;/s.test(table))failures.push('Todas as células administrativas devem consumir o mesmo padding e o eixo esquerdo base.')
+if(!/table:not\(\.tableview-freeform\) th\s*\{[^}]*height:var\(--ui-table-head-height\)!important;[^}]*text-align:left!important;/s.test(table))failures.push('Headers administrativos devem usar altura canônica e alinhamento base à esquerda.')
+if(!/table:not\(\.tableview-freeform\) td\s*\{[^}]*height:var\(--ui-table-row-height\)!important;[^}]*text-align:left!important;/s.test(table))failures.push('Rows administrativas devem usar altura canônica e alinhamento base à esquerda.')
 
-if(!/:is\(th,td\):has\(input\[type='checkbox'\]\),[\s\S]*\.check\)\s*\{[^}]*width:var\(--ui-table-selector-width\)!important;[^}]*text-align:left!important;/s.test(table))failures.push('Coluna seletora deve preservar largura canônica e usar o mesmo eixo esquerdo das demais colunas.')
-if(!/input\[type='checkbox'\]\s*\{[^}]*margin:0!important;/s.test(table))failures.push('Checkbox de TableView deve ficar ancorado à esquerda, sem margem automática de centralização.')
+if(!/:is\(th,td\):has\(input\[type='checkbox'\]\),[\s\S]*\.check\)\s*\{[^}]*width:var\(--ui-table-selector-width\)!important;[^}]*text-align:center!important;/s.test(table))failures.push('Coluna seletora deve preservar largura canônica e centralizar o checkbox no rail estreito.')
+if(!/input\[type='checkbox'\]\s*\{[^}]*margin:0 auto!important;/s.test(table))failures.push('Checkbox de TableView deve permanecer centralizado horizontalmente com margem automática.')
 
 if(!/:is\(\s*\.numeric,[\s\S]*\.accounting-number-col\s*\)\s*\{[^}]*font-variant-numeric:tabular-nums!important;[^}]*text-align:left!important;/s.test(table))failures.push('Colunas numéricas devem preservar numerais tabulares sem abandonar o eixo esquerdo universal.')
 if(!/:is\(\.status-col,\.state-col,\.center,\.actions-center\)\{text-align:left!important\}/s.test(table))failures.push('Status e aliases legados de centralização devem ser normalizados para a esquerda.')
@@ -69,12 +70,13 @@ if(!/\.table-row-actions\s*\{[^}]*justify-content:flex-start!important;[^}]*marg
 if(!/table:not\(\.tableview-freeform\) \.crm-sort-header\s*\{[^}]*justify-content:flex-start!important;/s.test(table))failures.push('Todos os sort headers devem compartilhar o eixo esquerdo de seus valores.')
 if(!/th:is\([\s\S]*\.accounting-number-col[\s\S]*\) \.crm-sort-header\{justify-content:flex-start!important\}/s.test(table))failures.push('Sort header numérico deve permanecer à esquerda, igual ao valor numérico.')
 
-if(!/\/\* Final alignment lock:[\s\S]*table:not\(\.tableview-freeform\) :is\(th,td\)\{text-align:left!important\}/s.test(table))failures.push('TableView deve encerrar com um lock canônico de alinhamento à esquerda para impedir regressões de CSS de domínio.')
+if(!/\/\* Final alignment lock:[\s\S]*table:not\(\.tableview-freeform\) :is\(th,td\)\{text-align:left!important\}/s.test(table))failures.push('TableView deve encerrar com um lock canônico de alinhamento à esquerda para colunas de dados.')
+if(!/table:not\(\.tableview-freeform\) :is\(th,td\):has\(input\[type='checkbox'\]\),[\s\S]*\.check\)\{text-align:center!important\}/s.test(table))failures.push('Lock final deve preservar a exceção centralizada do rail de seleção.')
 
-/* Reject the old mixed-axis policy specifically. Compact controls such as badge text
-   and the tiny sort-arrow button may center their own internal glyphs; columns may not. */
-if(/table:not\(\.tableview-freeform\) th\s*\{[^}]*text-align:(?:center|right)!important;/s.test(table))failures.push('Header de TableView não pode voltar a alinhar ao centro ou à direita.')
-if(/table:not\(\.tableview-freeform\) td\s*\{[^}]*text-align:(?:center|right)!important;/s.test(table))failures.push('Célula de TableView não pode voltar a alinhar ao centro ou à direita.')
+/* Reject the old mixed-axis policy specifically. Compact controls such as badge text,
+   the selector checkbox and the tiny sort-arrow button may center internally; data columns may not. */
+if(/table:not\(\.tableview-freeform\) th\s*\{[^}]*text-align:(?:center|right)!important;/s.test(table))failures.push('Header base de TableView não pode voltar a alinhar ao centro ou à direita.')
+if(/table:not\(\.tableview-freeform\) td\s*\{[^}]*text-align:(?:center|right)!important;/s.test(table))failures.push('Célula base de TableView não pode voltar a alinhar ao centro ou à direita.')
 if(/:is\(\.status-col,\.state-col,\.center,\.actions-center\)\{text-align:(?:center|right)!important\}/s.test(table))failures.push('Aliases de status/center não podem quebrar o eixo esquerdo universal.')
 if(/\.crm-sort-header\s*\{[^}]*justify-content:(?:center|flex-end)!important;/s.test(table))failures.push('Sort header não pode voltar ao eixo central ou direito.')
 
@@ -124,4 +126,4 @@ if(failures.length){
   process.exit(1)
 }
 
-console.log('TableView contract OK — todas as colunas, sort headers e ações ancorados à esquerda; header 40px, row 48px e padding 12px em todo admin.')
+console.log('TableView contract OK — colunas de dados à esquerda e checkboxes centralizados no rail seletor; header 40px, row 48px e padding 12px em todo admin.')

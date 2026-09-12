@@ -8,6 +8,7 @@ import {
   withHomeContentSectionConfiguration,
 } from '../../modules/site-manager/homeContentSectionConfiguration'
 import {defaultSectionConfiguration,type SectionConfiguration} from '../../modules/site-manager/sectionConfiguration'
+import {siteAppearanceStyle,useSiteAppearance} from '../../shared/branding/useSiteAppearance'
 import {PublicFooter,PublicHeader} from '../../shared/public/PublicChrome'
 import {PublicAdvertisementModule,PublicMostReadModule} from '../../shared/public/PublicEditorialModules'
 import {AdvertiseHereSection} from './components/AdvertiseHereSection'
@@ -48,4 +49,7 @@ function AgendaSection({configuration}:{configuration:SectionConfiguration}){con
 
 function HomeContent({configurations}:{configurations:HomeSectionConfigurationMap}){return <main className="pl-main public-shell official-home-sections" aria-label="Seções da Página Inicial"><div className="official-home-primary-grid"><div className="official-home-main-stack"><EmDestaqueSection configuration={sectionConfig(configurations,'em-destaque')}/><UltimasNoticiasSection configuration={sectionConfig(configurations,'ultimas-noticias')}/></div><aside className="official-home-sidebar-stack" aria-label="Coluna lateral da Página Inicial"><PublicMostReadModule configuration={sectionConfig(configurations,'mais-lidas')}/><PublicAdvertisementModule configuration={sectionConfig(configurations,'publicidade-lateral')}/><EmAltaSection configuration={sectionConfig(configurations,'em-alta')}/></aside></div><AnuncieAquiSection configuration={sectionConfig(configurations,'anuncie-aqui')}/><div className="official-home-bottom-grid"><SpotifyReleasesSection configuration={sectionConfig(configurations,'lancamentos')}/><AgendaSection configuration={sectionConfig(configurations,'agenda')}/></div></main>}
 
-export function HomePageRenderer({sectionConfigurations={},heroState,hydrated=true}:{sectionConfigurations?:HomeSectionConfigurationMap;heroState?:HeroCmsState;hydrated?:boolean}){return <div className="public-page" data-home-config-hydrated={hydrated?'true':'false'}><PublicHeader/><HeroSection config={heroState?.carousel} appearance={heroState?.appearance} background={heroState?.background}/><HomeContent configurations={sectionConfigurations}/><PublicFooter newsletterConfiguration={sectionConfig(sectionConfigurations,'newsletter')}/></div>}
+export function HomePageRenderer({sectionConfigurations={},heroState,hydrated=true}:{sectionConfigurations?:HomeSectionConfigurationMap;heroState?:HeroCmsState;hydrated?:boolean}){
+  const appearance=useSiteAppearance()
+  return <div className="public-page" style={siteAppearanceStyle(appearance)} data-home-config-hydrated={hydrated?'true':'false'}><PublicHeader/><HeroSection config={heroState?.carousel} appearance={heroState?.appearance} background={heroState?.background}/><HomeContent configurations={sectionConfigurations}/><PublicFooter newsletterConfiguration={sectionConfig(sectionConfigurations,'newsletter')}/></div>
+}

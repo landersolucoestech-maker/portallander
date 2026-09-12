@@ -2,13 +2,15 @@ import type {CSSProperties,ReactNode} from 'react'
 import {Link} from 'react-router-dom'
 import type {SectionConfiguration} from '../../modules/site-manager/sectionConfiguration'
 import {heroResponsiveCssVariables} from '../../modules/site-manager/sectionConfiguration'
+import {siteAppearanceStyle,useSiteAppearance} from '../branding/useSiteAppearance'
 import {PublicFooter,PublicHeader,type PublicNewsletterConfiguration} from './PublicChrome'
 
 export type PageHeroVariant='default'|'editorial'|'institutional'|'legal'|'minimal'
 export type PageLayoutVariant='full'|'content-sidebar'|'editorial'|'institutional'|'legal'|'detail'
 
 export function PageShell({children,className='',newsletterConfiguration}:{children:ReactNode;className?:string;newsletterConfiguration?:PublicNewsletterConfiguration}){
-  return <div className={`public-page pl-page-shell ${className}`.trim()}><PublicHeader/>{children}<PublicFooter newsletterConfiguration={newsletterConfiguration}/></div>
+  const appearance=useSiteAppearance()
+  return <div className={`public-page pl-page-shell ${className}`.trim()} style={siteAppearanceStyle(appearance)}><PublicHeader/>{children}<PublicFooter newsletterConfiguration={newsletterConfiguration}/></div>
 }
 
 export function PageContainer({children,className='',as='div'}:{children:ReactNode;className?:string;as?:'div'|'main'|'section'|'article'}){

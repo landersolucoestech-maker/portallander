@@ -1,6 +1,6 @@
-import { Image as ImageIcon, RotateCcw, Save, Trash2, Upload } from 'lucide-react'
-import { useRef, useState } from 'react'
-import { defaultHeaderBrandConfig, readHeaderBrandConfig, resetHeaderBrandConfig, writeHeaderBrandConfig, type HeaderBrandConfig } from '../models/headerBrandModel'
+import {Image as ImageIcon,RotateCcw,Save,Trash2,Upload} from 'lucide-react'
+import {useRef,useState} from 'react'
+import {defaultHeaderBrandConfig,readHeaderBrandConfig,resetHeaderBrandConfig,writeHeaderBrandConfig,type HeaderBrandConfig} from '../models/headerBrandModel'
 
 async function fileToDataUrl(file:File){
   return await new Promise<string>((resolve,reject)=>{
@@ -19,22 +19,39 @@ export function HeaderBrandEditor(){
   const save=()=>{writeHeaderBrandConfig(draft);setSaved(true)}
   const reset=()=>{resetHeaderBrandConfig();setDraft(defaultHeaderBrandConfig);setSaved(false)}
   const remove=()=>update({deleted:true,active:false,image:''})
-  const upload=async(file?:File)=>{if(!file||!file.type.startsWith('image/'))return;update({image:await fileToDataUrl(file),deleted:false,active:true,imageAlt:draft.imageAlt||file.name.replace(/\.[^.]+$/,'')});if(fileRef.current)fileRef.current.value=''}
+  const upload=async(file?:File)=>{
+    if(!file||!file.type.startsWith('image/'))return
+    update({image:await fileToDataUrl(file),deleted:false,active:true,imageAlt:draft.imageAlt||file.name.replace(/\.[^.]+$/,'')})
+    if(fileRef.current)fileRef.current.value=''
+  }
 
-  return <div className="header-brand-editor-page">
-    <header className="header-brand-editor-top"><div><span>GERENCIADOR DO SITE / IDENTIDADE PADRÃO</span><h1>Logo principal do Portal Lander</h1><p>Esta é a marca padrão usada no cabeçalho público e na tela de autenticação. As alterações atuais permanecem locais neste navegador até existir persistência compartilhada.</p></div><div><button onClick={reset}><RotateCcw size={16}/> Restaurar padrão</button><button className="primary" onClick={save}><Save size={16}/> Salvar localmente</button></div></header>
-    {saved&&<div className="header-brand-success">Logo padrão salva neste navegador e aplicada às superfícies que consomem a identidade principal.</div>}
-    <div className="header-brand-editor-grid">
-      <section className="header-brand-panel">
-        <h2>Configuração padrão</h2>
-        <label>Status<select value={draft.active&&!draft.deleted?'active':'inactive'} onChange={e=>update({active:e.target.value==='active',deleted:false})}><option value="active">Ativo</option><option value="inactive">Inativo</option></select></label>
-        <label>Link<input value={draft.link} onChange={e=>update({link:e.target.value})}/></label>
-        <label>Texto alternativo<input value={draft.imageAlt} onChange={e=>update({imageAlt:e.target.value})}/></label>
-        <div className="header-brand-two"><label>Largura útil · {draft.width}px<input type="range" min="80" max="280" value={draft.width} onChange={e=>update({width:Number(e.target.value)})}/></label><label>Altura · {draft.height}px<input type="range" min="32" max="90" value={draft.height} onChange={e=>update({height:Number(e.target.value)})}/></label></div>
-        <label>Alinhamento<select value={draft.alignment} onChange={e=>update({alignment:e.target.value as HeaderBrandConfig['alignment']})}><option value="left">Esquerda</option><option value="center">Centro</option><option value="right">Direita</option></select></label>
-        <div className="header-brand-upload"><div className="header-brand-preview">{draft.image?<img src={draft.image} alt={draft.imageAlt}/>:<ImageIcon size={34}/>}</div><input ref={fileRef} hidden type="file" accept="image/*" onChange={e=>void upload(e.target.files?.[0])}/><button onClick={()=>fileRef.current?.click()}><Upload size={16}/> Fazer upload</button><button className="danger" onClick={remove}><Trash2 size={16}/> Excluir logo local</button></div>
-      </section>
-      <section className="header-brand-live-preview"><h2>Preview da identidade padrão</h2><div className="header-brand-preview-header"><div className="header-brand-preview-slot" style={{width:draft.width,height:draft.height,justifyContent:draft.alignment==='left'?'flex-start':draft.alignment==='right'?'flex-end':'center'}}>{draft.active&&!draft.deleted&&draft.image?<img src={draft.image} alt={draft.imageAlt}/>:<span>Logo desativada</span>}</div><div className="header-brand-preview-menu"><span>NOTÍCIAS</span><span>MÚSICAS</span><span>BASTIDORES</span><span>LANÇAMENTOS</span></div></div></section>
+  return <div className="site-identity-brand-editor">
+    {saved&&<div className="site-identity-success" role="status">Cabeçalho salvo e aplicado às páginas públicas.</div>}
+    <div className="site-identity-editor-grid">
+      <div className="site-identity-controls">
+        <div className="site-identity-field-row">
+          <label className="site-identity-field"><span>Status</span><select value={draft.active&&!draft.deleted?'active':'inactive'} onChange={event=>update({active:event.target.value==='active',deleted:false})}><option value="active">Ativo</option><option value="inactive">Inativo</option></select></label>
+          <label className="site-identity-field"><span>Alinhamento</span><select value={draft.alignment} onChange={event=>update({alignment:event.target.value as HeaderBrandConfig['alignment']})}><option value="left">Esquerda</option><option value="center">Centro</option><option value="right">Direita</option></select></label>
+        </div>
+        <label className="site-identity-field"><span>Link da marca</span><input value={draft.link} onChange={event=>update({link:event.target.value})} placeholder="/"/></label>
+        <label className="site-identity-field"><span>Texto alternativo</span><input value={draft.imageAlt} onChange={event=>update({imageAlt:event.target.value})} placeholder="Portal Lander"/></label>
+        <div className="site-identity-field-row">
+          <label className="site-identity-range"><span>Largura <b>{draft.width}px</b></span><input type="range" min="80" max="280" value={draft.width} onChange={event=>update({width:Number(event.target.value)})}/></label>
+          <label className="site-identity-range"><span>Altura <b>{draft.height}px</b></span><input type="range" min="32" max="90" value={draft.height} onChange={event=>update({height:Number(event.target.value)})}/></label>
+        </div>
+        <div className="site-identity-logo-control">
+          <div className="site-identity-logo-thumb">{draft.image?<img src={draft.image} alt="Preview da logo do cabeçalho"/>:<ImageIcon size={28}/>}</div>
+          <div><strong>Logo do cabeçalho</strong><small>PNG, JPG, WEBP ou SVG.</small><div className="site-identity-inline-actions"><input ref={fileRef} hidden type="file" accept="image/*" onChange={event=>void upload(event.target.files?.[0])}/><button type="button" className="site-identity-button" onClick={()=>fileRef.current?.click()}><Upload size={14}/>Alterar logo</button><button type="button" className="site-identity-button danger" onClick={remove}><Trash2 size={14}/>Remover</button></div></div>
+        </div>
+      </div>
+      <div className="site-identity-preview-panel">
+        <div className="site-identity-preview-heading"><strong>Preview do cabeçalho</strong><span>Visualização em tempo real</span></div>
+        <div className="site-identity-header-preview">
+          <div className="site-identity-header-logo" style={{width:draft.width,height:draft.height,justifyContent:draft.alignment==='left'?'flex-start':draft.alignment==='right'?'flex-end':'center'}}>{draft.active&&!draft.deleted&&draft.image?<img src={draft.image} alt={draft.imageAlt}/>:<span>Logo desativada</span>}</div>
+          <div className="site-identity-header-menu"><span>NOTÍCIAS</span><span>MÚSICAS</span><span>BASTIDORES</span><span>LANÇAMENTOS</span></div>
+        </div>
+      </div>
     </div>
+    <div className="site-identity-actions"><button type="button" className="site-identity-button" onClick={reset}><RotateCcw size={14}/>Restaurar padrão</button><button type="button" className="site-identity-button primary" onClick={save}><Save size={14}/>Salvar cabeçalho</button></div>
   </div>
 }

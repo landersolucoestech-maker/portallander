@@ -1,0 +1,635 @@
+/* Portal Lander — canonical administrative component system.
+   This is the late component contract for internal modules. Domain styles may
+   define composition and semantic meaning; they may not redefine shared modal,
+   surface, form, button, menu, notice or spacing geometry. */
+
+.app-shell{
+  --ui-component-gap:12px;
+  --ui-component-gap-compact:8px;
+  --ui-panel-header-min-height:52px;
+  --ui-dialog-backdrop:rgba(15,23,42,.52);
+  --ui-dialog-max-height:min(92dvh,calc(100dvh - 32px));
+  --ui-dialog-inline:16px;
+  --ui-dialog-block:16px;
+  --ui-dialog-header-min-height:60px;
+  --ui-dialog-sm:560px;
+  --ui-dialog-md:720px;
+  --ui-dialog-lg:920px;
+  --ui-dialog-xl:1040px;
+  --ui-shadow-dialog:0 24px 64px rgba(15,23,42,.22);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Shared surfaces                                                            */
+/* -------------------------------------------------------------------------- */
+.app-shell .workspace-main :is(
+  .admin-card,.table-card,.crm-table-card,.finance-table-card,
+  .contracts-table-card,.agenda-calendar-card,.agenda-mini-month,.chat-card,
+  .rh-table-card,.rh-upload-card,.rh-doc-selector,.marketing-card,
+  .marketing-table-card,.metrics-card,.reports-entity-list,.settings-card,
+  .settings-plan-grid>article,.settings-channel-card,
+  .settings-integration-list>article,.settings-security-box,.settings-session,
+  .settings-security-row.boxed,.site-pages-management,.site-pages-structure,
+  .site-pages-global-settings,.section-editor-card,.section-editor-preview,
+  .section-editor-savebar,.section-editor-rule,.section-editor-manual
+){
+  box-sizing:border-box!important;
+  border:1px solid var(--ui-border)!important;
+  border-radius:var(--ui-radius-lg)!important;
+  background:var(--ui-surface)!important;
+  box-shadow:none!important;
+}
+
+.app-shell .workspace-main :is(
+  .finance-form-section,.agenda-form-section,.crm-view-section,
+  .finance-info,.rh-view-list>div,.reports-preview,.settings-code,
+  .settings-permissions>div,.agenda-readonly-note,.agenda-checklist,
+  .agenda-participant-cards article,.agenda-operational-cards article
+){
+  box-sizing:border-box!important;
+  border:1px solid var(--ui-border)!important;
+  border-radius:var(--ui-radius-md)!important;
+  background:var(--ui-surface-subtle)!important;
+  box-shadow:none!important;
+}
+
+/* Card/panel headers share one measurable rhythm. Messaging panes stay compact
+   while still consuming the same spacing scale. */
+.app-shell .workspace-main :is(
+  .crm-table-head,.finance-table-card>header,.contracts-table-card>header,
+  .rh-table-card>header,.marketing-table-card>header,.marketing-card>header,
+  .metrics-card>header,.settings-card>header,.site-pages-structure-header,
+  .section-editor-preview-head,.agenda-calendar-card>header
+){
+  box-sizing:border-box!important;
+  min-height:var(--ui-card-header-min-height)!important;
+  padding:var(--ui-card-header-block) var(--ui-card-header-inline)!important;
+  gap:var(--ui-card-gap)!important;
+  border-bottom:1px solid var(--ui-border)!important;
+  background:var(--ui-surface)!important;
+}
+
+.app-shell .workspace-main :is(
+  .chat-internal-list>header,.chat-inbox>header,.chat-ops>header,
+  .chat-thread-head,.chat-conversation-head
+){
+  box-sizing:border-box!important;
+  min-height:var(--ui-panel-header-min-height)!important;
+  padding:var(--ui-space-3) var(--ui-space-4)!important;
+  gap:var(--ui-space-3)!important;
+  border-bottom:1px solid var(--ui-border)!important;
+  background:var(--ui-surface)!important;
+}
+
+/* Card bodies: only actual content bodies, never tables/calendars/previews. */
+.app-shell .workspace-main :is(
+  .marketing-card-body,.settings-card-body,.reports-import-body,
+  .chat-modal-body,.finance-modal-body,.agenda-modal-body,.rh-modal-body,
+  .settings-modal-body
+){
+  box-sizing:border-box!important;
+  padding:var(--ui-card-padding)!important;
+  gap:var(--ui-component-gap)!important;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Buttons and action groups                                                   */
+/* -------------------------------------------------------------------------- */
+.app-shell .workspace-main :is(
+  .button,.crm-btn,.marketing-primary,.marketing-secondary,
+  .settings-primary,.settings-outline,.settings-danger,
+  .rh-primary,.rh-secondary,.rh-danger-button,
+  .reports-primary,.reports-outline,.site-pages-public-link,
+  .site-sections-configure
+){
+  box-sizing:border-box!important;
+  min-height:var(--ui-control-md)!important;
+  height:var(--ui-control-md)!important;
+  padding:0 var(--ui-control-inline)!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:var(--ui-control-gap)!important;
+  border-radius:var(--ui-radius-md)!important;
+  font-family:var(--ui-font)!important;
+  font-size:var(--ui-type-label)!important;
+  font-weight:var(--ui-weight-bold)!important;
+  line-height:1!important;
+  text-decoration:none!important;
+  white-space:nowrap!important;
+}
+
+/* One primary action color inside the workspace. Header chrome remains untouched. */
+.app-shell .workspace-main :is(
+  .button.dark,.crm-btn.primary,.marketing-primary,.settings-primary,
+  .rh-primary,.reports-primary,.site-pages-primary-action
+){
+  border:1px solid var(--ui-accent)!important;
+  background:var(--ui-accent)!important;
+  color:#fff!important;
+  box-shadow:none!important;
+}
+.app-shell .workspace-main :is(
+  .button.dark,.crm-btn.primary,.marketing-primary,.settings-primary,
+  .rh-primary,.reports-primary,.site-pages-primary-action
+):not(:disabled):hover{
+  border-color:#b8000b!important;
+  background:#b8000b!important;
+}
+
+.app-shell .workspace-main :is(
+  .button.outline,.crm-btn.secondary,.marketing-secondary,.settings-outline,
+  .rh-secondary,.reports-outline,.site-pages-public-link,
+  .site-sections-configure:not(.site-pages-primary-action):not(.site-pages-danger-action)
+){
+  border:1px solid var(--ui-border-strong)!important;
+  background:var(--ui-surface)!important;
+  color:var(--ui-text)!important;
+  box-shadow:none!important;
+}
+.app-shell .workspace-main :is(
+  .button.outline,.crm-btn.secondary,.marketing-secondary,.settings-outline,
+  .rh-secondary,.reports-outline,.site-pages-public-link,
+  .site-sections-configure:not(.site-pages-primary-action):not(.site-pages-danger-action)
+):not(:disabled):hover{
+  border-color:#98a2b3!important;
+  background:var(--ui-surface-subtle)!important;
+}
+
+.app-shell .workspace-main :is(
+  .crm-btn.danger,.settings-danger,.rh-danger-button,.marketing-danger-button,
+  .site-pages-danger-action
+){
+  border:1px solid #fda29b!important;
+  background:#fff!important;
+  color:var(--ui-danger)!important;
+  box-shadow:none!important;
+}
+
+.app-shell .workspace-main :is(
+  .admin-header-actions,.admin-actions-row,.site-pages-management-actions,
+  .site-sections-actions,.settings-actions,.settings-public-actions,
+  .settings-link-row,.reports-entity-actions,.reports-template-row,
+  .chat-conversation-actions,.chat-composer-tools,.section-editor-actions,
+  .section-editor-savebar>div:last-child,.finance-modal-foot,
+  .crm-modal-foot,.marketing-modal-footer
+){
+  gap:var(--ui-space-2)!important;
+}
+
+/* Compact/icon actions stay square and do not inherit regular button padding. */
+.app-shell .workspace-main :is(
+  .crm-icon-btn,.agenda-icon-button.bordered,.marketing-icon-button,
+  .settings-icon,.settings-icon-danger,.chat-tool-button,
+  .rh-row-actions button:first-child,.rh-row-actions button:last-child,
+  .section-editor-devices button
+){
+  box-sizing:border-box!important;
+  width:var(--ui-control-sm)!important;
+  min-width:var(--ui-control-sm)!important;
+  height:var(--ui-control-sm)!important;
+  min-height:var(--ui-control-sm)!important;
+  padding:0!important;
+  border-radius:var(--ui-radius-sm)!important;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Forms and fields                                                           */
+/* -------------------------------------------------------------------------- */
+.app-shell .workspace-main :is(
+  .crm-field,.finance-field,.agenda-field,.rh-field,.marketing-field,
+  .settings-field,.chat-field,.site-pages-selector,.section-editor-field,
+  .contracts-section label,.contracts-template-editor label,
+  .contracts-inline-editor label,.contracts-variable-editor label,
+  .contracts-document-step label,.contracts-party label,
+  .contracts-signer-edit label
+){
+  min-width:0!important;
+  gap:var(--ui-space-1)!important;
+  color:var(--ui-text)!important;
+  font-family:var(--ui-font)!important;
+  font-size:var(--ui-type-label)!important;
+  font-weight:var(--ui-weight-semibold)!important;
+  line-height:var(--ui-line-normal)!important;
+}
+
+.app-shell .workspace-main :is(
+  .crm-form-grid,.finance-form-grid,.agenda-form-grid,.rh-form-grid,
+  .marketing-form-grid,.settings-grid,.section-config-fields,
+  .section-config-two,.settings-permission-create
+){
+  gap:var(--ui-space-3)!important;
+}
+
+.app-shell .workspace-main :is(
+  .crm-field,.finance-field,.agenda-field,.rh-field,.marketing-field,
+  .settings-field,.chat-field,.site-pages-selector,.section-editor-field,
+  .contracts-section label,.contracts-template-editor label,
+  .contracts-inline-editor label,.contracts-variable-editor label,
+  .contracts-document-step label,.contracts-party label,
+  .contracts-signer-edit label
+) :is(input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='color']):not([type='file']),select){
+  box-sizing:border-box!important;
+  width:100%!important;
+  min-height:var(--ui-control-md)!important;
+  height:var(--ui-control-md)!important;
+  padding:0 var(--ui-control-inline)!important;
+  border:1px solid var(--ui-border-strong)!important;
+  border-radius:var(--ui-radius-md)!important;
+  outline:0!important;
+  background:var(--ui-surface)!important;
+  color:var(--ui-text)!important;
+  box-shadow:none!important;
+  font-family:var(--ui-font)!important;
+  font-size:var(--ui-type-control)!important;
+  line-height:1!important;
+}
+
+.app-shell .workspace-main :is(
+  .crm-field,.finance-field,.agenda-field,.rh-field,.marketing-field,
+  .settings-field,.chat-field,.section-editor-field,
+  .contracts-section label,.contracts-template-editor label,
+  .contracts-inline-editor label,.contracts-variable-editor label,
+  .contracts-document-step label
+) textarea{
+  box-sizing:border-box!important;
+  width:100%!important;
+  min-height:88px!important;
+  padding:var(--ui-space-3) var(--ui-control-inline)!important;
+  border:1px solid var(--ui-border-strong)!important;
+  border-radius:var(--ui-radius-md)!important;
+  outline:0!important;
+  background:var(--ui-surface)!important;
+  color:var(--ui-text)!important;
+  box-shadow:none!important;
+  font-family:var(--ui-font)!important;
+  font-size:var(--ui-type-control)!important;
+  line-height:var(--ui-line-normal)!important;
+}
+
+.app-shell .workspace-main :is(
+  .crm-field,.finance-field,.agenda-field,.rh-field,.marketing-field,
+  .settings-field,.chat-field,.site-pages-selector,.section-editor-field
+) :is(input,select,textarea):focus{
+  border-color:#98a2b3!important;
+  box-shadow:0 0 0 3px rgba(227,6,19,.08)!important;
+}
+
+/* Search boxes are composite controls: keep the inner input visually neutral. */
+.app-shell .workspace-main :is(
+  .crm-search,.finance-search,.contracts-search,.rh-search,.marketing-search,
+  .agenda-search,.searchbox,.chat-search-field,.settings-invite-email
+)>input{
+  min-width:0!important;
+  width:100%!important;
+  height:100%!important;
+  min-height:0!important;
+  padding:0!important;
+  border:0!important;
+  border-radius:0!important;
+  outline:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+}
+
+/* Structured form sections use one inset surface instead of module-specific padding. */
+.app-shell .workspace-main :is(
+  .finance-form-section,.agenda-form-section,.crm-form-section,
+  .section-config-padding-card
+){
+  box-sizing:border-box!important;
+  margin:0!important;
+  padding:var(--ui-card-padding)!important;
+  border:1px solid var(--ui-border)!important;
+  border-radius:var(--ui-radius-lg)!important;
+  background:var(--ui-surface-subtle)!important;
+  box-shadow:none!important;
+}
+.app-shell .workspace-main :is(
+  .finance-form-section,.agenda-form-section,.crm-form-section
+)>h3{
+  margin:0 0 var(--ui-space-3)!important;
+  padding:0!important;
+  border:0!important;
+  color:var(--ui-text-strong)!important;
+  font-size:var(--ui-type-label)!important;
+  font-weight:var(--ui-weight-bold)!important;
+  letter-spacing:0!important;
+  line-height:var(--ui-line-tight)!important;
+  text-transform:none!important;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Modal system                                                               */
+/* -------------------------------------------------------------------------- */
+.app-shell :is(
+  .crm-modal-backdrop,.finance-modal-backdrop,.agenda-modal-backdrop,
+  .chat-modal-backdrop,.marketing-modal-backdrop,.reports-modal-backdrop,
+  .rh-modal-backdrop,.settings-modal-backdrop,
+  [role='presentation']:has(>[role='dialog'])
+){
+  position:fixed!important;
+  inset:0!important;
+  z-index:2000!important;
+  box-sizing:border-box!important;
+  padding:var(--ui-space-4)!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  background:var(--ui-dialog-backdrop)!important;
+  overflow:auto!important;
+}
+
+.app-shell :is(
+  .crm-modal,.finance-modal,.agenda-modal,.chat-modal,.marketing-modal,
+  .reports-import-dialog,.rh-modal,.settings-modal,.contracts-original-view,
+  [role='dialog']
+){
+  box-sizing:border-box!important;
+  max-width:calc(100vw - 32px)!important;
+  max-height:var(--ui-dialog-max-height)!important;
+  border:1px solid var(--ui-border)!important;
+  border-radius:var(--ui-radius-lg)!important;
+  background:var(--ui-surface)!important;
+  box-shadow:var(--ui-shadow-dialog)!important;
+  color:var(--ui-text)!important;
+}
+
+.app-shell :is(.crm-modal,.finance-modal,.agenda-modal,.chat-modal,.rh-modal,.settings-modal){
+  width:min(var(--ui-dialog-md),calc(100vw - 32px));
+}
+.app-shell :is(.finance-modal.wide,.agenda-view-modal,.marketing-modal-wide){width:min(var(--ui-dialog-lg),calc(100vw - 32px))!important}
+.app-shell :is(.marketing-modal-campaign){width:min(var(--ui-dialog-xl),calc(100vw - 32px))!important}
+.app-shell .chat-modal-sm{width:min(440px,calc(100vw - 32px))!important}
+.app-shell .reports-import-dialog{width:min(672px,calc(100vw - 32px))!important}
+
+.app-shell :is(
+  .crm-modal,.finance-modal,.agenda-modal,.chat-modal,.marketing-modal,
+  .reports-import-dialog,.rh-modal,.settings-modal
+)>header,
+.app-shell .contracts-original-head{
+  box-sizing:border-box!important;
+  min-height:var(--ui-dialog-header-min-height)!important;
+  padding:var(--ui-space-3) var(--ui-dialog-inline)!important;
+  display:flex!important;
+  align-items:flex-start!important;
+  justify-content:space-between!important;
+  gap:var(--ui-space-3)!important;
+  border-bottom:1px solid var(--ui-border)!important;
+  background:var(--ui-surface)!important;
+}
+
+.app-shell :is(
+  .crm-modal,.finance-modal,.agenda-modal,.chat-modal,.marketing-modal,
+  .reports-import-dialog,.rh-modal,.settings-modal
+)>header h2,
+.app-shell [role='dialog'] h2{
+  margin:0!important;
+  color:var(--ui-text-strong)!important;
+  font-size:var(--ui-type-dialog-title)!important;
+  font-weight:var(--ui-weight-heavy)!important;
+  letter-spacing:-.01em!important;
+  line-height:var(--ui-line-tight)!important;
+}
+
+.app-shell :is(
+  .crm-modal,.finance-modal,.agenda-modal,.chat-modal,.marketing-modal,
+  .reports-import-dialog,.rh-modal,.settings-modal
+)>header p,
+.app-shell [role='dialog'] p{
+  margin:var(--ui-space-1) 0 0!important;
+  color:var(--ui-muted)!important;
+  font-size:var(--ui-type-label)!important;
+  line-height:var(--ui-line-normal)!important;
+}
+
+.app-shell :is(
+  .crm-modal-body,.finance-modal-body,.agenda-modal-body,.chat-modal-body,
+  .marketing-modal-body,.reports-import-body,.rh-modal-body,.settings-modal-body,
+  .contracts-original-content
+){
+  box-sizing:border-box!important;
+  min-height:0!important;
+  padding:var(--ui-dialog-block) var(--ui-dialog-inline)!important;
+  gap:var(--ui-component-gap)!important;
+}
+
+.app-shell :is(
+  .crm-modal-foot,.finance-modal-foot,.agenda-modal>footer,.chat-modal>footer,
+  .marketing-modal-footer,.reports-import-dialog>footer,.rh-modal>footer,
+  .contracts-original-foot
+){
+  box-sizing:border-box!important;
+  min-height:52px!important;
+  padding:var(--ui-space-2) var(--ui-dialog-inline)!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:flex-end!important;
+  gap:var(--ui-space-2)!important;
+  border-top:1px solid var(--ui-border)!important;
+  background:var(--ui-surface)!important;
+}
+
+/* Site Pages currently uses semantic dialogs with inline layout. Canonical rules
+   intentionally override only component geometry, preserving its behavior. */
+.app-shell .workspace-main [role='dialog'].section-editor-card{
+  width:min(var(--ui-dialog-sm),calc(100vw - 32px))!important;
+  padding:0!important;
+  overflow:hidden!important;
+}
+.app-shell .workspace-main [role='dialog'].section-editor-card>div:first-child{
+  min-height:var(--ui-dialog-header-min-height)!important;
+  margin:0!important;
+  padding:var(--ui-space-3) var(--ui-dialog-inline)!important;
+  display:flex!important;
+  align-items:flex-start!important;
+  justify-content:space-between!important;
+  gap:var(--ui-space-3)!important;
+  border-bottom:1px solid var(--ui-border)!important;
+}
+.app-shell .workspace-main [role='dialog'].section-editor-card>div:nth-child(2){
+  margin:0!important;
+  padding:var(--ui-dialog-block) var(--ui-dialog-inline)!important;
+  gap:var(--ui-space-3)!important;
+}
+.app-shell .workspace-main [role='dialog'].section-editor-card>div:first-child>button{
+  width:var(--ui-control-sm)!important;
+  min-width:var(--ui-control-sm)!important;
+  height:var(--ui-control-sm)!important;
+  min-height:var(--ui-control-sm)!important;
+  padding:0!important;
+  display:grid!important;
+  place-items:center!important;
+  border:0!important;
+  border-radius:var(--ui-radius-sm)!important;
+  background:transparent!important;
+  color:var(--ui-muted)!important;
+  cursor:pointer!important;
+}
+.app-shell .workspace-main [role='dialog'].section-editor-card>div:nth-child(2)>label{
+  display:grid!important;
+  gap:var(--ui-space-1)!important;
+  color:var(--ui-text)!important;
+  font-size:var(--ui-type-label)!important;
+  font-weight:var(--ui-weight-semibold)!important;
+}
+.app-shell .workspace-main [role='dialog'].section-editor-card>div:nth-child(2)>label>input{
+  width:100%!important;
+  height:var(--ui-control-md)!important;
+  min-height:var(--ui-control-md)!important;
+  padding:0 var(--ui-control-inline)!important;
+  border:1px solid var(--ui-border-strong)!important;
+  border-radius:var(--ui-radius-md)!important;
+  background:var(--ui-surface)!important;
+  color:var(--ui-text)!important;
+  font-size:var(--ui-type-control)!important;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Menus, popovers and dropdown surfaces                                      */
+/* -------------------------------------------------------------------------- */
+.app-shell :is(
+  .workspace-popover,.rh-menu-pop,.marketing-menu-pop,.chat-popover,
+  .agenda-participant-menu,.table-row-actions-menu
+){
+  box-sizing:border-box!important;
+  padding:var(--ui-space-2)!important;
+  border:1px solid var(--ui-border)!important;
+  border-radius:var(--ui-radius-md)!important;
+  background:var(--ui-surface)!important;
+  box-shadow:var(--ui-shadow-popover)!important;
+}
+.app-shell :is(
+  .workspace-popover,.rh-menu-pop,.marketing-menu-pop,.chat-popover,
+  .agenda-participant-menu,.table-row-actions-menu
+) :is(button,a,[role='menuitem']){
+  box-sizing:border-box!important;
+  min-height:36px!important;
+  border-radius:var(--ui-radius-sm)!important;
+  font-family:var(--ui-font)!important;
+  font-size:var(--ui-type-label)!important;
+  line-height:1.2!important;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Lists, empty states, notices and upload surfaces                            */
+/* -------------------------------------------------------------------------- */
+.app-shell .workspace-main :is(
+  .reports-entity-row,.settings-automation-row,.settings-team-row,
+  .settings-role-row,.marketing-list-row
+){
+  box-sizing:border-box!important;
+  min-height:52px!important;
+  padding:var(--ui-space-2) var(--ui-space-3)!important;
+  gap:var(--ui-space-3)!important;
+  border-bottom:1px solid var(--ui-border)!important;
+}
+
+.app-shell .workspace-main :is(
+  .admin-empty,.crm-empty,.finance-empty,.agenda-empty,.chat-list-empty,
+  .chat-thread-empty,.chat-support-empty,.rh-empty-card,.marketing-empty,
+  .reports-empty,.settings-empty,.metrics-empty-state,.dashboard-empty-inline
+){
+  box-sizing:border-box!important;
+  padding:var(--ui-space-6)!important;
+  border-color:var(--ui-border-strong)!important;
+  border-radius:var(--ui-radius-lg)!important;
+  color:var(--ui-muted)!important;
+  text-align:center!important;
+}
+
+.app-shell .workspace-main :is(
+  .admin-notice,.reports-notice,.settings-seat-warning,.crm-error,
+  .reports-inline-error
+){
+  box-sizing:border-box!important;
+  gap:var(--ui-space-2)!important;
+  padding:var(--ui-space-3)!important;
+  border-radius:var(--ui-radius-md)!important;
+  font-size:var(--ui-type-label)!important;
+  line-height:var(--ui-line-normal)!important;
+}
+
+.app-shell .workspace-main :is(.reports-dropzone,.rh-upload-zone,.crm-upload){
+  box-sizing:border-box!important;
+  min-height:96px!important;
+  padding:var(--ui-space-4)!important;
+  gap:var(--ui-space-2)!important;
+  border:1px dashed var(--ui-border-strong)!important;
+  border-radius:var(--ui-radius-lg)!important;
+  background:var(--ui-surface-subtle)!important;
+  color:var(--ui-muted)!important;
+  box-shadow:none!important;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Site editor/workbench rhythm                                               */
+/* -------------------------------------------------------------------------- */
+.app-shell .workspace-main .section-editor-workbench{gap:var(--ui-card-gap)!important}
+.app-shell .workspace-main .section-editor-rail{padding-right:var(--ui-space-2)!important}
+.app-shell .workspace-main .section-editor-card{padding:var(--ui-card-padding)!important}
+.app-shell .workspace-main .section-editor-card-head{margin-bottom:var(--ui-space-3)!important}
+.app-shell .workspace-main .section-editor-card-head p{margin:var(--ui-space-1) 0 0!important}
+.app-shell .workspace-main .section-editor-tabs{gap:var(--ui-space-2)!important;margin-bottom:var(--ui-space-3)!important}
+.app-shell .workspace-main .section-editor-tab{
+  min-height:48px!important;
+  padding:0 var(--ui-space-3)!important;
+  border:1px solid var(--ui-border)!important;
+  border-radius:var(--ui-radius-md)!important;
+  background:var(--ui-surface)!important;
+  color:var(--ui-text)!important;
+  font-size:var(--ui-type-body)!important;
+  font-weight:var(--ui-weight-bold)!important;
+  box-shadow:none!important;
+}
+.app-shell .workspace-main .section-editor-tab.active{
+  border-color:var(--ui-accent)!important;
+  background:#fff7f7!important;
+  color:var(--ui-accent)!important;
+}
+.app-shell .workspace-main .section-editor-savebar{
+  margin-top:var(--ui-space-3)!important;
+  padding:var(--ui-space-3) var(--ui-card-padding)!important;
+  gap:var(--ui-space-3)!important;
+}
+
+/* Site Pages uses the same card padding and control rhythm as the rest of admin. */
+.app-shell .workspace-main :is(.site-pages-management,.site-pages-global-settings){
+  padding:var(--ui-card-padding)!important;
+  gap:var(--ui-card-gap)!important;
+}
+.app-shell .workspace-main .site-pages-management{margin-bottom:var(--ui-card-gap)!important}
+.app-shell .workspace-main .site-pages-context{margin-bottom:var(--ui-card-gap)!important}
+.app-shell .workspace-main .site-pages-structure{margin-bottom:var(--ui-card-gap)!important}
+.app-shell .workspace-main .site-pages-global-settings{margin-top:var(--ui-card-gap)!important}
+.app-shell .workspace-main .site-sections-row{
+  min-height:64px!important;
+  padding:var(--ui-space-2) var(--ui-card-padding)!important;
+  gap:var(--ui-card-gap)!important;
+}
+
+@media(max-width:760px){
+  .app-shell :is(
+    .crm-modal-backdrop,.finance-modal-backdrop,.agenda-modal-backdrop,
+    .chat-modal-backdrop,.marketing-modal-backdrop,.reports-modal-backdrop,
+    .rh-modal-backdrop,.settings-modal-backdrop,
+    [role='presentation']:has(>[role='dialog'])
+  ){
+    padding:var(--ui-space-2)!important;
+  }
+  .app-shell :is(
+    .crm-modal,.finance-modal,.agenda-modal,.chat-modal,.marketing-modal,
+    .reports-import-dialog,.rh-modal,.settings-modal,.contracts-original-view,
+    [role='dialog']
+  ){
+    max-width:calc(100vw - 16px)!important;
+    max-height:calc(100dvh - 16px)!important;
+    border-radius:var(--ui-radius-md)!important;
+  }
+  .app-shell .workspace-main :is(
+    .crm-form-grid,.finance-form-grid,.agenda-form-grid,.rh-form-grid,
+    .marketing-form-grid,.settings-grid,.section-config-two
+  ){
+    grid-template-columns:1fr!important;
+  }
+}

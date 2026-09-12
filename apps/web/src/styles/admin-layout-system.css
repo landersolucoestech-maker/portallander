@@ -1,0 +1,704 @@
+/* Portal Lander — canonical administrative layout system.
+   This is the late geometry lock for the entire internal product. Feature CSS may
+   define domain composition and semantic colors, but it must not create a second
+   spacing, typography, KPI, tabs, toolbar, surface, form or pagination scale.
+
+   IMPORTANT: several lazy modules load their own CSS after admin-entry.css at
+   runtime. The selectors below intentionally use the app/workspace scope plus
+   !important for geometry so route-level CSS cannot silently fragment the UI. */
+
+/* -------------------------------------------------------------------------- */
+/* Page rhythm                                                                 */
+/* -------------------------------------------------------------------------- */
+.app-shell .workspace-main :is(
+  .crm-page,.finance-page,.contracts-page,.agenda-page,.chat-page,
+  .chat-settings-page,.rh-page,.marketing-page,.reports-page,.settings-page,
+  .dashboard-reference-page,.metrics-page,.site-pages-page,.site-content-page,
+  .site-media-page,.site-forms-page
+){
+  width:100%!important;
+  max-width:none!important;
+  min-width:0!important;
+  gap:var(--ui-page-gap)!important;
+}
+
+/* -------------------------------------------------------------------------- */
+/* KPI family                                                                  */
+/* -------------------------------------------------------------------------- */
+.app-shell .workspace-main :is(
+  .admin-kpi-grid,.crm-kpis,.finance-kpis,.contracts-kpis,.agenda-kpis,
+  .rh-kpis,.marketing-kpis,.metrics-kpi-grid,.settings-user-kpis,
+  .settings-public-stats
+){
+  gap:var(--ui-kpi-gap)!important;
+  margin:0!important;
+  align-items:stretch!important;
+}
+
+.app-shell .workspace-main :is(
+  .admin-kpi,.crm-kpi,.finance-kpi,.contracts-kpi,.rh-kpi,.marketing-kpi,
+  .dashboard-stat-card,.marketing-metric-strip>article,
+  .settings-user-kpis>article,.settings-public-stats>div
+){
+  position:relative!important;
+  box-sizing:border-box!important;
+  width:100%!important;
+  min-width:0!important;
+  height:var(--ui-kpi-height)!important;
+  min-height:var(--ui-kpi-height)!important;
+  margin:0!important;
+  padding:var(--ui-kpi-padding)!important;
+  border:1px solid var(--ui-border)!important;
+  border-radius:var(--ui-radius-lg)!important;
+  background:var(--ui-surface)!important;
+  box-shadow:none!important;
+  overflow:hidden;
+}
+
+.app-shell .workspace-main :is(
+  .admin-kpi-label,.crm-kpi span,.finance-kpi span,.contracts-kpi span,
+  .rh-kpi small,.dashboard-stat-card span,.marketing-metric-strip>article>span,
+  .settings-user-kpis>article>span,.settings-public-stats>div>span
+){
+  color:var(--ui-muted)!important;
+  font-size:var(--ui-type-micro)!important;
+  font-weight:var(--ui-weight-bold)!important;
+  letter-spacing:0!important;
+  line-height:1.25!important;
+  text-transform:none!important;
+}
+
+.app-shell .workspace-main :is(
+  .admin-kpi,.crm-kpi,.finance-kpi,.contracts-kpi,.rh-kpi,.dashboard-stat-card,
+  .marketing-metric-strip>article,.settings-user-kpis>article,
+  .settings-public-stats>div
+)>strong,
+.app-shell .workspace-main :is(.crm-kpi,.finance-kpi,.contracts-kpi,.rh-kpi)>div>strong{
+  color:var(--ui-text-strong)!important;
+  font-size:var(--ui-type-kpi-value)!important;
+  font-weight:var(--ui-weight-heavy)!important;
+  letter-spacing:-.03em!important;
+  line-height:1.05!important;
+  font-variant-numeric:tabular-nums;
+}
+
+/* Marketing used the reverse hierarchy (value -> label) and icon on the left.
+   Preserve its markup, but render the same hierarchy as every other KPI. */
+.app-shell .workspace-main .marketing-kpi{
+  display:block!important;
+}
+.app-shell .workspace-main .marketing-kpi>div{
+  min-width:0!important;
+  height:100%!important;
+  padding-right:calc(var(--ui-kpi-icon) + var(--ui-space-2))!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:flex-start!important;
+}
+.app-shell .workspace-main .marketing-kpi>div>span{
+  order:0!important;
+  margin:0!important;
+  color:var(--ui-muted)!important;
+  font-size:var(--ui-type-micro)!important;
+  font-weight:var(--ui-weight-bold)!important;
+  line-height:1.25!important;
+}
+.app-shell .workspace-main .marketing-kpi>div>strong{
+  order:1!important;
+  margin:var(--ui-space-2) 0 0!important;
+  color:var(--ui-text-strong)!important;
+  font-size:var(--ui-type-kpi-value)!important;
+  font-weight:var(--ui-weight-heavy)!important;
+  letter-spacing:-.03em!important;
+  line-height:1.05!important;
+  font-variant-numeric:tabular-nums;
+}
+.app-shell .workspace-main .marketing-kpi>div>small{
+  order:2!important;
+  margin:var(--ui-space-1) 0 0!important;
+  color:var(--ui-muted-soft)!important;
+  font-size:var(--ui-type-micro)!important;
+  font-weight:var(--ui-weight-medium)!important;
+  line-height:1.25!important;
+}
+.app-shell .workspace-main .marketing-kpi-icon{
+  position:absolute!important;
+  top:var(--ui-kpi-padding)!important;
+  right:var(--ui-kpi-padding)!important;
+  left:auto!important;
+  width:var(--ui-kpi-icon)!important;
+  height:var(--ui-kpi-icon)!important;
+  min-width:var(--ui-kpi-icon)!important;
+  margin:0!important;
+  display:grid!important;
+  place-items:center!important;
+  border-radius:var(--ui-radius-md)!important;
+  background:var(--ui-surface-subtle)!important;
+  color:var(--ui-muted)!important;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Secondary navigation                                                        */
+/* -------------------------------------------------------------------------- */
+.app-shell .workspace-main :is(
+  .crm-tabs,.finance-tabs,.contracts-tabs,.rh-tabs,.marketing-tabs,
+  .settings-tabs,.chat-domain-tabs,.chat-settings-tabs,
+  .marketing-platform-tabs-exact
+){
+  box-sizing:border-box!important;
+  width:100%!important;
+  min-width:0!important;
+  min-height:42px!important;
+  margin:0!important;
+  padding:0!important;
+  display:flex!important;
+  align-items:flex-end!important;
+  justify-content:flex-start!important;
+  gap:var(--ui-space-1)!important;
+  overflow-x:auto;
+  border:0!important;
+  border-bottom:1px solid var(--ui-border)!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+}
+
+.app-shell .workspace-main :is(
+  .crm-tabs,.finance-tabs,.contracts-tabs,.rh-tabs,.marketing-tabs,
+  .settings-tabs,.chat-domain-tabs,.chat-settings-tabs,
+  .marketing-platform-tabs-exact
+)>button{
+  position:relative!important;
+  flex:0 0 auto!important;
+  min-width:0!important;
+  min-height:42px!important;
+  height:42px!important;
+  margin:0!important;
+  padding:0 var(--ui-space-3)!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:var(--ui-space-2)!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  color:var(--ui-muted)!important;
+  box-shadow:none!important;
+  font-family:var(--ui-font)!important;
+  font-size:var(--ui-type-label)!important;
+  font-weight:var(--ui-weight-semibold)!important;
+  line-height:1!important;
+  white-space:nowrap!important;
+}
+.app-shell .workspace-main :is(
+  .crm-tabs,.finance-tabs,.contracts-tabs,.rh-tabs,.marketing-tabs,
+  .settings-tabs,.chat-domain-tabs,.chat-settings-tabs,
+  .marketing-platform-tabs-exact
+)>button:is(.active,[aria-selected='true']){
+  color:var(--ui-text-strong)!important;
+}
+.app-shell .workspace-main :is(
+  .crm-tabs,.finance-tabs,.contracts-tabs,.rh-tabs,.marketing-tabs,
+  .settings-tabs,.chat-domain-tabs,.chat-settings-tabs,
+  .marketing-platform-tabs-exact
+)>button:is(.active,[aria-selected='true'])::after{
+  content:''!important;
+  position:absolute!important;
+  left:var(--ui-space-3)!important;
+  right:var(--ui-space-3)!important;
+  bottom:-1px!important;
+  height:2px!important;
+  border:0!important;
+  border-radius:2px 2px 0 0!important;
+  background:var(--ui-accent)!important;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Filter and operational toolbars                                             */
+/* -------------------------------------------------------------------------- */
+.app-shell .workspace-main :is(
+  .crm-filters,.finance-filters,.contracts-filters,.rh-filters,
+  .marketing-filters,.agenda-toolbar
+){
+  box-sizing:border-box!important;
+  width:100%!important;
+  min-width:0!important;
+  min-height:52px!important;
+  margin:0!important;
+  padding:var(--ui-filter-padding)!important;
+  display:flex!important;
+  align-items:center!important;
+  gap:var(--ui-filter-gap)!important;
+  border:1px solid var(--ui-border)!important;
+  border-radius:var(--ui-radius-lg)!important;
+  background:var(--ui-surface)!important;
+  box-shadow:none!important;
+}
+
+.app-shell .workspace-main :is(
+  .crm-search,.finance-search,.contracts-search,.rh-search,.marketing-search,
+  .agenda-search,.searchbox
+){
+  box-sizing:border-box!important;
+  min-width:var(--ui-search-min-width)!important;
+  min-height:var(--ui-control-md)!important;
+  height:var(--ui-control-md)!important;
+  padding:0 var(--ui-control-inline)!important;
+  display:flex!important;
+  align-items:center!important;
+  gap:var(--ui-control-gap)!important;
+  border:1px solid var(--ui-border-strong)!important;
+  border-radius:var(--ui-radius-md)!important;
+  background:var(--ui-surface)!important;
+  color:var(--ui-muted)!important;
+  box-shadow:none!important;
+}
+.app-shell .workspace-main :is(
+  .crm-search,.finance-search,.contracts-search,.rh-search,.marketing-search,
+  .agenda-search,.searchbox
+)>input{
+  min-width:0!important;
+  width:100%!important;
+  min-height:0!important;
+  height:calc(var(--ui-control-md) - 2px)!important;
+  padding:0!important;
+  border:0!important;
+  outline:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  color:var(--ui-text)!important;
+  font-size:var(--ui-type-control)!important;
+}
+
+.app-shell .workspace-main :is(
+  .crm-filters,.finance-filters,.contracts-filters,.rh-filters,
+  .marketing-filters,.agenda-toolbar
+) :is(select,input:not([type='checkbox']):not([type='radio']),button){
+  box-sizing:border-box!important;
+  min-height:var(--ui-control-md)!important;
+  font-size:var(--ui-type-control)!important;
+  line-height:1!important;
+}
+.app-shell .workspace-main :is(
+  .crm-filters,.finance-filters,.contracts-filters,.rh-filters,
+  .marketing-filters,.agenda-toolbar
+)>:is(select,input:not([type='checkbox']):not([type='radio'])){
+  height:var(--ui-control-md)!important;
+  padding-block:0!important;
+  padding-inline:var(--ui-control-inline)!important;
+  border:1px solid var(--ui-border-strong)!important;
+  border-radius:var(--ui-radius-md)!important;
+  background:var(--ui-surface)!important;
+  color:#475467!important;
+}
+.app-shell .workspace-main .crm-filter-selects{
+  gap:var(--ui-filter-gap)!important;
+}
+.app-shell .workspace-main .crm-filter-selects select{
+  height:var(--ui-control-md)!important;
+  min-height:var(--ui-control-md)!important;
+  padding-block:0!important;
+  padding-inline:var(--ui-control-inline)!important;
+  border-radius:var(--ui-radius-md)!important;
+  font-size:var(--ui-type-control)!important;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Shared surfaces and card headers                                            */
+/* -------------------------------------------------------------------------- */
+.app-shell .workspace-main :is(
+  .admin-card,.marketing-card,.metrics-card,.settings-card,.site-form-card,
+  .crm-table-card,.finance-table-card,.contracts-table-card,.rh-table-card,
+  .marketing-table-card,.agenda-calendar-card,.marketing-month,
+  .dashboard-reference-panel
+){
+  border:1px solid var(--ui-border)!important;
+  border-radius:var(--ui-radius-lg)!important;
+  background:var(--ui-surface)!important;
+  box-shadow:none!important;
+}
+
+.app-shell .workspace-main :is(
+  .crm-table-head,.finance-table-card>header,.contracts-table-card>header,
+  .rh-table-card>header,.marketing-table-card>header,.marketing-card>header,
+  .metrics-card>header,.settings-card>header,.site-form-card>header,
+  .tableview-surface>header,.table-card>header
+){
+  box-sizing:border-box!important;
+  min-height:var(--ui-card-header-min-height)!important;
+  margin:0!important;
+  padding:var(--ui-card-header-block) var(--ui-card-header-inline)!important;
+  display:flex!important;
+  align-items:center!important;
+  gap:var(--ui-card-gap)!important;
+  border-bottom:1px solid var(--ui-border)!important;
+  background:var(--ui-surface)!important;
+  text-align:left!important;
+}
+
+.app-shell .workspace-main :is(
+  .crm-table-head,.finance-table-card>header,.contracts-table-card>header,
+  .rh-table-card>header,.marketing-table-card>header,.marketing-card>header,
+  .metrics-card>header,.settings-card>header,.site-form-card>header
+) :is(h2,h3){
+  margin:0!important;
+  color:var(--ui-text-strong)!important;
+  letter-spacing:0!important;
+  line-height:var(--ui-line-tight)!important;
+  text-align:left!important;
+}
+.app-shell .workspace-main :is(.settings-card>header,.site-form-card>header) h2{
+  font-size:var(--ui-type-section-title)!important;
+  font-weight:var(--ui-weight-bold)!important;
+}
+.app-shell .workspace-main :is(
+  .crm-table-head,.finance-table-card>header,.contracts-table-card>header,
+  .rh-table-card>header,.marketing-table-card>header,.marketing-card>header,
+  .metrics-card>header
+) h3{
+  font-size:var(--ui-type-card-title)!important;
+  font-weight:var(--ui-weight-heavy)!important;
+}
+.app-shell .workspace-main :is(
+  .crm-table-head,.finance-table-card>header,.contracts-table-card>header,
+  .rh-table-card>header,.marketing-table-card>header,.marketing-card>header,
+  .metrics-card>header,.settings-card>header,.site-form-card>header
+) p{
+  margin:var(--ui-space-1) 0 0!important;
+  color:var(--ui-muted)!important;
+  font-size:var(--ui-type-micro)!important;
+  font-weight:var(--ui-weight-medium)!important;
+  line-height:var(--ui-line-normal)!important;
+  text-align:left!important;
+}
+
+.app-shell .workspace-main :is(.marketing-card-body,.settings-card-body){
+  padding:var(--ui-card-padding)!important;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Metrics: analytic composition, same surface hierarchy                        */
+/* -------------------------------------------------------------------------- */
+.app-shell .workspace-main .metrics-page{
+  gap:var(--ui-page-gap)!important;
+}
+.app-shell .workspace-main :is(.metrics-site,.metrics-social){
+  gap:var(--ui-page-gap)!important;
+}
+.app-shell .workspace-main .metrics-section{
+  gap:var(--ui-card-gap)!important;
+}
+.app-shell .workspace-main .metrics-card-grid{
+  gap:var(--ui-card-gap)!important;
+}
+.app-shell .workspace-main .metrics-section-head{
+  align-items:flex-end!important;
+  gap:var(--ui-card-gap)!important;
+}
+.app-shell .workspace-main .metrics-section-head h2{
+  margin:0!important;
+  color:var(--ui-text-strong)!important;
+  font-size:var(--ui-type-section-title)!important;
+  font-weight:var(--ui-weight-bold)!important;
+  letter-spacing:-.01em!important;
+  line-height:var(--ui-line-tight)!important;
+}
+.app-shell .workspace-main .metrics-section-head p{
+  margin:var(--ui-space-1) 0 0!important;
+  color:var(--ui-muted)!important;
+  font-size:var(--ui-type-label)!important;
+  line-height:var(--ui-line-normal)!important;
+}
+.app-shell .workspace-main .metrics-card>header{
+  flex-direction:column!important;
+  justify-content:center!important;
+  align-items:flex-start!important;
+}
+.app-shell .workspace-main .metrics-card-body{
+  padding:0 var(--ui-card-padding) var(--ui-space-1)!important;
+}
+.app-shell .workspace-main .metrics-row{
+  min-height:52px!important;
+  padding:var(--ui-space-2) 0!important;
+  gap:var(--ui-card-gap)!important;
+}
+.app-shell .workspace-main .metrics-row>div>strong{
+  color:var(--ui-text)!important;
+  font-size:var(--ui-type-body)!important;
+  font-weight:var(--ui-weight-semibold)!important;
+  line-height:1.35!important;
+}
+.app-shell .workspace-main .metrics-row>div>small{
+  color:var(--ui-muted-soft)!important;
+  font-size:var(--ui-type-micro)!important;
+  line-height:1.35!important;
+}
+.app-shell .workspace-main .metrics-row>b{
+  color:var(--ui-text-strong)!important;
+  font-size:var(--ui-type-body)!important;
+  font-weight:var(--ui-weight-bold)!important;
+  line-height:1.3!important;
+  font-variant-numeric:tabular-nums;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Marketing overview and operational lists                                    */
+/* -------------------------------------------------------------------------- */
+.app-shell .workspace-main :is(.marketing-overview-shell,.marketing-overview-main,.marketing-overview-side){
+  gap:var(--ui-card-gap)!important;
+}
+.app-shell .workspace-main .marketing-list-row{
+  min-height:52px!important;
+  padding:var(--ui-space-2) 0!important;
+  gap:var(--ui-card-gap)!important;
+}
+.app-shell .workspace-main :is(.marketing-list-row strong,.marketing-activity strong){
+  font-size:var(--ui-type-body)!important;
+  font-weight:var(--ui-weight-semibold)!important;
+}
+.app-shell .workspace-main :is(.marketing-list-row small,.marketing-activity span){
+  font-size:var(--ui-type-micro)!important;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Forms and settings                                                          */
+/* -------------------------------------------------------------------------- */
+.app-shell .workspace-main :is(.site-form-grid,.site-form-field-grid,.settings-grid,.marketing-form-grid){
+  gap:var(--ui-space-3)!important;
+}
+.app-shell .workspace-main .site-form-grid{
+  padding:var(--ui-card-padding)!important;
+}
+.app-shell .workspace-main :is(.site-form-grid,.site-form-field-grid,.settings-grid,.marketing-form-grid) label{
+  gap:var(--ui-space-1)!important;
+}
+.app-shell .workspace-main :is(
+  .site-form-grid,.site-form-field-grid,.settings-grid,.marketing-form-grid
+) label>span{
+  color:var(--ui-text)!important;
+  font-size:var(--ui-type-label)!important;
+  font-weight:var(--ui-weight-semibold)!important;
+  line-height:var(--ui-line-normal)!important;
+}
+.app-shell .workspace-main :is(
+  .site-form-grid,.site-form-field-grid,.settings-grid,.marketing-form-grid
+) :is(input,select){
+  min-height:var(--ui-control-md)!important;
+  padding-block:0!important;
+  padding-inline:var(--ui-control-inline)!important;
+  border:1px solid var(--ui-border-strong)!important;
+  border-radius:var(--ui-radius-md)!important;
+  background:var(--ui-surface)!important;
+  color:var(--ui-text)!important;
+  font-size:var(--ui-type-control)!important;
+}
+.app-shell .workspace-main :is(
+  .site-form-grid,.site-form-field-grid,.settings-grid,.marketing-form-grid
+) textarea{
+  min-height:88px!important;
+  padding:var(--ui-space-3) var(--ui-control-inline)!important;
+  border:1px solid var(--ui-border-strong)!important;
+  border-radius:var(--ui-radius-md)!important;
+  background:var(--ui-surface)!important;
+  color:var(--ui-text)!important;
+  font-size:var(--ui-type-control)!important;
+  line-height:var(--ui-line-normal)!important;
+}
+.app-shell .workspace-main .site-form-field{
+  gap:var(--ui-space-3)!important;
+  padding:var(--ui-card-padding)!important;
+  border-bottom:1px solid var(--ui-border)!important;
+}
+.app-shell .workspace-main :is(.settings-company-grid,.settings-stack,.settings-integration-groups){
+  gap:var(--ui-card-gap)!important;
+}
+
+/* Mídia Kit: keep the editor/preview split, but make the preview a real sticky
+   companion to the long editor and keep actions grouped instead of scattered. */
+.app-shell .workspace-main .site-media-kit-editor{
+  margin:0!important;
+  gap:var(--ui-card-gap)!important;
+  grid-template-columns:minmax(0,1.25fr) minmax(420px,.9fr)!important;
+  align-items:start!important;
+}
+.app-shell .workspace-main .site-media-kit-actions{
+  width:100%!important;
+  min-width:0!important;
+  padding:0!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:flex-start!important;
+  gap:var(--ui-space-2)!important;
+  flex-wrap:wrap!important;
+}
+.app-shell .workspace-main .site-media-kit-live-sticky{
+  top:calc(var(--ui-header-height) + var(--ui-space-4))!important;
+  border-radius:var(--ui-radius-lg)!important;
+  box-shadow:none!important;
+}
+.app-shell .workspace-main .site-media-kit-live-head{
+  min-height:var(--ui-card-header-min-height)!important;
+  padding:var(--ui-card-header-block) var(--ui-card-header-inline)!important;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Calendars                                                                   */
+/* -------------------------------------------------------------------------- */
+.app-shell .workspace-main :is(.agenda-calendar-card,.marketing-month){
+  overflow:hidden!important;
+  border-radius:var(--ui-radius-lg)!important;
+  box-shadow:none!important;
+}
+.app-shell .workspace-main .marketing-calendar-toolbar{
+  min-height:52px!important;
+  margin:0!important;
+  padding:var(--ui-filter-padding)!important;
+  gap:var(--ui-filter-gap)!important;
+  border:1px solid var(--ui-border)!important;
+  border-radius:var(--ui-radius-lg)!important;
+  background:var(--ui-surface)!important;
+}
+.app-shell .workspace-main .marketing-calendar-toolbar :is(select,button,.marketing-search){
+  min-height:var(--ui-control-md)!important;
+  height:var(--ui-control-md)!important;
+  border-radius:var(--ui-radius-md)!important;
+  font-size:var(--ui-type-control)!important;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Pagination                                                                  */
+/* -------------------------------------------------------------------------- */
+.app-shell .workspace-main :is(
+  .tableview-pagination,.crm-pagination,.finance-pagination,
+  .contracts-pagination,.rh-pagination,.marketing-pagination
+){
+  box-sizing:border-box!important;
+  width:100%!important;
+  min-height:var(--ui-pagination-min-height)!important;
+  margin:0!important;
+  padding:var(--ui-pagination-block) var(--ui-pagination-inline)!important;
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) auto minmax(0,1fr)!important;
+  align-items:center!important;
+  gap:var(--ui-pagination-gap)!important;
+  border-top:1px solid var(--ui-border)!important;
+  background:var(--ui-surface-subtle)!important;
+  color:var(--ui-muted)!important;
+  font-size:var(--ui-type-label)!important;
+}
+.app-shell .workspace-main :is(
+  .tableview-pagination,.crm-pagination,.finance-pagination,
+  .contracts-pagination,.rh-pagination,.marketing-pagination
+)>:first-child{
+  justify-self:start!important;
+}
+.app-shell .workspace-main :is(
+  .tableview-pagination,.crm-pagination,.finance-pagination,
+  .contracts-pagination,.rh-pagination,.marketing-pagination
+)>:nth-child(2){
+  justify-self:center!important;
+}
+.app-shell .workspace-main :is(
+  .tableview-pagination,.crm-pagination,.finance-pagination,
+  .contracts-pagination,.rh-pagination,.marketing-pagination
+)>:last-child:not(:nth-child(2)){
+  justify-self:end!important;
+}
+.app-shell .workspace-main :is(
+  .tableview-pagination,.crm-pagination,.finance-pagination,
+  .contracts-pagination,.rh-pagination,.marketing-pagination
+) :is(button,select){
+  box-sizing:border-box!important;
+  min-height:var(--ui-pagination-control)!important;
+  height:var(--ui-pagination-control)!important;
+  border:1px solid var(--ui-border-strong)!important;
+  border-radius:var(--ui-radius-sm)!important;
+  background:var(--ui-surface)!important;
+  color:#475467!important;
+  font-size:var(--ui-type-label)!important;
+}
+.app-shell .workspace-main :is(
+  .tableview-pagination,.crm-pagination,.finance-pagination,
+  .contracts-pagination,.rh-pagination,.marketing-pagination
+) button{
+  padding:0 var(--ui-space-2)!important;
+}
+.app-shell .workspace-main :is(.tableview-pagination-summary,.tableview-pagination-center,.tableview-page-size){
+  display:flex!important;
+  align-items:center!important;
+  gap:var(--ui-space-2)!important;
+}
+.app-shell .workspace-main .tableview-pagination-center{
+  justify-content:center!important;
+}
+.app-shell .workspace-main .tableview-page-size{
+  justify-content:flex-end!important;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Action bars                                                                 */
+/* -------------------------------------------------------------------------- */
+.app-shell .workspace-main :is(
+  .settings-actions,.site-form-editor-actions,.site-media-kit-actions,
+  .marketing-modal-footer,.crm-modal-foot
+){
+  gap:var(--ui-space-2)!important;
+}
+
+@media(max-width:1180px){
+  .app-shell .workspace-main .site-media-kit-editor{
+    grid-template-columns:1fr!important;
+  }
+  .app-shell .workspace-main .site-media-kit-live-preview{
+    grid-column:1!important;
+    grid-row:auto!important;
+  }
+  .app-shell .workspace-main .site-media-kit-live-sticky{
+    position:relative!important;
+    top:auto!important;
+  }
+}
+
+@media(max-width:760px){
+  .app-shell .workspace-main :is(
+    .crm-page,.finance-page,.contracts-page,.agenda-page,.chat-page,
+    .chat-settings-page,.rh-page,.marketing-page,.reports-page,.settings-page,
+    .dashboard-reference-page,.metrics-page,.site-pages-page,.site-content-page,
+    .site-media-page,.site-forms-page
+  ){
+    gap:var(--ui-page-gap-mobile)!important;
+  }
+  .app-shell .workspace-main :is(
+    .crm-filters,.finance-filters,.contracts-filters,.rh-filters,
+    .marketing-filters,.agenda-toolbar
+  ){
+    align-items:stretch!important;
+    flex-wrap:wrap!important;
+  }
+  .app-shell .workspace-main :is(
+    .crm-search,.finance-search,.contracts-search,.rh-search,.marketing-search,
+    .agenda-search,.searchbox
+  ){
+    min-width:0!important;
+    flex:1 1 100%!important;
+  }
+  .app-shell .workspace-main :is(
+    .tableview-pagination,.crm-pagination,.finance-pagination,
+    .contracts-pagination,.rh-pagination,.marketing-pagination
+  ){
+    grid-template-columns:1fr!important;
+    justify-items:start!important;
+  }
+  .app-shell .workspace-main :is(
+    .tableview-pagination,.crm-pagination,.finance-pagination,
+    .contracts-pagination,.rh-pagination,.marketing-pagination
+  )>*{
+    justify-self:start!important;
+  }
+  .app-shell .workspace-main .tableview-pagination-center{
+    justify-content:flex-start!important;
+  }
+  .app-shell .workspace-main .tableview-page-size{
+    justify-content:flex-start!important;
+  }
+}

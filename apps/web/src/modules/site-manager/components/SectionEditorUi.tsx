@@ -5,7 +5,7 @@ import type {SectionHeroViewport} from '../sectionConfiguration'
 export type SectionEditorTabId='content'|'appearance'|'behavior'
 
 export function SectionEditorField({label,children,hint,className}:{label:string;children:ReactNode;hint?:string;className?:string}){
-  return <label className={`section-config-field${className?` ${className}`:''}`}><span>{label}</span>{children}{hint&&<small>{hint}</small>}</label>
+  return <label className={`section-config-field section-editor-field${className?` ${className}`:''}`}><span>{label}</span>{children}{hint&&<small>{hint}</small>}</label>
 }
 
 export function SectionEditorTabButton({active,label,onClick}:{active:boolean;label:string;onClick:()=>void}){

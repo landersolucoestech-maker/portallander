@@ -1,7 +1,7 @@
 /* Portal Lander — canonical administrative TableView contract.
    Every real HTML table inside the admin workspace inherits this geometry.
    Feature CSS may own semantic widths and domain colors only; row/header density,
-   cell padding, typography and column axes are finalized here. */
+   cell padding, typography and horizontal column axes are finalized here. */
 
 /* Surface */
 .app-shell .workspace-main :is(
@@ -84,12 +84,13 @@
 }
 .app-shell .workspace-main table.accounting-result-table:not(.tableview-freeform){table-layout:fixed!important}
 
-/* Geometry and the default auxiliary-column axis are universal. */
+/* Geometry and one universal left axis are shared by every column. */
 .app-shell .workspace-main table:not(.tableview-freeform) :is(th,td){
   box-sizing:border-box!important;
   padding-block:var(--ui-table-cell-block)!important;
   padding-inline:var(--ui-table-cell-inline)!important;
   vertical-align:middle!important;
+  text-align:left!important;
 }
 .app-shell .workspace-main table:not(.tableview-freeform) th{
   height:var(--ui-table-head-height)!important;
@@ -101,7 +102,7 @@
   font-weight:var(--ui-weight-semibold)!important;
   line-height:1!important;
   letter-spacing:0!important;
-  text-align:center!important;
+  text-align:left!important;
   text-transform:none!important;
   white-space:nowrap!important;
 }
@@ -113,26 +114,22 @@
   font-size:var(--ui-type-body)!important;
   font-weight:var(--ui-weight-regular);
   line-height:var(--ui-line-normal)!important;
-  text-align:center!important;
+  text-align:left!important;
 }
 .app-shell .workspace-main table:not(.tableview-freeform) tbody tr:last-child td{border-bottom:0!important}
 .app-shell .workspace-main table:not(.tableview-freeform) tbody tr:hover{background:#fffafa}
 
 /* Column-axis contract.
-   1) selector rail = centered;
-   2) primary identity = left;
-   3) auxiliary values = centered by default;
-   4) numeric = right;
-   5) actions = right.
-   Crucially, the first-column identity rule EXCLUDES checkbox cells. The old
-   positional rule made selector tables match two conflicting axes. */
+   Every visible TableView column starts on the same left axis, including selectors,
+   identity, auxiliary values, numeric values, status and actions. Semantic classes
+   may still own widths, tabular-number rendering and colors, never another axis. */
 .app-shell .workspace-main table:not(.tableview-freeform) :is(th,td):has(input[type='checkbox']),
 .app-shell .workspace-main table:not(.tableview-freeform) :is(.crm-checkbox-cell,.select,.contracts-checkbox-cell,.check){
   width:var(--ui-table-selector-width)!important;
   min-width:var(--ui-table-selector-width)!important;
   max-width:var(--ui-table-selector-width)!important;
   padding-inline:var(--ui-table-selector-inline)!important;
-  text-align:center!important;
+  text-align:left!important;
 }
 .app-shell .workspace-main table:not(.tableview-freeform) :is(th,td):first-child:not(:has(input[type='checkbox'])){
   text-align:left!important;
@@ -150,7 +147,7 @@
   box-sizing:border-box!important;
   width:15px!important;
   height:15px!important;
-  margin:0 auto!important;
+  margin:0!important;
   padding:0!important;
   display:block!important;
   accent-color:var(--ui-text-strong);
@@ -171,39 +168,39 @@
 }
 .app-shell .workspace-main table:not(.tableview-freeform) :is(.table-primary,.crm-link,.finance-link,.contracts-title-link){min-width:var(--ui-table-primary-min-width)}
 
-/* Numeric and explicit state axes. */
+/* Numeric and explicit state classes preserve semantics without changing the axis. */
 .app-shell .workspace-main table:not(.tableview-freeform) :is(
   .numeric,.tabular,.money,.currency,.amount,.percent,.percentage,
   .positive,.negative,.accounting-number-col
 ){
   font-variant-numeric:tabular-nums!important;
-  text-align:right!important;
+  text-align:left!important;
   white-space:nowrap!important;
 }
-.app-shell .workspace-main table:not(.tableview-freeform) :is(.status-col,.state-col,.center,.actions-center){text-align:center!important}
+.app-shell .workspace-main table:not(.tableview-freeform) :is(.status-col,.state-col,.center,.actions-center){text-align:left!important}
 
-/* Actions always occupy the same right gutter. */
+/* Actions keep the same narrow gutter but are left-anchored like every other column. */
 .app-shell .workspace-main table:not(.tableview-freeform) :is(
   th.actions-col,td.actions,td.actions-col,.actions,.crm-actions-column,.crm-actions-cell
 ){
   width:var(--ui-table-action-width)!important;
   min-width:var(--ui-table-action-width)!important;
   max-width:var(--ui-table-action-width)!important;
-  text-align:right!important;
+  text-align:left!important;
   white-space:nowrap!important;
 }
 .app-shell .workspace-main table:not(.tableview-freeform) :is(td.actions,td.actions-col,.actions,.crm-actions-cell)>*{
-  margin-left:auto!important;
-  margin-right:0!important;
+  margin-left:0!important;
+  margin-right:auto!important;
 }
 .app-shell .workspace-main table:not(.tableview-freeform) .table-row-actions{
-  justify-content:flex-end!important;
-  margin-left:auto!important;
-  margin-right:0!important;
+  justify-content:flex-start!important;
+  margin-left:0!important;
+  margin-right:auto!important;
 }
 .app-shell .workspace-main table:not(.tableview-freeform) .actions-center .table-row-actions{
-  justify-content:center!important;
-  margin-left:auto!important;
+  justify-content:flex-start!important;
+  margin-left:0!important;
   margin-right:auto!important;
 }
 .app-shell .workspace-main table:not(.tableview-freeform):has(.table-row-actions-trigger) th:last-child,
@@ -211,20 +208,20 @@
   width:var(--ui-table-action-width)!important;
   min-width:var(--ui-table-action-width)!important;
   max-width:var(--ui-table-action-width)!important;
-  text-align:right!important;
+  text-align:left!important;
   white-space:nowrap!important;
 }
 .app-shell .workspace-main table:not(.tableview-freeform) td:has(.table-row-actions-trigger)>*{
-  margin-left:auto!important;
-  margin-right:0!important;
+  margin-left:0!important;
+  margin-right:auto!important;
 }
 
-/* Sort controls use exactly the same axis as their data cells. */
+/* Sort controls use exactly the same left axis as their data cells. */
 .app-shell .workspace-main table:not(.tableview-freeform) .crm-sort-header{
   width:100%;
   display:flex;
   align-items:center;
-  justify-content:center!important;
+  justify-content:flex-start!important;
   gap:var(--ui-space-1);
   white-space:nowrap;
 }
@@ -235,10 +232,10 @@
 }
 .app-shell .workspace-main table:not(.tableview-freeform) th:is(
   .numeric,.tabular,.money,.currency,.amount,.percent,.percentage,.accounting-number-col
-){text-align:right!important}
+){text-align:left!important}
 .app-shell .workspace-main table:not(.tableview-freeform) th:is(
   .numeric,.tabular,.money,.currency,.amount,.percent,.percentage,.accounting-number-col
-) .crm-sort-header{justify-content:flex-end!important}
+) .crm-sort-header{justify-content:flex-start!important}
 .app-shell .workspace-main table:not(.tableview-freeform) .crm-sort-header>[role='group']{
   display:inline-flex;
   align-items:center;
@@ -289,12 +286,24 @@
   line-height:1!important;
 }
 
-/* Known high-specificity Finance legacy cannot override canonical semantic axes. */
+/* Known high-specificity Finance legacy cannot override the universal left axis. */
 .app-shell .workspace-main .finance-page .finance-table :is(
   .numeric,.tabular,.money,.currency,.amount,.percent,.percentage,.positive,.negative,.accounting-number-col
-){text-align:right!important;font-variant-numeric:tabular-nums!important}
-.app-shell .workspace-main .finance-page .finance-table :is(td.actions,td.actions-col,.actions,.crm-actions-cell){text-align:right!important}
-.app-shell .workspace-main .finance-page .finance-table :is(td.actions,td.actions-col,.actions,.crm-actions-cell)>*{margin-left:auto!important;margin-right:0!important;justify-content:flex-end!important}
+){text-align:left!important;font-variant-numeric:tabular-nums!important}
+.app-shell .workspace-main .finance-page .finance-table :is(td.actions,td.actions-col,.actions,.crm-actions-cell){text-align:left!important}
+.app-shell .workspace-main .finance-page .finance-table :is(td.actions,td.actions-col,.actions,.crm-actions-cell)>*{margin-left:0!important;margin-right:auto!important;justify-content:flex-start!important}
+
+/* Final alignment lock: no domain TableView can reintroduce centered or right-aligned
+   columns. Internal badge/icon content may center inside its own compact control, but
+   the table cell, header, sortable label and row-action rail always start at the left. */
+.app-shell .workspace-main table:not(.tableview-freeform) :is(th,td){text-align:left!important}
+.app-shell .workspace-main table:not(.tableview-freeform) :is(
+  .numeric,.tabular,.money,.currency,.amount,.percent,.percentage,
+  .positive,.negative,.accounting-number-col,.status-col,.state-col,.center,.actions-center,
+  th.actions-col,td.actions,td.actions-col,.actions,.crm-actions-column,.crm-actions-cell
+){text-align:left!important}
+.app-shell .workspace-main table:not(.tableview-freeform) .crm-sort-header{justify-content:flex-start!important}
+.app-shell .workspace-main table:not(.tableview-freeform) .table-row-actions{justify-content:flex-start!important;margin-left:0!important;margin-right:auto!important}
 
 @media(max-width:760px){
   .app-shell .workspace-main :is(

@@ -16,6 +16,7 @@ for(const token of [
   '--ui-table-primary-min-width:220px',
   '--ui-table-action-width:64px',
   '--ui-badge-min-height:22px',
+  '--ui-pagination-control:30px',
 ])if(!foundations.includes(token))failures.push(`Fundação TableView deve preservar ${token}.`)
 
 const table=await read('src/styles/admin-table-system.css')
@@ -36,6 +37,11 @@ for(const token of [
   'font-variant-numeric:tabular-nums!important',
   'text-align:right!important',
   'min-height:var(--ui-badge-min-height)!important',
+  ':has(.table-row-actions-trigger) th:last-child',
+  'td:has(.table-row-actions-trigger)',
+  '.tableview-page-size select',
+  'height:var(--ui-pagination-control)!important',
+  'min-height:var(--ui-pagination-control)!important',
   '.accounting-result-table',
   '.crm-table-card',
   '.finance-table-card',
@@ -51,6 +57,8 @@ if(!/\.app-shell \.workspace-main table:not\(\.tableview-freeform\)\s*\{/.test(t
 if(!/table:not\(\.tableview-freeform\) :is\(th,td\)\s*\{[^}]*padding-block:var\(--ui-table-cell-block\)!important;[^}]*padding-inline:var\(--ui-table-cell-inline\)!important;/s.test(table))failures.push('Todas as células administrativas devem consumir o mesmo padding canônico.')
 if(!/table:not\(\.tableview-freeform\) th\s*\{[^}]*height:var\(--ui-table-head-height\)!important;/s.test(table))failures.push('Todos os headers administrativos devem consumir a altura canônica.')
 if(!/table:not\(\.tableview-freeform\) td\s*\{[^}]*height:var\(--ui-table-row-height\)!important;/s.test(table))failures.push('Todas as rows administrativas devem consumir a altura canônica.')
+if(!/table:not\(\.tableview-freeform\):has\(\.table-row-actions-trigger\) th:last-child,[\s\S]*td:has\(\.table-row-actions-trigger\)\{[^}]*width:var\(--ui-table-action-width\)!important;[^}]*text-align:right!important;/s.test(table))failures.push('TableViews com menu canônico devem inferir o mesmo rail de ações mesmo quando markup legado esquece a classe actions.')
+if(!/\.tableview-page-size select\s*\{[^}]*height:var\(--ui-pagination-control\)!important;[^}]*min-height:var\(--ui-pagination-control\)!important;/s.test(table))failures.push('Seletor de page-size deve permanecer com a mesma altura dos botões de paginação na camada canônica tardia.')
 
 const entry=await read('src/styles/admin-entry.css')
 const designImport="@import './admin-design-system.css';"
@@ -98,4 +106,4 @@ if(failures.length){
   process.exit(1)
 }
 
-console.log('TableView contract OK — todo table administrativo usa header 40px, row 48px, padding horizontal 12px, tipografia 11/12/10, seletor 38px, ações 64px e eixos semânticos únicos, independentemente do módulo.')
+console.log('TableView contract OK — todo table administrativo usa header 40px, row 48px, padding horizontal 12px, tipografia 11/12/10, seletor 38px, ações 64px e paginação 30px com eixos semânticos únicos, independentemente do módulo.')

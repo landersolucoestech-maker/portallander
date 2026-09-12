@@ -78,8 +78,9 @@ test('dashboard reproduces the approved executive reference on desktop',async({p
   if(performanceBox&&leadsBox){expect(leadsBox.y).toBeGreaterThan(performanceBox.y+20)}
 
   const tabs=page.getByTestId('dashboard-channel-tabs').getByRole('tab')
-  await expect(tabs).toHaveCount(4)
-  for(const label of ['Website','Instagram','TikTok','YouTube'])await expect(page.getByTestId('dashboard-channel-tabs').getByRole('tab',{name:label,exact:true})).toBeVisible()
+  await expect(tabs).toHaveCount(5)
+  for(const label of ['Visão Geral','Instagram','YouTube','TikTok','Site'])await expect(page.getByTestId('dashboard-channel-tabs').getByRole('tab',{name:label,exact:true})).toBeVisible()
+  await expect(page.getByTestId('dashboard-channel-tabs').getByRole('tab',{name:'Visão Geral',exact:true})).toHaveAttribute('aria-selected','true')
   await expect(page.getByText('Resumo dos canais',{exact:true})).toBeVisible()
   await assertNoHorizontalOverflow(page)
 
@@ -93,12 +94,12 @@ test('performance channel tabs preserve the approved analytics shell',async({pag
  await openDashboard(page)
  const analytics=page.getByTestId('dashboard-analytics-region')
  const tabs=analytics.getByTestId('dashboard-channel-tabs')
- for(const label of ['Instagram','TikTok','YouTube']){
+ for(const label of ['Instagram','YouTube','TikTok','Site']){
   await tabs.getByRole('tab',{name:label,exact:true}).click()
-  const key=label==='Instagram'?'instagram':label==='TikTok'?'tiktok':'youtube'
+  const key=label==='Instagram'?'instagram':label==='YouTube'?'youtube':label==='TikTok'?'tiktok':'site'
   await expect(analytics.getByTestId(`dashboard-channel-detail-${key}`)).toBeVisible()
  }
- await tabs.getByRole('tab',{name:'Website',exact:true}).click()
+ await tabs.getByRole('tab',{name:'Visão Geral',exact:true}).click()
  await expect(analytics.getByTestId('dashboard-performance-summary')).toBeVisible()
 })
 

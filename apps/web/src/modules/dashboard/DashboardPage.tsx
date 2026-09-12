@@ -25,7 +25,7 @@ const monthKey=(now:Date)=>`${now.getUTCFullYear()}-${String(now.getUTCMonth()+1
 const formatDate=(raw:string|undefined|null)=>{if(!raw)return '—';const date=new Date(raw);return Number.isFinite(date.getTime())?date.toLocaleDateString('pt-BR'):'—'}
 const formatTime=(raw:string|undefined|null)=>{if(!raw)return '—';const date=new Date(raw);return Number.isFinite(date.getTime())?date.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}):'—'}
 const formatMonth=(raw:string)=>{const [year,month]=raw.split('-').map(Number);if(!year||!month)return raw;const label=new Date(Date.UTC(year,month-1,1)).toLocaleDateString('pt-BR',{month:'long',year:'numeric',timeZone:'UTC'});return label.charAt(0).toUpperCase()+label.slice(1)}
-const performanceTabLabels:Record<DashboardChannelPulse['key'],string>={site:'Website',instagram:'Instagram',tiktok:'TikTok',youtube:'YouTube'}
+const performanceTabLabels:Record<'overview'|DashboardChannelPulse['key'],string>={overview:'Visão Geral',site:'Site',instagram:'Instagram',tiktok:'TikTok',youtube:'YouTube'}
 const leadStageLabels:Record<string,string>={novo:'Novos',contato:'Contato',proposta:'Proposta',negociacao:'Negociação',fechado:'Fechados',perdido:'Perdidos'}
 const leadStageOrder=['novo','contato','proposta','negociacao','fechado','perdido']
 const developmentAnalytics=import.meta.env.DEV||import.meta.env.VITE_ENABLE_DEMO_DATA==='true'
@@ -97,7 +97,7 @@ export default function DashboardPage(){
  const analytics=useQuery({queryKey:['dashboard','analytics','30d'],queryFn:loadDashboardAnalytics,staleTime:30_000,refetchOnWindowFocus:false,retry:1})
  const activity=useActivityHistory(8)
  const data=authenticated?adminDashboard.data:dashboardReadModel.snapshot()
- const [performanceTab,setPerformanceTab]=useState<DashboardChannelPulse['key']>('site')
+ const [performanceTab,setPerformanceTab]=useState<'overview'|DashboardChannelPulse['key']>('overview')
 
  const channels=useMemo(()=>resolveMultichannelPulses(analytics.data?.overview??null,analytics.data?.metrics??[],developmentAnalytics),[analytics.data])
  const websiteSeries=useMemo(()=>resolveDashboardPageviews(analytics.data?.metrics??[]),[analytics.data?.metrics])
@@ -118,7 +118,7 @@ export default function DashboardPage(){
   const y=92-(point.value/maxChartValue)*72
   return `${x.toFixed(2)},${y.toFixed(2)}`
  }).join(' ')
- const activeChannel=channels.find(channel=>channel.key===performanceTab)??null
+ const activeChannel=performanceTab==='overview'?null:channels.find(channel=>channel.key===performanceTab)??null
  const maxChannelValue=Math.max(1,...channels.map(channel=>channel.value??0))
  const overview=analytics.data?.overview
  const reach=metricValue(overview?.ga4.overview.users)
@@ -167,9 +167,9 @@ export default function DashboardPage(){
     <section className="dashboard-reference-panel dashboard-performance-panel" data-testid="dashboard-analytics-region" aria-labelledby="dashboard-performance-title">
      <header className="dashboard-panel-heading"><div className="dashboard-title-with-icon"><span className="dashboard-section-icon"><BarChart3 size={20}/></span><div><h2 id="dashboard-performance-title">Performance / Analytics</h2><p>Website e canais sociais em uma única visão</p></div></div><Link to="/app/metrics">Ver métricas <ArrowRight size={14}/></Link></header>
      <div className="dashboard-channel-tabs dashboard-reference-tabs" data-testid="dashboard-channel-tabs" role="tablist" aria-label="Canais de performance">
-      {(['site','instagram','tiktok','youtube'] as const).map(tab=><button key={tab} type="button" role="tab" aria-selected={performanceTab===tab} onClick={()=>setPerformanceTab(tab)}>{performanceTabLabels[tab]}</button>)}
+      {(['overview','instagram','youtube','tiktok','site'] as const).map(tab=><button key={tab} type="button" role="tab" aria-selected={performanceTab===tab} onClick={()=>setPerformanceTab(tab)}>{performanceTabLabels[tab]}</button>)}
      </div>
-     {performanceTab==='site'?<>
+     {performanceTab==='overview'?<>
       <div className="dashboard-performance-kpis" data-testid="dashboard-performance-summary">
        <article><span className="dashboard-mini-icon"><Eye size={16}/></span><div><small>Alcance</small><strong>{formatMetric(reach)}</strong><em>{reach===null?'GA4 indisponível':'usuários únicos'}</em></div></article>
        <article><span className="dashboard-mini-icon"><Play size={16}/></span><div><small>Visualizações</small><strong>{formatMetric(views)}</strong><em>{views===null?'GA4 indisponível':'pageviews'}</em></div></article>

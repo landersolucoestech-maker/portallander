@@ -105,7 +105,7 @@
   font-weight:var(--ui-weight-semibold)!important;
   line-height:1!important;
   letter-spacing:0!important;
-  text-align:left!important;
+  text-align:center!important;
   text-transform:none!important;
   white-space:nowrap!important;
 }
@@ -117,10 +117,27 @@
   font-size:var(--ui-type-body)!important;
   font-weight:var(--ui-weight-regular);
   line-height:var(--ui-line-normal)!important;
-  text-align:left!important;
+  text-align:center!important;
 }
 .app-shell .workspace-main table:not(.tableview-freeform) tbody tr:last-child td{border-bottom:0!important}
 .app-shell .workspace-main table:not(.tableview-freeform) tbody tr:hover{background:#fffafa}
+
+/* Universal column axis: primary identity stays left, supporting fields center.
+   If a selector rail occupies column 1, column 2 becomes the primary identity.
+   This keeps every header anchored to the exact same axis as its row values. */
+.app-shell .workspace-main table:not(.tableview-freeform) :is(th,td):first-child{
+  text-align:left!important;
+}
+.app-shell .workspace-main table:not(.tableview-freeform):has(thead th:first-child input[type='checkbox']) :is(th,td):nth-child(2){
+  text-align:left!important;
+}
+.app-shell .workspace-main table:not(.tableview-freeform) :is(
+  th.table-primary,td.table-primary,
+  th.identity-col,td.identity-col,
+  th.primary-col,td.primary-col
+){
+  text-align:left!important;
+}
 
 /* Primary and secondary copy use one hierarchy everywhere. */
 .app-shell .workspace-main table:not(.tableview-freeform) td strong{
@@ -155,7 +172,7 @@
   accent-color:var(--ui-text-strong);
 }
 
-/* Semantic axes. Text/identity remains left by default. */
+/* Semantic axes. Numeric columns remain right aligned; status/state remain centered. */
 .app-shell .workspace-main table:not(.tableview-freeform) :is(
   .numeric,.tabular,.money,.currency,.amount,.percent,.percentage,
   .positive,.negative,.accounting-number-col
@@ -213,9 +230,14 @@
   width:100%;
   display:flex;
   align-items:center;
-  justify-content:flex-start;
+  justify-content:center!important;
   gap:var(--ui-space-1);
   white-space:nowrap;
+}
+.app-shell .workspace-main table:not(.tableview-freeform) th:first-child .crm-sort-header,
+.app-shell .workspace-main table:not(.tableview-freeform):has(thead th:first-child input[type='checkbox']) th:nth-child(2) .crm-sort-header,
+.app-shell .workspace-main table:not(.tableview-freeform) th:is(.table-primary,.identity-col,.primary-col) .crm-sort-header{
+  justify-content:flex-start!important;
 }
 .app-shell .workspace-main table:not(.tableview-freeform) th:is(
   .numeric,.tabular,.money,.currency,.amount,.percent,.percentage,.accounting-number-col

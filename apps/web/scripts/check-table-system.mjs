@@ -38,7 +38,9 @@ for(const token of [
   'text-align:center!important',
   'text-align:left!important',
   'text-align:right!important',
-  ':has(thead th:first-child input[type=\'checkbox\']) :is(th,td):nth-child(2)',
+  ":first-child:not(:has(input[type='checkbox']))",
+  ":has(thead th:first-child input[type='checkbox']) :is(th,td):nth-child(2)",
+  "th:first-child:not(:has(input[type='checkbox'])) .crm-sort-header",
   'justify-content:center!important',
   'justify-content:flex-start!important',
   'justify-content:flex-end!important',
@@ -56,16 +58,17 @@ for(const token of [
   '.marketing-table-card',
 ])if(!table.includes(token))failures.push(`Contrato TableView universal deve preservar: ${token}.`)
 
-/* The canonical layer must catch the HTML element itself, not an allow-list of
-   module class names. That is what prevents a new Site/Settings/etc table from
-   silently shipping with a different density. */
 if(!/\.app-shell \.workspace-main table:not\(\.tableview-freeform\)\s*\{/.test(table))failures.push('TableView canônico deve aplicar geometria diretamente a todo table do workspace administrativo.')
 if(!/table:not\(\.tableview-freeform\) :is\(th,td\)\s*\{[^}]*padding-block:var\(--ui-table-cell-block\)!important;[^}]*padding-inline:var\(--ui-table-cell-inline\)!important;/s.test(table))failures.push('Todas as células administrativas devem consumir o mesmo padding canônico.')
 if(!/table:not\(\.tableview-freeform\) th\s*\{[^}]*height:var\(--ui-table-head-height\)!important;[^}]*text-align:center!important;/s.test(table))failures.push('Headers administrativos devem usar altura canônica e eixo central por padrão.')
 if(!/table:not\(\.tableview-freeform\) td\s*\{[^}]*height:var\(--ui-table-row-height\)!important;[^}]*text-align:center!important;/s.test(table))failures.push('Rows administrativas devem usar altura canônica e eixo central por padrão.')
-if(!/table:not\(\.tableview-freeform\) :is\(th,td\):first-child\s*\{[^}]*text-align:left!important;/s.test(table))failures.push('A primeira coluna de identidade deve permanecer ancorada à esquerda.')
+if(!/table:not\(\.tableview-freeform\) :is\(th,td\):first-child:not\(:has\(input\[type='checkbox'\]\)\)\s*\{[^}]*text-align:left!important;/s.test(table))failures.push('A primeira coluna de identidade só pode ancorar à esquerda quando não for a coluna seletora.')
+if(/table:not\(\.tableview-freeform\) :is\(th,td\):first-child\s*\{[^}]*text-align:left!important;/s.test(table))failures.push('Regra posicional genérica da primeira coluna é proibida porque conflita com checkbox/selector.')
 if(!/table:not\(\.tableview-freeform\):has\(thead th:first-child input\[type='checkbox'\]\) :is\(th,td\):nth-child\(2\)\s*\{[^}]*text-align:left!important;/s.test(table))failures.push('TableViews com seletor devem ancorar a segunda coluna de identidade à esquerda.')
-if(!/table:not\(\.tableview-freeform\) \.crm-sort-header\s*\{[^}]*justify-content:center!important;/s.test(table))failures.push('Sort headers de colunas auxiliares devem compartilhar o mesmo eixo central dos valores.')
+if(!/:is\(th,td\):has\(input\[type='checkbox'\]\),[\s\S]*\.check\)\s*\{[^}]*width:var\(--ui-table-selector-width\)!important;[^}]*text-align:center!important;/s.test(table))failures.push('Coluna seletora deve ter largura canônica e permanecer centralizada sem disputar o eixo de identidade.')
+if(!/table:not\(\.tableview-freeform\) \.crm-sort-header\s*\{[^}]*justify-content:center!important;/s.test(table))failures.push('Sort headers auxiliares devem compartilhar o eixo central dos valores.')
+if(!/th:first-child:not\(:has\(input\[type='checkbox'\]\)\) \.crm-sort-header,[\s\S]*justify-content:flex-start!important;/s.test(table))failures.push('Sort header da identidade deve compartilhar o eixo esquerdo da coluna primária.')
+if(!/th:is\([\s\S]*\.accounting-number-col[\s\S]*\) \.crm-sort-header\{justify-content:flex-end!important\}/s.test(table))failures.push('Sort header numérico deve compartilhar o eixo direito dos valores.')
 if(!/table:not\(\.tableview-freeform\):has\(\.table-row-actions-trigger\) th:last-child,[\s\S]*td:has\(\.table-row-actions-trigger\)\{[^}]*width:var\(--ui-table-action-width\)!important;[^}]*text-align:right!important;/s.test(table))failures.push('TableViews com menu canônico devem inferir o mesmo rail de ações mesmo quando markup legado esquece a classe actions.')
 if(!/\.tableview-page-size select\s*\{[^}]*height:var\(--ui-pagination-control\)!important;[^}]*min-height:var\(--ui-pagination-control\)!important;/s.test(table))failures.push('Seletor de page-size deve permanecer com a mesma altura dos botões de paginação na camada canônica tardia.')
 
@@ -84,9 +87,6 @@ if(entry.includes("@import './admin-finance-accounting.css';"))failures.push('Co
 const accessibility=await read('src/styles/admin-accessibility.css')
 if(/\.table-card\s+(?:th|td)\s*\{[^}]*(?:padding|height|font-size|text-align|vertical-align)\s*:/s.test(accessibility))failures.push('A camada de acessibilidade não pode redefinir geometria de TableView após o contrato canônico.')
 
-/* Domain styles may still contain historical geometry while they are being
-   simplified, but the final cascade must make it impossible for that geometry
-   to win. These checks protect the known high-specificity Finance regression. */
 for(const token of [
   '.finance-page .finance-table :is(',
   '.numeric,.tabular,.money,.currency,.amount,.percent,.percentage,.positive,.negative,.accounting-number-col',
@@ -115,4 +115,4 @@ if(failures.length){
   process.exit(1)
 }
 
-console.log('TableView contract OK — todo table administrativo usa header 40px, row 48px, padding 12px, coluna primária à esquerda, colunas auxiliares centralizadas, números à direita, seletor 38px, ações 64px e paginação 30px.')
+console.log('TableView contract OK — selector central, identidade à esquerda, auxiliares centralizadas, números e ações à direita; header 40px, row 48px e padding 12px em todo admin.')

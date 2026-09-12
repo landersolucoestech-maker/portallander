@@ -67,7 +67,7 @@ test('Pages configure action resolves to the canonical section editor route',asy
   const configure=page.locator('.site-sections-actions .site-sections-configure').first()
   await expect(configure).toBeVisible()
   await configure.click()
-  await expect(page.locator('.section-editor-workbench')).toBeVisible({timeout:15000})
+  await expect(page.locator('.section-editor-workbench,.home-hero-section-workbench').first()).toBeVisible({timeout:15000})
   await expect(page.locator('.workspace-page-heading h1')).toContainText('Configurar seção:')
   await expect.poll(()=>page.url()).toMatch(/#\/app\/site\/pages\/[^/]+\/sections\/[^/]+$/)
 

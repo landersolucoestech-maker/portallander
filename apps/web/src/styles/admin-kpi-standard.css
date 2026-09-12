@@ -1,6 +1,30 @@
-/* Portal Lander — canonical KPI geometry and visual hierarchy.
-   Feature CSS owns semantic column count only; this layer owns KPI size and presentation. */
-.app-shell .workspace-main :is(
+/* Portal Lander — final KPI-only visual contract.
+   This stylesheet owns KPI surfaces and KPI internals only. It deliberately does
+   not style page shells, generic cards, tables, checkboxes, headers, tabs,
+   toolbars, filters, pagination or dashboard analytics panels. */
+
+/* KPI grids keep their domain-specific column counts, but share one spacing rhythm. */
+.app-shell .workspace .workspace-main :is(
+  .admin-kpi-grid,
+  .admin-dashboard-kpis,
+  .crm-kpis,
+  .contracts-kpis,
+  .finance-kpis,
+  .rh-kpis,
+  .marketing-kpis,
+  .marketing-metric-strip,
+  .dashboard-kpi-grid,
+  .dashboard-reference-kpis,
+  .metrics-kpi-grid,
+  .settings-user-kpis,
+  .settings-public-stats
+){
+  gap:var(--ui-kpi-gap)!important;
+  align-items:stretch!important;
+}
+
+/* Every KPI card consumes exactly the same surface, dimensions and padding. */
+.app-shell .workspace .workspace-main :is(
   .admin-kpi,
   .crm-kpi,
   .contracts-kpi,
@@ -13,127 +37,97 @@
   .settings-user-kpis>article,
   .settings-public-stats>div
 ){
+  position:relative!important;
   box-sizing:border-box!important;
   width:100%!important;
   min-width:0!important;
   height:var(--ui-kpi-height)!important;
   min-height:var(--ui-kpi-height)!important;
-  padding:var(--ui-kpi-padding)!important;
   margin:0!important;
+  padding:var(--ui-kpi-padding)!important;
+  overflow:hidden!important;
   align-self:stretch!important;
+  border:1px solid var(--ui-border)!important;
+  border-radius:var(--ui-radius-lg)!important;
+  background:var(--ui-surface)!important;
+  box-shadow:none!important;
+  color:var(--ui-text-strong)!important;
+  font-family:var(--ui-font)!important;
 }
 
-.app-shell .workspace-main :is(
-  .admin-kpi-grid,
-  .admin-dashboard-kpis,
-  .crm-kpis,
-  .contracts-kpis,
-  .finance-kpis,
-  .rh-kpis,
-  .marketing-kpis,
-  .marketing-metric-strip,
-  .dashboard-kpi-grid,
-  .dashboard-reference-kpis,
-  .settings-user-kpis,
-  .settings-public-stats
-){
-  gap:var(--ui-kpi-gap)!important;
-  align-items:stretch!important;
-}
-
-/* Shared KPI surface. Dashboard is intentionally part of the same contract;
-   its feature stylesheet may not invent a parallel card geometry. */
-.app-shell .workspace-main :is(
-  .admin-kpi,
+/* Direct KPI families always render copy on the left and the icon on the right. */
+.app-shell .workspace .workspace-main :is(
   .crm-kpi,
   .contracts-kpi,
   .finance-kpi,
   .rh-kpi,
   .marketing-kpi,
-  .dashboard-kpi-card,
-  .dashboard-stat-card
+  .dashboard-kpi-card
 ){
-  overflow:hidden!important;
-  border:1px solid var(--ui-border)!important;
-  border-radius:var(--ui-radius-md)!important;
-  background:var(--ui-surface)!important;
-  box-shadow:none!important;
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) var(--ui-kpi-icon)!important;
+  grid-template-rows:auto!important;
+  align-items:start!important;
+  justify-content:stretch!important;
+  gap:var(--ui-space-3)!important;
 }
 
-/* Canonical KPI labels. */
-.app-shell .admin-kpi-label,
-.app-shell .crm-kpi>div>span,
-.app-shell .contracts-kpi>div>span,
-.app-shell .finance-kpi>div>span,
-.app-shell .rh-kpi small,
-.app-shell .marketing-kpi span:not(.marketing-kpi-icon),
-.app-shell .dashboard-kpi-card [data-dashboard-kpi-label]{
-  display:block;
+.app-shell .workspace .workspace-main :is(
+  .crm-kpi,
+  .contracts-kpi,
+  .finance-kpi,
+  .rh-kpi,
+  .marketing-kpi
+)>div,
+.app-shell .workspace .workspace-main .dashboard-kpi-card .dashboard-kpi-copy{
+  grid-column:1!important;
+  grid-row:1!important;
+  min-width:0!important;
+  width:100%!important;
   margin:0!important;
-  color:var(--ui-muted)!important;
-  font-size:10px!important;
-  line-height:1.25!important;
-  font-weight:750!important;
-  letter-spacing:0!important;
-  text-transform:none!important;
 }
 
-/* Canonical KPI values. */
-.app-shell .admin-kpi>strong,
-.app-shell .crm-kpi>div>strong,
-.app-shell .contracts-kpi>div>strong,
-.app-shell .finance-kpi>div>strong,
-.app-shell .rh-kpi strong,
-.app-shell .marketing-kpi strong,
-.app-shell .dashboard-kpi-card .dashboard-kpi-value-line>strong{
-  display:block;
-  margin:6px 0 0!important;
-  color:var(--ui-text-strong)!important;
-  font-size:24px!important;
-  line-height:1.05!important;
-  font-weight:800!important;
-  letter-spacing:-.03em!important;
-  font-variant-numeric:tabular-nums;
-  white-space:nowrap;
-}
-
-/* Optional KPI detail/caption. */
-.app-shell .admin-kpi>small,
-.app-shell .finance-kpi>div>small,
-.app-shell .rh-kpi em,
-.app-shell .marketing-kpi small,
-.app-shell .dashboard-kpi-card .dashboard-kpi-copy>small{
-  display:block;
-  margin:2px 0 0!important;
-  color:var(--ui-muted-soft)!important;
-  font-size:10px!important;
-  line-height:1.35!important;
-  font-weight:500!important;
-  font-style:normal;
-}
-
-/* Canonical icon container for all direct KPI families. */
-.app-shell .admin-kpi-icon,
-.app-shell .crm-kpi>i,
-.app-shell .contracts-kpi>i,
-.app-shell .finance-kpi>i,
-.app-shell .rh-kpi>span:first-child,
-.app-shell .marketing-kpi-icon,
-.app-shell .dashboard-kpi-icon{
+/* Shared KPI icon treatment: compact brand-red accent on a pale red surface. */
+.app-shell .workspace .workspace-main :is(
+  .admin-kpi-icon,
+  .crm-kpi>i,
+  .contracts-kpi>i,
+  .finance-kpi>i,
+  .rh-kpi>span:first-child,
+  .marketing-kpi-icon,
+  .dashboard-kpi-icon
+){
   box-sizing:border-box!important;
   width:var(--ui-kpi-icon)!important;
   height:var(--ui-kpi-icon)!important;
   min-width:var(--ui-kpi-icon)!important;
-  flex:0 0 var(--ui-kpi-icon)!important;
+  min-height:var(--ui-kpi-icon)!important;
+  margin:0!important;
+  padding:0!important;
   display:grid!important;
   place-items:center!important;
-  border:0!important;
+  border:1px solid #ffe1e4!important;
   border-radius:var(--ui-radius-md)!important;
-  background:var(--ui-surface-subtle)!important;
-  color:var(--ui-muted)!important;
+  background:#fff4f5!important;
+  color:var(--ui-accent)!important;
+  box-shadow:none!important;
 }
 
-.app-shell :is(
+.app-shell .workspace .workspace-main :is(
+  .crm-kpi>i,
+  .contracts-kpi>i,
+  .finance-kpi>i,
+  .rh-kpi>span:first-child,
+  .marketing-kpi-icon,
+  .dashboard-kpi-icon
+){
+  grid-column:2!important;
+  grid-row:1!important;
+  align-self:start!important;
+  justify-self:end!important;
+}
+
+.app-shell .workspace .workspace-main :is(
   .admin-kpi-icon,
   .crm-kpi>i,
   .contracts-kpi>i,
@@ -142,36 +136,144 @@
   .marketing-kpi-icon,
   .dashboard-kpi-icon
 ) svg{
-  width:16px!important;
-  height:16px!important;
+  width:17px!important;
+  height:17px!important;
+  color:inherit!important;
+  stroke:currentColor!important;
 }
 
-/* AdminKpi uses its own top-row wrapper; geometry is shared above. */
-.app-shell .admin-kpi{gap:var(--ui-space-1)}
-.app-shell .admin-kpi-top{gap:var(--ui-space-2)}
-
-/* Direct KPI families share the same content/icon relationship. */
-.app-shell .workspace-main :is(.crm-kpi,.contracts-kpi,.finance-kpi,.marketing-kpi,.dashboard-kpi-card){
-  display:flex!important;
-  flex-direction:row!important;
-  align-items:flex-start!important;
-  justify-content:space-between!important;
-  gap:var(--ui-space-3)!important;
-}
-.app-shell .workspace-main :is(.crm-kpi,.contracts-kpi,.finance-kpi,.marketing-kpi)>div,
-.app-shell .workspace-main .dashboard-kpi-copy{
-  min-width:0!important;
-  flex:1 1 auto!important;
-}
-
-/* Dashboard markup places the icon before the copy. Reorder it visually so it
-   follows the same content-left / icon-right composition as the other modules. */
-.app-shell .workspace-main .dashboard-kpi-card .dashboard-kpi-icon{order:2!important}
-.app-shell .workspace-main .dashboard-kpi-card .dashboard-kpi-copy{order:1!important}
-.app-shell .workspace-main .dashboard-kpi-card .dashboard-kpi-value-line{
+/* Shared label hierarchy. */
+.app-shell .workspace .workspace-main :is(
+  .admin-kpi-label,
+  .crm-kpi>div>span,
+  .contracts-kpi>div>span,
+  .finance-kpi>div>span,
+  .rh-kpi>div>small,
+  .marketing-kpi>div>span,
+  .dashboard-kpi-card [data-dashboard-kpi-label],
+  .dashboard-stat-card>span,
+  .marketing-metric-strip>article>span,
+  .settings-user-kpis>article>span,
+  .settings-public-stats>div>span
+){
+  display:block!important;
   min-width:0!important;
   margin:0!important;
+  overflow:hidden!important;
+  color:var(--ui-muted)!important;
+  font-family:var(--ui-font)!important;
+  font-size:var(--ui-type-micro)!important;
+  font-weight:var(--ui-weight-bold)!important;
+  line-height:1.25!important;
+  letter-spacing:0!important;
+  text-transform:none!important;
+  text-overflow:ellipsis!important;
+  white-space:nowrap!important;
+}
+
+/* Shared value hierarchy. */
+.app-shell .workspace .workspace-main :is(
+  .admin-kpi>strong,
+  .crm-kpi>div>strong,
+  .contracts-kpi>div>strong,
+  .finance-kpi>div>strong,
+  .rh-kpi>div>strong,
+  .marketing-kpi>div>strong,
+  .dashboard-kpi-card .dashboard-kpi-value-line>strong,
+  .dashboard-stat-card>strong,
+  .marketing-metric-strip>article>strong,
+  .settings-user-kpis>article>strong,
+  .settings-public-stats>div>strong
+){
+  display:block!important;
+  min-width:0!important;
+  margin:6px 0 0!important;
+  overflow:hidden!important;
+  color:var(--ui-text-strong)!important;
+  font-family:var(--ui-font)!important;
+  font-size:var(--ui-type-kpi-value)!important;
+  font-weight:var(--ui-weight-heavy)!important;
+  line-height:1.05!important;
+  letter-spacing:-.03em!important;
+  font-variant-numeric:tabular-nums!important;
+  text-overflow:ellipsis!important;
+  white-space:nowrap!important;
+}
+
+/* Shared supporting copy. */
+.app-shell .workspace .workspace-main :is(
+  .admin-kpi>small,
+  .finance-kpi>div>small,
+  .rh-kpi>div>em,
+  .marketing-kpi>div>small,
+  .dashboard-kpi-card .dashboard-kpi-copy>small,
+  .dashboard-stat-card>small,
+  .marketing-metric-strip>article>small,
+  .settings-user-kpis>article>small,
+  .settings-public-stats>div>small
+){
+  display:block!important;
+  min-width:0!important;
+  margin:4px 0 0!important;
+  overflow:hidden!important;
+  color:var(--ui-muted-soft)!important;
+  font-family:var(--ui-font)!important;
+  font-size:var(--ui-type-micro)!important;
+  font-weight:var(--ui-weight-medium)!important;
+  font-style:normal!important;
+  line-height:1.3!important;
+  letter-spacing:0!important;
+  text-overflow:ellipsis!important;
+  white-space:nowrap!important;
+}
+
+/* Shared AdminKpi markup used by Metrics and other generic KPI consumers. */
+.app-shell .workspace .workspace-main .admin-kpi{
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:flex-start!important;
+  justify-content:flex-start!important;
+  gap:0!important;
+}
+.app-shell .workspace .workspace-main .admin-kpi-top{
+  box-sizing:border-box!important;
+  width:100%!important;
+  min-width:0!important;
+  min-height:0!important;
+  height:auto!important;
+  margin:0!important;
+  padding:0 calc(var(--ui-kpi-icon) + var(--ui-space-3)) 0 0!important;
+  display:block!important;
+}
+.app-shell .workspace .workspace-main .admin-kpi .admin-kpi-icon{
+  position:absolute!important;
+  top:var(--ui-kpi-padding)!important;
+  right:var(--ui-kpi-padding)!important;
+  left:auto!important;
+}
+
+/* Marketing markup is value-first in JSX; render the same label/value/detail order as every KPI. */
+.app-shell .workspace .workspace-main .marketing-kpi>div{
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:flex-start!important;
+  justify-content:flex-start!important;
+}
+.app-shell .workspace .workspace-main .marketing-kpi>div>span{order:0!important}
+.app-shell .workspace .workspace-main .marketing-kpi>div>strong{order:1!important}
+.app-shell .workspace .workspace-main .marketing-kpi>div>small{order:2!important}
+
+/* Dashboard KPI internals only; Performance / Analytics and every other dashboard card are untouched. */
+.app-shell .workspace .workspace-main .dashboard-kpi-card .dashboard-kpi-copy{
+  display:block!important;
+}
+.app-shell .workspace .workspace-main .dashboard-kpi-card .dashboard-kpi-value-line{
+  min-width:0!important;
+  margin:6px 0 0!important;
   display:flex!important;
   align-items:center!important;
   gap:var(--ui-space-2)!important;
+}
+.app-shell .workspace .workspace-main .dashboard-kpi-card .dashboard-kpi-value-line>strong{
+  margin:0!important;
 }

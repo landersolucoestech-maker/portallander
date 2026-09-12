@@ -16,10 +16,10 @@ const assertCascadeTail=(source,expected,message)=>{
 }
 
 const adminEntry=await read('src/styles/admin-entry.css')
-assertCascadeTail(adminEntry,["@import './admin-design-system.css';","@import './admin-layout-system.css';","@import './admin-table-system.css';","@import './admin-accessibility.css';"],'Cascade administrativa deve terminar em admin-design-system.css → admin-layout-system.css → admin-table-system.css → admin-accessibility.css; nenhuma folha de módulo pode sobrescrever o contrato canônico.')
+assertCascadeTail(adminEntry,["@import './admin-design-system.css';","@import './admin-layout-system.css';","@import './admin-component-system.css';","@import './admin-table-system.css';","@import './admin-accessibility.css';"],'Cascade administrativa deve terminar em admin-design-system.css → admin-layout-system.css → admin-component-system.css → admin-table-system.css → admin-accessibility.css; nenhuma folha de módulo pode sobrescrever o contrato canônico.')
 if(!adminEntry.includes("@import './admin-access-system.css';"))failures.push('Páginas de acesso devem carregar o baseline tipográfico/interacional interno.')
 for(const forbidden of ['admin-table-alignment.css','admin-settings-pruning.css','admin-finance-accounting.css'])if(adminEntry.includes(forbidden))failures.push(`Cascade administrativa não pode depender da camada paralela: ${forbidden}`)
-for(const path of ['src/styles/admin-foundations.css','src/styles/admin-design-system.css','src/styles/admin-layout-system.css','src/styles/admin-table-system.css','src/styles/admin-access-system.css','src/styles/admin-accessibility.css'])if(!(await exists(path)))failures.push(`Design system interno exige ${path}.`)
+for(const path of ['src/styles/admin-foundations.css','src/styles/admin-design-system.css','src/styles/admin-layout-system.css','src/styles/admin-component-system.css','src/styles/admin-table-system.css','src/styles/admin-access-system.css','src/styles/admin-accessibility.css'])if(!(await exists(path)))failures.push(`Design system interno exige ${path}.`)
 
 const publicStyles=await read('src/styles/public-styles.css')
 assertCascadeTail(publicStyles,["@import './public-layout-system.css';","@import './public-corrections.css';"],'Cascade pública deve terminar em public-layout-system.css → public-corrections.css; nenhuma folha arbitrária pode vir depois da camada final de correções/a11y.')
@@ -49,6 +49,25 @@ for(const required of [
  'font-size:var(--ui-type-control)!important','font-size:var(--ui-type-micro)!important','padding:var(--ui-filter-padding)!important',
 ])if(!adminDesign.includes(required))failures.push(`Design system administrativo deve preservar: ${required}`)
 if(/font-size:\s*[0-9](?:\.\d+)?px/.test(adminDesign))failures.push('admin-design-system.css não pode voltar a declarar escala tipográfica numérica local; use tokens --ui-type-* (exceto controles gráficos sem texto).')
+
+const adminComponents=await read('src/styles/admin-component-system.css')
+for(const required of [
+ 'canonical administrative component system',
+ '--ui-dialog-backdrop:',
+ '--ui-dialog-max-height:',
+ 'Shared surfaces',
+ 'Buttons and action groups',
+ 'Forms and fields',
+ 'Modal system',
+ 'Menus, popovers and dropdown surfaces',
+ "[role='presentation']:has(>[role='dialog'])",
+ "[role='dialog'].section-editor-card",
+ '.section-editor-workbench',
+ '.site-pages-management',
+ 'height:var(--ui-control-md)!important',
+ 'padding:var(--ui-card-padding)!important',
+ 'border-radius:var(--ui-radius-lg)!important',
+])if(!adminComponents.includes(required))failures.push(`Sistema canônico de componentes deve preservar: ${required}`)
 
 const adminTable=await read('src/styles/admin-table-system.css')
 for(const required of ['height:var(--ui-table-head-height)!important','height:var(--ui-table-row-height)!important','padding-inline:var(--ui-table-cell-inline)!important','font-size:var(--ui-type-label)!important','font-size:var(--ui-type-body)!important','font-size:var(--ui-type-micro)!important','accounting-number-col'])if(!adminTable.includes(required))failures.push(`TableView canônica deve preservar: ${required}`)
@@ -86,6 +105,9 @@ for(const [name,source] of [['Relatórios',reports],['Marketing',marketingUi]])f
 if(!marketingUi.includes('TableRowActionMenu'))failures.push('Marketing deve reutilizar o menu de ações compartilhado.')
 if(marketingUi.includes('label="registro"')||!marketingUi.includes('label={label}'))failures.push('Marketing deve encaminhar o rótulo semântico de cada registro ao menu de ações compartilhado.')
 
+const siteRoutes=await read('src/modules/site-manager/SiteManagerRoutes.tsx')
+for(const required of ['LegacyPageSectionRedirect','path="paginas/:pageId/secoes/:sectionId"','/app/site/pages/${encodeURIComponent(pageId)}/sections/${encodeURIComponent(sectionId)}'])if(!siteRoutes.includes(required))failures.push(`Navegação de Páginas deve preservar compatibilidade e resolver para a rota canônica: ${required}`)
+
 const visualAudit=await read('e2e/visual.audit.ts')
 for(const required of ['/app/login','/app/profile','/app/chat/settings','/app/finance/rules','/app/finance/categories','/app/site/midia-kit','desktop-large','tablet','mobile','modal viewport integrity'])if(!visualAudit.includes(required))failures.push(`Auditoria visual deve cobrir: ${required}`)
 
@@ -109,4 +131,4 @@ for(const path of sourceFiles){
 
 if(warnings.length){console.log('UI audit warnings:');warnings.forEach(item=>console.log(`- ${item}`))}
 if(failures.length){console.error('UI system invariants failed:');failures.forEach(item=>console.error(`- ${item}`));process.exit(1)}
-console.log(`UI system invariants OK (${sourceFiles.length} arquivos inspecionados, ${warnings.length} avisos legados não bloqueantes; tipografia/controles/cards/KPIs/TableViews/tabs/filtros/paginação/modais centralizados).`)
+console.log(`UI system invariants OK (${sourceFiles.length} arquivos inspecionados, ${warnings.length} avisos legados não bloqueantes; tipografia/controles/cards/KPIs/TableViews/tabs/filtros/paginação/modais/componentes centralizados).`)

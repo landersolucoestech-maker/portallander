@@ -35,7 +35,13 @@ for(const token of [
   'min-width:var(--ui-table-primary-min-width)',
   'width:var(--ui-table-action-width)!important',
   'font-variant-numeric:tabular-nums!important',
+  'text-align:center!important',
+  'text-align:left!important',
   'text-align:right!important',
+  ':has(thead th:first-child input[type=\'checkbox\']) :is(th,td):nth-child(2)',
+  'justify-content:center!important',
+  'justify-content:flex-start!important',
+  'justify-content:flex-end!important',
   'min-height:var(--ui-badge-min-height)!important',
   ':has(.table-row-actions-trigger) th:last-child',
   'td:has(.table-row-actions-trigger)',
@@ -55,8 +61,11 @@ for(const token of [
    silently shipping with a different density. */
 if(!/\.app-shell \.workspace-main table:not\(\.tableview-freeform\)\s*\{/.test(table))failures.push('TableView canônico deve aplicar geometria diretamente a todo table do workspace administrativo.')
 if(!/table:not\(\.tableview-freeform\) :is\(th,td\)\s*\{[^}]*padding-block:var\(--ui-table-cell-block\)!important;[^}]*padding-inline:var\(--ui-table-cell-inline\)!important;/s.test(table))failures.push('Todas as células administrativas devem consumir o mesmo padding canônico.')
-if(!/table:not\(\.tableview-freeform\) th\s*\{[^}]*height:var\(--ui-table-head-height\)!important;/s.test(table))failures.push('Todos os headers administrativos devem consumir a altura canônica.')
-if(!/table:not\(\.tableview-freeform\) td\s*\{[^}]*height:var\(--ui-table-row-height\)!important;/s.test(table))failures.push('Todas as rows administrativas devem consumir a altura canônica.')
+if(!/table:not\(\.tableview-freeform\) th\s*\{[^}]*height:var\(--ui-table-head-height\)!important;[^}]*text-align:center!important;/s.test(table))failures.push('Headers administrativos devem usar altura canônica e eixo central por padrão.')
+if(!/table:not\(\.tableview-freeform\) td\s*\{[^}]*height:var\(--ui-table-row-height\)!important;[^}]*text-align:center!important;/s.test(table))failures.push('Rows administrativas devem usar altura canônica e eixo central por padrão.')
+if(!/table:not\(\.tableview-freeform\) :is\(th,td\):first-child\s*\{[^}]*text-align:left!important;/s.test(table))failures.push('A primeira coluna de identidade deve permanecer ancorada à esquerda.')
+if(!/table:not\(\.tableview-freeform\):has\(thead th:first-child input\[type='checkbox'\]\) :is\(th,td\):nth-child\(2\)\s*\{[^}]*text-align:left!important;/s.test(table))failures.push('TableViews com seletor devem ancorar a segunda coluna de identidade à esquerda.')
+if(!/table:not\(\.tableview-freeform\) \.crm-sort-header\s*\{[^}]*justify-content:center!important;/s.test(table))failures.push('Sort headers de colunas auxiliares devem compartilhar o mesmo eixo central dos valores.')
 if(!/table:not\(\.tableview-freeform\):has\(\.table-row-actions-trigger\) th:last-child,[\s\S]*td:has\(\.table-row-actions-trigger\)\{[^}]*width:var\(--ui-table-action-width\)!important;[^}]*text-align:right!important;/s.test(table))failures.push('TableViews com menu canônico devem inferir o mesmo rail de ações mesmo quando markup legado esquece a classe actions.')
 if(!/\.tableview-page-size select\s*\{[^}]*height:var\(--ui-pagination-control\)!important;[^}]*min-height:var\(--ui-pagination-control\)!important;/s.test(table))failures.push('Seletor de page-size deve permanecer com a mesma altura dos botões de paginação na camada canônica tardia.')
 
@@ -106,4 +115,4 @@ if(failures.length){
   process.exit(1)
 }
 
-console.log('TableView contract OK — todo table administrativo usa header 40px, row 48px, padding horizontal 12px, tipografia 11/12/10, seletor 38px, ações 64px e paginação 30px com eixos semânticos únicos, independentemente do módulo.')
+console.log('TableView contract OK — todo table administrativo usa header 40px, row 48px, padding 12px, coluna primária à esquerda, colunas auxiliares centralizadas, números à direita, seletor 38px, ações 64px e paginação 30px.')

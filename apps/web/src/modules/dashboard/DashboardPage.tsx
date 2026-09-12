@@ -165,7 +165,7 @@ export default function DashboardPage(){
 
    <section className="dashboard-primary-row" aria-label="Performance e atividades recentes">
     <section className="dashboard-reference-panel dashboard-performance-panel" data-testid="dashboard-analytics-region" aria-labelledby="dashboard-performance-title">
-     <header className="dashboard-panel-heading"><div className="dashboard-title-with-icon"><span className="dashboard-section-icon"><BarChart3 size={20}/></span><div><h2 id="dashboard-performance-title">Performance / Analytics</h2><p>Website e canais sociais em uma única visão</p></div></div><Link to="/app/metricas">Ver métricas <ArrowRight size={14}/></Link></header>
+     <header className="dashboard-panel-heading"><div className="dashboard-title-with-icon"><span className="dashboard-section-icon"><BarChart3 size={20}/></span><div><h2 id="dashboard-performance-title">Performance / Analytics</h2><p>Website e canais sociais em uma única visão</p></div></div><Link to="/app/metrics">Ver métricas <ArrowRight size={14}/></Link></header>
      <div className="dashboard-channel-tabs dashboard-reference-tabs" data-testid="dashboard-channel-tabs" role="tablist" aria-label="Canais de performance">
       {(['site','instagram','tiktok','youtube'] as const).map(tab=><button key={tab} type="button" role="tab" aria-selected={performanceTab===tab} onClick={()=>setPerformanceTab(tab)}>{performanceTabLabels[tab]}</button>)}
      </div>
@@ -187,7 +187,7 @@ export default function DashboardPage(){
     </section>
 
     <aside className="dashboard-reference-panel dashboard-recent-panel" data-testid="dashboard-recent-activity" aria-labelledby="dashboard-recent-title">
-     <header className="dashboard-panel-heading"><div className="dashboard-title-with-icon"><span className="dashboard-section-icon"><TrendingUp size={20}/></span><div><h2 id="dashboard-recent-title">Atividades Recentes</h2><p>Últimas ações realizadas no portal</p></div></div><Link to="/app/site/conteudos">Ver todas <ArrowRight size={14}/></Link></header>
+     <header className="dashboard-panel-heading"><div className="dashboard-title-with-icon"><span className="dashboard-section-icon"><TrendingUp size={20}/></span><div><h2 id="dashboard-recent-title">Atividades Recentes</h2><p>Últimas ações realizadas no portal</p></div></div><Link to="/app/site/content">Ver todas <ArrowRight size={14}/></Link></header>
      <div className="dashboard-recent-list">{activity.isLoading?<div className="dashboard-empty-inline">Carregando movimentações…</div>:recentActivity.length?recentActivity.map(item=><article key={item.id}><span className="dashboard-row-icon"><FileText size={15}/></span><div><strong>{item.title}</strong><p>{item.action==='published'?'Conteúdo publicado':'Conteúdo atualizado'} · {item.category}</p></div><time dateTime={item.occurred_at}>{formatDate(item.occurred_at)} <small>{formatTime(item.occurred_at)}</small></time></article>):<div className="dashboard-empty-inline"><strong>Nenhuma atividade recente</strong><p>Não há eventos editoriais legítimos para exibir nesta carga.</p></div>}</div>
     </aside>
    </section>
@@ -199,7 +199,7 @@ export default function DashboardPage(){
     </section>
 
     <section className="dashboard-reference-panel dashboard-featured-panel" data-testid="dashboard-featured-content" aria-labelledby="dashboard-content-title">
-     <header className="dashboard-panel-heading"><div className="dashboard-title-with-icon"><span className="dashboard-section-icon"><FileText size={20}/></span><div><h2 id="dashboard-content-title">Conteúdos em Destaque</h2><p>Publicações recentes do site</p></div></div><Link to="/app/site/conteudos">Ver conteúdos <ArrowRight size={14}/></Link></header>
+     <header className="dashboard-panel-heading"><div className="dashboard-title-with-icon"><span className="dashboard-section-icon"><FileText size={20}/></span><div><h2 id="dashboard-content-title">Conteúdos em Destaque</h2><p>Publicações recentes do site</p></div></div><Link to="/app/site/content">Ver conteúdos <ArrowRight size={14}/></Link></header>
      <div className="dashboard-featured-list">{data.availability.editorial&&data.featuredContents.length?data.featuredContents.map(item=><article key={item.id}><div className="dashboard-featured-thumb">{item.coverImage?<img src={item.coverImage} alt=""/>:<FileText size={20}/>}</div><div><strong>{item.title}</strong><time dateTime={item.publishedAt??item.updatedAt}>{formatDate(item.publishedAt??item.updatedAt)}</time></div><span className="dashboard-channel-pill">Site</span><MoreHorizontal size={16}/></article>):<div className="dashboard-empty-inline"><strong>Nenhum conteúdo publicado</strong><p>O painel permanece vazio sem inventar destaques.</p></div>}</div>
     </section>
 

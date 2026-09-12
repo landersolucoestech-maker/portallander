@@ -16,10 +16,10 @@ const assertCascadeTail=(source,expected,message)=>{
 }
 
 const adminEntry=await read('src/styles/admin-entry.css')
-assertCascadeTail(adminEntry,["@import './admin-design-system.css';","@import './admin-table-system.css';","@import './admin-accessibility.css';"],'Cascade administrativa deve terminar em admin-design-system.css → admin-table-system.css → admin-accessibility.css; nenhuma folha de módulo pode sobrescrever o contrato canônico.')
+assertCascadeTail(adminEntry,["@import './admin-design-system.css';","@import './admin-layout-system.css';","@import './admin-table-system.css';","@import './admin-accessibility.css';"],'Cascade administrativa deve terminar em admin-design-system.css → admin-layout-system.css → admin-table-system.css → admin-accessibility.css; nenhuma folha de módulo pode sobrescrever o contrato canônico.')
 if(!adminEntry.includes("@import './admin-access-system.css';"))failures.push('Páginas de acesso devem carregar o baseline tipográfico/interacional interno.')
 for(const forbidden of ['admin-table-alignment.css','admin-settings-pruning.css','admin-finance-accounting.css'])if(adminEntry.includes(forbidden))failures.push(`Cascade administrativa não pode depender da camada paralela: ${forbidden}`)
-for(const path of ['src/styles/admin-foundations.css','src/styles/admin-design-system.css','src/styles/admin-table-system.css','src/styles/admin-access-system.css','src/styles/admin-accessibility.css'])if(!(await exists(path)))failures.push(`Design system interno exige ${path}.`)
+for(const path of ['src/styles/admin-foundations.css','src/styles/admin-design-system.css','src/styles/admin-layout-system.css','src/styles/admin-table-system.css','src/styles/admin-access-system.css','src/styles/admin-accessibility.css'])if(!(await exists(path)))failures.push(`Design system interno exige ${path}.`)
 
 const publicStyles=await read('src/styles/public-styles.css')
 assertCascadeTail(publicStyles,["@import './public-layout-system.css';","@import './public-corrections.css';"],'Cascade pública deve terminar em public-layout-system.css → public-corrections.css; nenhuma folha arbitrária pode vir depois da camada final de correções/a11y.')

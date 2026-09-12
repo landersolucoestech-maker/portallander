@@ -19,59 +19,62 @@ for(const token of [
 ])if(!foundations.includes(token))failures.push(`Fundação TableView deve preservar ${token}.`)
 
 const table=await read('src/styles/admin-table-system.css')
-for(const selector of [
-  '.table-card',
-  '.crm-table',
-  '.finance-table',
-  '.contracts-table',
-  '.rh-table',
-  '.marketing-table',
-  '.settings-table-wrap table',
+for(const token of [
+  'table:not(.tableview-freeform)',
+  'min-width:var(--ui-table-min-width)',
+  'height:var(--ui-table-head-height)!important',
+  'height:var(--ui-table-row-height)!important',
+  'padding-block:var(--ui-table-cell-block)!important',
+  'padding-inline:var(--ui-table-cell-inline)!important',
+  'vertical-align:middle!important',
+  'font-size:var(--ui-type-label)!important',
+  'font-size:var(--ui-type-body)!important',
+  'font-size:var(--ui-type-micro)!important',
+  'width:var(--ui-table-selector-width)!important',
+  'min-width:var(--ui-table-primary-min-width)',
+  'width:var(--ui-table-action-width)!important',
+  'font-variant-numeric:tabular-nums!important',
+  'text-align:right!important',
+  'min-height:var(--ui-badge-min-height)!important',
+  '.accounting-result-table',
   '.crm-table-card',
   '.finance-table-card',
   '.contracts-table-card',
   '.rh-table-card',
   '.marketing-table-card',
-  '.contracts-checkbox-cell',
-  '.numeric',
-  '.tabular',
-  '.actions-col',
-  '.accounting-result-table',
-  '.accounting-number-col',
-  '.crm-badge',
-  '.contracts-status',
-  '.finance-status',
-  '.rh-status',
-  '.marketing-status',
-])if(!table.includes(selector))failures.push(`Contrato TableView não cobre ${selector}.`)
+])if(!table.includes(token))failures.push(`Contrato TableView universal deve preservar: ${token}.`)
 
-for(const rule of [
-  'height:var(--ui-table-head-height)!important',
-  'height:var(--ui-table-row-height)!important',
-  'padding-block:var(--ui-table-cell-block)!important',
-  'padding-inline:var(--ui-table-cell-inline)!important',
-  'font-size:var(--ui-type-label)!important',
-  'font-size:var(--ui-type-body)!important',
-  'font-size:var(--ui-type-micro)!important',
-  'width:var(--ui-table-selector-width)!important',
-  'font-variant-numeric:tabular-nums',
-  'text-align:right!important',
-  'min-height:var(--ui-badge-min-height)!important',
-])if(!table.includes(rule))failures.push(`Regra TableView canônica ausente: ${rule}.`)
+/* The canonical layer must catch the HTML element itself, not an allow-list of
+   module class names. That is what prevents a new Site/Settings/etc table from
+   silently shipping with a different density. */
+if(!/\.app-shell \.workspace-main table:not\(\.tableview-freeform\)\s*\{/.test(table))failures.push('TableView canônico deve aplicar geometria diretamente a todo table do workspace administrativo.')
+if(!/table:not\(\.tableview-freeform\) :is\(th,td\)\s*\{[^}]*padding-block:var\(--ui-table-cell-block\)!important;[^}]*padding-inline:var\(--ui-table-cell-inline\)!important;/s.test(table))failures.push('Todas as células administrativas devem consumir o mesmo padding canônico.')
+if(!/table:not\(\.tableview-freeform\) th\s*\{[^}]*height:var\(--ui-table-head-height\)!important;/s.test(table))failures.push('Todos os headers administrativos devem consumir a altura canônica.')
+if(!/table:not\(\.tableview-freeform\) td\s*\{[^}]*height:var\(--ui-table-row-height\)!important;/s.test(table))failures.push('Todas as rows administrativas devem consumir a altura canônica.')
 
 const entry=await read('src/styles/admin-entry.css')
-const designIndex=entry.indexOf("@import './admin-design-system.css';")
-const tableIndex=entry.indexOf("@import './admin-table-system.css';")
-const accessibilityIndex=entry.indexOf("@import './admin-accessibility.css';")
+const designImport="@import './admin-design-system.css';"
+const tableImport="@import './admin-table-system.css';"
+const accessibilityImport="@import './admin-accessibility.css';"
+const designIndex=entry.indexOf(designImport)
+const tableIndex=entry.indexOf(tableImport)
+const accessibilityIndex=entry.indexOf(accessibilityImport)
 if(!(designIndex>=0&&tableIndex>designIndex&&accessibilityIndex>tableIndex))failures.push('admin-table-system.css deve permanecer na cauda canônica, depois do design system e antes de accessibility.')
-if(entry.includes("@import './admin-finance-accounting.css';"))failures.push('Contabilidade não pode manter uma camada de densidade paralela após o TableView canônico.')
+const afterTable=entry.slice(tableIndex+tableImport.length).trim().split(/\r?\n/).filter(Boolean)
+if(afterTable.some(line=>line!==accessibilityImport))failures.push('Nenhuma folha visual de domínio pode ser importada depois do TableView canônico; apenas accessibility pode vir depois.')
+if(entry.includes("@import './admin-finance-accounting.css';"))failures.push('Contabilidade não pode manter camada paralela de densidade após o TableView canônico.')
 
-const financeMain=await read('src/modules/finance/FinanceMainPage.tsx')
-const financeInvoices=await read('src/modules/finance/FinanceInvoicesPage.tsx')
-for(const [path,source] of [['FinanceMainPage.tsx',financeMain],['FinanceInvoicesPage.tsx',financeInvoices]]){
-  if(!source.includes('checkboxCellStyle={width:44'))continue
-  if(!table.includes("input[type='checkbox']"))failures.push(`${path}: checkbox inline legado exige override canônico no table system.`)
-}
+const accessibility=await read('src/styles/admin-accessibility.css')
+if(/\.table-card\s+(?:th|td)\s*\{[^}]*(?:padding|height|font-size|text-align|vertical-align)\s*:/s.test(accessibility))failures.push('A camada de acessibilidade não pode redefinir geometria de TableView após o contrato canônico.')
+
+/* Domain styles may still contain historical geometry while they are being
+   simplified, but the final cascade must make it impossible for that geometry
+   to win. These checks protect the known high-specificity Finance regression. */
+for(const token of [
+  '.finance-page .finance-table :is(',
+  '.numeric,.tabular,.money,.currency,.amount,.percent,.percentage,.positive,.negative,.accounting-number-col',
+  'td.actions,td.actions-col,.actions,.crm-actions-cell',
+])if(!table.includes(token))failures.push(`Financeiro precisa preservar override semântico tardio contra legado específico: ${token}.`)
 
 const financeAccounting=await read('src/modules/finance/FinanceAccountingPage.tsx')
 const financeStyles=await read('src/styles/admin-finance.css')
@@ -81,14 +84,13 @@ for(const token of [
   'className="numeric accounting-number-col"',
   'className="numeric positive accounting-number-col"',
   'className="numeric negative accounting-number-col"',
-])if(!financeAccounting.includes(token))failures.push(`Contabilidade deve preservar o contrato semântico de coluna: ${token}.`)
-if(financeAccounting.includes('tableHeaderStyle')||financeAccounting.includes('tableCellStyle'))failures.push('Contabilidade não pode sobrescrever alinhamento de TableView com estilos inline locais.')
+])if(!financeAccounting.includes(token))failures.push(`Contabilidade deve preservar contrato semântico de coluna: ${token}.`)
+if(financeAccounting.includes('tableHeaderStyle')||financeAccounting.includes('tableCellStyle'))failures.push('Contabilidade não pode sobrescrever geometria de TableView com estilos inline locais.')
 for(const rule of [
   '.accounting-result-table{table-layout:fixed}',
   '.accounting-result-table col.accounting-category-col{width:36%}',
   '.accounting-result-table col.accounting-number-col{width:16%}',
-])if(!financeStyles.includes(rule))failures.push(`Contabilidade deve preservar apenas a largura semântica no CSS do domínio: ${rule}.`)
-if(financeStyles.includes('.accounting-result-table th,.accounting-result-table td'))failures.push('Contabilidade não pode forçar padding/alinhamento de todas as células; densidade pertence ao TableView canônico.')
+])if(!financeStyles.includes(rule))failures.push(`Contabilidade deve preservar apenas largura semântica no CSS do domínio: ${rule}.`)
 
 if(failures.length){
   console.error('TableView invariants failed:')
@@ -96,4 +98,4 @@ if(failures.length){
   process.exit(1)
 }
 
-console.log('TableView contract OK — header 40px, rows 48px, padding inline 12px, tipografia 11/12/10 e alinhamento semântico único em todos os módulos.')
+console.log('TableView contract OK — todo table administrativo usa header 40px, row 48px, padding horizontal 12px, tipografia 11/12/10, seletor 38px, ações 64px e eixos semânticos únicos, independentemente do módulo.')

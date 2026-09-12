@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react'
-import { Navigate, Route, Routes } from 'react-router-dom'
+import { Navigate, Route, Routes, useParams } from 'react-router-dom'
 
 const MediaKitPage=lazy(()=>import('./pages/MediaKitPage').then(module=>({default:module.MediaKitPage})))
 const MediaKitPreviewPage=lazy(()=>import('./pages/MediaKitPreviewPage').then(module=>({default:module.MediaKitPreviewPage})))
@@ -19,6 +19,11 @@ const SiteFormEditorPage=lazy(()=>import('./pages/SiteFormEditorPage').then(modu
 const SiteFormsPage=lazy(()=>import('./pages/SiteFormsPage').then(module=>({default:module.SiteFormsPage})))
 const SiteMediaPage=lazy(()=>import('./pages/SiteMediaPage').then(module=>({default:module.SiteMediaPage})))
 const SiteSectionsPage=lazy(()=>import('./pages/SiteSectionsPage').then(module=>({default:module.SiteSectionsPage})))
+
+function LegacyPageSectionRedirect(){
+  const {pageId='',sectionId=''}=useParams()
+  return <Navigate to={`/app/site/pages/${encodeURIComponent(pageId)}/sections/${encodeURIComponent(sectionId)}`} replace/>
+}
 
 export default function SiteManagerRoutes(){
   return <Suspense fallback={null}><Routes>
@@ -44,6 +49,8 @@ export default function SiteManagerRoutes(){
     <Route path="pages/:pageId/sections/contact-hero" element={<GlobalHeroEditorPage sectionId="contact-hero"/>}/>
     <Route path="pages/:pageId/sections/collaborate-hero" element={<GlobalHeroEditorPage sectionId="collaborate-hero"/>}/>
     <Route path="pages/:pageId/sections/:sectionId" element={<SectionConfigurationPage/>}/>
+    <Route path="paginas" element={<Navigate to="/app/site/pages" replace/>}/>
+    <Route path="paginas/:pageId/secoes/:sectionId" element={<LegacyPageSectionRedirect/>}/>
     <Route path="sections" element={<Navigate to="/app/site/pages" replace/>}/>
     <Route path="sections/home/hero" element={<Navigate to="/app/site/pages/home/sections/hero" replace/>}/>
     <Route path="sections/home/footer" element={<Navigate to="/app/settings" replace/>}/>

@@ -49,6 +49,16 @@
 .table-card th{white-space:nowrap}
 .table-card tbody tr:focus-within{background:#fff7f7}
 
+/* Secondary tab bars may scroll horizontally on narrow viewports, but must never
+   expose a vertical scrollbar track/arrows on Windows/Chromium. */
+.app-shell .workspace-main :is(
+  .crm-tabs,.finance-tabs,.contracts-tabs,.rh-tabs,.marketing-tabs,
+  .settings-tabs,.chat-domain-tabs,.chat-settings-tabs,
+  .marketing-platform-tabs-exact,.site-tabs,.metrics-tabs,.reports-tabs,.agenda-tabs
+){
+  overflow-y:hidden!important;
+}
+
 /* Company identity actions are interactive; obsolete public-registration metadata stays hidden. */
 .settings-identity .settings-outline{
   display:inline-flex;

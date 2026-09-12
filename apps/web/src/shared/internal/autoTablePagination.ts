@@ -68,6 +68,13 @@ function render(table:HTMLTableElement,state:TableState){
   const pageSizeLabel=document.createElement('span')
   pageSizeLabel.textContent='Por página'
   const select=document.createElement('select')
+  select.className='tableview-page-size-select'
+  /* This control is created after route CSS has loaded. Keep the canonical
+     pagination token authoritative even when broad form selectors set select
+     min-height to the regular 36px control size. */
+  select.style.setProperty('box-sizing','border-box','important')
+  select.style.setProperty('height','var(--ui-pagination-control)','important')
+  select.style.setProperty('min-height','var(--ui-pagination-control)','important')
   ;[5,10,20,50].forEach(value=>{const option=document.createElement('option');option.value=String(value);option.textContent=String(value);select.appendChild(option)})
   select.value=String(state.pageSize)
   select.addEventListener('change',()=>{state.pageSize=Number(select.value)||10;state.page=1;render(table,state)})

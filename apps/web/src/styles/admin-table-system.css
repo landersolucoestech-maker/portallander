@@ -1,7 +1,7 @@
 /* Portal Lander — canonical administrative TableView contract.
    Every real HTML table inside the admin workspace inherits this geometry.
-   Feature CSS may own semantic column widths and domain colors only; it must
-   not own row/header density, cell padding, base typography or default axes. */
+   Feature CSS may own semantic widths and domain colors only; row/header density,
+   cell padding, typography and column axes are finalized here. */
 
 /* Surface */
 .app-shell .workspace-main :is(
@@ -73,11 +73,7 @@
   line-height:var(--ui-line-normal);
 }
 
-/*
- * Single source of truth for ALL admin HTML TableViews.
- * The opt-out class exists only for a deliberately non-TableView semantic table;
- * no current admin screen is expected to use it.
- */
+/* Single source of truth for every administrative HTML TableView. */
 .app-shell .workspace-main table:not(.tableview-freeform){
   width:100%!important;
   min-width:var(--ui-table-min-width);
@@ -88,7 +84,7 @@
 }
 .app-shell .workspace-main table.accounting-result-table:not(.tableview-freeform){table-layout:fixed!important}
 
-/* Geometry: identical header/row height and padding regardless of module. */
+/* Geometry and the default auxiliary-column axis are universal. */
 .app-shell .workspace-main table:not(.tableview-freeform) :is(th,td){
   box-sizing:border-box!important;
   padding-block:var(--ui-table-cell-block)!important;
@@ -122,10 +118,23 @@
 .app-shell .workspace-main table:not(.tableview-freeform) tbody tr:last-child td{border-bottom:0!important}
 .app-shell .workspace-main table:not(.tableview-freeform) tbody tr:hover{background:#fffafa}
 
-/* Universal column axis: primary identity stays left, supporting fields center.
-   If a selector rail occupies column 1, column 2 becomes the primary identity.
-   This keeps every header anchored to the exact same axis as its row values. */
-.app-shell .workspace-main table:not(.tableview-freeform) :is(th,td):first-child{
+/* Column-axis contract.
+   1) selector rail = centered;
+   2) primary identity = left;
+   3) auxiliary values = centered by default;
+   4) numeric = right;
+   5) actions = right.
+   Crucially, the first-column identity rule EXCLUDES checkbox cells. The old
+   positional rule made selector tables match two conflicting axes. */
+.app-shell .workspace-main table:not(.tableview-freeform) :is(th,td):has(input[type='checkbox']),
+.app-shell .workspace-main table:not(.tableview-freeform) :is(.crm-checkbox-cell,.select,.contracts-checkbox-cell,.check){
+  width:var(--ui-table-selector-width)!important;
+  min-width:var(--ui-table-selector-width)!important;
+  max-width:var(--ui-table-selector-width)!important;
+  padding-inline:var(--ui-table-selector-inline)!important;
+  text-align:center!important;
+}
+.app-shell .workspace-main table:not(.tableview-freeform) :is(th,td):first-child:not(:has(input[type='checkbox'])){
   text-align:left!important;
 }
 .app-shell .workspace-main table:not(.tableview-freeform):has(thead th:first-child input[type='checkbox']) :is(th,td):nth-child(2){
@@ -135,8 +144,16 @@
   th.table-primary,td.table-primary,
   th.identity-col,td.identity-col,
   th.primary-col,td.primary-col
-){
-  text-align:left!important;
+){text-align:left!important}
+
+.app-shell .workspace-main table:not(.tableview-freeform) input[type='checkbox']{
+  box-sizing:border-box!important;
+  width:15px!important;
+  height:15px!important;
+  margin:0 auto!important;
+  padding:0!important;
+  display:block!important;
+  accent-color:var(--ui-text-strong);
 }
 
 /* Primary and secondary copy use one hierarchy everywhere. */
@@ -154,25 +171,7 @@
 }
 .app-shell .workspace-main table:not(.tableview-freeform) :is(.table-primary,.crm-link,.finance-link,.contracts-title-link){min-width:var(--ui-table-primary-min-width)}
 
-/* Selector columns: one width and true centering. */
-.app-shell .workspace-main table:not(.tableview-freeform) :is(th,td):has(input[type='checkbox']),
-.app-shell .workspace-main table:not(.tableview-freeform) :is(.crm-checkbox-cell,.select,.contracts-checkbox-cell,.check){
-  width:var(--ui-table-selector-width)!important;
-  min-width:var(--ui-table-selector-width)!important;
-  max-width:var(--ui-table-selector-width)!important;
-  padding-inline:var(--ui-table-selector-inline)!important;
-  text-align:center!important;
-}
-.app-shell .workspace-main table:not(.tableview-freeform) input[type='checkbox']{
-  width:15px!important;
-  height:15px!important;
-  margin:0 auto!important;
-  padding:0!important;
-  display:block!important;
-  accent-color:var(--ui-text-strong);
-}
-
-/* Semantic axes. Numeric columns remain right aligned; status/state remain centered. */
+/* Numeric and explicit state axes. */
 .app-shell .workspace-main table:not(.tableview-freeform) :is(
   .numeric,.tabular,.money,.currency,.amount,.percent,.percentage,
   .positive,.negative,.accounting-number-col
@@ -181,9 +180,7 @@
   text-align:right!important;
   white-space:nowrap!important;
 }
-.app-shell .workspace-main table:not(.tableview-freeform) :is(
-  .status-col,.state-col,.center,.actions-center
-){text-align:center!important}
+.app-shell .workspace-main table:not(.tableview-freeform) :is(.status-col,.state-col,.center,.actions-center){text-align:center!important}
 
 /* Actions always occupy the same right gutter. */
 .app-shell .workspace-main table:not(.tableview-freeform) :is(
@@ -191,6 +188,7 @@
 ){
   width:var(--ui-table-action-width)!important;
   min-width:var(--ui-table-action-width)!important;
+  max-width:var(--ui-table-action-width)!important;
   text-align:right!important;
   white-space:nowrap!important;
 }
@@ -208,10 +206,6 @@
   margin-left:auto!important;
   margin-right:auto!important;
 }
-
-/* Action semantics are inferred when legacy markup forgot the actions class.
-   Any TableView that renders the canonical trigger gets the same 64px right rail,
-   so header text and trigger share the exact same anchor in every module. */
 .app-shell .workspace-main table:not(.tableview-freeform):has(.table-row-actions-trigger) th:last-child,
 .app-shell .workspace-main table:not(.tableview-freeform) td:has(.table-row-actions-trigger){
   width:var(--ui-table-action-width)!important;
@@ -225,7 +219,7 @@
   margin-right:0!important;
 }
 
-/* Sort controls use the same axis as the data in that column. */
+/* Sort controls use exactly the same axis as their data cells. */
 .app-shell .workspace-main table:not(.tableview-freeform) .crm-sort-header{
   width:100%;
   display:flex;
@@ -234,7 +228,7 @@
   gap:var(--ui-space-1);
   white-space:nowrap;
 }
-.app-shell .workspace-main table:not(.tableview-freeform) th:first-child .crm-sort-header,
+.app-shell .workspace-main table:not(.tableview-freeform) th:first-child:not(:has(input[type='checkbox'])) .crm-sort-header,
 .app-shell .workspace-main table:not(.tableview-freeform):has(thead th:first-child input[type='checkbox']) th:nth-child(2) .crm-sort-header,
 .app-shell .workspace-main table:not(.tableview-freeform) th:is(.table-primary,.identity-col,.primary-col) .crm-sort-header{
   justify-content:flex-start!important;
@@ -285,9 +279,7 @@
   white-space:nowrap!important;
 }
 
-/* Pagination controls are finalized here because this canonical layer is loaded
-   after feature/design CSS. It prevents a generic 36px form-control rule from
-   making one module's page-size select taller than the 30px pagination buttons. */
+/* Pagination belongs to the same deterministic geometry. */
 .app-shell .workspace-main .tableview-page-size select{
   box-sizing:border-box!important;
   height:var(--ui-pagination-control)!important;
@@ -297,8 +289,7 @@
   line-height:1!important;
 }
 
-/* Legacy Finance selectors previously forced whole tables left. Canonical semantic
-   classes win explicitly; feature styles may no longer decide generic axes. */
+/* Known high-specificity Finance legacy cannot override canonical semantic axes. */
 .app-shell .workspace-main .finance-page .finance-table :is(
   .numeric,.tabular,.money,.currency,.amount,.percent,.percentage,.positive,.negative,.accounting-number-col
 ){text-align:right!important;font-variant-numeric:tabular-nums!important}

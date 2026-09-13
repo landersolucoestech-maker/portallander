@@ -1,4 +1,5 @@
 import {randomUUID} from 'node:crypto'
+import {creativeOutputMatchesFormat,resolveMarketingCreativeFormat} from '../../../packages/shared/marketingCreativeFormats.js'
 import {getPool,withTransaction} from './db.js'
 import {HttpError} from './editorialService.js'
 
@@ -71,7 +72,7 @@ function normalizeOutput(input){
   return {assetId:required(value.assetId,'creative.output.assetId'),url:persistentUrl(value.url),mimeType:enumValue(value.mimeType,new Set(['image/png','image/jpeg']),'creative.output.mimeType'),width:number(value.width,1080,1,8192),height:number(value.height,1080,1,8192),createdAt:iso(value.createdAt||new Date())}
 }
 
-export function normalizeCreativeConfig(input,{contentStatus='producao'}={}){
+export function normalizeCreativeConfig(input,{contentStatus='producao',format=null,previousCreative=null}={}){
   if(input===undefined||input===null)return undefined
   const raw=assertSerializable(input),value=object(raw)
   const version=Number(value.version)
@@ -83,24 +84,38 @@ export function normalizeCreativeConfig(input,{contentStatus='producao'}={}){
   const layout=enumValue(value.layout||'full',CREATIVE_LAYOUTS,'creative.layout')
   const primarySlot=normalizeMediaSlot(value.primarySlot),secondarySlot=normalizeMediaSlot(value.secondarySlot),output=normalizeOutput(value.output)
   const requiresReady=contentStatus==='agendado'||contentStatus==='publicado'
+  const incomingFormatKey=text(value.formatKey)
+  const previousOutputCreatedAt=text(previousCreative?.output?.createdAt)
+  const outputWasRegenerated=Boolean(output&&(!previousOutputCreatedAt||output.createdAt!==previousOutputCreatedAt))
+  const dimensionsMatch=!output||!format||creativeOutputMatchesFormat(output,format)
+  const formatIdentityChanged=Boolean(format&&incomingFormatKey&&incomingFormatKey!==format.id)
+  const unsupportedStaticFormat=Boolean(format&&!format.staticTemplateSupported)
+  const staleOutput=Boolean(output&&(unsupportedStaticFormat||!dimensionsMatch||(formatIdentityChanged&&!outputWasRegenerated)))
   if(requiresReady&&!primarySlot)throw new HttpError(400,'Template agendado exige mídia principal persistente.','MARKETING_CREATIVE_PRIMARY_REQUIRED')
   if(requiresReady&&layout==='split'&&!secondarySlot)throw new HttpError(400,'Layout Split agendado exige mídia secundária persistente.','MARKETING_CREATIVE_SECONDARY_REQUIRED')
-  if(requiresReady&&(renderStatus!=='ready'||!output))throw new HttpError(409,'O criativo foi alterado ou ainda não possui arte final persistida. Gere novamente antes de agendar.','MARKETING_CREATIVE_RENDER_REQUIRED')
+  if(requiresReady&&unsupportedStaticFormat)throw new HttpError(409,'O formato selecionado exige fluxo audiovisual/carrossel e não aceita a arte estática deste template.','MARKETING_CREATIVE_FORMAT_UNSUPPORTED',{format:format?.id})
+  if(requiresReady&&staleOutput)throw new HttpError(409,'A arte final salva pertence a outro formato ou dimensão. Gere novamente antes de agendar.','MARKETING_CREATIVE_OUTPUT_FORMAT_MISMATCH',{expected:format?{id:format.id,width:format.width,height:format.height}:null,actual:output?{width:output.width,height:output.height}:null})
+  const effectiveOutput=staleOutput?undefined:output
+  const effectiveRenderStatus=staleOutput?'dirty':renderStatus
+  if(requiresReady&&(effectiveRenderStatus!=='ready'||!effectiveOutput))throw new HttpError(409,'O criativo foi alterado ou ainda não possui arte final persistida. Gere novamente antes de agendar.','MARKETING_CREATIVE_RENDER_REQUIRED')
   return {
-    version:1,mode:'template',templateKey:text(value.templateKey)||'news-portal-lander',category:text(value.category)||'news',layout,
+    version:1,mode:'template',templateKey:text(value.templateKey)||'news-portal-lander',category:text(value.category)||'news',layout,...(format?{formatKey:format.id}:incomingFormatKey?{formatKey:incomingFormatKey}:{}),
     ...(primarySlot?{primarySlot}:{}),...(secondarySlot?{secondarySlot}:{}),headline:normalizeTextLayer(value.headline),subtitle:normalizeTextLayer(value.subtitle),
     logo:normalizeBrandLayer(value.logo,{visible:true,opacity:1,width:24}),watermark:normalizeBrandLayer(value.watermark,{visible:true,opacity:.16,width:34}),
-    background:text(value.background)||'#050505',renderState:{status:renderStatus,...(renderState.error?{error:text(renderState.error)}:{})},...(output?{output}:{}),
+    background:text(value.background)||'#050505',renderState:{status:effectiveRenderStatus,...(renderState.error&&effectiveRenderStatus==='failed'?{error:text(renderState.error)}:{})},...(effectiveOutput?{output:effectiveOutput}:{}),
   }
 }
 
 function normalizeContent(input,current={}){
   const status=enumValue(input.status??current.status??'agendado',CONTENT_STATUSES,'status')
+  const channels=list(input.channels??current.channels)
+  const type=required(input.type??current.type,'type')
+  const format=channels[0]?resolveMarketingCreativeFormat(channels[0],type):null
   return {
-    title:required(input.title??current.title,'title'),context:text(input.context??current.context),subject:text(input.subject??current.subject),channels:list(input.channels??current.channels),
-    type:required(input.type??current.type,'type'),publishDate:dateValue(input.publishDate??current.publishDate),publishTime:timeValue(input.publishTime??current.publishTime),copy:text(input.copy??current.copy),
+    title:required(input.title??current.title,'title'),context:text(input.context??current.context),subject:text(input.subject??current.subject),channels,
+    type,publishDate:dateValue(input.publishDate??current.publishDate),publishTime:timeValue(input.publishTime??current.publishTime),copy:text(input.copy??current.copy),
     campaign:text(input.campaign??current.campaign),hashtags:text(input.hashtags??current.hashtags),location:text(input.location??current.location),status,
-    approval:enumValue(input.approval??current.approval??'pendente',APPROVAL_STATUSES,'approval'),owner:text(input.owner??current.owner),creative:normalizeCreativeConfig(input.creative??current.creative,{contentStatus:status}),
+    approval:enumValue(input.approval??current.approval??'pendente',APPROVAL_STATUSES,'approval'),owner:text(input.owner??current.owner),creative:normalizeCreativeConfig(input.creative??current.creative,{contentStatus:status,format,previousCreative:current.creative??null}),
   }
 }
 

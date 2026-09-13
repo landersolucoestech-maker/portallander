@@ -76,11 +76,12 @@ async function assertViewportContainment(page:Page,modal:Locator,viewport:{width
 
 async function setPrimaryPlatform(modal:Locator,target:Locator){
  if(await target.getAttribute('aria-pressed')!=='true')await target.click()
- const primary=modal.locator('.marketing-platform-pills button').filter({has:modal.locator('small', {hasText:'principal'})})
- if(await primary.count()&&!(await primary.first().evaluate((element,targetElement)=>element===targetElement,await target.elementHandle()))){
-  await primary.first().click()
+ if(await target.locator('small').count()===0){
+  const currentPrimary=modal.locator('.marketing-platform-pills button').filter({hasText:'principal'}).first()
+  await expect(currentPrimary).toBeVisible()
+  await currentPrimary.click()
  }
- await expect(target).toHaveAttribute('aria-pressed','true')
+ await expect(target.locator('small')).toHaveText('principal')
 }
 
 test('creative stylesheet does not own the content modal shell',async()=>{

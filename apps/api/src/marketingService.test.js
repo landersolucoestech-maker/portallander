@@ -1,11 +1,19 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import {resolveMarketingCreativeFormat} from '../../../packages/shared/marketingCreativeFormats.js'
-import {normalizeCreativeConfig} from './marketingService.js'
+import {normalizeCreativeConfig,normalizeMarketingContentTypeForWrite} from './marketingService.js'
 
 const imageSlot={assetId:'media_1',url:'https://cdn.example/image.jpg',name:'image.jpg',mimeType:'image/jpeg',kind:'image',fit:'cover',zoom:1,positionX:50,positionY:50}
 const readyOutput={assetId:'media_output',url:'https://cdn.example/output.png',mimeType:'image/png',width:1080,height:1920,createdAt:'2026-09-13T12:00:00.000Z'}
 const template=(overrides={})=>({version:1,mode:'template',templateKey:'news-portal-lander',category:'news',layout:'full',primarySlot:imageSlot,headline:{text:'Headline'},subtitle:{text:'Subtitle'},logo:{source:'global'},watermark:{source:'global',opacity:.16},background:'#050505',renderState:{status:'ready'},output:readyOutput,...overrides})
+
+test('new writes accept only the canonical creation content types while unchanged legacy values remain editable',()=>{
+  for(const type of ['Stories','Reels','Carrossel','Feed'])assert.equal(normalizeMarketingContentTypeForWrite(type),type)
+  assert.throws(()=>normalizeMarketingContentTypeForWrite('Post'),error=>error?.code==='MARKETING_CONTENT_TYPE_UNSUPPORTED')
+  assert.throws(()=>normalizeMarketingContentTypeForWrite('Shorts'),error=>error?.code==='MARKETING_CONTENT_TYPE_UNSUPPORTED')
+  assert.equal(normalizeMarketingContentTypeForWrite('Post','Post'),'Post')
+  assert.throws(()=>normalizeMarketingContentTypeForWrite('Shorts','Post'),error=>error?.code==='MARKETING_CONTENT_TYPE_UNSUPPORTED')
+})
 
 test('legacy content without creative config remains valid simple behavior',()=>{
   assert.equal(normalizeCreativeConfig(undefined),undefined)
@@ -72,7 +80,18 @@ test('same-size platform changes require a new render before the output can be r
   assert.equal(rerendered.output.width,1080)
 })
 
-test('video-only formats cannot be scheduled through the static template renderer',()=>{
+test('Reels and Stories templates share the same scheduled output geometry',()=>{
+  const stories=resolveMarketingCreativeFormat('Instagram','Stories'),reels=resolveMarketingCreativeFormat('Instagram','Reels')
+  assert.equal(stories.aspectRatio,reels.aspectRatio)
+  assert.equal(stories.width,reels.width)
+  assert.equal(stories.height,reels.height)
+  assert.equal(reels.staticTemplateSupported,true)
+  const value=normalizeCreativeConfig(template({formatKey:reels.id}),{contentStatus:'agendado',format:reels})
+  assert.equal(value.output.width,1080)
+  assert.equal(value.output.height,1920)
+})
+
+test('legacy video-only formats cannot be scheduled through the static template renderer',()=>{
   const format=resolveMarketingCreativeFormat('TikTok','Post')
   assert.throws(()=>normalizeCreativeConfig(template(),{contentStatus:'agendado',format}),error=>error?.code==='MARKETING_CREATIVE_FORMAT_UNSUPPORTED')
 })

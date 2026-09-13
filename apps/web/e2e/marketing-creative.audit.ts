@@ -101,7 +101,7 @@ test.describe('marketing content canonical format contract',()=>{
   await expect(preview).toHaveAttribute('src',originalSrc!)
  })
 
- test('keeps template inside supported canvases and falls back coherently for Carousel',async({page})=>{
+ test('preserves template state while every content type keeps ownership of canvas geometry',async({page})=>{
   await openCalendar(page)
   const modal=await openCreativeModal(page)
   const simpleButton=modal.getByRole('button',{name:'Mídia simples',exact:true})
@@ -119,14 +119,12 @@ test.describe('marketing content canonical format contract',()=>{
   await selectType(modal,'Feed',1,':feed:1x1')
   await expect(canvas(modal).locator('.marketing-creative-surface')).toBeVisible()
   await selectType(modal,'Carrossel',1,':carousel:1x1')
-  await expect(templateButton).toBeDisabled()
-  await expect(templateButton).not.toHaveClass(/active/)
-  await expect(simpleButton).toHaveClass(/active/)
-  await expect(canvas(modal).locator('.marketing-creative-surface')).toHaveCount(0)
-  await selectType(modal,'Feed',1,':feed:1x1')
   await expect(templateButton).toBeEnabled()
-  await expect(simpleButton).toHaveClass(/active/)
-  await templateButton.click()
+  await expect(templateButton).toHaveClass(/active/)
+  await expect(simpleButton).not.toHaveClass(/active/)
+  await expect(canvas(modal).locator('.marketing-creative-surface')).toBeVisible()
+  await expect(modal.getByText(/Template foi preservado/)).toBeVisible()
+  await selectType(modal,'Feed',1,':feed:1x1')
   await expect(templateButton).toHaveClass(/active/)
   await expect(modal.locator('.marketing-creative-control').filter({hasText:'Headline'}).locator('textarea').first()).toHaveValue('Rascunho preservado entre formatos')
  })
@@ -135,7 +133,7 @@ test.describe('marketing content canonical format contract',()=>{
 for(const viewport of [
  {name:'desktop-xl',width:1920,height:1080,columns:true},
  {name:'desktop-1366',width:1366,height:768,columns:true},
- {name:'near-breakpoint',width:1000,height:800,columns:true},
+ {name:'near-breakpoint',width:1000,height:800,columns:false},
  {name:'mobile',width:390,height:844,columns:false},
 ]){
  test.describe(`marketing creative ${viewport.width}x${viewport.height}`,()=>{

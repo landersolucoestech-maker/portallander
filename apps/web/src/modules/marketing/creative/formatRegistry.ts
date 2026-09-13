@@ -1,7 +1,9 @@
-import {resolveMarketingCreativeFormat,type MarketingCreativeFormat} from '../../../../../../packages/shared/marketingCreativeFormats.js'
+import {DEFAULT_MARKETING_CREATION_CONTENT_TYPE,MARKETING_CONTENT_FORMATS,MARKETING_CREATION_CONTENT_TYPES,isMarketingCreationContentType,resolveMarketingCreativeFormat,resolveMarketingContentFormat,type MarketingCreationContentType,type MarketingCreativeFormat} from '../../../../../../packages/shared/marketingCreativeFormats.js'
 import type {CreativeConfig} from '../domain'
 
 export type CreativeFormat=MarketingCreativeFormat
+export type CreationContentType=MarketingCreationContentType
+export {DEFAULT_MARKETING_CREATION_CONTENT_TYPE,MARKETING_CONTENT_FORMATS,MARKETING_CREATION_CONTENT_TYPES,isMarketingCreationContentType,resolveMarketingContentFormat}
 
 export const resolveCreativeFormat=(platform:string,contentType:string):CreativeFormat=>resolveMarketingCreativeFormat(platform,contentType)
 

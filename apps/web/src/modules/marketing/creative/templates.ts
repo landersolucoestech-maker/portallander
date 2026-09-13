@@ -1,0 +1,5 @@
+import type {CreativeConfig,CreativeTextLayer} from '../domain'
+const text=(value:string,size:number,y:number):CreativeTextLayer=>({text:value,visible:true,fontFamily:'Montserrat',fontWeight:800,fontSize:size,lineHeight:1.05,letterSpacing:0,color:'#FFFFFF',align:'left',x:7,y,width:86})
+export function createNewsCreative(title:string):CreativeConfig{return {version:1,mode:'template',templateKey:'news-portal-lander',category:'news',layout:'full',headline:text(title,64,14),subtitle:{...text('',30,27),fontWeight:500,lineHeight:1.2},logo:{source:'global',visible:true,opacity:1,x:7,y:5,width:24,align:'left'},watermark:{source:'global',visible:true,opacity:.16,x:59,y:82,width:34,align:'right'},background:'#050505',renderState:{status:'dirty'}}}
+export const simpleCreative=():CreativeConfig=>({version:1,mode:'simple',renderState:{status:'clean'}})
+export const markCreativeDirty=(creative:CreativeConfig):CreativeConfig=>({...creative,renderState:{status:'dirty'}})

@@ -1,6 +1,8 @@
-import {expect,test,type Page} from '@playwright/test'
+import {Buffer} from 'node:buffer'
+import {expect,test,type Locator,type Page} from '@playwright/test'
 
 const base='http://127.0.0.1:4173/portallander/'
+const creationTypes=['Stories','Reels','Carrossel','Feed'] as const
 
 async function openCalendar(page:Page){
  await page.goto(`${base}#/app/marketing/calendar`,{waitUntil:'domcontentloaded'})
@@ -18,18 +20,128 @@ async function openCreativeModal(page:Page){
  return modal
 }
 
-for(const viewport of [{name:'desktop-xl',width:1920,height:1080},{name:'desktop-1366',width:1366,height:768}]){
+function typeSelect(modal:Locator){return modal.locator('.marketing-content-field').filter({hasText:'Tipo de conteúdo'}).locator('select').first()}
+function canvas(modal:Locator){return modal.locator('.marketing-social-media')}
+
+async function canvasGeometry(modal:Locator){
+ return canvas(modal).evaluate(element=>{
+  const rect=element.getBoundingClientRect()
+  return {width:rect.width,height:rect.height,ratio:rect.width/rect.height,format:element.getAttribute('data-format')}
+ })
+}
+
+async function selectType(modal:Locator,type:typeof creationTypes[number],expectedRatio:number,formatSuffix:string){
+ await typeSelect(modal).selectOption(type)
+ await expect(canvas(modal)).toHaveAttribute('data-format',new RegExp(`${formatSuffix}$`))
+ await expect.poll(async()=>Math.abs((await canvasGeometry(modal)).ratio-expectedRatio)).toBeLessThan(.01)
+}
+
+async function assertViewportContainment(page:Page,modal:Locator,viewport:{width:number;height:number}){
+ const bounds=await modal.boundingBox()
+ expect(bounds).not.toBeNull()
+ expect(bounds!.x).toBeGreaterThanOrEqual(6)
+ expect(bounds!.y).toBeGreaterThanOrEqual(6)
+ expect(bounds!.x+bounds!.width).toBeLessThanOrEqual(viewport.width-6)
+ expect(bounds!.y+bounds!.height).toBeLessThanOrEqual(viewport.height-6)
+ const documentWidth=await page.evaluate(()=>Math.max(document.body.scrollWidth,document.documentElement.scrollWidth))
+ expect(documentWidth).toBeLessThanOrEqual(viewport.width+2)
+ const footer=modal.locator('.marketing-content-dialog-footer')
+ await expect(footer).toBeVisible()
+ const footerBounds=await footer.boundingBox()
+ expect(footerBounds).not.toBeNull()
+ expect(footerBounds!.y+footerBounds!.height).toBeLessThanOrEqual(viewport.height)
+}
+
+test.describe('marketing content canonical format contract',()=>{
+ test.use({viewport:{width:1920,height:1080}})
+
+ test('offers only canonical creation types and updates every required transition immediately',async({page})=>{
+  const pageErrors:string[]=[]
+  const consoleErrors:string[]=[]
+  page.on('pageerror',error=>pageErrors.push(error.message))
+  page.on('console',message=>{if(message.type()==='error')consoleErrors.push(message.text())})
+  await openCalendar(page)
+  const modal=await openCreativeModal(page)
+  const select=typeSelect(modal)
+  await expect(select.locator('option')).toHaveCount(4)
+  expect(await select.locator('option').allTextContents()).toEqual([...creationTypes])
+  await expect(select).toHaveValue('Feed')
+  await selectType(modal,'Stories',9/16,':story:9x16')
+  const stories=await canvasGeometry(modal)
+  await selectType(modal,'Reels',9/16,':reel:9x16')
+  const reels=await canvasGeometry(modal)
+  expect(Math.abs(stories.width-reels.width)).toBeLessThanOrEqual(.5)
+  expect(Math.abs(stories.height-reels.height)).toBeLessThanOrEqual(.5)
+  await selectType(modal,'Carrossel',1,':carousel:1x1')
+  await selectType(modal,'Feed',1,':feed:1x1')
+  await selectType(modal,'Reels',9/16,':reel:9x16')
+  await selectType(modal,'Feed',1,':feed:1x1')
+  await selectType(modal,'Stories',9/16,':story:9x16')
+  await selectType(modal,'Feed',1,':feed:1x1')
+  expect(pageErrors).toEqual([])
+  expect(consoleErrors).toEqual([])
+ })
+
+ test('preserves simple media while type changes reinterpret the same asset in the new canvas',async({page})=>{
+  await openCalendar(page)
+  const modal=await openCreativeModal(page)
+  const input=modal.locator('.marketing-media-drop input[type="file"]')
+  await input.setInputFiles({name:'preview.svg',mimeType:'image/svg+xml',buffer:Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="100"><rect width="200" height="100" fill="black"/></svg>')})
+  const preview=modal.getByAltText('Prévia da mídia')
+  await expect(preview).toBeVisible()
+  const originalSrc=await preview.getAttribute('src')
+  expect(originalSrc).toMatch(/^blob:/)
+  await selectType(modal,'Stories',9/16,':story:9x16')
+  await expect(preview).toHaveAttribute('src',originalSrc!)
+  await selectType(modal,'Reels',9/16,':reel:9x16')
+  await expect(preview).toHaveAttribute('src',originalSrc!)
+  await selectType(modal,'Carrossel',1,':carousel:1x1')
+  await expect(preview).toHaveAttribute('src',originalSrc!)
+  await selectType(modal,'Feed',1,':feed:1x1')
+  await expect(preview).toHaveAttribute('src',originalSrc!)
+ })
+
+ test('keeps template inside the content canvas for Feed, Stories and Reels',async({page})=>{
+  await openCalendar(page)
+  const modal=await openCreativeModal(page)
+  const templateButton=modal.getByRole('button',{name:'Template',exact:true})
+  await templateButton.click()
+  await expect(templateButton).toHaveClass(/active/)
+  await expect(canvas(modal).locator('.marketing-creative-surface')).toBeVisible()
+  await expect.poll(async()=>Math.abs((await canvasGeometry(modal)).ratio-1)).toBeLessThan(.01)
+  await selectType(modal,'Stories',9/16,':story:9x16')
+  await expect(canvas(modal).locator('.marketing-creative-surface')).toBeVisible()
+  await selectType(modal,'Reels',9/16,':reel:9x16')
+  await expect(canvas(modal).locator('.marketing-creative-surface')).toBeVisible()
+  await selectType(modal,'Feed',1,':feed:1x1')
+  await expect(canvas(modal).locator('.marketing-creative-surface')).toBeVisible()
+  await selectType(modal,'Carrossel',1,':carousel:1x1')
+  await expect(templateButton).toBeDisabled()
+ })
+})
+
+for(const viewport of [
+ {name:'desktop-xl',width:1920,height:1080,columns:true},
+ {name:'desktop-1366',width:1366,height:768,columns:true},
+ {name:'near-breakpoint',width:1000,height:800,columns:true},
+ {name:'mobile',width:390,height:844,columns:false},
+]){
  test.describe(`marketing creative ${viewport.width}x${viewport.height}`,()=>{
   test.use({viewport:{width:viewport.width,height:viewport.height}})
 
-  test('keeps the existing modal usable and validates Full/Split geometry',async({page})=>{
+  test('keeps editor responsive, footer accessible and Full/Split geometry valid',async({page})=>{
    await openCalendar(page)
    const modal=await openCreativeModal(page)
-   const bounds=await modal.boundingBox()
-   expect(bounds).not.toBeNull()
-   expect(bounds!.y).toBeGreaterThanOrEqual(8)
-   expect(bounds!.y+bounds!.height).toBeLessThanOrEqual(viewport.height-8)
-   await expect(modal.locator('.marketing-content-dialog-footer')).toBeVisible()
+   await assertViewportContainment(page,modal,viewport)
+   const previewColumn=modal.locator('.marketing-content-reference-preview')
+   const editorColumn=modal.locator('.marketing-content-dialog-form')
+   const previewBounds=await previewColumn.boundingBox(),editorBounds=await editorColumn.boundingBox()
+   expect(previewBounds).not.toBeNull();expect(editorBounds).not.toBeNull()
+   if(viewport.columns){
+    expect(editorBounds!.x).toBeGreaterThanOrEqual(previewBounds!.x+previewBounds!.width-1)
+   }else{
+    expect(editorBounds!.y).toBeGreaterThanOrEqual(previewBounds!.y+previewBounds!.height-1)
+   }
 
    const title=modal.locator('.marketing-content-field').filter({hasText:'Título'}).locator('input').first()
    await title.fill('Título operacional inicial')
@@ -44,6 +156,7 @@ for(const viewport of [{name:'desktop-xl',width:1920,height:1080},{name:'desktop
    await title.fill('Título operacional alterado')
    await expect(headline).toHaveValue('Headline editorial independente')
 
+   await selectType(modal,'Reels',9/16,':reel:9x16')
    await modal.getByRole('button',{name:'Split',exact:true}).click()
    const mediaRegion=modal.locator('.marketing-creative-media-region.is-split')
    await expect(mediaRegion).toBeVisible()
@@ -59,13 +172,13 @@ for(const viewport of [{name:'desktop-xl',width:1920,height:1080},{name:'desktop
    expect(geometry[0].gap).toBe('0px')
    expect(geometry[0].columnGap).toBe('0px')
 
-   const documentWidth=await page.evaluate(()=>Math.max(document.body.scrollWidth,document.documentElement.scrollWidth))
-   expect(documentWidth).toBeLessThanOrEqual(viewport.width+2)
-   if(viewport.height===768){
-    const scroll=await modal.locator('.marketing-content-dialog-grid').evaluate(element=>({clientHeight:element.clientHeight,scrollHeight:element.scrollHeight}))
-    expect(scroll.scrollHeight).toBeGreaterThan(scroll.clientHeight)
-    await expect(modal.locator('.marketing-content-dialog-footer')).toBeVisible()
+   if(viewport.columns&&viewport.height<=800){
+    const gridScroll=await modal.locator('.marketing-content-dialog-grid').evaluate(element=>({clientHeight:element.clientHeight,scrollHeight:element.scrollHeight}))
+    expect(gridScroll.scrollHeight).toBeLessThanOrEqual(gridScroll.clientHeight+1)
+    const editorScroll=await editorColumn.evaluate(element=>({clientHeight:element.clientHeight,scrollHeight:element.scrollHeight}))
+    expect(editorScroll.scrollHeight).toBeGreaterThan(editorScroll.clientHeight)
    }
+   await assertViewportContainment(page,modal,viewport)
    await page.screenshot({path:`test-results/visual/marketing-creative-${viewport.name}-split.png`,fullPage:true})
   })
  })

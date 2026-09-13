@@ -1,0 +1,131 @@
+import {randomUUID} from 'node:crypto'
+import {getPool,withTransaction} from './db.js'
+import {HttpError} from './editorialService.js'
+
+const CONTENT_STATUSES=new Set(['ideia','producao','revisao','agendado','publicado','falhou','atrasado'])
+const APPROVAL_STATUSES=new Set(['pendente','aprovado','reprovado','ajustes_solicitados'])
+const CREATIVE_MODES=new Set(['simple','template'])
+const CREATIVE_LAYOUTS=new Set(['full','split'])
+const RENDER_STATUSES=new Set(['clean','dirty','rendering','ready','failed'])
+const MEDIA_KINDS=new Set(['image','video'])
+const MEDIA_FITS=new Set(['cover','contain'])
+const TEXT_ALIGNMENTS=new Set(['left','center','right'])
+const BRAND_SOURCES=new Set(['global','custom'])
+const MAX_CREATIVE_BYTES=512*1024
+
+const text=value=>value===undefined||value===null?'':String(value).trim()
+const list=value=>Array.isArray(value)?value.map(text).filter(Boolean):[]
+const object=value=>value&&typeof value==='object'&&!Array.isArray(value)?value:{}
+const number=(value,fallback,min,max)=>{const parsed=Number(value);return Number.isFinite(parsed)?Math.min(max,Math.max(min,parsed)):fallback}
+const bool=(value,fallback=true)=>value===undefined?fallback:Boolean(value)
+const iso=value=>value?new Date(value).toISOString():''
+const required=(value,label)=>{const normalized=text(value);if(!normalized)throw new HttpError(400,`${label} é obrigatório.`,'MARKETING_REQUIRED',{field:label});return normalized}
+const enumValue=(value,allowed,label)=>{const normalized=text(value);if(!allowed.has(normalized))throw new HttpError(400,`${label} inválido.`,'MARKETING_ENUM_INVALID',{field:label});return normalized}
+const dateValue=value=>{const normalized=text(value);if(!/^\d{4}-\d{2}-\d{2}$/.test(normalized)||Number.isNaN(new Date(`${normalized}T12:00:00Z`).getTime()))throw new HttpError(400,'Data de publicação inválida.','MARKETING_DATE_INVALID');return normalized}
+const timeValue=value=>{const normalized=text(value).slice(0,5);if(!/^([01]\d|2[0-3]):[0-5]\d$/.test(normalized))throw new HttpError(400,'Hora de publicação inválida.','MARKETING_TIME_INVALID');return normalized}
+const persistentUrl=value=>{const normalized=text(value);if(!/^https?:\/\//i.test(normalized))throw new HttpError(400,'Mídia criativa deve usar uma URL persistente da biblioteca de mídia.','MARKETING_CREATIVE_PERSISTENT_URL_REQUIRED');return normalized}
+
+function assertSerializable(input){
+  let serialized=''
+  try{serialized=JSON.stringify(input)}catch{throw new HttpError(400,'Configuração criativa não é serializável.','MARKETING_CREATIVE_NOT_SERIALIZABLE')}
+  if(Buffer.byteLength(serialized,'utf8')>MAX_CREATIVE_BYTES)throw new HttpError(413,'Configuração criativa excede o limite permitido.','MARKETING_CREATIVE_TOO_LARGE')
+  if(/"(?:blob:|data:image\/)/i.test(serialized))throw new HttpError(400,'blob: e data:image não podem ser persistidos no criativo.','MARKETING_CREATIVE_EPHEMERAL_URL')
+  return JSON.parse(serialized)
+}
+
+function normalizeMediaSlot(input){
+  if(!input)return undefined
+  const value=object(input)
+  return {
+    assetId:required(value.assetId,'creative.media.assetId'),
+    url:persistentUrl(value.url),
+    name:text(value.name),
+    mimeType:required(value.mimeType,'creative.media.mimeType'),
+    kind:enumValue(value.kind,MEDIA_KINDS,'creative.media.kind'),
+    fit:enumValue(value.fit||'cover',MEDIA_FITS,'creative.media.fit'),
+    zoom:number(value.zoom,1,1,4),
+    positionX:number(value.positionX,50,0,100),
+    positionY:number(value.positionY,50,0,100),
+  }
+}
+
+function normalizeTextLayer(input,fallbackText=''){
+  const value=object(input)
+  return {
+    text:String(value.text??fallbackText),visible:bool(value.visible,true),fontFamily:text(value.fontFamily)||'Montserrat',fontWeight:number(value.fontWeight,800,100,900),
+    fontSize:number(value.fontSize,64,10,240),lineHeight:number(value.lineHeight,1.05,.7,2),letterSpacing:number(value.letterSpacing,0,-8,24),color:text(value.color)||'#FFFFFF',
+    align:enumValue(value.align||'left',TEXT_ALIGNMENTS,'creative.text.align'),x:number(value.x,7,0,100),y:number(value.y,12,0,100),width:number(value.width,86,5,100),
+  }
+}
+
+function normalizeBrandLayer(input,{visible=true,opacity=1,width=24}={}){
+  const value=object(input),source=enumValue(value.source||'global',BRAND_SOURCES,'creative.brand.source')
+  const result={source,visible:bool(value.visible,visible),opacity:number(value.opacity,opacity,0,1),x:number(value.x,7,0,100),y:number(value.y,5,0,100),width:number(value.width,width,2,80),align:enumValue(value.align||'left',TEXT_ALIGNMENTS,'creative.brand.align')}
+  if(source==='custom')return {...result,assetId:required(value.assetId,'creative.brand.assetId'),url:persistentUrl(value.url)}
+  return result
+}
+
+function normalizeOutput(input){
+  if(!input)return undefined
+  const value=object(input)
+  return {assetId:required(value.assetId,'creative.output.assetId'),url:persistentUrl(value.url),mimeType:enumValue(value.mimeType,new Set(['image/png','image/jpeg']),'creative.output.mimeType'),width:number(value.width,1080,1,8192),height:number(value.height,1080,1,8192),createdAt:iso(value.createdAt||new Date())}
+}
+
+export function normalizeCreativeConfig(input,{contentStatus='producao'}={}){
+  if(input===undefined||input===null)return undefined
+  const raw=assertSerializable(input),value=object(raw)
+  const version=Number(value.version)
+  if(version!==1)throw new HttpError(400,'Versão da configuração criativa não suportada.','MARKETING_CREATIVE_VERSION_INVALID')
+  const mode=enumValue(value.mode||'simple',CREATIVE_MODES,'creative.mode')
+  const renderState=object(value.renderState)
+  const renderStatus=enumValue(renderState.status||'clean',RENDER_STATUSES,'creative.renderState.status')
+  if(mode==='simple')return {version:1,mode:'simple',renderState:{status:renderStatus,...(renderState.error?{error:text(renderState.error)}:{})}}
+  const layout=enumValue(value.layout||'full',CREATIVE_LAYOUTS,'creative.layout')
+  const primarySlot=normalizeMediaSlot(value.primarySlot),secondarySlot=normalizeMediaSlot(value.secondarySlot),output=normalizeOutput(value.output)
+  const requiresReady=contentStatus==='agendado'||contentStatus==='publicado'
+  if(requiresReady&&!primarySlot)throw new HttpError(400,'Template agendado exige mídia principal persistente.','MARKETING_CREATIVE_PRIMARY_REQUIRED')
+  if(requiresReady&&layout==='split'&&!secondarySlot)throw new HttpError(400,'Layout Split agendado exige mídia secundária persistente.','MARKETING_CREATIVE_SECONDARY_REQUIRED')
+  if(requiresReady&&(renderStatus!=='ready'||!output))throw new HttpError(409,'O criativo foi alterado ou ainda não possui arte final persistida. Gere novamente antes de agendar.','MARKETING_CREATIVE_RENDER_REQUIRED')
+  return {
+    version:1,mode:'template',templateKey:text(value.templateKey)||'news-portal-lander',category:text(value.category)||'news',layout,
+    ...(primarySlot?{primarySlot}:{}),...(secondarySlot?{secondarySlot}:{}),headline:normalizeTextLayer(value.headline),subtitle:normalizeTextLayer(value.subtitle),
+    logo:normalizeBrandLayer(value.logo,{visible:true,opacity:1,width:24}),watermark:normalizeBrandLayer(value.watermark,{visible:true,opacity:.16,width:34}),
+    background:text(value.background)||'#050505',renderState:{status:renderStatus,...(renderState.error?{error:text(renderState.error)}:{})},...(output?{output}:{}),
+  }
+}
+
+function normalizeContent(input,current={}){
+  const status=enumValue(input.status??current.status??'agendado',CONTENT_STATUSES,'status')
+  return {
+    title:required(input.title??current.title,'title'),context:text(input.context??current.context),subject:text(input.subject??current.subject),channels:list(input.channels??current.channels),
+    type:required(input.type??current.type,'type'),publishDate:dateValue(input.publishDate??current.publishDate),publishTime:timeValue(input.publishTime??current.publishTime),copy:text(input.copy??current.copy),
+    campaign:text(input.campaign??current.campaign),hashtags:text(input.hashtags??current.hashtags),location:text(input.location??current.location),status,
+    approval:enumValue(input.approval??current.approval??'pendente',APPROVAL_STATUSES,'approval'),owner:text(input.owner??current.owner),creative:normalizeCreativeConfig(input.creative??current.creative,{contentStatus:status}),
+  }
+}
+
+function mapContent(row){return {
+  id:row.id,title:row.title,context:row.context,subject:row.subject,channels:list(row.channels),type:row.content_type,publishDate:String(row.publish_date),publishTime:String(row.publish_time).slice(0,5),copy:row.copy,campaign:row.campaign,hashtags:row.hashtags,location:row.location,status:row.status,approval:row.approval,owner:row.owner,
+  ...(row.creative_config?{creative:row.creative_config}:{}),createdAt:iso(row.created_at),updatedAt:iso(row.updated_at),
+}}
+
+async function selectContent(client,id,{lock=false}={}){const {rows}=await client.query(`select * from marketing_contents where id=$1${lock?' for update':''}`,[id]);if(!rows[0])throw new HttpError(404,'Conteúdo de Marketing não encontrado.','MARKETING_CONTENT_NOT_FOUND');return rows[0]}
+const conflict=(actual,expected)=>{if(expected&&new Date(actual).toISOString()!==new Date(expected).toISOString())throw new HttpError(409,'Este conteúdo foi alterado em outra sessão. Reabra o registro antes de salvar.','MARKETING_CONTENT_CONFLICT')}
+
+export const marketingService={
+  async listContents(){const {rows}=await getPool().query('select * from marketing_contents order by publish_date asc,publish_time asc,created_at asc');return rows.map(mapContent)},
+  async getContent(id){return mapContent(await selectContent(getPool(),id))},
+  async createContent(input,userId=null){
+    const value=normalizeContent(input),id=`mkt_cnt_${randomUUID()}`
+    if(!value.channels.length)throw new HttpError(400,'Selecione ao menos uma plataforma.','MARKETING_CHANNEL_REQUIRED')
+    const {rows}=await getPool().query(`insert into marketing_contents(id,title,context,subject,channels,content_type,publish_date,publish_time,copy,campaign,hashtags,location,status,approval,owner,creative_config,created_by,updated_by) values($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$17) returning *`,[id,value.title,value.context,value.subject,value.channels,value.type,value.publishDate,value.publishTime,value.copy,value.campaign,value.hashtags,value.location,value.status,value.approval,value.owner,value.creative?JSON.stringify(value.creative):null,userId])
+    return mapContent(rows[0])
+  },
+  async updateContent(id,patch,expectedUpdatedAt,userId=null){return withTransaction(async client=>{
+    const row=await selectContent(client,id,{lock:true}),current=mapContent(row);conflict(current.updatedAt,expectedUpdatedAt);const value=normalizeContent(patch,current)
+    if(!value.channels.length)throw new HttpError(400,'Selecione ao menos uma plataforma.','MARKETING_CHANNEL_REQUIRED')
+    const {rows}=await client.query(`update marketing_contents set title=$2,context=$3,subject=$4,channels=$5,content_type=$6,publish_date=$7,publish_time=$8,copy=$9,campaign=$10,hashtags=$11,location=$12,status=$13,approval=$14,owner=$15,creative_config=$16,updated_by=$17 where id=$1 returning *`,[id,value.title,value.context,value.subject,value.channels,value.type,value.publishDate,value.publishTime,value.copy,value.campaign,value.hashtags,value.location,value.status,value.approval,value.owner,value.creative?JSON.stringify(value.creative):null,userId])
+    return mapContent(rows[0])
+  })},
+  async removeContent(id){const result=await getPool().query('delete from marketing_contents where id=$1',[id]);if(!result.rowCount)throw new HttpError(404,'Conteúdo de Marketing não encontrado.','MARKETING_CONTENT_NOT_FOUND')},
+}

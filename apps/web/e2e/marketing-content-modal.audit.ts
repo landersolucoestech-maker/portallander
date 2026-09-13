@@ -7,9 +7,11 @@ async function openModal(page:Page,width=1440,height=900){
  await page.setViewportSize({width,height})
  await page.goto(`${base}#/app/marketing`,{waitUntil:'domcontentloaded'})
  await page.locator('#root').waitFor({state:'attached'})
- await page.getByRole('button',{name:'Novo Conteúdo'}).click()
- await expect(page.getByRole('dialog',{name:'Novo Conteúdo'})).toBeVisible()
- return page.getByRole('dialog',{name:'Novo Conteúdo'})
+ await page.getByRole('button',{name:'Novo Conteúdo',exact:true}).click()
+ const dialog=page.locator('.marketing-content-dialog')
+ await expect(dialog).toBeVisible()
+ await expect(dialog.locator('#marketing-content-title')).toHaveText('Novo Conteúdo')
+ return dialog
 }
 
 async function selectType(page:Page,type:typeof creationTypes[number]){
@@ -30,7 +32,7 @@ async function canvasGeometry(page:Page){
 }
 
 async function assertNoHorizontalOverflow(page:Page){
- const measurements=await page.getByRole('dialog').evaluate(node=>({clientWidth:node.clientWidth,scrollWidth:node.scrollWidth}))
+ const measurements=await page.locator('.marketing-content-dialog').evaluate(node=>({clientWidth:node.clientWidth,scrollWidth:node.scrollWidth}))
  expect(measurements.scrollWidth).toBeLessThanOrEqual(measurements.clientWidth+1)
 }
 

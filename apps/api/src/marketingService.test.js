@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
+import {resolveMarketingCreativeFormat} from '../../../packages/shared/marketingCreativeFormats.js'
 import {normalizeCreativeConfig} from './marketingService.js'
 
 const imageSlot={assetId:'media_1',url:'https://cdn.example/image.jpg',name:'image.jpg',mimeType:'image/jpeg',kind:'image',fit:'cover',zoom:1,positionX:50,positionY:50}
@@ -41,4 +42,37 @@ test('global brand layers do not persist a duplicate logo asset',()=>{
   assert.equal(value.logo.source,'global')
   assert.equal('url' in value.logo,false)
   assert.equal(value.watermark.source,'global')
+})
+
+test('scheduled content rejects rendered dimensions from another format',()=>{
+  const format=resolveMarketingCreativeFormat('Instagram','Feed')
+  assert.throws(()=>normalizeCreativeConfig(template(),{contentStatus:'agendado',format}),error=>error?.code==='MARKETING_CREATIVE_OUTPUT_FORMAT_MISMATCH')
+})
+
+test('draft content invalidates stale output instead of preserving it',()=>{
+  const format=resolveMarketingCreativeFormat('Instagram','Feed')
+  const value=normalizeCreativeConfig(template(),{contentStatus:'producao',format})
+  assert.equal(value.formatKey,'instagram:feed:1x1')
+  assert.equal(value.renderState.status,'dirty')
+  assert.equal(value.output,undefined)
+})
+
+test('same-size platform changes require a new render before the output can be reused',()=>{
+  const instagram=resolveMarketingCreativeFormat('Instagram','Feed'),facebook=resolveMarketingCreativeFormat('Facebook','Post')
+  const squareOutput={...readyOutput,width:1080,height:1080}
+  const previous=normalizeCreativeConfig(template({output:squareOutput}),{contentStatus:'producao',format:instagram})
+  assert.equal(previous.formatKey,'instagram:feed:1x1')
+  const stale=normalizeCreativeConfig({...previous,renderState:{status:'ready'}},{contentStatus:'producao',format:facebook,previousCreative:previous})
+  assert.equal(stale.formatKey,'facebook:feed:1x1')
+  assert.equal(stale.renderState.status,'dirty')
+  assert.equal(stale.output,undefined)
+  const rerendered=normalizeCreativeConfig({...previous,output:{...squareOutput,createdAt:'2026-09-13T12:05:00.000Z'},renderState:{status:'ready'}},{contentStatus:'agendado',format:facebook,previousCreative:previous})
+  assert.equal(rerendered.formatKey,'facebook:feed:1x1')
+  assert.equal(rerendered.renderState.status,'ready')
+  assert.equal(rerendered.output.width,1080)
+})
+
+test('video-only formats cannot be scheduled through the static template renderer',()=>{
+  const format=resolveMarketingCreativeFormat('TikTok','Post')
+  assert.throws(()=>normalizeCreativeConfig(template(),{contentStatus:'agendado',format}),error=>error?.code==='MARKETING_CREATIVE_FORMAT_UNSUPPORTED')
 })

@@ -3,7 +3,7 @@ import type {AnalyticsMetric} from '../analytics/domain'
 import type {MarketingContent} from './domain'
 import {buildContentReachRanking} from './analyticsRanking'
 
-const content=(id:string,title:string):MarketingContent=>({id,title,context:'Editorial',subject:'',channels:['Instagram'],type:'Post',publishDate:'2026-08-01',publishTime:'12:00',copy:'',campaign:'',hashtags:'',location:'',status:'publicado',approval:'aprovado',owner:'Equipe',createdAt:'2026-08-01T00:00:00.000Z',updatedAt:'2026-08-01T00:00:00.000Z'})
+const content=(id:string,title:string):MarketingContent=>({id,title,context:'Notícias',subject:'',channels:['Instagram'],type:'Post',publishDate:'2026-08-01',publishTime:'12:00',body:'Corpo da notícia',copy:'Legenda da publicação',campaign:'',hashtags:[],location:'',status:'publicado',approval:'aprovado',owner:'Equipe',createdAt:'2026-08-01T00:00:00.000Z',updatedAt:'2026-08-01T00:00:00.000Z'})
 const metric=(scopeId:string,value:number):AnalyticsMetric=>({id:`metric-${scopeId}`,metricKey:'reach',value,unit:'count',provider:'meta',providerAccountId:'a',providerPropertyId:null,scopeType:'content',scopeId,periodStart:'2026-08-01T00:00:00.000Z',periodEnd:'2026-09-01T00:00:00.000Z',granularity:'month',timezone:'UTC',dimensions:{},filters:{},sourceType:'provider',sourceReference:`source-${scopeId}`,collectedAt:null,providerUpdatedAt:null,normalizedAt:null,freshnessStatus:'UNKNOWN',dataStatus:'LIVE',syncId:null,provenance:{},isEstimated:false,isManual:false})
 
 describe('content analytics ranking',()=>{

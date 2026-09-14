@@ -1,4 +1,5 @@
 import {marketingService} from './marketingService.js'
+import {marketingPublicationService} from './marketingPublicationService.js'
 import {HttpError} from './editorialService.js'
 import {requireAdmin} from './http.js'
 import {corsHeaders,handleOptions,sendJson} from './httpSupport.js'
@@ -19,7 +20,11 @@ export async function handleMarketingRequest(req,res){
   if(path==='/api/marketing/contents'&&req.method==='GET'){sendJson(res,200,{contents:await marketingService.listContents()},cors);return true}
   if(path==='/api/marketing/contents'&&req.method==='POST'){sendJson(res,201,{content:await marketingService.createContent(await readJson(req),userId)},cors);return true}
   const payloadMatch=path.match(/^\/api\/marketing\/contents\/([^/]+)\/publication-payload$/)
-  if(payloadMatch&&req.method==='GET'){sendJson(res,200,{payload:await marketingService.getPublicationPayload(decode(payloadMatch[1]),url.searchParams.get('provider')||'instagram')},cors);return true}
+  if(payloadMatch&&req.method==='GET'){sendJson(res,200,{payload:await marketingPublicationService.getPublicationPayload(decode(payloadMatch[1]),url.searchParams.get('provider')||'instagram')},cors);return true}
+  const publicationMatch=path.match(/^\/api\/marketing\/contents\/([^/]+)\/publications\/([^/]+)$/)
+  if(publicationMatch&&req.method==='GET'){sendJson(res,200,{publication:await marketingPublicationService.getPublication(decode(publicationMatch[1]),decode(publicationMatch[2]))},cors);return true}
+  const publishMatch=path.match(/^\/api\/marketing\/contents\/([^/]+)\/publish$/)
+  if(publishMatch&&req.method==='POST'){const body=await readJson(req);sendJson(res,200,await marketingPublicationService.publishContent(decode(publishMatch[1]),body.provider||'instagram',userId),cors);return true}
   const match=path.match(/^\/api\/marketing\/contents\/([^/]+)$/)
   if(match){const id=decode(match[1]);if(req.method==='GET'){sendJson(res,200,{content:await marketingService.getContent(id)},cors);return true}if(req.method==='PATCH'||req.method==='PUT'){const body=await readJson(req);sendJson(res,200,{content:await marketingService.updateContent(id,body.patch??body,body.expectedUpdatedAt,userId)},cors);return true}if(req.method==='DELETE'){await marketingService.removeContent(id);sendJson(res,200,{deleted:true,id},cors);return true}}
   throw new HttpError(404,'Rota de Marketing não encontrada.','MARKETING_ROUTE_NOT_FOUND')

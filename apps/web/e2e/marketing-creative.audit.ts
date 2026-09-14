@@ -20,7 +20,10 @@ async function openCreativeModal(page:Page){
  const modal=page.locator('.marketing-content-dialog')
  await expect(modal).toBeVisible()
  await expect(modal.getByText('Criativo',{exact:true})).toBeVisible()
- await expect(modal.getByRole('button',{name:'Mídia simples',exact:true})).toHaveClass(/active/)
+ await expect(modal.getByText('Template obrigatório',{exact:true})).toBeVisible()
+ await expect(modal.locator('.marketing-news-surface')).toBeVisible()
+ await expect(modal.getByRole('button',{name:'Mídia simples',exact:true})).toHaveCount(0)
+ await expect(modal.getByRole('button',{name:'Template',exact:true})).toHaveCount(0)
  return modal
 }
 
@@ -96,7 +99,7 @@ test('creative stylesheet does not own the content modal shell',async()=>{
 test.describe('marketing content canonical format contract',()=>{
  test.use({viewport:{width:1920,height:1080}})
 
- test('uses the Music OS compact shell and updates every canonical type without resizing the frame',async({page})=>{
+ test('keeps the Music OS compact shell while canonical content types control only canvas geometry',async({page})=>{
   const pageErrors:string[]=[]
   const consoleErrors:string[]=[]
   page.on('pageerror',error=>pageErrors.push(error.message))
@@ -120,6 +123,7 @@ test.describe('marketing content canonical format contract',()=>{
   await selectType(modal,'Carrossel',1,':carousel:1x1')
   expect(Math.abs((await geometry(socialFrame(modal))).width-initialFrame.width)).toBeLessThanOrEqual(.5)
   await selectType(modal,'Feed',1,':feed:1x1')
+  await expect(modal.locator('.marketing-news-surface')).toBeVisible()
   const finalModal=await geometry(modal)
   expect(Math.abs(finalModal.width-initialModal.width)).toBeLessThanOrEqual(.5)
   expect(pageErrors).toEqual([])
@@ -146,40 +150,9 @@ test.describe('marketing content canonical format contract',()=>{
   }
  })
 
- test('simple media preserves assets across type changes and only Carousel exposes multiple upload',async({page})=>{
+ test('mandatory template is logo circle, company and handle, text, then media',async({page})=>{
   await openCalendar(page)
   const modal=await openCreativeModal(page)
-  const input=modal.locator('.marketing-media-drop input[type="file"]')
-  await expect(input).not.toHaveAttribute('multiple','')
-  await input.setInputFiles({name:'preview.svg',mimeType:'image/svg+xml',buffer:Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="100"><rect width="200" height="100" fill="black"/></svg>')})
-  const preview=modal.getByAltText('Prévia da mídia')
-  await expect(preview).toBeVisible()
-  const originalSrc=await preview.getAttribute('src')
-  expect(originalSrc).toMatch(/^blob:/)
-  await selectType(modal,'Stories',9/16,':story:9x16')
-  await expect(preview).toHaveAttribute('src',originalSrc!)
-  await selectType(modal,'Reels',9/16,':reel:9x16')
-  await expect(preview).toHaveAttribute('src',originalSrc!)
-  await selectType(modal,'Carrossel',1,':carousel:1x1')
-  await expect(input).toHaveAttribute('multiple','')
-  await input.setInputFiles([
-   {name:'carousel-a.svg',mimeType:'image/svg+xml',buffer:Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="2" height="2"/>')},
-   {name:'carousel-b.svg',mimeType:'image/svg+xml',buffer:Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="2" height="2"/>')},
-  ])
-  await expect(modal.locator('.marketing-media-thumbs>div')).toHaveCount(3)
-  await selectType(modal,'Feed',1,':feed:1x1')
-  await expect(input).not.toHaveAttribute('multiple','')
-  await expect(modal.locator('.marketing-media-thumbs>div')).toHaveCount(1)
-  await selectType(modal,'Carrossel',1,':carousel:1x1')
-  await expect(modal.locator('.marketing-media-thumbs>div')).toHaveCount(3)
- })
-
- test('news template follows avatar-name-handle-text-media hierarchy with compact controls',async({page})=>{
-  await openCalendar(page)
-  const modal=await openCreativeModal(page)
-  const title=modal.locator('.marketing-content-field').filter({hasText:'Título'}).locator('input').first()
-  await title.fill('Título operacional inicial')
-  await modal.getByRole('button',{name:'Template',exact:true}).click()
   const editor=modal.locator('.marketing-news-editor')
   await expect(editor).toBeVisible()
   await expect(editor.getByText('Identidade do perfil',{exact:true})).toBeVisible()
@@ -195,39 +168,68 @@ test.describe('marketing content canonical format contract',()=>{
   await identityInputs.nth(1).fill('@landereditorial')
   const headline=editor.locator('.marketing-creative-control').filter({hasText:'Headline'}).locator('textarea').first()
   const body=editor.locator('.marketing-creative-control').filter({hasText:'Corpo'}).locator('textarea').first()
-  await expect(headline).toHaveValue('Título operacional inicial')
-  await headline.fill('Headline visual independente')
-  await body.fill('Texto visual abaixo do perfil')
-  await title.fill('Título operacional alterado')
-  await expect(headline).toHaveValue('Headline visual independente')
+  await headline.fill('VIRAM ESSA?')
+  await body.fill('Texto editorial logo abaixo da identidade, antes da mídia.')
 
   const surface=modal.locator('.marketing-news-surface')
+  const header=surface.locator('[data-template-part="identity-copy"]')
+  const profile=surface.locator('[data-template-part="profile"]')
+  const copy=surface.locator('[data-template-part="copy"]')
+  const media=surface.locator('[data-template-part="media"]')
+  const avatar=surface.locator('.marketing-news-avatar')
   await expect(surface).toBeVisible()
+  await expect(avatar.locator('img')).toBeVisible()
+  await expect(avatar.locator('img')).toHaveAttribute('src',/^data:image\/svg\+xml/)
   await expect(surface.locator('.marketing-news-profile-text strong')).toHaveText('Lander Editorial')
   await expect(surface.locator('.marketing-news-profile-text span')).toHaveText('@landereditorial')
-  await expect(surface.locator('.marketing-news-headline')).toHaveText('Headline visual independente')
-  await expect(surface.locator('.marketing-news-body')).toHaveText('Texto visual abaixo do perfil')
+  await expect(surface.locator('.marketing-news-headline')).toHaveText('VIRAM ESSA?')
+  await expect(surface.locator('.marketing-news-body')).toContainText('Texto editorial')
   expect(await surface.evaluate(element=>{
-   const header=element.querySelector('.marketing-news-header')
-   const profile=element.querySelector('.marketing-news-profile')
-   const copy=element.querySelector('.marketing-news-copy')
-   const media=element.querySelector('.marketing-creative-media-region')
-   return Boolean(header&&profile&&copy&&media&&header.contains(profile)&&header.contains(copy)&&header.nextElementSibling===media&&profile.compareDocumentPosition(copy)&Node.DOCUMENT_POSITION_FOLLOWING)
+   const headerElement=element.querySelector('[data-template-part="identity-copy"]')
+   const profileElement=element.querySelector('[data-template-part="profile"]')
+   const copyElement=element.querySelector('[data-template-part="copy"]')
+   const mediaElement=element.querySelector('[data-template-part="media"]')
+   return Boolean(headerElement&&profileElement&&copyElement&&mediaElement&&headerElement.contains(profileElement)&&headerElement.contains(copyElement)&&headerElement.nextElementSibling===mediaElement&&(profileElement.compareDocumentPosition(copyElement)&Node.DOCUMENT_POSITION_FOLLOWING))
   })).toBe(true)
-  const watermark=surface.locator('.marketing-creative-watermark')
-  await expect(watermark).toBeVisible()
-  expect(await watermark.evaluate(element=>({left:(element as HTMLElement).style.left,top:(element as HTMLElement).style.top}))).toEqual({left:'50%',top:'50%'})
+  const visual=await Promise.all([header,profile,copy,media,avatar].map(async locator=>{const rect=await geometry(locator);return rect}))
+  expect(visual[1].y).toBeLessThan(visual[2].y)
+  expect(visual[2].y).toBeLessThan(visual[3].y)
+  expect(Math.abs(visual[4].width-visual[4].height)).toBeLessThanOrEqual(.5)
+  await expect(avatar).toHaveCSS('border-radius','50%')
+  await expect(header).toHaveCSS('background-color','rgb(255, 255, 255)')
+  await expect(surface.locator('.marketing-news-profile-text strong')).toHaveCSS('color','rgb(17, 24, 39)')
+  const squareHeaderRatio=visual[0].height/(await geometry(surface)).height
+  expect(Math.abs(squareHeaderRatio-.42)).toBeLessThan(.02)
+  await selectType(modal,'Stories',9/16,':story:9x16')
+  const verticalSurface=modal.locator('.marketing-news-surface'),verticalHeader=verticalSurface.locator('.marketing-news-header')
+  const verticalRatio=(await geometry(verticalHeader)).height/(await geometry(verticalSurface)).height
+  expect(Math.abs(verticalRatio-.34)).toBeLessThan(.02)
  })
 
- test('Full is one slot, Split is exact 50/50 with zero gap and template draft survives format changes',async({page})=>{
+ test('Carousel is the explicit simple-media exception and restores the mandatory template draft on return',async({page})=>{
   await openCalendar(page)
   const modal=await openCreativeModal(page)
-  const simpleButton=modal.getByRole('button',{name:'Mídia simples',exact:true})
-  const templateButton=modal.getByRole('button',{name:'Template',exact:true})
-  await templateButton.click()
-  const editor=modal.locator('.marketing-news-editor')
-  const headline=editor.locator('.marketing-creative-control').filter({hasText:'Headline'}).locator('textarea').first()
-  await headline.fill('Rascunho preservado entre formatos')
+  const headline=modal.locator('.marketing-creative-control').filter({hasText:'Headline'}).locator('textarea').first()
+  await headline.fill('Rascunho obrigatório preservado')
+  await selectType(modal,'Carrossel',1,':carousel:1x1')
+  await expect(modal.locator('.marketing-news-surface')).toHaveCount(0)
+  await expect(modal.getByText('Carrossel · mídia simples',{exact:true})).toBeVisible()
+  const input=modal.locator('.marketing-media-drop input[type="file"]')
+  await expect(input).toHaveAttribute('multiple','')
+  await input.setInputFiles([
+   {name:'carousel-a.svg',mimeType:'image/svg+xml',buffer:Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="2" height="2"/>')},
+   {name:'carousel-b.svg',mimeType:'image/svg+xml',buffer:Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="2" height="2"/>')},
+  ])
+  await expect(modal.locator('.marketing-media-thumbs>div')).toHaveCount(2)
+  await selectType(modal,'Feed',1,':feed:1x1')
+  await expect(modal.locator('.marketing-news-surface')).toBeVisible()
+  await expect(modal.locator('.marketing-creative-control').filter({hasText:'Headline'}).locator('textarea').first()).toHaveValue('Rascunho obrigatório preservado')
+  await expect(modal.locator('.marketing-media-drop')).toHaveCount(0)
+ })
+
+ test('Full is one slot and Split is exact 50/50 with zero gap',async({page})=>{
+  await openCalendar(page)
+  const modal=await openCreativeModal(page)
   await expect(modal.locator('.marketing-creative-media-region.is-full .marketing-creative-media-slot')).toHaveCount(1)
   await modal.getByRole('button',{name:'Split',exact:true}).click()
   const region=modal.locator('.marketing-creative-media-region.is-split')
@@ -239,17 +241,6 @@ test.describe('marketing content canonical format contract',()=>{
   expect(split[0].gap).toBe('0px')
   expect(split[0].columnGap).toBe('0px')
   expect(split[0].border).toBe('0px')
-  await selectType(modal,'Stories',9/16,':story:9x16')
-  await selectType(modal,'Reels',9/16,':reel:9x16')
-  await selectType(modal,'Carrossel',1,':carousel:1x1')
-  await expect(templateButton).toHaveClass(/active/)
-  await expect(modal.getByText(/Template foi preservado/)).toBeVisible()
-  await expect(modal.getByRole('button',{name:'Gerar arte final'})).toHaveCount(0)
-  await simpleButton.click()
-  await expect(templateButton).toBeDisabled()
-  await selectType(modal,'Feed',1,':feed:1x1')
-  await templateButton.click()
-  await expect(modal.locator('.marketing-creative-control').filter({hasText:'Headline'}).locator('textarea').first()).toHaveValue('Rascunho preservado entre formatos')
  })
 })
 
@@ -273,7 +264,6 @@ for(const viewport of [
    if(viewport.columns){expect(editorBounds.x).toBeGreaterThanOrEqual(previewBounds.x+previewBounds.width-1);await expect(previewColumn).toHaveCSS('position','sticky')}else{expect(editorBounds.y).toBeGreaterThanOrEqual(previewBounds.y+previewBounds.height-1);await expect(previewColumn).toHaveCSS('position','relative')}
    expect(await previewColumn.evaluate(element=>getComputedStyle(element).overflowY)).not.toBe('auto')
    expect(await editorColumn.evaluate(element=>getComputedStyle(element).overflowY)).not.toBe('auto')
-   await modal.getByRole('button',{name:'Template',exact:true}).click()
    await modal.getByRole('button',{name:'Split',exact:true}).click()
    await modal.getByRole('button',{name:'Configurações avançadas'}).click()
    const grid=modal.locator('.marketing-content-dialog-grid')
@@ -283,7 +273,7 @@ for(const viewport of [
    expect(gridScroll.overflowY).toBe('auto')
    expect(gridScroll.scrollHeight).toBeGreaterThanOrEqual(gridScroll.clientHeight)
    await assertViewportContainment(page,modal,viewport)
-   await page.screenshot({path:`test-results/visual/marketing-creative-${viewport.name}-split.png`,fullPage:true})
+   await page.screenshot({path:`test-results/visual/marketing-creative-${viewport.name}-mandatory-template.png`,fullPage:true})
   })
  })
 }

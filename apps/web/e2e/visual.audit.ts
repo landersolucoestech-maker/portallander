@@ -6,9 +6,9 @@ const internalRoutes=[
  '/app/marketing','/app/marketing/campanhas','/app/marketing/calendario','/app/marketing/tarefas',
  '/app/marketing/metricas','/app/marketing/briefings','/app/marketing/ia-criativa',
  '/app/reports','/app/settings','/app/finance','/app/finance/invoices','/app/finance/accounting','/app/finance/rules','/app/finance/categories',
- '/app/site','/app/site/home','/app/site/home/hero','/app/site/home/anuncio','/app/site/marca','/app/site/cabecalho',
+ '/app/site','/app/site/home','/app/site/home/hero','/app/site/marca','/app/site/cabecalho',
  '/app/site/conteudos','/app/site/paginas','/app/site/categorias','/app/site/midia','/app/site/noticias/anuncio','/app/site/midia-kit',
- '/app/site/formularios','/app/site/formularios/collaborate'
+ '/app/site/forms','/app/site/forms/collaborate'
 ]
 const developmentEntryRoutes=['/app/login']
 const publicRoutes=[
@@ -111,7 +111,7 @@ test.describe('site architecture behavior',()=>{
  })
 
  test('form editor updates the production renderer preview immediately',async({page})=>{
-   await openRoute(page,'/app/site/formularios/collaborate')
+   await openRoute(page,'/app/site/forms/collaborate')
    const preview=page.locator('.site-form-preview-panel')
    await expect(preview).toBeVisible()
    await expect(preview.locator('.site-form-runtime')).toBeVisible()

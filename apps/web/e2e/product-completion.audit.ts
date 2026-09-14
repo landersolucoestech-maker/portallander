@@ -29,7 +29,7 @@ async function setColorInput(locator:Locator,value:string){
 }
 
 async function proveAppearance(page:Page,formId:string,screenshotName:string){
-  await openRoute(page,`/app/site/formularios/${formId}`)
+  await openRoute(page,`/app/site/forms/${formId}`)
   const appearance=page.getByTestId('form-appearance-editor')
   const previewPanel=page.locator('.site-form-preview-panel')
   const preview=previewPanel.locator('.site-form-runtime')
@@ -72,7 +72,7 @@ async function proveAppearance(page:Page,formId:string,screenshotName:string){
 test.describe('Portal Lander product completion',()=>{
   test.use({viewport:{width:1440,height:900}})
 
-  test('Métricas stays top-level, preserves legacy routing and never falls back to mock Analytics',async({page})=>{
+  test('Métricas stays top-level, preserves canonical routing and never falls back to mock Analytics',async({page})=>{
     await openRoute(page,'/app/marketing')
     const nav=page.getByRole('navigation',{name:'Módulos da Administração'})
     const marketingGroup=nav.locator('.sidebar-nav-group').filter({has:page.getByRole('button',{name:/Marketing/i})})
@@ -81,9 +81,9 @@ test.describe('Portal Lander product completion',()=>{
     expect(labels).toEqual(['Visão Geral','Campanhas','Calendário','Tarefas','Briefings','IA Criativa'])
     const metricsLink=nav.getByRole('link',{name:'Métricas',exact:true})
     await expect(metricsLink).toBeVisible()
-    await expect(metricsLink).toHaveAttribute('href','#/app/metricas')
+    await expect(metricsLink).toHaveAttribute('href','#/app/metrics')
     await metricsLink.click()
-    await expect.poll(()=>page.evaluate(()=>window.location.hash)).toBe('#/app/metricas')
+    await expect.poll(()=>page.evaluate(()=>window.location.hash)).toBe('#/app/metrics')
     await expect(metricsLink).toHaveClass(/active/)
     await expect(page.getByLabel('Período global das métricas')).toHaveCount(0)
     await expect(page.locator('.metrics-page .marketing-metrics-period')).toHaveCount(0)
@@ -92,8 +92,8 @@ test.describe('Portal Lander product completion',()=>{
     expect((await tabs.allInnerTexts()).map(value=>value.trim())).toEqual(['Visão Geral','Site','Instagram','TikTok','YouTube'])
     await expect(page.getByTestId('metrics-overview-tab')).toBeVisible()
     await expect(page.locator('.metrics-page')).not.toContainText('MOCK')
-    await openRoute(page,'/app/marketing/metricas?tab=instagram')
-    await expect.poll(()=>page.evaluate(()=>window.location.hash)).toBe('#/app/metricas?tab=instagram')
+    await openRoute(page,'/app/metrics?tab=instagram')
+    await expect.poll(()=>page.evaluate(()=>window.location.hash)).toBe('#/app/metrics?tab=instagram')
     await expect(page.getByRole('tab',{name:'Instagram',exact:true})).toHaveAttribute('aria-selected','true')
     await assertNoHorizontalOverflow(page)
     await page.screenshot({path:'test-results/product-completion/metricas-global-1440.png',fullPage:true})
@@ -118,7 +118,7 @@ test.describe('Portal Lander product completion',()=>{
   })
 
   test('System form browser fixture is honest about persistence while the live draft remains interactive',async({page})=>{
-    await openRoute(page,'/app/site/formularios/lead-capture')
+    await openRoute(page,'/app/site/forms/lead-capture')
     const persistentNotice=page.getByText(/Editor persistente e versionado|Definição de runtime/)
     await expect(persistentNotice).toBeVisible()
     const save=page.getByRole('button',{name:'Salvar rascunho',exact:true})
@@ -127,7 +127,7 @@ test.describe('Portal Lander product completion',()=>{
   })
 
   test('Mídia Kit editor keeps all nine shared pages mounted while showing only the selected page',async({page})=>{
-    await openRoute(page,'/app/site/midia-kit')
+    await openRoute(page,'/app/site/media-kit')
     const live=page.getByTestId('media-kit-live-preview')
     await expect(live).toBeVisible()
     const document=live.locator('.mk-document')
@@ -182,10 +182,10 @@ test.describe('Portal Lander product completion',()=>{
     await expect(dashboard).not.toContainText('Tarefas Pendentes')
     for(const rejectedId of ['dashboard-executive-summary','dashboard-operational-attention','dashboard-multichannel','dashboard-crm-summary','dashboard-content-activity','dashboard-agenda','dashboard-quick-actions'])await expect(page.getByTestId(rejectedId)).toHaveCount(0)
 
-    await expect(analytics.getByRole('link',{name:/Ver métricas/i})).toHaveAttribute('href','#/app/metricas')
+    await expect(analytics.getByRole('link',{name:/Ver métricas/i})).toHaveAttribute('href','#/app/metrics')
     await expect(leads.getByRole('link',{name:/Abrir CRM/i})).toHaveAttribute('href','#/app/crm')
-    await expect(recent.getByRole('link',{name:/Ver todas/i})).toHaveAttribute('href','#/app/site/conteudos')
-    await expect(featured.getByRole('link',{name:/Ver todos/i})).toHaveAttribute('href','#/app/site/conteudos')
+    await expect(recent.getByRole('link',{name:/Ver todas/i})).toHaveAttribute('href','#/app/site/content')
+    await expect(featured.getByRole('link',{name:/Ver todos/i})).toHaveAttribute('href','#/app/site/content')
     await assertNoHorizontalOverflow(page)
     await page.screenshot({path:'test-results/product-completion/dashboard-reference.png',fullPage:true})
   })
@@ -195,7 +195,7 @@ test.describe('product completion mobile',()=>{
   test.use({viewport:{width:375,height:812}})
 
   test('Global Métricas remains usable at 375px',async({page})=>{
-    await openRoute(page,'/app/metricas')
+    await openRoute(page,'/app/metrics')
     await expect(page.getByLabel('Período global das métricas')).toHaveCount(0)
     await expect(page.locator('.metrics-page .marketing-metrics-period')).toHaveCount(0)
     await expect(page.getByRole('tablist',{name:'Fontes de Métricas'}).getByRole('tab')).toHaveCount(5)
@@ -205,7 +205,7 @@ test.describe('product completion mobile',()=>{
 
   for(const form of [{id:'lead-capture',name:'lead-capture'},{id:'collaborate',name:'colabore'}]){
     test(`${form.name} editor and preview remain usable at 375px`,async({page})=>{
-      await openRoute(page,`/app/site/formularios/${form.id}`)
+      await openRoute(page,`/app/site/forms/${form.id}`)
       await expect(page.getByTestId('form-appearance-editor')).toBeVisible()
       await expect(page.locator('.site-form-preview-panel .site-form-runtime')).toBeVisible()
       await assertNoHorizontalOverflow(page)
@@ -214,7 +214,7 @@ test.describe('product completion mobile',()=>{
   }
 
   test('Mídia Kit live preview remains scaled and navigable at 375px',async({page})=>{
-    await openRoute(page,'/app/site/midia-kit')
+    await openRoute(page,'/app/site/media-kit')
     const live=page.getByTestId('media-kit-live-preview')
     await expect(live).toBeVisible()
     await live.getByLabel('Página do Mídia Kit').selectOption('9')

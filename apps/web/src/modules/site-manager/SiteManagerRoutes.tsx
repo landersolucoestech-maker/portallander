@@ -20,9 +20,23 @@ const SiteFormsPage=lazy(()=>import('./pages/SiteFormsPage').then(module=>({defa
 const SiteMediaPage=lazy(()=>import('./pages/SiteMediaPage').then(module=>({default:module.SiteMediaPage})))
 const SiteSectionsPage=lazy(()=>import('./pages/SiteSectionsPage').then(module=>({default:module.SiteSectionsPage})))
 
+const LEGACY_HOME_SECTION_ROUTES:Readonly<Record<string,string>>={
+  hero:'hero',
+  'publicidade-lateral':'sidebar-advertising',
+  'anuncie-aqui':'advertising-cta',
+  'mais-lidas':'most-read',
+  'em-destaque':'featured',
+  'ultimas-noticias':'latest-news',
+  lancamentos:'releases',
+  agenda:'agenda',
+  'em-alta':'trending',
+  newsletter:'newsletter',
+}
+
 function LegacyPageSectionRedirect(){
   const {pageId='',sectionId=''}=useParams()
-  return <Navigate to={`/app/site/pages/${encodeURIComponent(pageId)}/sections/${encodeURIComponent(sectionId)}`} replace/>
+  const canonicalSectionId=pageId==='home'?(LEGACY_HOME_SECTION_ROUTES[sectionId]??sectionId):sectionId
+  return <Navigate to={`/app/site/pages/${encodeURIComponent(pageId)}/sections/${encodeURIComponent(canonicalSectionId)}`} replace/>
 }
 
 export default function SiteManagerRoutes(){
@@ -57,12 +71,17 @@ export default function SiteManagerRoutes(){
     <Route path="header" element={<Navigate to="/app/settings" replace/>}/>
     <Route path="footer" element={<Navigate to="/app/settings" replace/>}/>
     <Route path="settings" element={<Navigate to="/app/settings" replace/>}/>
+    <Route path="conteudos" element={<Navigate to="/app/site/content" replace/>}/>
+    <Route path="conteudos/:contentId" element={<SiteContentEditorPage/>}/>
     <Route path="content" element={<SiteContentsPage/>}/>
     <Route path="content/collaborations" element={<SiteCollaborationsPage/>}/>
     <Route path="content/:contentId" element={<SiteContentEditorPage/>}/>
     <Route path="forms" element={<SiteFormsPage/>}/>
     <Route path="forms/:formId" element={<SiteFormEditorPage/>}/>
+    <Route path="midia" element={<Navigate to="/app/site/media" replace/>}/>
     <Route path="media" element={<SiteMediaPage/>}/>
+    <Route path="midia-kit" element={<Navigate to="/app/site/media-kit" replace/>}/>
+    <Route path="midia-kit/preview" element={<Navigate to="/app/site/media-kit/preview" replace/>}/>
     <Route path="media-kit" element={<MediaKitPage/>}/>
     <Route path="media-kit/preview" element={<MediaKitPreviewPage/>}/>
     <Route path="*" element={<Navigate to="/app/site/pages" replace/>}/>

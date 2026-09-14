@@ -59,22 +59,20 @@ async function assertNoViewportRegression(page:Page,internal:boolean){
 async function assertDashboardHierarchy(page:Page){
  const kpis=page.getByTestId('dashboard-kpi-region')
  const analytics=page.getByTestId('dashboard-analytics-region')
- const todayNext=page.getByTestId('dashboard-today-next')
  const recent=page.getByTestId('dashboard-recent-activity')
+ const leads=page.getByTestId('dashboard-lead-distribution')
  const featured=page.getByTestId('dashboard-featured-content')
+ const pending=page.getByTestId('dashboard-pending-attention')
 
  await expect(kpis).toBeVisible()
  await expect(page.locator('[data-dashboard-kpi]')).toHaveCount(5)
- await expect(analytics).toBeVisible()
- await expect(todayNext).toBeVisible()
- await expect(recent).toBeVisible()
- await expect(featured).toBeVisible()
+ for(const region of [analytics,recent,leads,featured,pending])await expect(region).toBeVisible()
 
  const tabs=analytics.getByTestId('dashboard-channel-tabs')
  await expect(tabs.getByRole('tab')).toHaveCount(5)
  for(const channel of ['Visão Geral','Instagram','YouTube','TikTok','Site'])await expect(tabs.getByRole('tab',{name:channel,exact:true})).toBeVisible()
 
- for(const rejectedId of ['dashboard-executive-summary','dashboard-operational-attention','dashboard-multichannel','dashboard-quick-actions','dashboard-lead-distribution','dashboard-pending-attention'])await expect(page.locator(`[data-testid="${rejectedId}"]`)).toHaveCount(0)
+ for(const rejectedId of ['dashboard-executive-summary','dashboard-operational-attention','dashboard-multichannel','dashboard-quick-actions','dashboard-today-next'])await expect(page.locator(`[data-testid="${rejectedId}"]`)).toHaveCount(0)
 
  const positions=await page.evaluate(()=>{
   const top=(testId:string)=>document.querySelector(`[data-testid="${testId}"]`)?.getBoundingClientRect().top??Infinity
@@ -82,19 +80,22 @@ async function assertDashboardHierarchy(page:Page){
    viewport:innerWidth,
    kpis:top('dashboard-kpi-region'),
    analytics:top('dashboard-analytics-region'),
-   todayNext:top('dashboard-today-next'),
    recent:top('dashboard-recent-activity'),
+   leads:top('dashboard-lead-distribution'),
    featured:top('dashboard-featured-content'),
+   pending:top('dashboard-pending-attention'),
   }
  })
  expect(positions.kpis).toBeLessThan(positions.analytics)
- expect(positions.todayNext).toBeGreaterThanOrEqual(positions.analytics-2)
- expect(positions.recent).toBeGreaterThan(positions.analytics)
- expect(positions.featured).toBeGreaterThanOrEqual(positions.recent-2)
- if(positions.viewport<=760){
-  expect(positions.todayNext).toBeGreaterThan(positions.analytics)
-  expect(positions.recent).toBeGreaterThan(positions.todayNext)
-  expect(positions.featured).toBeGreaterThan(positions.recent)
+ expect(positions.recent).toBeGreaterThanOrEqual(positions.analytics-2)
+ expect(positions.leads).toBeGreaterThan(positions.analytics)
+ expect(positions.featured).toBeGreaterThanOrEqual(positions.leads-2)
+ expect(positions.pending).toBeGreaterThanOrEqual(positions.leads-2)
+ if(positions.viewport<=900){
+  expect(positions.recent).toBeGreaterThan(positions.analytics)
+  expect(positions.leads).toBeGreaterThan(positions.recent)
+  expect(positions.featured).toBeGreaterThanOrEqual(positions.leads-2)
+  expect(positions.pending).toBeGreaterThanOrEqual(positions.featured-2)
  }
 }
 

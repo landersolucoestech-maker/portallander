@@ -11,10 +11,30 @@ function drawMedia(ctx:CanvasRenderingContext2D,source:ImageBitmap,slot:Creative
  ctx.save();ctx.beginPath();ctx.rect(x,y,width,height);ctx.clip();ctx.drawImage(source,dx,dy,drawW,drawH);ctx.restore()
 }
 
+function splitLongWord(ctx:CanvasRenderingContext2D,word:string,maxWidth:number){
+ if(ctx.measureText(word).width<=maxWidth)return [word]
+ const chunks:string[]=[];let chunk=''
+ for(const char of Array.from(word)){const next=`${chunk}${char}`;if(chunk&&ctx.measureText(next).width>maxWidth){chunks.push(chunk);chunk=char}else chunk=next}
+ if(chunk)chunks.push(chunk)
+ return chunks
+}
+
 function wrapText(ctx:CanvasRenderingContext2D,value:string,maxWidth:number){
- const words=value.trim().split(/\s+/).filter(Boolean),lines:string[]=[];let line=''
- for(const word of words){const next=line?`${line} ${word}`:word;if(ctx.measureText(next).width>maxWidth&&line){lines.push(line);line=word}else line=next}
- if(line)lines.push(line)
+ const lines:string[]=[]
+ for(const paragraph of value.replace(/\r\n?/g,'\n').split('\n')){
+  const words=paragraph.trim().split(/\s+/).filter(Boolean)
+  if(!words.length){lines.push('');continue}
+  let line=''
+  for(const word of words){
+   const chunks=splitLongWord(ctx,word,maxWidth)
+   for(const [index,chunk] of chunks.entries()){
+    const next=line?`${line}${index===0?' ':''}${chunk}`:chunk
+    if(line&&ctx.measureText(next).width>maxWidth){lines.push(line);line=chunk}else line=next
+    if(index<chunks.length-1){lines.push(line);line=''}
+   }
+  }
+  if(line)lines.push(line)
+ }
  return lines
 }
 

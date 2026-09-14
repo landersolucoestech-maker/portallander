@@ -1,4 +1,6 @@
-import type {CreativeAvatarLayer,CreativeBrandLayer,CreativeConfig,CreativeTextLayer} from '../domain'
+import type {CreativeAvatarLayer,CreativeBrandLayer,CreativeConfig,CreativeProfile,CreativeTextLayer} from '../domain'
+
+export type NewsCreativeConfig=CreativeConfig&{mode:'template';profile:CreativeProfile;headline:CreativeTextLayer;bodyText:CreativeTextLayer;watermark:CreativeBrandLayer;layout:'full'|'split';background:string}
 
 const text=(value:string,fontSize:number,fontWeight:number):CreativeTextLayer=>({text:value,visible:true,fontFamily:'Montserrat',fontWeight,fontSize,lineHeight:1.08,letterSpacing:0,color:'#FFFFFF',align:'left',x:0,y:0,width:100})
 const avatar=(source:'global'|'custom'='global'):CreativeAvatarLayer=>({source,visible:true,size:11,zoom:1,positionX:50,positionY:50})
@@ -7,7 +9,7 @@ const handle=(value:string)=>{const normalized=value.trim();return normalized?no
 
 export const simpleCreative=():CreativeConfig=>({version:1,mode:'simple',renderState:{status:'clean'}})
 
-export function createNewsCreative(title=''):CreativeConfig{
+export function createNewsCreative(title=''):NewsCreativeConfig{
  return {
   version:1,
   mode:'template',
@@ -23,33 +25,34 @@ export function createNewsCreative(title=''):CreativeConfig{
  }
 }
 
-export function normalizeNewsCreative(input:CreativeConfig,title=''):CreativeConfig{
- if(input.mode!=='template')return input
- const legacyLogo=input.logo
+export function normalizeNewsCreative(input:CreativeConfig,title=''):NewsCreativeConfig{
+ const source=input.mode==='template'?input:createNewsCreative(title)
+ const legacyLogo=source.logo
  const legacyAvatar:CreativeAvatarLayer=legacyLogo?.source==='custom'&&legacyLogo.url&&legacyLogo.assetId
   ?{...avatar('custom'),assetId:legacyLogo.assetId,url:legacyLogo.url}
   :avatar()
- const profile=input.profile?{
-  avatar:{...avatar(input.profile.avatar.source),...input.profile.avatar},
-  name:input.profile.name.trim()||'Portal Lander',
-  handle:handle(input.profile.handle),
+ const profile=source.profile?{
+  avatar:{...avatar(source.profile.avatar.source),...source.profile.avatar},
+  name:source.profile.name.trim()||'Portal Lander',
+  handle:handle(source.profile.handle),
  }:{avatar:legacyAvatar,name:'Portal Lander',handle:'@portallander'}
- const headline=input.headline??text(title,54,800)
- const bodyText=input.bodyText??input.subtitle??text('',29,500)
- const nextWatermark=input.watermark??watermark()
- const {logo:legacyLogoField,subtitle:legacySubtitleField,...rest}=input
+ const headline=source.headline??text(title,54,800)
+ const bodyText=source.bodyText??source.subtitle??text('',29,500)
+ const nextWatermark=source.watermark??watermark()
+ const {logo:legacyLogoField,subtitle:legacySubtitleField,...rest}=source
  void legacyLogoField
  void legacySubtitleField
  return {
   ...rest,
-  templateKey:input.templateKey||'news-portal-lander',
-  category:input.category||'news',
-  layout:input.layout||'full',
+  mode:'template',
+  templateKey:source.templateKey||'news-portal-lander',
+  category:source.category||'news',
+  layout:source.layout||'full',
   profile,
   headline,
   bodyText,
   watermark:{...watermark(),...nextWatermark},
-  background:input.background||'#050505',
+  background:source.background||'#050505',
  }
 }
 

@@ -50,6 +50,10 @@ export const mockNotifications: any = generatedRuntimeData.mockNotifications
 export const mockReportsSeed: any = generatedRuntimeData.mockReportsSeed
 export const mockHrSeed: any = generatedRuntimeData.mockHrSeed
 export const mockSchedulerEvents: any = generatedRuntimeData.mockSchedulerEvents
-export const mockSettingsSeed: any = generatedRuntimeData.mockSettingsSeed
+export const mockSettingsSeed: any = (()=>{
+ const seed=structuredClone(generatedRuntimeData.mockSettingsSeed)
+ seed.company={...seed.company,tradeName:'Portal Lander',responsible:''}
+ return seed
+})()
 export const mockSocialChannels: any = generatedRuntimeData.mockSocialChannels
 export const mockUsers: any = generatedRuntimeData.mockUsers

@@ -1,11 +1,12 @@
 const blockedTags=new Set(['script','iframe','object','embed','link','meta','base','form','input','button','textarea','select','option'])
 const allowedProtocols=new Set(['http:','https:','mailto:','tel:'])
+const safeUrlBase='https://portal.invalid'
 
 function safeUrl(value:string){
  const trimmed=value.trim()
  if(!trimmed||trimmed.startsWith('#')||trimmed.startsWith('/'))return trimmed
  try{
-  const parsed=new URL(trimmed,window.location.origin)
+  const parsed=new URL(trimmed,safeUrlBase)
   return allowedProtocols.has(parsed.protocol)?trimmed:''
  }catch{return ''}
 }

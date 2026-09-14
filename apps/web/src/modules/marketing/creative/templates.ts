@@ -34,7 +34,7 @@ export function normalizeNewsCreative(input:CreativeConfig,title=''):NewsCreativ
   ?{...avatar('custom'),assetId:legacyLogo.assetId,url:legacyLogo.url}
   :avatar()
  const profile=source.profile?{
-  avatar:{...avatar(source.profile.avatar.source),...source.profile.avatar},
+  avatar:{...avatar(source.profile.avatar.source),...source.profile.avatar,visible:true},
   name:source.profile.name.trim()||'Portal Lander',
   handle:handle(source.profile.handle),
  }:{avatar:legacyAvatar,name:'Portal Lander',handle:'@portallander'}

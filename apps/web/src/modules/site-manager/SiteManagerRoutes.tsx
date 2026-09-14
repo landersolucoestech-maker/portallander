@@ -72,10 +72,13 @@ export default function SiteManagerRoutes(){
     <Route path="footer" element={<Navigate to="/app/settings" replace/>}/>
     <Route path="settings" element={<Navigate to="/app/settings" replace/>}/>
     <Route path="conteudos" element={<Navigate to="/app/site/content" replace/>}/>
+    <Route path="conteudos/colaboracoes" element={<SiteCollaborationsPage/>}/>
     <Route path="conteudos/:contentId" element={<SiteContentEditorPage/>}/>
     <Route path="content" element={<SiteContentsPage/>}/>
     <Route path="content/collaborations" element={<SiteCollaborationsPage/>}/>
     <Route path="content/:contentId" element={<SiteContentEditorPage/>}/>
+    <Route path="formularios" element={<SiteFormsPage/>}/>
+    <Route path="formularios/:formId" element={<SiteFormEditorPage/>}/>
     <Route path="forms" element={<SiteFormsPage/>}/>
     <Route path="forms/:formId" element={<SiteFormEditorPage/>}/>
     <Route path="midia" element={<Navigate to="/app/site/media" replace/>}/>

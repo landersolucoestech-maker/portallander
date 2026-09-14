@@ -1,6 +1,50 @@
 import {portalLogo} from '../../../shared/branding/assets/brandAsset'
-import type {CreativeBrandLayer,CreativeConfig,CreativeMediaSlot} from '../domain'
+import type {CreativeAvatarLayer,CreativeBrandLayer,CreativeMediaSlot,CreativeTextLayer} from '../domain'
 import type {CreativeFormat} from './formatRegistry'
-const brandUrl=(layer:CreativeBrandLayer|undefined)=>layer?.source==='custom'?layer.url:portalLogo
-function Media({slot}:{slot?:CreativeMediaSlot}){if(!slot)return <div className="marketing-creative-empty-slot">Selecione uma imagem</div>;return <img src={slot.url} alt={slot.name||'Mídia do criativo'} style={{objectFit:slot.fit,transform:`scale(${slot.zoom})`,objectPosition:`${slot.positionX}% ${slot.positionY}%`}}/>}
-export function CreativeTemplateSurface({creative,format}:{creative:CreativeConfig;format:CreativeFormat}){const headline=creative.headline,subtitle=creative.subtitle,logo=creative.logo,watermark=creative.watermark;return <div className="marketing-creative-surface" style={{aspectRatio:String(format.aspectRatio),background:creative.background||'#050505'}}><div className="marketing-creative-brand" style={{left:`${logo?.x??7}%`,top:`${logo?.y??5}%`,width:`${logo?.width??24}%`,opacity:logo?.opacity??1,display:logo?.visible===false?'none':'block'}}><img src={brandUrl(logo)} alt="Logo do Portal Lander"/></div>{headline?.visible!==false&&<div className="marketing-creative-text marketing-creative-headline" style={{left:`${headline?.x??7}%`,top:`${headline?.y??14}%`,width:`${headline?.width??86}%`,color:headline?.color,fontFamily:headline?.fontFamily,fontWeight:headline?.fontWeight,textAlign:headline?.align,fontSize:`${Math.max(18,(headline?.fontSize??64)/4)}px`,lineHeight:headline?.lineHeight,letterSpacing:`${(headline?.letterSpacing??0)/4}px`}}>{headline?.text||'Headline da notícia'}</div>}{subtitle?.visible!==false&&subtitle?.text&&<div className="marketing-creative-text marketing-creative-subtitle" style={{left:`${subtitle.x}%`,top:`${subtitle.y}%`,width:`${subtitle.width}%`,color:subtitle.color,fontFamily:subtitle.fontFamily,fontWeight:subtitle.fontWeight,textAlign:subtitle.align,fontSize:`${Math.max(12,subtitle.fontSize/4)}px`,lineHeight:subtitle.lineHeight}}>{subtitle.text}</div>}<div className={`marketing-creative-media-region ${creative.layout==='split'?'is-split':''}`}><div className="marketing-creative-media-slot"><Media slot={creative.primarySlot}/></div>{creative.layout==='split'&&<div className="marketing-creative-media-slot"><Media slot={creative.secondarySlot}/></div>}</div>{watermark?.visible!==false&&<div className="marketing-creative-watermark" style={{left:`${watermark?.x??59}%`,top:`${watermark?.y??82}%`,width:`${watermark?.width??34}%`,opacity:watermark?.opacity??.16}}><img src={brandUrl(watermark)} alt="Marca d'água"/></div>}</div>}
+import {normalizeNewsCreative} from './templates'
+
+const sourceUrl=(layer:CreativeAvatarLayer|CreativeBrandLayer)=>layer.source==='global'?portalLogo:layer.url
+const profileHandle=(value:string)=>{const normalized=value.trim();return normalized.startsWith('@')?normalized:`@${normalized}`}
+
+function Media({slot}:{slot?:CreativeMediaSlot}){
+ if(!slot)return <div className="marketing-creative-media-slot is-empty"><span>Mídia</span></div>
+ const style={objectFit:slot.fit,objectPosition:`${slot.positionX}% ${slot.positionY}%`,transform:`scale(${slot.zoom})`}
+ return <div className="marketing-creative-media-slot">{slot.kind==='video'?<video src={slot.url} style={style} autoPlay loop muted playsInline/>:<img src={slot.url} alt={slot.name} style={style}/>}</div>
+}
+
+function ProfileAvatar({avatar}:{avatar:CreativeAvatarLayer}){
+ const url=sourceUrl(avatar)
+ return <div className="marketing-news-avatar" style={{width:`${avatar.size}%`}}>{avatar.visible&&url?<img src={url} alt="Avatar do perfil" style={{objectPosition:`${avatar.positionX}% ${avatar.positionY}%`,transform:`scale(${avatar.zoom})`}}/>:<span>PL</span>}</div>
+}
+
+function VisualText({layer,className}:{layer:CreativeTextLayer;className:string}){
+ if(!layer.visible||!layer.text.trim())return null
+ return <p className={className} style={{fontFamily:layer.fontFamily,fontWeight:layer.fontWeight,color:layer.color,textAlign:layer.align,lineHeight:layer.lineHeight,letterSpacing:layer.letterSpacing}}>{layer.text}</p>
+}
+
+function Watermark({layer}:{layer:CreativeBrandLayer}){
+ const url=sourceUrl(layer)
+ if(!layer.visible||!url)return null
+ return <img className="marketing-creative-watermark" src={url} alt="Marca d'água" style={{left:`${layer.x}%`,top:`${layer.y}%`,width:`${layer.width}%`,opacity:layer.opacity}}/>
+}
+
+export function CreativeTemplateSurface({creative,format}:{creative:Parameters<typeof normalizeNewsCreative>[0];format:CreativeFormat}){
+ const news=normalizeNewsCreative(creative)
+ return <div className={`marketing-creative-surface marketing-news-surface ${format.aspectRatio<.8?'is-vertical':'is-square'}`} style={{background:news.background}} data-template={news.templateKey}>
+  <section className="marketing-news-header">
+   <div className="marketing-news-profile">
+    <ProfileAvatar avatar={news.profile.avatar}/>
+    <div className="marketing-news-profile-text"><strong>{news.profile.name}</strong><span>{profileHandle(news.profile.handle)}</span></div>
+   </div>
+   <div className="marketing-news-copy">
+    <VisualText layer={news.headline} className="marketing-news-headline"/>
+    <VisualText layer={news.bodyText} className="marketing-news-body"/>
+   </div>
+  </section>
+  <div className={`marketing-creative-media-region ${news.layout==='split'?'is-split':'is-full'}`}>
+   <Media slot={news.primarySlot}/>
+   {news.layout==='split'&&<Media slot={news.secondarySlot}/>} 
+   <Watermark layer={news.watermark}/>
+  </div>
+ </div>
+}

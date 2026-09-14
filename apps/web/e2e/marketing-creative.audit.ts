@@ -216,8 +216,7 @@ test.describe('marketing content canonical format contract',()=>{
   })).toBe(true)
   const watermark=surface.locator('.marketing-creative-watermark')
   await expect(watermark).toBeVisible()
-  await expect(watermark).toHaveCSS('left','50%')
-  await expect(watermark).toHaveCSS('top','50%')
+  expect(await watermark.evaluate(element=>({left:(element as HTMLElement).style.left,top:(element as HTMLElement).style.top}))).toEqual({left:'50%',top:'50%'})
  })
 
  test('Full is one slot, Split is exact 50/50 with zero gap and template draft survives format changes',async({page})=>{

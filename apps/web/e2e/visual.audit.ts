@@ -2,13 +2,13 @@ import {expect,test,type Page} from '@playwright/test'
 
 const base='http://127.0.0.1:4173/portallander/'
 const internalRoutes=[
- '/app/profile','/app/dashboard','/app/crm','/app/contracts','/app/agenda','/app/chat','/app/chat/settings','/app/rh',
- '/app/marketing','/app/marketing/campanhas','/app/marketing/calendario','/app/marketing/tarefas',
- '/app/marketing/metricas','/app/marketing/briefings','/app/marketing/ia-criativa',
+ '/app/profile','/app/dashboard','/app/crm','/app/contracts','/app/agenda','/app/chat','/app/chat/settings','/app/hr',
+ '/app/marketing','/app/marketing/campaigns','/app/marketing/calendar','/app/marketing/tasks',
+ '/app/metrics','/app/marketing/briefings','/app/marketing/creative-ai',
  '/app/reports','/app/settings','/app/finance','/app/finance/invoices','/app/finance/accounting','/app/finance/rules','/app/finance/categories',
- '/app/site','/app/site/home','/app/site/home/hero','/app/site/home/anuncio','/app/site/marca','/app/site/cabecalho',
- '/app/site/conteudos','/app/site/paginas','/app/site/categorias','/app/site/midia','/app/site/noticias/anuncio','/app/site/midia-kit',
- '/app/site/formularios','/app/site/formularios/collaborate'
+ '/app/site/pages','/app/site/pages/home/sections/hero','/app/site/pages/home/sections/advertising-cta',
+ '/app/site/content','/app/site/content/collaborations','/app/site/media','/app/site/media-kit',
+ '/app/site/forms','/app/site/forms/collaborate'
 ]
 const developmentEntryRoutes=['/app/login']
 const publicRoutes=[
@@ -30,6 +30,7 @@ async function openRoute(page:Page,route:string){
  await page.waitForFunction(()=>document.querySelector('#root')?.childElementCount!==0)
  await page.evaluate(async()=>{try{if(document.fonts)await Promise.race([document.fonts.ready,new Promise(resolve=>setTimeout(resolve,1200))])}catch{/* visual audit still validates fallback rendering */}})
  await page.waitForTimeout(120)
+ await expect.poll(()=>page.evaluate(()=>window.location.hash),{message:`${route}: visual audit route must not silently redirect`}).toBe(`#${route}`)
 }
 
 async function assertViewportIntegrity(page:Page,internal:boolean){
@@ -65,7 +66,9 @@ for(const viewport of viewports){
    }
    for(const route of developmentEntryRoutes){
      test(`development entry ${route}`,async({page})=>{
-       await openRoute(page,route)
+       await page.goto(`${base}#${route}`,{waitUntil:'domcontentloaded'})
+       await page.locator('#root').waitFor({state:'attached'})
+       await page.waitForFunction(()=>document.querySelector('#root')?.childElementCount!==0)
        await expect.poll(()=>page.evaluate(()=>window.location.hash)).toContain('/app/dashboard')
        await assertViewportIntegrity(page,true)
        await page.screenshot({path:`test-results/visual/${viewport.name}-development-entry-${safeName(route)}.png`,fullPage:true})
@@ -111,7 +114,7 @@ test.describe('site architecture behavior',()=>{
  })
 
  test('form editor updates the production renderer preview immediately',async({page})=>{
-   await openRoute(page,'/app/site/formularios/collaborate')
+   await openRoute(page,'/app/site/forms/collaborate')
    const preview=page.locator('.site-form-preview-panel')
    await expect(preview).toBeVisible()
    await expect(preview.locator('.site-form-runtime')).toBeVisible()
@@ -124,7 +127,7 @@ test.describe('site architecture behavior',()=>{
  })
 
  test('page draft lifecycle preserves canonical editorial sections',async({page})=>{
-   await openRoute(page,'/app/site/paginas')
+   await openRoute(page,'/app/site/pages')
    await page.getByRole('button',{name:'Criar página'}).click()
    await page.getByLabel('Nome da página').fill('Música E2E')
    await page.getByRole('button',{name:'Criar rascunho'}).click()
@@ -153,7 +156,7 @@ test.describe('modal viewport integrity',()=>{
    {route:'/app/crm',button:/Novo Contato/i},
    {route:'/app/agenda',button:/Novo Evento/i},
    {route:'/app/finance',button:/Nova Transação/i},
-   {route:'/app/marketing/campanhas',button:/Nova Campanha/i},
+   {route:'/app/marketing/campaigns',button:/Nova Campanha/i},
  ]
  for(const item of cases){
    test(`${item.route} modal remains inside mobile viewport`,async({page})=>{

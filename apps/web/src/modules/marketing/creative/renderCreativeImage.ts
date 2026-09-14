@@ -41,7 +41,7 @@ export async function renderCreativeImage(creative:Parameters<typeof normalizeNe
  if(news.layout==='split'&&!news.secondarySlot)throw new Error('Mídia secundária obrigatória para Split.')
  const canvas=document.createElement('canvas');canvas.width=format.width;canvas.height=format.height
  const ctx=canvas.getContext('2d');if(!ctx)throw new Error('Canvas indisponível.')
- const square=format.aspectRatio>=.8,headerRatio=square?.30:.22,headerHeight=Math.round(canvas.height*headerRatio),mediaY=headerHeight,mediaHeight=canvas.height-mediaY
+ const square=format.aspectRatio>=.8,headerRatio=square?0.30:0.22,headerHeight=Math.round(canvas.height*headerRatio),mediaY=headerHeight,mediaHeight=canvas.height-mediaY
  ctx.fillStyle='#FFFFFF';ctx.fillRect(0,0,canvas.width,headerHeight)
  ctx.fillStyle=news.background;ctx.fillRect(0,mediaY,canvas.width,mediaHeight)
  const padding=Math.round(canvas.width*.038),copyWidth=canvas.width-padding*2,copyTop=Math.round(canvas.width*.038)

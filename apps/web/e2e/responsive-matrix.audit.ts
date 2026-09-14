@@ -68,8 +68,8 @@ async function assertDashboardHierarchy(page:Page){
  await expect(page.locator('[data-dashboard-kpi]')).toHaveCount(5)
 
  const tabs=analytics.getByTestId('dashboard-channel-tabs')
- await expect(tabs.getByRole('tab')).toHaveCount(5)
- for(const channel of ['Visão Geral','Instagram','YouTube','TikTok','Site'])await expect(tabs.getByRole('tab',{name:channel,exact:true})).toBeVisible()
+ await expect(tabs.getByRole('tab')).toHaveCount(4)
+ for(const channel of ['Website','Instagram','TikTok','YouTube'])await expect(tabs.getByRole('tab',{name:channel,exact:true})).toBeVisible()
 
  for(const rejectedId of ['dashboard-executive-summary','dashboard-operational-attention','dashboard-multichannel','dashboard-quick-actions','dashboard-today-next'])await expect(page.locator(`[data-testid="${rejectedId}"]`)).toHaveCount(0)
 

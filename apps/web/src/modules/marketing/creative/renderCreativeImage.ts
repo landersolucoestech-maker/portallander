@@ -57,7 +57,7 @@ export async function renderCreativeImage(creative:Parameters<typeof normalizeNe
  let flowY=drawFlowText(ctx,news.headline,padding,copyTop,copyWidth,canvas.width,square?2:3)
  flowY+=Math.round(canvas.width*.012)
  flowY=drawFlowText(ctx,news.bodyText,padding,flowY,copyWidth,canvas.width,square?2:4)
- const minMediaShare=square?.58:.7,idealMediaY=Math.max(flowY+Math.round(canvas.width*.025),Math.round(canvas.height*(1-minMediaShare))),maxMediaY=Math.round(canvas.height*(square?.42:.3)),mediaY=Math.min(idealMediaY,maxMediaY),mediaHeight=canvas.height-mediaY
+ const minMediaShare=square ? .58 : .7,idealMediaY=Math.max(flowY+Math.round(canvas.width*.025),Math.round(canvas.height*(1-minMediaShare))),maxMediaY=Math.round(canvas.height*(square ? .42 : .3)),mediaY=Math.min(idealMediaY,maxMediaY),mediaHeight=canvas.height-mediaY
  const primary=await image(news.primarySlot.url)
  if(news.layout==='split'){
   const secondarySlot=news.secondarySlot

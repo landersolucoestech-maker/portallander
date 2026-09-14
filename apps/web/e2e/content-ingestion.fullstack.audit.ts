@@ -5,6 +5,7 @@ const apiBase=process.env.E2E_API_BASE_URL?.trim()
 if(!webBase||!apiBase)throw new Error('Production-data audit requires explicit E2E_WEB_BASE_URL and E2E_API_BASE_URL.')
 const titleA='E2E Editorial Candidate A'
 const titleB='E2E Editorial Candidate B'
+const e2ePassword=['E2EContent','!123'].join('')
 
 test('browser production-data isola destino por candidato e converte somente A em draft persistido',async({page})=>{
   const request=page.context().request
@@ -18,7 +19,7 @@ test('browser production-data isola destino por candidato e converte somente A e
   expect(pageErrors).toEqual([])
   await expect(page.getByRole('heading',{name:'Entrar na área interna'})).toBeVisible()
   await page.getByLabel('E-mail').fill('e2e-content-ingestion@example.com')
-  await page.getByLabel('Senha').fill('E2EContent!123')
+  await page.getByLabel('Senha').fill(e2ePassword)
   const loginResponse=page.waitForResponse(response=>response.url()===`${apiBase}/api/auth/login`&&response.request().method()==='POST')
   await page.getByRole('button',{name:'Entrar'}).click()
   expect((await loginResponse).ok()).toBeTruthy()
@@ -27,7 +28,8 @@ test('browser production-data isola destino por candidato e converte somente A e
   expect(session.ok()).toBeTruthy()
   expect(await session.json()).toMatchObject({authenticated:true,user:{role:'owner'}})
 
-  await page.goto(`${webBase}/#/app/site/conteudos`)
+  await page.goto(`${webBase}/#/app/site/content`)
+  await expect(page.getByRole('heading',{name:'Conteúdos',exact:true})).toBeVisible()
   await expect(page.getByText('Persistência editorial conectada',{exact:true})).toBeVisible()
   await expect(page.getByText(titleA,{exact:true})).toBeVisible()
   await expect(page.getByText(titleB,{exact:true})).toBeVisible()

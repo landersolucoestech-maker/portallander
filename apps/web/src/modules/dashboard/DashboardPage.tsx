@@ -165,7 +165,7 @@ export default function DashboardPage(){
 
    <section className="dashboard-primary-row" aria-label="Performance e atividades recentes">
     <section className="dashboard-reference-panel dashboard-performance-panel" data-testid="dashboard-analytics-region" aria-labelledby="dashboard-performance-title">
-     <header className="dashboard-panel-heading"><div className="dashboard-title-with-icon"><span className="dashboard-section-icon"><BarChart3 size={20}/></span><div><h2 id="dashboard-performance-title">Performance</h2><p>Website e canais sociais em uma única visão</p></div></div><Link to="/app/metricas">Ver métricas <ArrowRight size={14}/></Link></header>
+     <header className="dashboard-panel-heading"><div className="dashboard-title-with-icon"><span className="dashboard-section-icon"><BarChart3 size={20}/></span><div><h2 id="dashboard-performance-title">Performance</h2><p>Website e canais sociais em uma única visão</p></div></div><Link to="/app/metrics">Ver métricas <ArrowRight size={14}/></Link></header>
      <div className="dashboard-channel-tabs dashboard-reference-tabs" data-testid="dashboard-channel-tabs" role="tablist" aria-label="Canais de performance">
       {(['site','instagram','tiktok','youtube'] as const).map(tab=><button key={tab} type="button" role="tab" aria-selected={performanceTab===tab} onClick={()=>setPerformanceTab(tab)}>{performanceTabLabels[tab]}</button>)}
      </div>

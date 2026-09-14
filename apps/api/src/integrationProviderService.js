@@ -1,5 +1,6 @@
 import {HttpError} from './editorialService.js'
 import {googleAnalyticsConfig} from './googleAnalyticsProvider.js'
+import {instagramMarketingConfig} from './instagramMarketingProvider.js'
 
 const AUTENTIQUE_DEFAULT_URL='https://api.autentique.com.br/v2/graphql'
 const META_GRAPH_BASE='https://graph.facebook.com'
@@ -38,6 +39,7 @@ export function integrationProviderConfig(env=process.env){
     spotify:{configured:Boolean(clean(env.SPOTIFY_CLIENT_ID)&&clean(env.SPOTIFY_CLIENT_SECRET)&&clean(env.SPOTIFY_REDIRECT_URI)&&clean(env.SPOTIFY_TOKEN_ENCRYPTION_KEY))},
     resend:{configured:Boolean(clean(env.RESEND_API_KEY))},
     google:{configured:googleAnalyticsConfig(env).configured},
+    meta:{configured:instagramMarketingConfig(env).configured},
   }
 }
 
@@ -111,6 +113,6 @@ export const whatsappProvider={
 export function integrationRuntimeStatus(){
   const cfg=integrationProviderConfig()
   return {
-    autentique:{implementation:'partial',configured:cfg.autentique.configured},meta:{implementation:'planned',configured:false},tiktok:{implementation:'planned',configured:false},google:{implementation:'partial',configured:cfg.google.configured},spotify:{implementation:'partial',configured:cfg.spotify.configured},nfe:{implementation:'planned',configured:false},whatsapp:{implementation:'partial',configured:cfg.whatsapp.configured,webhookVerifyTokenConfigured:cfg.whatsapp.verifyTokenConfigured},resend:{implementation:'partial',configured:cfg.resend.configured},
+    autentique:{implementation:'partial',configured:cfg.autentique.configured},meta:{implementation:'partial',configured:cfg.meta.configured},tiktok:{implementation:'planned',configured:false},google:{implementation:'partial',configured:cfg.google.configured},spotify:{implementation:'partial',configured:cfg.spotify.configured},nfe:{implementation:'planned',configured:false},whatsapp:{implementation:'partial',configured:cfg.whatsapp.configured,webhookVerifyTokenConfigured:cfg.whatsapp.verifyTokenConfigured},resend:{implementation:'partial',configured:cfg.resend.configured},
   }
 }

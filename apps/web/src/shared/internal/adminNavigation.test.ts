@@ -10,9 +10,9 @@ describe('admin navigation',()=>{
     expect(labels).toEqual(['Dashboard','CRM','Contratos','Financeiro','Agenda','Chat','RH','Métricas','Site','Marketing','Relatórios','Configurações'])
   })
 
-  it('preserves the required user-facing routes in the unified shell',()=>{
+  it('preserves the canonical internal routes in the unified navigation model',()=>{
     const serialized=JSON.stringify(UNIFIED_ADMIN_NAV)
-    for(const route of ['/app/dashboard','/app/crm','/app/contracts','/app/finance','/app/finance/invoices','/app/finance/accounting','/app/agenda','/app/chat','/app/hr','/app/metricas','/app/site/content','/app/site/media','/app/site/pages','/app/site/forms','/app/site/media-kit','/app/marketing','/app/reports','/app/settings'])expect(serialized).toContain(route)
+    for(const route of ['/app/dashboard','/app/crm','/app/contracts','/app/finance','/app/finance/invoices','/app/finance/accounting','/app/agenda','/app/chat','/app/hr','/app/metrics','/app/site/content','/app/site/media','/app/site/pages','/app/site/forms','/app/site/media-kit','/app/marketing','/app/reports','/app/settings'])expect(serialized).toContain(route)
     expect(serialized).not.toContain('/app/marketing/metrics')
     expect(serialized).not.toContain('/app/marketing/metricas')
   })

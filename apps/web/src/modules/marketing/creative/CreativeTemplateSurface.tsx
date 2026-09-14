@@ -1,9 +1,10 @@
-import {portalLogo} from '../../../shared/branding/assets/brandAsset'
-import type {CreativeBrandLayer,CreativeMediaSlot,CreativeTextLayer} from '../domain'
+import {portalAvatarMark,portalLogo} from '../../../shared/branding/assets/brandAsset'
+import type {CreativeAvatarLayer,CreativeBrandLayer,CreativeMediaSlot,CreativeTextLayer} from '../domain'
 import type {CreativeFormat} from './formatRegistry'
 import {normalizeNewsCreative} from './templates'
 
 const brandUrl=(layer:CreativeBrandLayer)=>layer.source==='global'?portalLogo:layer.url
+const avatarUrl=(layer:CreativeAvatarLayer)=>layer.source==='global'?portalAvatarMark:layer.url
 
 function Media({slot}:{slot?:CreativeMediaSlot}){
  if(!slot)return <div className="marketing-creative-media-slot is-empty"><span>Mídia</span></div>
@@ -16,6 +17,14 @@ function VisualText({layer,className}:{layer:CreativeTextLayer;className:string}
  return <p className={className} style={{fontFamily:layer.fontFamily,fontWeight:layer.fontWeight,color:layer.color,textAlign:layer.align,lineHeight:layer.lineHeight,letterSpacing:layer.letterSpacing}}>{layer.text}</p>
 }
 
+function Profile({profile}:{profile:ReturnType<typeof normalizeNewsCreative>['profile']}){
+ const url=avatarUrl(profile.avatar)
+ return <div className="marketing-news-profile" data-template-part="profile">
+  <div className="marketing-news-avatar" style={{width:`${profile.avatar.size}%`}}>{url?<img src={url} alt="Identidade do perfil" style={{objectPosition:`${profile.avatar.positionX}% ${profile.avatar.positionY}%`,transform:`scale(${profile.avatar.zoom})`}}/>:<span>PL</span>}</div>
+  <div className="marketing-news-profile-text"><strong>{profile.name}</strong><span>{profile.handle}</span></div>
+ </div>
+}
+
 function Watermark({layer}:{layer:CreativeBrandLayer}){
  const url=brandUrl(layer)
  if(!layer.visible||!url)return null
@@ -25,8 +34,9 @@ function Watermark({layer}:{layer:CreativeBrandLayer}){
 export function CreativeTemplateSurface({creative,format}:{creative:Parameters<typeof normalizeNewsCreative>[0];format:CreativeFormat}){
  const news=normalizeNewsCreative(creative)
  return <div className={`marketing-creative-surface marketing-news-surface ${format.aspectRatio<.8?'is-vertical':'is-square'}`} data-template={news.templateKey}>
-  <section className="marketing-news-header" data-template-part="copy">
-   <div className="marketing-news-copy">
+  <section className="marketing-news-header" data-template-part="identity-copy">
+   <Profile profile={news.profile}/>
+   <div className="marketing-news-copy" data-template-part="copy">
     <VisualText layer={news.headline} className="marketing-news-headline"/>
     <VisualText layer={news.bodyText} className="marketing-news-body"/>
    </div>

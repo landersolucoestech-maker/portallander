@@ -87,6 +87,15 @@ for(const viewport of viewports){
 test.describe('site architecture behavior',()=>{
  test.use({viewport:{width:1440,height:900}})
 
+ test('legacy Mídia Kit route redirects explicitly to the canonical route',async({page})=>{
+   const legacyRoute='/app/site/midia-kit'
+   await page.goto(`${base}#${legacyRoute}`,{waitUntil:'domcontentloaded'})
+   await page.locator('#root').waitFor({state:'attached'})
+   await page.waitForFunction(()=>document.querySelector('#root')?.childElementCount!==0)
+   await expect.poll(()=>page.evaluate(()=>window.location.hash)).toBe('#/app/site/media-kit')
+   await expect(page.getByTestId('media-kit-live-preview')).toBeVisible()
+ })
+
  test('noticias and cultura share the canonical editorial listing template',async({page})=>{
    for(const route of ['/noticias','/cultura']){
      await openRoute(page,route)

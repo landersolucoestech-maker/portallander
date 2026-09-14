@@ -136,7 +136,7 @@ jobs:
     outputs:
       page_url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
-    needs: build
+    needs: [build, visual-audit]
     steps:
       - name: Deploy to GitHub Pages
         id: deployment

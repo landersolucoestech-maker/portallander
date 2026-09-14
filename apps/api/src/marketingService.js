@@ -25,6 +25,7 @@ const enumValue=(value,allowed,label)=>{const normalized=text(value);if(!allowed
 const dateValue=value=>{const normalized=text(value);if(!/^\d{4}-\d{2}-\d{2}$/.test(normalized)||Number.isNaN(new Date(`${normalized}T12:00:00Z`).getTime()))throw new HttpError(400,'Data de publicação inválida.','MARKETING_DATE_INVALID');return normalized}
 const timeValue=value=>{const normalized=text(value).slice(0,5);if(!/^([01]\d|2[0-3]):[0-5]\d$/.test(normalized))throw new HttpError(400,'Hora de publicação inválida.','MARKETING_TIME_INVALID');return normalized}
 const persistentUrl=value=>{const normalized=text(value);if(!/^https?:\/\//i.test(normalized))throw new HttpError(400,'Mídia criativa deve usar uma URL persistente da biblioteca de mídia.','MARKETING_CREATIVE_PERSISTENT_URL_REQUIRED');return normalized}
+const profileHandle=value=>{const normalized=text(value);if(!normalized)return '@portallander';return normalized.startsWith('@')?normalized:`@${normalized}`}
 
 export function normalizeMarketingContentTypeForWrite(value,currentType=''){
   const normalized=required(value??currentType,'type')
@@ -49,14 +50,27 @@ function normalizeMediaSlot(input){
 
 function normalizeTextLayer(input,fallbackText=''){
   const value=object(input)
-  return {text:String(value.text??fallbackText),visible:bool(value.visible,true),fontFamily:text(value.fontFamily)||'Montserrat',fontWeight:number(value.fontWeight,800,100,900),fontSize:number(value.fontSize,64,10,240),lineHeight:number(value.lineHeight,1.05,.7,2),letterSpacing:number(value.letterSpacing,0,-8,24),color:text(value.color)||'#FFFFFF',align:enumValue(value.align||'left',TEXT_ALIGNMENTS,'creative.text.align'),x:number(value.x,7,0,100),y:number(value.y,12,0,100),width:number(value.width,86,5,100)}
+  return {text:String(value.text??fallbackText),visible:bool(value.visible,true),fontFamily:text(value.fontFamily)||'Montserrat',fontWeight:number(value.fontWeight,800,100,900),fontSize:number(value.fontSize,54,10,240),lineHeight:number(value.lineHeight,1.08,.7,2),letterSpacing:number(value.letterSpacing,0,-8,24),color:text(value.color)||'#FFFFFF',align:enumValue(value.align||'left',TEXT_ALIGNMENTS,'creative.text.align'),x:number(value.x,0,0,100),y:number(value.y,0,0,100),width:number(value.width,100,5,100)}
 }
 
-function normalizeBrandLayer(input,{visible=true,opacity=1,width=24}={}){
+function normalizeBrandLayer(input,{visible=true,opacity=.2,x=50,y=50,width=26,align='center'}={}){
   const value=object(input),source=enumValue(value.source||'global',BRAND_SOURCES,'creative.brand.source')
-  const result={source,visible:bool(value.visible,visible),opacity:number(value.opacity,opacity,0,1),x:number(value.x,7,0,100),y:number(value.y,5,0,100),width:number(value.width,width,2,80),align:enumValue(value.align||'left',TEXT_ALIGNMENTS,'creative.brand.align')}
+  const result={source,visible:bool(value.visible,visible),opacity:number(value.opacity,opacity,0,1),x:number(value.x,x,0,100),y:number(value.y,y,0,100),width:number(value.width,width,2,80),align:enumValue(value.align||align,TEXT_ALIGNMENTS,'creative.brand.align')}
   if(source==='custom')return {...result,assetId:required(value.assetId,'creative.brand.assetId'),url:persistentUrl(value.url)}
   return result
+}
+
+function normalizeAvatarLayer(input){
+  const value=object(input),source=enumValue(value.source||'global',BRAND_SOURCES,'creative.profile.avatar.source')
+  const result={source,visible:bool(value.visible,true),size:number(value.size,11,5,28),zoom:number(value.zoom,1,1,4),positionX:number(value.positionX,50,0,100),positionY:number(value.positionY,50,0,100)}
+  if(source==='custom')return {...result,assetId:required(value.assetId,'creative.profile.avatar.assetId'),url:persistentUrl(value.url)}
+  return result
+}
+
+function normalizeProfile(input,legacyLogo){
+  const value=object(input),legacy=object(legacyLogo),legacyAvatar=legacy.source==='custom'?{source:'custom',visible:legacy.visible,assetId:legacy.assetId,url:legacy.url}:{source:'global',visible:legacy.visible}
+  const avatarInput=Object.keys(object(value.avatar)).length?value.avatar:legacyAvatar
+  return {avatar:normalizeAvatarLayer(avatarInput),name:text(value.name)||'Portal Lander',handle:profileHandle(value.handle)}
 }
 
 function normalizeOutput(input){
@@ -91,7 +105,7 @@ export function normalizeCreativeConfig(input,{contentStatus='producao',format=n
   const effectiveOutput=staleOutput?undefined:output
   const effectiveRenderStatus=staleOutput?'dirty':renderStatus
   if(requiresReady&&(effectiveRenderStatus!=='ready'||!effectiveOutput))throw new HttpError(409,'O criativo foi alterado ou ainda não possui arte final persistida. Gere novamente antes de agendar.','MARKETING_CREATIVE_RENDER_REQUIRED')
-  return {version:1,mode:'template',templateKey:text(value.templateKey)||'news-portal-lander',category:text(value.category)||'news',layout,...(format?{formatKey:format.id}:incomingFormatKey?{formatKey:incomingFormatKey}:{}),...(primarySlot?{primarySlot}:{}),...(secondarySlot?{secondarySlot}:{}),headline:normalizeTextLayer(value.headline),subtitle:normalizeTextLayer(value.subtitle),logo:normalizeBrandLayer(value.logo,{visible:true,opacity:1,width:24}),watermark:normalizeBrandLayer(value.watermark,{visible:true,opacity:.16,width:34}),background:text(value.background)||'#050505',renderState:{status:effectiveRenderStatus,...(renderState.error&&effectiveRenderStatus==='failed'?{error:text(renderState.error)}:{})},...(effectiveOutput?{output:effectiveOutput}:{})}
+  return {version:1,mode:'template',templateKey:text(value.templateKey)||'news-portal-lander',category:text(value.category)||'news',layout,...(format?{formatKey:format.id}:incomingFormatKey?{formatKey:incomingFormatKey}:{}),...(primarySlot?{primarySlot}:{}),...(secondarySlot?{secondarySlot}:{}),profile:normalizeProfile(value.profile,value.logo),headline:normalizeTextLayer(value.headline),bodyText:normalizeTextLayer(value.bodyText??value.subtitle),watermark:normalizeBrandLayer(value.watermark),background:text(value.background)||'#050505',renderState:{status:effectiveRenderStatus,...(renderState.error&&effectiveRenderStatus==='failed'?{error:text(renderState.error)}:{})},...(effectiveOutput?{output:effectiveOutput}:{})}
 }
 
 function normalizeContent(input,current={}){

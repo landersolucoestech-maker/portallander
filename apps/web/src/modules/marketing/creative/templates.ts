@@ -2,10 +2,12 @@ import type {CreativeAvatarLayer,CreativeBrandLayer,CreativeConfig,CreativeProfi
 
 export type NewsCreativeConfig=CreativeConfig&{mode:'template';profile:CreativeProfile;headline:CreativeTextLayer;bodyText:CreativeTextLayer;watermark:CreativeBrandLayer;layout:'full'|'split';background:string}
 
-const text=(value:string,fontSize:number,fontWeight:number):CreativeTextLayer=>({text:value,visible:true,fontFamily:'Montserrat',fontWeight,fontSize,lineHeight:1.08,letterSpacing:0,color:'#FFFFFF',align:'left',x:0,y:0,width:100})
-const avatar=(source:'global'|'custom'='global'):CreativeAvatarLayer=>({source,visible:true,size:11,zoom:1,positionX:50,positionY:50})
+const headerTextColor='#111111'
+const text=(value:string,fontSize:number,fontWeight:number):CreativeTextLayer=>({text:value,visible:true,fontFamily:'Montserrat',fontWeight,fontSize,lineHeight:1.12,letterSpacing:0,color:headerTextColor,align:'left',x:0,y:0,width:100})
+const avatar=(source:'global'|'custom'='global'):CreativeAvatarLayer=>({source,visible:true,size:13,zoom:1,positionX:50,positionY:50})
 const watermark=():CreativeBrandLayer=>({source:'global',visible:true,opacity:.2,x:50,y:50,width:26,align:'center'})
 const handle=(value:string)=>{const normalized=value.trim();return normalized?normalized.startsWith('@')?normalized:`@${normalized}`:'@portallander'}
+const readableHeaderLayer=(layer:CreativeTextLayer,fallback:CreativeTextLayer):CreativeTextLayer=>{const next={...fallback,...layer};return {...next,color:next.color.trim().toUpperCase()==='#FFFFFF'?headerTextColor:next.color}}
 
 export const simpleCreative=():CreativeConfig=>({version:1,mode:'simple',renderState:{status:'clean'}})
 
@@ -17,10 +19,10 @@ export function createNewsCreative(title=''):NewsCreativeConfig{
   category:'news',
   layout:'full',
   profile:{avatar:avatar(),name:'Portal Lander',handle:'@portallander'},
-  headline:text(title,54,800),
-  bodyText:text('',29,500),
+  headline:text(title,40,800),
+  bodyText:text('',30,600),
   watermark:watermark(),
-  background:'#050505',
+  background:'#0B0B0B',
   renderState:{status:'dirty'},
  }
 }
@@ -36,8 +38,8 @@ export function normalizeNewsCreative(input:CreativeConfig,title=''):NewsCreativ
   name:source.profile.name.trim()||'Portal Lander',
   handle:handle(source.profile.handle),
  }:{avatar:legacyAvatar,name:'Portal Lander',handle:'@portallander'}
- const headline=source.headline??text(title,54,800)
- const bodyText=source.bodyText??source.subtitle??text('',29,500)
+ const headline=readableHeaderLayer(source.headline??text(title,40,800),text(title,40,800))
+ const bodyText=readableHeaderLayer(source.bodyText??source.subtitle??text('',30,600),text('',30,600))
  const nextWatermark=source.watermark??watermark()
  const {logo:legacyLogoField,subtitle:legacySubtitleField,...rest}=source
  void legacyLogoField
@@ -52,7 +54,7 @@ export function normalizeNewsCreative(input:CreativeConfig,title=''):NewsCreativ
   headline,
   bodyText,
   watermark:{...watermark(),...nextWatermark},
-  background:source.background||'#050505',
+  background:source.background||'#0B0B0B',
  }
 }
 

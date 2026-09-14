@@ -20,23 +20,9 @@ const SiteFormsPage=lazy(()=>import('./pages/SiteFormsPage').then(module=>({defa
 const SiteMediaPage=lazy(()=>import('./pages/SiteMediaPage').then(module=>({default:module.SiteMediaPage})))
 const SiteSectionsPage=lazy(()=>import('./pages/SiteSectionsPage').then(module=>({default:module.SiteSectionsPage})))
 
-const LEGACY_HOME_SECTION_ROUTES:Readonly<Record<string,string>>={
-  hero:'hero',
-  'publicidade-lateral':'sidebar-advertising',
-  'anuncie-aqui':'advertising-cta',
-  'mais-lidas':'most-read',
-  'em-destaque':'featured',
-  'ultimas-noticias':'latest-news',
-  lancamentos:'releases',
-  agenda:'agenda',
-  'em-alta':'trending',
-  newsletter:'newsletter',
-}
-
 function LegacyPageSectionRedirect(){
   const {pageId='',sectionId=''}=useParams()
-  const canonicalSectionId=pageId==='home'?(LEGACY_HOME_SECTION_ROUTES[sectionId]??sectionId):sectionId
-  return <Navigate to={`/app/site/pages/${encodeURIComponent(pageId)}/sections/${encodeURIComponent(canonicalSectionId)}`} replace/>
+  return <Navigate to={`/app/site/pages/${encodeURIComponent(pageId)}/sections/${encodeURIComponent(sectionId)}`} replace/>
 }
 
 export default function SiteManagerRoutes(){

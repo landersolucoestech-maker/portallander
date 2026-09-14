@@ -25,7 +25,7 @@ const monthKey=(now:Date)=>`${now.getUTCFullYear()}-${String(now.getUTCMonth()+1
 const formatDate=(raw:string|undefined|null)=>{if(!raw)return '—';const date=new Date(raw);return Number.isFinite(date.getTime())?date.toLocaleDateString('pt-BR'):'—'}
 const formatTime=(raw:string|undefined|null)=>{if(!raw)return '—';const date=new Date(raw);return Number.isFinite(date.getTime())?date.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}):'—'}
 const formatMonth=(raw:string)=>{const [year,month]=raw.split('-').map(Number);if(!year||!month)return raw;const label=new Date(Date.UTC(year,month-1,1)).toLocaleDateString('pt-BR',{month:'long',year:'numeric',timeZone:'UTC'});return label.charAt(0).toUpperCase()+label.slice(1)}
-const performanceTabLabels:Record<'overview'|DashboardChannelPulse['key'],string>={overview:'Visão Geral',site:'Site',instagram:'Instagram',tiktok:'TikTok',youtube:'YouTube'}
+const performanceTabLabels:Record<DashboardChannelPulse['key'],string>={site:'Website',instagram:'Instagram',tiktok:'TikTok',youtube:'YouTube'}
 const leadStageLabels:Record<string,string>={novo:'Novos',contato:'Contato',proposta:'Proposta',negociacao:'Negociação',fechado:'Fechados',perdido:'Perdidos'}
 const leadStageOrder=['novo','contato','proposta','negociacao','fechado','perdido']
 const developmentAnalytics=import.meta.env.DEV||import.meta.env.VITE_ENABLE_DEMO_DATA==='true'
@@ -97,7 +97,7 @@ export default function DashboardPage(){
  const analytics=useQuery({queryKey:['dashboard','analytics','30d'],queryFn:loadDashboardAnalytics,staleTime:30_000,refetchOnWindowFocus:false,retry:1})
  const activity=useActivityHistory(8)
  const data=authenticated?adminDashboard.data:dashboardReadModel.snapshot()
- const [performanceTab,setPerformanceTab]=useState<'overview'|DashboardChannelPulse['key']>('overview')
+ const [performanceTab,setPerformanceTab]=useState<DashboardChannelPulse['key']>('site')
 
  const channels=useMemo(()=>resolveMultichannelPulses(analytics.data?.overview??null,analytics.data?.metrics??[],developmentAnalytics),[analytics.data])
  const websiteSeries=useMemo(()=>resolveDashboardPageviews(analytics.data?.metrics??[]),[analytics.data?.metrics])
@@ -118,7 +118,7 @@ export default function DashboardPage(){
   const y=92-(point.value/maxChartValue)*72
   return `${x.toFixed(2)},${y.toFixed(2)}`
  }).join(' ')
- const activeChannel=performanceTab==='overview'?null:channels.find(channel=>channel.key===performanceTab)??null
+ const activeChannel=channels.find(channel=>channel.key===performanceTab)??null
  const maxChannelValue=Math.max(1,...channels.map(channel=>channel.value??0))
  const overview=analytics.data?.overview
  const reach=metricValue(overview?.ga4.overview.users)
@@ -151,7 +151,7 @@ export default function DashboardPage(){
     </article>
     <article className="dashboard-kpi-card" data-dashboard-kpi="month-revenue">
      <span className="dashboard-kpi-icon"><CircleDollarSign size={21}/></span>
-     <div className="dashboard-kpi-copy"><span data-dashboard-kpi-label>Faturamento (mês)</span><div className="dashboard-kpi-value-line"><strong>{data.availability.finance?money(data.financeSummary.monthRevenue):'—'}</strong>{trendLabel(revenueTrend)&&<span className={`dashboard-trend ${revenueTrend!==null&&revenueTrend<0?'is-negative':''}`}><TrendingUp size={11}/>{trendLabel(revenueTrend)}</span>}</div><small>{data.availability.finance?'receita paga no mês':'Fonte financeira indisponível'}</small></div>
+     <div className="dashboard-kpi-copy"><span data-dashboard-kpi-label>Faturamento (Mês)</span><div className="dashboard-kpi-value-line"><strong>{data.availability.finance?money(data.financeSummary.monthRevenue):'—'}</strong>{trendLabel(revenueTrend)&&<span className={`dashboard-trend ${revenueTrend!==null&&revenueTrend<0?'is-negative':''}`}><TrendingUp size={11}/>{trendLabel(revenueTrend)}</span>}</div><small>{data.availability.finance?'receita paga no mês':'Fonte financeira indisponível'}</small></div>
     </article>
     <article className="dashboard-kpi-card" data-dashboard-kpi="published-content">
      <span className="dashboard-kpi-icon"><FileText size={21}/></span>
@@ -159,17 +159,17 @@ export default function DashboardPage(){
     </article>
     <article className="dashboard-kpi-card" data-dashboard-kpi="site-visits">
      <span className="dashboard-kpi-icon"><Eye size={21}/></span>
-     <div className="dashboard-kpi-copy"><span data-dashboard-kpi-label>Visitas no Site (mês)</span><div className="dashboard-kpi-value-line"><strong>{formatMetric(views)}</strong></div><small>{views===null?'Google Analytics indisponível':'últimos 30 dias'}</small></div>
+     <div className="dashboard-kpi-copy"><span data-dashboard-kpi-label>Visitas no Site</span><div className="dashboard-kpi-value-line"><strong>{formatMetric(views)}</strong></div><small>{views===null?'Google Analytics indisponível':'últimos 30 dias'}</small></div>
     </article>
    </section>
 
    <section className="dashboard-primary-row" aria-label="Performance e atividades recentes">
     <section className="dashboard-reference-panel dashboard-performance-panel" data-testid="dashboard-analytics-region" aria-labelledby="dashboard-performance-title">
-     <header className="dashboard-panel-heading"><div className="dashboard-title-with-icon"><span className="dashboard-section-icon"><BarChart3 size={20}/></span><div><h2 id="dashboard-performance-title">Performance / Analytics</h2><p>Website e canais sociais em uma única visão</p></div></div><Link to="/app/metrics">Ver métricas <ArrowRight size={14}/></Link></header>
+     <header className="dashboard-panel-heading"><div className="dashboard-title-with-icon"><span className="dashboard-section-icon"><BarChart3 size={20}/></span><div><h2 id="dashboard-performance-title">Performance</h2><p>Website e canais sociais em uma única visão</p></div></div><Link to="/app/metricas">Ver métricas <ArrowRight size={14}/></Link></header>
      <div className="dashboard-channel-tabs dashboard-reference-tabs" data-testid="dashboard-channel-tabs" role="tablist" aria-label="Canais de performance">
-      {(['overview','instagram','youtube','tiktok','site'] as const).map(tab=><button key={tab} type="button" role="tab" aria-selected={performanceTab===tab} onClick={()=>setPerformanceTab(tab)}>{performanceTabLabels[tab]}</button>)}
+      {(['site','instagram','tiktok','youtube'] as const).map(tab=><button key={tab} type="button" role="tab" aria-selected={performanceTab===tab} onClick={()=>setPerformanceTab(tab)}>{performanceTabLabels[tab]}</button>)}
      </div>
-     {performanceTab==='overview'?<>
+     {performanceTab==='site'?<>
       <div className="dashboard-performance-kpis" data-testid="dashboard-performance-summary">
        <article><span className="dashboard-mini-icon"><Eye size={16}/></span><div><small>Alcance</small><strong>{formatMetric(reach)}</strong><em>{reach===null?'GA4 indisponível':'usuários únicos'}</em></div></article>
        <article><span className="dashboard-mini-icon"><Play size={16}/></span><div><small>Visualizações</small><strong>{formatMetric(views)}</strong><em>{views===null?'GA4 indisponível':'pageviews'}</em></div></article>
@@ -187,7 +187,7 @@ export default function DashboardPage(){
     </section>
 
     <aside className="dashboard-reference-panel dashboard-recent-panel" data-testid="dashboard-recent-activity" aria-labelledby="dashboard-recent-title">
-     <header className="dashboard-panel-heading"><div className="dashboard-title-with-icon"><span className="dashboard-section-icon"><TrendingUp size={20}/></span><div><h2 id="dashboard-recent-title">Atividades Recentes</h2><p>Últimas ações realizadas no portal</p></div></div><Link to="/app/site/content">Ver todas <ArrowRight size={14}/></Link></header>
+     <header className="dashboard-panel-heading"><div className="dashboard-title-with-icon"><span className="dashboard-section-icon"><TrendingUp size={20}/></span><div><h2 id="dashboard-recent-title">Atividades Recentes</h2><p>Últimas ações realizadas no portal</p></div></div><Link to="/app/site/conteudos">Ver todas <ArrowRight size={14}/></Link></header>
      <div className="dashboard-recent-list">{activity.isLoading?<div className="dashboard-empty-inline">Carregando movimentações…</div>:recentActivity.length?recentActivity.map(item=><article key={item.id}><span className="dashboard-row-icon"><FileText size={15}/></span><div><strong>{item.title}</strong><p>{item.action==='published'?'Conteúdo publicado':'Conteúdo atualizado'} · {item.category}</p></div><time dateTime={item.occurred_at}>{formatDate(item.occurred_at)} <small>{formatTime(item.occurred_at)}</small></time></article>):<div className="dashboard-empty-inline"><strong>Nenhuma atividade recente</strong><p>Não há eventos editoriais legítimos para exibir nesta carga.</p></div>}</div>
     </aside>
    </section>
@@ -199,12 +199,12 @@ export default function DashboardPage(){
     </section>
 
     <section className="dashboard-reference-panel dashboard-featured-panel" data-testid="dashboard-featured-content" aria-labelledby="dashboard-content-title">
-     <header className="dashboard-panel-heading"><div className="dashboard-title-with-icon"><span className="dashboard-section-icon"><FileText size={20}/></span><div><h2 id="dashboard-content-title">Conteúdos em Destaque</h2><p>Publicações recentes do site</p></div></div><Link to="/app/site/content">Ver conteúdos <ArrowRight size={14}/></Link></header>
+     <header className="dashboard-panel-heading"><div className="dashboard-title-with-icon"><span className="dashboard-section-icon"><FileText size={20}/></span><div><h2 id="dashboard-content-title">Conteúdos em Destaque</h2><p>Publicações recentes do site</p></div></div><Link to="/app/site/conteudos">Ver todos <ArrowRight size={14}/></Link></header>
      <div className="dashboard-featured-list">{data.availability.editorial&&data.featuredContents.length?data.featuredContents.map(item=><article key={item.id}><div className="dashboard-featured-thumb">{item.coverImage?<img src={item.coverImage} alt=""/>:<FileText size={20}/>}</div><div><strong>{item.title}</strong><time dateTime={item.publishedAt??item.updatedAt}>{formatDate(item.publishedAt??item.updatedAt)}</time></div><span className="dashboard-channel-pill">Site</span><MoreHorizontal size={16}/></article>):<div className="dashboard-empty-inline"><strong>Nenhum conteúdo publicado</strong><p>O painel permanece vazio sem inventar destaques.</p></div>}</div>
     </section>
 
     <section className="dashboard-reference-panel dashboard-pending-panel" data-testid="dashboard-pending-attention" aria-labelledby="dashboard-pending-title">
-     <header className="dashboard-panel-heading"><div className="dashboard-title-with-icon"><span className="dashboard-section-icon"><CheckSquare size={20}/></span><div><h2 id="dashboard-pending-title">Pendências & Atenção</h2><p>Itens que exigem ação</p></div></div></header>
+     <header className="dashboard-panel-heading"><div className="dashboard-title-with-icon"><span className="dashboard-section-icon"><CheckSquare size={20}/></span><div><h2 id="dashboard-pending-title">Pendências</h2><p>Itens que exigem ação</p></div></div></header>
      {attention.length?<div className="dashboard-pending-list">{attention.map(item=><Link className="dashboard-alert-item" data-attention-kind={item.kind} key={item.id} to={item.href}><span className="dashboard-alert-icon"><CheckSquare size={14}/></span><div><strong>{item.title}</strong><p>{item.detail}</p></div><ArrowRight size={14}/></Link>)}</div>:<div className="dashboard-empty-inline"><strong>Nenhuma pendência crítica</strong><p>As fontes disponíveis não indicam ação pendente agora.</p></div>}
     </section>
    </section>

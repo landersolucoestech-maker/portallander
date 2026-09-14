@@ -2,7 +2,7 @@ import {describe,expect,it} from 'vitest'
 import type {MarketingContent} from './domain'
 import {currentMonthKey,isUpcomingDeliveryDate,upcomingDeliveries} from './marketingTime'
 
-const content=(publishDate:string,status:MarketingContent['status']='agendado'):MarketingContent=>({id:`${publishDate}-${status}`,title:'Conteúdo',context:'Editorial',subject:'Pauta',channels:['Site'],type:'Post',publishDate,publishTime:'12:00',copy:'Texto',campaign:'',hashtags:'',location:'',status,approval:'aprovado',owner:'Marketing',createdAt:'',updatedAt:''})
+const content=(publishDate:string,status:MarketingContent['status']='agendado'):MarketingContent=>({id:`${publishDate}-${status}`,title:'Conteúdo',context:'Notícias',subject:'Pauta',channels:['Site'],type:'Post',publishDate,publishTime:'12:00',body:'Corpo da notícia',copy:'Texto',campaign:'',hashtags:[],location:'',status,approval:'aprovado',owner:'Marketing',createdAt:'',updatedAt:''})
 
 describe('marketing temporal semantics',()=>{
   it('derives the visible calendar month from the current clock',()=>{

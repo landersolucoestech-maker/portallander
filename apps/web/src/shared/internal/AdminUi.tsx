@@ -16,6 +16,7 @@ export type AdminShellAction={label:string;onClick?:()=>void;disabled?:boolean;d
 const isNavGroup=(item:AdminNavItem):item is AdminNavGroup=>!Array.isArray(item)
 const initials=(name:string)=>name.split(/\s+/).filter(Boolean).slice(0,2).map(part=>part[0]?.toUpperCase()??'').join('')||'PL'
 const adminRoleLabel=(role:'owner'|'admin'|'editor')=>role==='owner'?'Proprietário':role==='admin'?'Administrador':'Editor'
+const localizedAdminHref=(to:string)=>to==='/app/metrics'?'/app/metricas':to
 
 function HeaderActionButton({action}:{action:AdminShellAction}){
   const secondary=action.variant==='secondary'
@@ -110,12 +111,12 @@ export function AdminShell({area,items,children,header,headerAction,headerAction
         {items.map(item=>{
           if(isNavGroup(item)){
             const GroupIcon=item.icon
-            const activeChild=item.children.some(([, ,to])=>to===location.pathname||(to!=='/app/marketing'&&to!=='/app/site'&&location.pathname.startsWith(`${to}/`)))
+            const activeChild=item.children.some(([, ,to])=>localizedAdminHref(to)===location.pathname||(to!=='/app/marketing'&&to!=='/app/site'&&location.pathname.startsWith(`${localizedAdminHref(to)}/`)))
             const expanded=expandedGroups[item.label]??activeChild
-            return <div className={`sidebar-nav-group${expanded?' expanded':''}`} key={item.label}><button className="sidebar-nav-group-label" type="button" aria-expanded={expanded} onClick={()=>setExpandedGroups(current=>({...current,[item.label]:!expanded}))}><GroupIcon size={17}/><span>{item.label}</span><ChevronDown size={13}/></button>{expanded&&<div className="sidebar-subnav">{item.children.map(([label,Icon,to])=><NavLink end className="sidebar-subnav-link" key={to} to={to}><Icon size={14}/><span>{label}</span></NavLink>)}</div>}</div>
+            return <div className={`sidebar-nav-group${expanded?' expanded':''}`} key={item.label}><button className="sidebar-nav-group-label" type="button" aria-expanded={expanded} onClick={()=>setExpandedGroups(current=>({...current,[item.label]:!expanded}))}><GroupIcon size={17}/><span>{item.label}</span><ChevronDown size={13}/></button>{expanded&&<div className="sidebar-subnav">{item.children.map(([label,Icon,to])=><NavLink end className="sidebar-subnav-link" key={to} to={localizedAdminHref(to)}><Icon size={14}/><span>{label}</span></NavLink>)}</div>}</div>
           }
           const [label,Icon,to]=item
-          return <NavLink key={to} end={to==='/app/dashboard'||to==='/app/crm'||to==='/app/agenda'||to==='/app/chat'||to==='/app/rh'||to==='/app/metricas'} to={to}><Icon size={17}/><span>{label}</span></NavLink>
+          return <NavLink key={to} end={to==='/app/dashboard'||to==='/app/crm'||to==='/app/agenda'||to==='/app/chat'||to==='/app/rh'||to==='/app/metrics'} to={localizedAdminHref(to)}><Icon size={17}/><span>{label}</span></NavLink>
         })}
       </nav>
     </aside>
@@ -124,5 +125,5 @@ export function AdminShell({area,items,children,header,headerAction,headerAction
 }
 
 export function AdminNotice({title,description}:{title:string;description:string}){return <div className="admin-notice"><div><strong>{title}</strong><p>{description}</p></div></div>}
-export function AdminEmpty({title,description}:{title:string;description:string}){return <div className="admin-empty"><strong>{title}</strong><p>{description}</p></div>}
+export function AdminEmpty({title,description}:{title:string;description:string}){return <div className="admin-empty"><strong>{title}</strong><p>{description}</p></div></div>}
 export function AdminKpi({label,value,detail,icon}:{label:string;value:string;detail:string;icon:ReactNode}){return <div className="admin-kpi"><div className="admin-kpi-top"><span className="admin-kpi-label">{label}</span><span className="admin-kpi-icon">{icon}</span></div><strong>{value}</strong><small>{detail}</small></div>}

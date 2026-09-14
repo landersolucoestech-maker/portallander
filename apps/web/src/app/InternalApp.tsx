@@ -50,6 +50,7 @@ function InternalRoutes(){return <Suspense fallback={null}><Routes>
   <Route path="/app/chat" element={protectedRoute(<ChatPage/>)}/>
   <Route path="/app/chat/settings" element={protectedRoute(<ChatAutomationSettingsPage/>)}/>
   <Route path="/app/hr" element={protectedRoute(<HRPage/>)}/>
+  <Route path="/app/metricas" element={protectedRoute(<MetricsPage/>)}/>
   <Route path="/app/metrics" element={protectedRoute(<MetricsPage/>)}/>
   <Route path="/app/marketing/*" element={protectedRoute(<MarketingPage/>)}/>
   <Route path="/app/reports" element={protectedRoute(<ReportsPage/>)}/>

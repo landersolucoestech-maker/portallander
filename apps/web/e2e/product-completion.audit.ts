@@ -29,7 +29,7 @@ async function setColorInput(locator:Locator,value:string){
 }
 
 async function proveAppearance(page:Page,formId:string,screenshotName:string){
-  await openRoute(page,`/app/site/formularios/${formId}`)
+  await openRoute(page,`/app/site/forms/${formId}`)
   const appearance=page.getByTestId('form-appearance-editor')
   const previewPanel=page.locator('.site-form-preview-panel')
   const preview=previewPanel.locator('.site-form-runtime')
@@ -118,7 +118,7 @@ test.describe('Portal Lander product completion',()=>{
   })
 
   test('System form browser fixture is honest about persistence while the live draft remains interactive',async({page})=>{
-    await openRoute(page,'/app/site/formularios/lead-capture')
+    await openRoute(page,'/app/site/forms/lead-capture')
     const persistentNotice=page.getByText(/Editor persistente e versionado|Definição de runtime/)
     await expect(persistentNotice).toBeVisible()
     const save=page.getByRole('button',{name:'Salvar rascunho',exact:true})
@@ -205,7 +205,7 @@ test.describe('product completion mobile',()=>{
 
   for(const form of [{id:'lead-capture',name:'lead-capture'},{id:'collaborate',name:'colabore'}]){
     test(`${form.name} editor and preview remain usable at 375px`,async({page})=>{
-      await openRoute(page,`/app/site/formularios/${form.id}`)
+      await openRoute(page,`/app/site/forms/${form.id}`)
       await expect(page.getByTestId('form-appearance-editor')).toBeVisible()
       await expect(page.locator('.site-form-preview-panel .site-form-runtime')).toBeVisible()
       await assertNoHorizontalOverflow(page)

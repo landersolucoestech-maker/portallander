@@ -167,20 +167,20 @@ test.describe('Portal Lander product completion',()=>{
 
     await expect(dashboard).toBeVisible()
     await expect(kpiRegion.locator('[data-dashboard-kpi]')).toHaveCount(5)
-    for(const label of ['Novos Leads','Negociações','Faturamento (Mês)','Conteúdos Publicados','Visitas no Site'])await expect(kpiRegion.getByText(label,{exact:true})).toBeVisible()
+    for(const label of ['Novos Leads','Negociações','Faturamento (mês)','Conteúdos Publicados','Visitas no Site (mês)'])await expect(kpiRegion.getByText(label,{exact:true})).toBeVisible()
     for(const region of [analytics,recent,leads,featured,pending])await expect(region).toBeVisible()
-    await expect(page.getByRole('heading',{name:'Performance',exact:true})).toBeVisible()
+    await expect(page.getByRole('heading',{name:'Performance / Analytics',exact:true})).toBeVisible()
     await expect(page.getByRole('heading',{name:'Atividades Recentes',exact:true})).toBeVisible()
     await expect(page.getByRole('heading',{name:'Distribuição de Leads',exact:true})).toBeVisible()
     await expect(page.getByRole('heading',{name:'Conteúdos em Destaque',exact:true})).toBeVisible()
-    await expect(page.getByRole('heading',{name:'Pendências',exact:true})).toBeVisible()
+    await expect(page.getByRole('heading',{name:'Pendências & Atenção',exact:true})).toBeVisible()
 
     const channelTabs=analytics.getByRole('tablist',{name:'Canais de performance'}).getByRole('tab')
-    await expect(channelTabs).toHaveCount(4)
-    expect((await channelTabs.allInnerTexts()).map(value=>value.trim())).toEqual(['Website','Instagram','TikTok','YouTube'])
+    await expect(channelTabs).toHaveCount(5)
+    expect((await channelTabs.allInnerTexts()).map(value=>value.trim())).toEqual(['Visão Geral','Instagram','YouTube','TikTok','Site'])
     await expect(analytics).not.toContainText('MOCK')
     await expect(dashboard).not.toContainText('Tarefas Pendentes')
-    for(const rejectedId of ['dashboard-executive-summary','dashboard-operational-attention','dashboard-multichannel','dashboard-crm-summary','dashboard-content-activity','dashboard-agenda','dashboard-quick-actions'])await expect(page.getByTestId(rejectedId)).toHaveCount(0)
+    for(const rejectedId of ['dashboard-executive-summary','dashboard-operational-attention','dashboard-multichannel','dashboard-crm-summary','dashboard-content-activity','dashboard-agenda','dashboard-quick-actions','dashboard-today-next'])await expect(page.getByTestId(rejectedId)).toHaveCount(0)
 
     await expect(analytics.getByRole('link',{name:/Ver métricas/i})).toHaveAttribute('href','#/app/metrics')
     await expect(leads.getByRole('link',{name:/Abrir CRM/i})).toHaveAttribute('href','#/app/crm')
@@ -235,7 +235,7 @@ test.describe('product completion mobile',()=>{
 
     await expect(kpis.locator('[data-dashboard-kpi]')).toHaveCount(5)
     for(const region of [analytics,recent,leads,featured,pending])await expect(region).toBeVisible()
-    await expect(analytics.getByRole('tablist',{name:'Canais de performance'}).getByRole('tab')).toHaveCount(4)
+    await expect(analytics.getByRole('tablist',{name:'Canais de performance'}).getByRole('tab')).toHaveCount(5)
     const order=await page.evaluate(()=>{
       const top=(id:string)=>document.querySelector(`[data-testid="${id}"]`)?.getBoundingClientRect().top??Infinity
       return {
@@ -253,7 +253,7 @@ test.describe('product completion mobile',()=>{
     expect(order.leads).toBeLessThan(order.featured)
     expect(order.featured).toBeLessThan(order.pending)
     await expect(dashboard).not.toContainText('Tarefas Pendentes')
-    for(const rejectedId of ['dashboard-executive-summary','dashboard-operational-attention','dashboard-multichannel','dashboard-quick-actions'])await expect(page.getByTestId(rejectedId)).toHaveCount(0)
+    for(const rejectedId of ['dashboard-executive-summary','dashboard-operational-attention','dashboard-multichannel','dashboard-quick-actions','dashboard-today-next'])await expect(page.getByTestId(rejectedId)).toHaveCount(0)
     await assertNoHorizontalOverflow(page)
     await page.screenshot({path:'test-results/product-completion/mobile-dashboard-reference.png',fullPage:true})
   })

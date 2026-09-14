@@ -1,5 +1,5 @@
 /* Dashboard tablet contract: secondary summaries remain one aligned row until the mobile composition breakpoint. */
 @media (min-width:901px) and (max-width:1180px){
-  .dashboard-secondary-row{grid-template-columns:repeat(3,minmax(0,1fr))}
-  .dashboard-pending-panel{grid-column:auto}
+  .dashboard-secondary-row{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+  .dashboard-pending-panel{grid-column:auto!important}
 }

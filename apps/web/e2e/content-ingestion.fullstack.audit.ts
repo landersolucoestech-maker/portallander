@@ -32,7 +32,14 @@ test('browser production-data isola destino por candidato e converte somente A e
   await expect(page.getByRole('heading',{name:'Conteúdos',exact:true})).toBeVisible()
   await expect(page.getByText('Persistência editorial conectada',{exact:true})).toBeVisible()
   await expect(page.getByText(titleA,{exact:true})).toBeVisible()
-  await expect(page.getByText(titleB,{exact:true})).toBeVisible()
+  const candidateB=page.getByText(titleB,{exact:true})
+  console.log('E2E_CANDIDATE_B_VISIBILITY='+JSON.stringify(await candidateB.evaluate(node=>{
+    const chain:Array<Record<string,unknown>>=[]
+    let current:HTMLElement|null=node as HTMLElement
+    while(current&&chain.length<8){const style=getComputedStyle(current),rect=current.getBoundingClientRect();chain.push({tag:current.tagName,className:current.className,display:style.display,visibility:style.visibility,opacity:style.opacity,width:rect.width,height:rect.height,top:rect.top,bottom:rect.bottom,overflow:style.overflow});current=current.parentElement}
+    return chain
+  })))
+  await expect(candidateB).toBeVisible()
   const rowA=()=>page.getByRole('row').filter({hasText:titleA})
   const rowB=()=>page.getByRole('row').filter({hasText:titleB})
   await rowA().getByRole('button',{name:'Revisar'}).click()

@@ -5,7 +5,7 @@ import {normalizeCreativeConfig,normalizeMarketingContentTypeForWrite} from './m
 
 const imageSlot={assetId:'media_1',url:'https://cdn.example/image.jpg',name:'image.jpg',mimeType:'image/jpeg',kind:'image',fit:'cover',zoom:1,positionX:50,positionY:50}
 const readyOutput={assetId:'media_output',url:'https://cdn.example/output.png',mimeType:'image/png',width:1080,height:1920,createdAt:'2026-09-13T12:00:00.000Z'}
-const template=(overrides={})=>({version:1,mode:'template',templateKey:'news-portal-lander',category:'news',layout:'full',primarySlot:imageSlot,headline:{text:'Headline'},subtitle:{text:'Subtitle'},logo:{source:'global'},watermark:{source:'global',opacity:.16},background:'#050505',renderState:{status:'ready'},output:readyOutput,...overrides})
+const template=(overrides={})=>({version:1,mode:'template',templateKey:'news-portal-lander',category:'news',layout:'full',primarySlot:imageSlot,profile:{avatar:{source:'global',visible:true,size:11,zoom:1,positionX:50,positionY:50},name:'Portal Lander',handle:'@portallander'},headline:{text:'Headline'},bodyText:{text:'Body'},watermark:{source:'global',opacity:.2,x:50,y:50,width:26,align:'center'},background:'#050505',renderState:{status:'ready'},output:readyOutput,...overrides})
 
 test('new writes accept only the canonical creation content types while unchanged legacy values remain editable',()=>{
   for(const type of ['Stories','Reels','Carrossel','Feed'])assert.equal(normalizeMarketingContentTypeForWrite(type),type)
@@ -45,11 +45,27 @@ test('creative persistence rejects ephemeral blob and data image sources',()=>{
   assert.throws(()=>normalizeCreativeConfig(template({primarySlot:{...imageSlot,url:'data:image/png;base64,AAAA'}}),{contentStatus:'producao'}),error=>error?.code==='MARKETING_CREATIVE_EPHEMERAL_URL')
 })
 
-test('global brand layers do not persist a duplicate logo asset',()=>{
-  const value=normalizeCreativeConfig(template(),{contentStatus:'agendado'})
-  assert.equal(value.logo.source,'global')
-  assert.equal('url' in value.logo,false)
-  assert.equal(value.watermark.source,'global')
+test('news identity and watermark persist independently',()=>{
+  const customAvatar={source:'custom',visible:true,size:12,zoom:1.25,positionX:42,positionY:57,assetId:'avatar_1',url:'https://cdn.example/avatar.png'}
+  const customWatermark={source:'custom',visible:true,opacity:.45,x:50,y:52,width:22,align:'center',assetId:'watermark_1',url:'https://cdn.example/watermark.png'}
+  const value=normalizeCreativeConfig(template({profile:{avatar:customAvatar,name:'Lander Records',handle:'landerrecords'},watermark:customWatermark}),{contentStatus:'agendado'})
+  assert.equal(value.profile.name,'Lander Records')
+  assert.equal(value.profile.handle,'@landerrecords')
+  assert.equal(value.profile.avatar.assetId,'avatar_1')
+  assert.equal(value.profile.avatar.zoom,1.25)
+  assert.equal(value.watermark.assetId,'watermark_1')
+  assert.equal(value.watermark.x,50)
+  assert.notEqual(value.profile.avatar.assetId,value.watermark.assetId)
+})
+
+test('legacy logo and subtitle normalize into the canonical news hierarchy',()=>{
+  const legacy=template({profile:undefined,bodyText:undefined,logo:{source:'custom',visible:true,assetId:'legacy_avatar',url:'https://cdn.example/legacy-avatar.png'},subtitle:{text:'Legacy body'}})
+  const value=normalizeCreativeConfig(legacy,{contentStatus:'agendado'})
+  assert.equal(value.profile.avatar.assetId,'legacy_avatar')
+  assert.equal(value.profile.name,'Portal Lander')
+  assert.equal(value.bodyText.text,'Legacy body')
+  assert.equal('logo' in value,false)
+  assert.equal('subtitle' in value,false)
 })
 
 test('scheduled content rejects rendered dimensions from another format',()=>{

@@ -13,7 +13,7 @@ function Media({slot}:{slot?:CreativeMediaSlot}){
 
 function VisualText({layer,className}:{layer:CreativeTextLayer;className:string}){
  if(!layer.visible||!layer.text.trim())return null
- return <p className={className} style={{fontFamily:layer.fontFamily,fontWeight:layer.fontWeight,color:layer.color,textAlign:layer.align,lineHeight:layer.lineHeight,letterSpacing:layer.letterSpacing}}>{layer.text}</p>
+ return <p className={className} style={{fontFamily:layer.fontFamily,fontWeight:layer.fontWeight,color:layer.color,textAlign:layer.align,lineHeight:layer.lineHeight,letterSpacing:layer.letterSpacing,whiteSpace:'pre-wrap',overflowWrap:'anywhere',wordBreak:'break-word',minWidth:0,maxWidth:'100%'}}>{layer.text}</p>
 }
 
 function Watermark({layer}:{layer:CreativeBrandLayer}){

@@ -22,6 +22,12 @@ test('Google Analytics requires complete server-side OAuth and property boundary
   assert.equal(complete.google.configured,true)
 })
 
+test('Meta publishing is configured only with Instagram user id and access token',()=>{
+  assert.equal(integrationProviderConfig({INSTAGRAM_ACCESS_TOKEN:'token'}).meta.configured,false)
+  assert.equal(integrationProviderConfig({INSTAGRAM_USER_ID:'17841400000000000'}).meta.configured,false)
+  assert.equal(integrationProviderConfig({INSTAGRAM_ACCESS_TOKEN:'token',INSTAGRAM_USER_ID:'17841400000000000'}).meta.configured,true)
+})
+
 test('Autentique refuses missing or invalid PDFs before contacting provider',async()=>{
   await assert.rejects(()=>autentiqueProvider.createDocument({name:'Contrato',signers:[{email:'signer@example.com'}]}),error=>error?.code==='AUTENTIQUE_DOCUMENT_FILE_REQUIRED')
   await assert.rejects(()=>autentiqueProvider.createDocument({name:'Contrato',signers:[{email:'signer@example.com'}],file:{filename:'fake.pdf',mimeType:'application/pdf',buffer:Buffer.from('not-pdf')}}),error=>error?.code==='AUTENTIQUE_DOCUMENT_FILE_INVALID')
@@ -32,11 +38,12 @@ test('WhatsApp recipient is normalized to digits',()=>{
   assert.throws(()=>normalizeWhatsappRecipient('123'),error=>error?.code==='WHATSAPP_RECIPIENT_INVALID')
 })
 
-test('runtime status keeps unimplemented providers planned and Google partial',()=>{
+test('runtime status reports implemented provider boundaries truthfully',()=>{
   const status=integrationRuntimeStatus()
-  for(const id of ['meta','tiktok','nfe']){
+  assert.equal(status.meta.implementation,'partial')
+  assert.equal(status.google.implementation,'partial')
+  for(const id of ['tiktok','nfe']){
     assert.equal(status[id].implementation,'planned')
     assert.equal(status[id].configured,false)
   }
-  assert.equal(status.google.implementation,'partial')
 })

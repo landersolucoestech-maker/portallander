@@ -13,7 +13,7 @@ export const UNIFIED_ADMIN_NAV:readonly AdminNavItem[]=[
   ['Agenda',CalendarDays,'/app/agenda'],
   ['Chat',MessageCircle,'/app/chat'],
   ['RH',UsersRound,'/app/hr'],
-  ['Métricas',BarChart3,'/app/metrics'],
+  ['Métricas',BarChart3,'/app/metricas'],
   {label:'Site',icon:Layers3,to:'/app/site/pages',children:[
     ['Conteúdos',FileText,'/app/site/content'],
     ['Mídias',Images,'/app/site/media'],

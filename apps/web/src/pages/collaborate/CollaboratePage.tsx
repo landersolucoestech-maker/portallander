@@ -26,7 +26,7 @@ export function CollaboratePage({page}:{page:EditorialPage}){
     return activeForm.successMessage
   }
 
-  return <PageShell className="collaborate-page special-page" newsletterConfiguration={newsletter}>
+  return <PageShell className="colabore-page collaborate-page special-page" newsletterConfiguration={newsletter}>
     <PageHero configuration={hero} variant="institutional" breadcrumbs={[{label:'Início',to:'/'},{label:page.navigationLabel||'Colabore'}]}/>
     <main>
       <PageSection><PageContainer>

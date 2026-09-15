@@ -249,11 +249,12 @@ jobs:
           test "$pages" = "9"
           grep -q '594.96 x 841.92 pts (A4)' test-results/media-kit/pdfinfo.txt
           pdftotext test-results/media-kit/media-kit.pdf test-results/media-kit/media-kit.txt
-          grep -q 'PORTAL LANDER' test-results/media-kit/media-kit.txt
-          grep -q 'NOSSA AUDIÊNCIA' test-results/media-kit/media-kit.txt
-          grep -q 'INVENTÁRIO PUBLICITÁRIO' test-results/media-kit/media-kit.txt
-          grep -q 'MÉTRICA NÃO DISPONÍVEL' test-results/media-kit/media-kit.txt
-          ! grep -q '48.200' test-results/media-kit/media-kit.txt
+          tr '\n\r\t' '   ' < test-results/media-kit/media-kit.txt | sed -E 's/[[:space:]]+/ /g' > test-results/media-kit/media-kit.normalized.txt
+          grep -q 'PORTAL LANDER' test-results/media-kit/media-kit.normalized.txt
+          grep -q 'NOSSA AUDIÊNCIA' test-results/media-kit/media-kit.normalized.txt
+          grep -q 'INVENTÁRIO PUBLICITÁRIO' test-results/media-kit/media-kit.normalized.txt
+          grep -q 'MÉTRICA NÃO DISPONÍVEL' test-results/media-kit/media-kit.normalized.txt
+          ! grep -q '48.200' test-results/media-kit/media-kit.normalized.txt
           echo "PDF_PAGE_COUNT=$pages"
           echo "PDF_SEARCHABLE_TEXT=PASS"
           echo "MEDIA_KIT_SYNTHETIC_AUDIENCE_PDF_REJECTED=PASS"

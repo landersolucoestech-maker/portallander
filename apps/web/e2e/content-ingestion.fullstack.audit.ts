@@ -27,7 +27,7 @@ test('browser production-data isola destino por candidato e converte somente A e
   expect(session.ok()).toBeTruthy()
   expect(await session.json()).toMatchObject({authenticated:true,user:{role:'owner'}})
 
-  await page.goto(`${webBase}/#/app/site/conteudos`)
+  await page.goto(`${webBase}/#/app/site/content`)
   await expect(page.getByText('Persistência editorial conectada',{exact:true})).toBeVisible()
   await expect(page.getByText(titleA,{exact:true})).toBeVisible()
   await expect(page.getByText(titleB,{exact:true})).toBeVisible()

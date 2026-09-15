@@ -3,7 +3,7 @@ import type {CreativeAvatarLayer,CreativeBrandLayer,CreativeMediaSlot,CreativeTe
 import type {CreativeFormat} from './formatRegistry'
 import {normalizeNewsCreative} from './templates'
 
-const avatarUrl=(layer:CreativeAvatarLayer)=>layer.source==='global'?portalAvatarMark:layer.url
+const avatarUrl=(layer:CreativeAvatarLayer)=>layer.source==='custom'&&layer.url?layer.url:portalAvatarMark
 const brandUrl=(layer:CreativeBrandLayer)=>layer.source==='global'?portalLogo:layer.url
 const profileHandle=(value:string)=>{const normalized=value.trim();return normalized.startsWith('@')?normalized:`@${normalized}`}
 

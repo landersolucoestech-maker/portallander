@@ -12,8 +12,9 @@ describe('admin navigation',()=>{
 
   it('preserves the required canonical routes in the unified shell',()=>{
     const serialized=JSON.stringify(UNIFIED_ADMIN_NAV)
-    for(const route of ['/app/dashboard','/app/crm','/app/contracts','/app/finance','/app/finance/invoices','/app/finance/accounting','/app/agenda','/app/chat','/app/hr','/app/metrics','/app/site/content','/app/site/media','/app/site/pages','/app/site/forms','/app/site/media-kit','/app/marketing','/app/reports','/app/settings'])expect(serialized).toContain(route)
-    expect(serialized).not.toContain('/app/marketing/metrics')
+    for(const route of ['/app/dashboard','/app/crm','/app/contracts','/app/finance','/app/finance/invoices','/app/finance/accounting','/app/agenda','/app/chat','/app/hr','/app/metricas','/app/site/conteudos','/app/site/midia','/app/site/paginas','/app/site/formularios','/app/site/midia-kit','/app/marketing','/app/reports','/app/settings'])expect(serialized).toContain(route)
+    expect(serialized).not.toContain('/app/marketing/metricas')
+    expect(serialized).not.toContain('/app/metrics')
   })
 
   it('does not expose the removed duplicate Editorial module',()=>{
@@ -26,7 +27,7 @@ describe('admin navigation',()=>{
   it('keeps Marketing with its six legitimate submodules and without Metrics ownership',()=>{
     const marketing=UNIFIED_ADMIN_NAV.find(item=>isGroup(item)&&item.label==='Marketing')
     expect(marketing&&isGroup(marketing)?marketing.children.map(child=>child[0]):[]).toEqual(['Visão Geral','Campanhas','Calendário','Tarefas','Briefings','IA Criativa'])
-    expect(marketing&&isGroup(marketing)?marketing.children.map(child=>child[2]):[]).toEqual(['/app/marketing','/app/marketing/campaigns','/app/marketing/calendar','/app/marketing/tasks','/app/marketing/briefings','/app/marketing/creative-ai'])
+    expect(marketing&&isGroup(marketing)?marketing.children.map(child=>child[2]):[]).toEqual(['/app/marketing','/app/marketing/campanhas','/app/marketing/calendario','/app/marketing/tarefas','/app/marketing/briefings','/app/marketing/ia-criativa'])
   })
 
   it('keeps only the three approved Finance submenu pages',()=>{
@@ -40,7 +41,7 @@ describe('admin navigation',()=>{
 
   it('keeps Site as a five-item management group without a second Dashboard',()=>{
     const site=UNIFIED_ADMIN_NAV.find(item=>isGroup(item)&&item.label==='Site')
-    expect(site&&isGroup(site)?site.to:undefined).toBe('/app/site/pages')
+    expect(site&&isGroup(site)?site.to:undefined).toBe('/app/site/paginas')
     expect(site&&isGroup(site)?site.children.map(child=>child[0]):[]).toEqual(['Conteúdos','Mídias','Páginas','Formulários','Mídia Kit'])
     expect(site&&isGroup(site)?site.children.some(child=>child[0]==='Dashboard'):true).toBe(false)
   })

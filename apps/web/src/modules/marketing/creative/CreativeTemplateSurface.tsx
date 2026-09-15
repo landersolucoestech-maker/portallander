@@ -1,14 +1,21 @@
-import {portalLogo} from '../../../shared/branding/assets/brandAsset'
-import type {CreativeBrandLayer,CreativeMediaSlot,CreativeTextLayer} from '../domain'
+import {portalAvatarMark,portalLogo} from '../../../shared/branding/assets/brandAsset'
+import type {CreativeAvatarLayer,CreativeBrandLayer,CreativeMediaSlot,CreativeTextLayer} from '../domain'
 import type {CreativeFormat} from './formatRegistry'
 import {normalizeNewsCreative} from './templates'
 
+const avatarUrl=(layer:CreativeAvatarLayer)=>layer.source==='global'?portalAvatarMark:layer.url
 const brandUrl=(layer:CreativeBrandLayer)=>layer.source==='global'?portalLogo:layer.url
+const profileHandle=(value:string)=>{const normalized=value.trim();return normalized.startsWith('@')?normalized:`@${normalized}`}
 
 function Media({slot}:{slot?:CreativeMediaSlot}){
  if(!slot)return <div className="marketing-creative-media-slot is-empty"><span>Mídia</span></div>
  const style={objectFit:slot.fit,objectPosition:`${slot.positionX}% ${slot.positionY}%`,transform:`scale(${slot.zoom})`}
  return <div className="marketing-creative-media-slot">{slot.kind==='video'?<video src={slot.url} style={style} autoPlay loop muted playsInline/>:<img src={slot.url} alt={slot.name} style={style}/>}</div>
+}
+
+function ProfileAvatar({avatar}:{avatar:CreativeAvatarLayer}){
+ const url=avatarUrl(avatar)
+ return <div className="marketing-news-avatar" style={{width:`${avatar.size}%`}}>{avatar.visible&&url?<img src={url} alt="Logo do perfil" style={{objectPosition:`${avatar.positionX}% ${avatar.positionY}%`,transform:`scale(${avatar.zoom})`}}/>:<span>PL</span>}</div>
 }
 
 function VisualText({layer,className}:{layer:CreativeTextLayer;className:string}){
@@ -25,8 +32,12 @@ function Watermark({layer}:{layer:CreativeBrandLayer}){
 export function CreativeTemplateSurface({creative,format}:{creative:Parameters<typeof normalizeNewsCreative>[0];format:CreativeFormat}){
  const news=normalizeNewsCreative(creative)
  return <div className={`marketing-creative-surface marketing-news-surface ${format.aspectRatio<.8?'is-vertical':'is-square'}`} data-template={news.templateKey}>
-  <section className="marketing-news-header" data-template-part="copy">
-   <div className="marketing-news-copy">
+  <section className="marketing-news-header" data-template-part="identity-copy">
+   <div className="marketing-news-profile" data-template-part="profile">
+    <ProfileAvatar avatar={news.profile.avatar}/>
+    <div className="marketing-news-profile-text"><strong>{news.profile.name}</strong><span>{profileHandle(news.profile.handle)}</span></div>
+   </div>
+   <div className="marketing-news-copy" data-template-part="copy">
     <VisualText layer={news.headline} className="marketing-news-headline"/>
     <VisualText layer={news.bodyText} className="marketing-news-body"/>
    </div>

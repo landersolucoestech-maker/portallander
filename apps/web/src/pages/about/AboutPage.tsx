@@ -13,7 +13,7 @@ export function AboutPage({page}:{page:EditorialPage}){
   const body=useSectionConfiguration(page.id,'about-content','Conteúdo Institucional')
   const contents=editorialReadModel.listPageContents(page.id)
   const newsletter=homeSections.newsletter??defaultSectionConfiguration('newsletter','Newsletter')
-  return <PageShell className="about-page institutional-page" newsletterConfiguration={newsletter}>
+  return <PageShell className="sobre-page about-page institutional-page" newsletterConfiguration={newsletter}>
     <PageHero configuration={hero} variant="institutional" breadcrumbs={[{label:'Início',to:'/'},{label:page.navigationLabel||page.title}]}/>
     <main>
       {body.active&&<PageSection><PageContainer><ContentSidebarLayout variant="institutional">

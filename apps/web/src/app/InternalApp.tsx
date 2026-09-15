@@ -37,6 +37,11 @@ function LoginRoute(){
   return <LoginPage/>
 }
 
+function LegacyMetricsRedirect(){
+  const {search}=useLocation()
+  return <Navigate to={`/app/metricas${search}`} replace/>
+}
+
 const protectedRoute=(element:ReactNode)=><RequireAdmin>{element}</RequireAdmin>
 
 function InternalRoutes(){return <Suspense fallback={null}><Routes>
@@ -50,7 +55,9 @@ function InternalRoutes(){return <Suspense fallback={null}><Routes>
   <Route path="/app/chat" element={protectedRoute(<ChatPage/>)}/>
   <Route path="/app/chat/settings" element={protectedRoute(<ChatAutomationSettingsPage/>)}/>
   <Route path="/app/hr" element={protectedRoute(<HRPage/>)}/>
-  <Route path="/app/metrics" element={protectedRoute(<MetricsPage/>)}/>
+  <Route path="/app/metricas" element={protectedRoute(<MetricsPage/>)}/>
+  <Route path="/app/metrics" element={protectedRoute(<LegacyMetricsRedirect/>)}/>
+  <Route path="/app/marketing/metricas" element={protectedRoute(<LegacyMetricsRedirect/>)}/>
   <Route path="/app/marketing/*" element={protectedRoute(<MarketingPage/>)}/>
   <Route path="/app/reports" element={protectedRoute(<ReportsPage/>)}/>
   <Route path="/app/settings" element={protectedRoute(<SettingsPage/>)}/>

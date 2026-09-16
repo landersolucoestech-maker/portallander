@@ -29,7 +29,7 @@ test.describe('canonical system forms',()=>{
   test.use({viewport:{width:1440,height:900}})
 
   test('admin data source remains exactly two across refresh and renavigation',async({page})=>{
-    await openRoute(page,'/app/site/formularios')
+    await openRoute(page,'/app/site/forms')
     await expectCanonicalAdminRows(page)
 
     await page.reload({waitUntil:'domcontentloaded'})
@@ -38,7 +38,7 @@ test.describe('canonical system forms',()=>{
 
     await openRoute(page,'/app/dashboard')
     await expect(page.locator('.unified-dashboard')).toBeVisible()
-    await openRoute(page,'/app/site/formularios')
+    await openRoute(page,'/app/site/forms')
     await expectCanonicalAdminRows(page)
 
     const systemRows=page.locator('.site-forms-table tbody tr')

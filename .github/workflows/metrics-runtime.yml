@@ -171,7 +171,7 @@ jobs:
             if((await overview.getAttribute('aria-selected'))!=='true')throw new Error('Invalid Metrics tab did not fall back to Visão Geral.')
             console.log('METRICS_INVALID_TAB_FALLBACK=PASS')
 
-            await goto('#/app/site/midia-kit')
+            await goto('#/app/site/media-kit')
             const automatic=page.getByTestId('media-kit-automatic-metrics')
             await automatic.waitFor({state:'visible',timeout:20000})
             const canonical=automatic.locator('[data-media-kit-metric="Instagram:followers"]')

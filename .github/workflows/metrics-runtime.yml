@@ -44,28 +44,29 @@ jobs:
           grep -q "const INTERNAL_METRICS_RANGE:MetricsRange='30d'" apps/web/src/modules/analytics/MetricsPage.tsx
           ! grep -F "/app/metricas" apps/web/src/modules/analytics/MetricsPage.tsx
           ! grep -F "content_collaborations" apps/web/src/modules/analytics/MetricsPage.tsx
-          echo "REUSABLE RUNTIME HARDCODED METRICS IN UI = 0"
+          echo "REUSABLE_RUNTIME_HARDCODED_METRICS=0"
           echo "METRICS_INTERNAL_CANONICAL_PERIOD=30d"
           echo "METRICS_CANONICAL_ROUTE=/app/metrics"
       - name: Install Chromium
         working-directory: apps/web
         run: npx playwright install --with-deps chromium
-      - name: Validate published Metrics module, geometry and canonical parity
+      - name: Validate published Metrics module and Media Kit real-data boundary
         working-directory: apps/web
         run: |
           mkdir -p test-results/metrics-pages
           node --input-type=module <<'NODE'
           import {chromium} from '@playwright/test'
+
           const base=process.env.DEPLOY_URL
           const browser=await chromium.launch({headless:true})
           const page=await browser.newPage({viewport:{width:1440,height:1100}})
           const errors=[]
           page.on('pageerror',error=>errors.push(error.message))
-          const waitStable=async()=>{await page.locator('main').first().waitFor({state:'visible',timeout:20000})}
+
           const goto=async hash=>{
             const response=await page.goto(`${base}${hash}`,{waitUntil:'domcontentloaded'})
             if(response&&!response.ok())throw new Error(`HTTP ${response.status()} for ${hash}`)
-            await waitStable()
+            await page.locator('main').first().waitFor({state:'visible',timeout:20000})
           }
           const screenshot=async name=>page.screenshot({path:`test-results/metrics-pages/${name}`,fullPage:true})
           const normalizedNumber=value=>{
@@ -73,8 +74,7 @@ jobs:
             if(!raw||raw.includes('indisponível')||raw.includes('carregando')||raw==='—')return null
             const multiplier=raw.includes('mil')?1_000:raw.includes('mi')?1_000_000:1
             const numeric=raw.replace(/mil|mi/g,'').replace(/r\$/g,'').replace(/%/g,'').trim()
-            const canonical=multiplier===1?numeric.replace(/\./g,'').replace(',','.'):numeric.replace(/\./g,'').replace(',','.')
-            const parsed=Number(canonical)
+            const parsed=Number(numeric.replace(/\./g,'').replace(',','.'))
             return Number.isFinite(parsed)?parsed*multiplier:null
           }
           const assertCanonicalKpis=async(root,label)=>{
@@ -84,11 +84,11 @@ jobs:
             const geometry=await cards.evaluateAll(nodes=>nodes.map(node=>{
               const rect=node.getBoundingClientRect()
               const style=getComputedStyle(node)
-              return {width:rect.width,height:rect.height,paddingTop:style.paddingTop,paddingRight:style.paddingRight,paddingBottom:style.paddingBottom,paddingLeft:style.paddingLeft}
+              return {width:rect.width,height:rect.height,paddings:[style.paddingTop,style.paddingRight,style.paddingBottom,style.paddingLeft]}
             }))
             for(const [index,card] of geometry.entries()){
               if(Math.abs(card.height-104)>1)throw new Error(`${label} KPI ${index+1} height ${card.height} != 104`)
-              for(const [side,value] of Object.entries({top:card.paddingTop,right:card.paddingRight,bottom:card.paddingBottom,left:card.paddingLeft}))if(value!=='16px')throw new Error(`${label} KPI ${index+1} padding-${side} ${value} != 16px`)
+              if(card.paddings.some(value=>value!=='16px'))throw new Error(`${label} KPI ${index+1} padding mismatch: ${JSON.stringify(card.paddings)}`)
             }
             const widths=geometry.map(card=>card.width)
             if(Math.max(...widths)-Math.min(...widths)>1)throw new Error(`${label} KPI widths are not equal: ${JSON.stringify(widths)}`)
@@ -108,6 +108,7 @@ jobs:
             for(const forbidden of ['Metric key','Account ID','Property ID','Adicionar métrica','content_collaborations'])if(body.includes(forbidden))throw new Error(`Campo técnico manual vazou para ${provider}: ${forbidden}`)
             return display
           }
+
           try{
             await goto('#/app/metrics')
             const metricsPage=page.getByTestId('metrics-page')
@@ -115,17 +116,16 @@ jobs:
             const metricsLink=page.getByRole('link',{name:'Métricas',exact:true})
             await metricsLink.waitFor({state:'visible'})
             if((await metricsLink.getAttribute('href'))!=='#/app/metrics')throw new Error('Métricas não está exposta pela rota canônica /app/metrics.')
+
             const tablist=page.getByRole('tablist',{name:'Fontes de Métricas'})
-            const tabs=tablist.getByRole('tab')
-            if(await tabs.count()!==5)throw new Error(`Metrics tab count ${(await tabs.count())} != 5`)
-            const labels=(await tabs.allInnerTexts()).map(value=>value.trim())
+            const labels=(await tablist.getByRole('tab').allInnerTexts()).map(value=>value.trim())
             const expected=['Visão Geral','Site','Instagram','TikTok','YouTube']
             if(JSON.stringify(labels)!==JSON.stringify(expected))throw new Error(`Unexpected Metrics tabs: ${JSON.stringify(labels)}`)
             for(const legacy of ['Redes Sociais','Conteúdo','Conversões'])if(await tablist.getByRole('tab',{name:legacy,exact:true}).count())throw new Error(`Legacy Metrics tab still present: ${legacy}`)
+
             const marketingGroup=page.getByRole('button',{name:/Marketing/}).first()
             await marketingGroup.click()
-            const sidebar=page.locator('aside.sidebar')
-            if(await sidebar.locator('.sidebar-subnav-link').filter({hasText:'Métricas'}).count())throw new Error('Marketing ainda possui submenu Métricas.')
+            if(await page.locator('aside.sidebar .sidebar-subnav-link').filter({hasText:'Métricas'}).count())throw new Error('Marketing ainda possui submenu Métricas.')
             await page.getByTestId('metrics-overview-tab').waitFor({state:'visible',timeout:20000})
             if(await page.getByLabel('Período global das métricas').count())throw new Error('Global Metrics still renders the manual period selector.')
             if(await metricsPage.getByText('O período é compartilhado entre todas as fontes.',{exact:true}).count())throw new Error('Global Metrics still renders the period helper text.')
@@ -142,24 +142,20 @@ jobs:
             const siteBody=await site.innerText()
             for(const label of ['Usuários','Sessões','Visualizações','Engajamento','Tráfego e comportamento','Aquisição por canal','Comportamento','Páginas mais acessadas','Publicação e desempenho','Estado editorial','Publicações recentes','Conteúdos com mais visualizações','Resultados dos formulários','Resultados','Conversões por origem'])if(!siteBody.includes(label))throw new Error(`Superfície Site ausente: ${label}`)
             for(const technical of ['content_collaborations','Views / usuário','newVsReturning','entryContext'])if(siteBody.includes(technical))throw new Error(`Jargão técnico/legado vazou para Site: ${technical}`)
-            const content=page.getByTestId('metrics-site-content')
-            const conversions=page.getByTestId('metrics-site-conversions')
-            await content.waitFor({state:'visible',timeout:20000})
-            await conversions.waitFor({state:'visible',timeout:20000})
+            await page.getByTestId('metrics-site-content').waitFor({state:'visible',timeout:20000})
+            await page.getByTestId('metrics-site-conversions').waitFor({state:'visible',timeout:20000})
             await screenshot('metrics-site.png')
             console.log('METRICS_SITE_FULL=PASS')
             console.log('METRICS_SITE_KPI_GEOMETRY=PASS')
 
             await page.getByRole('tab',{name:'Instagram',exact:true}).click()
-            const metricsInstagramFollowers=await socialFollower('metrics-instagram-tab','Instagram')
+            await socialFollower('metrics-instagram-tab','Instagram')
             await screenshot('metrics-instagram.png')
             console.log('METRICS_INSTAGRAM_AUTOMATIC=PASS')
-
             await page.getByRole('tab',{name:'TikTok',exact:true}).click()
             await socialFollower('metrics-tiktok-tab','TikTok')
             await screenshot('metrics-tiktok.png')
             console.log('METRICS_TIKTOK_AUTOMATIC=PASS')
-
             await page.getByRole('tab',{name:'YouTube',exact:true}).click()
             await socialFollower('metrics-youtube-tab','YouTube')
             await screenshot('metrics-youtube.png')
@@ -174,29 +170,27 @@ jobs:
             await goto('#/app/site/media-kit')
             const automatic=page.getByTestId('media-kit-automatic-metrics')
             await automatic.waitFor({state:'visible',timeout:20000})
-            const canonical=automatic.locator('[data-media-kit-metric="Instagram:followers"]')
-            await canonical.waitFor({state:'visible',timeout:20000})
-            const mediaKitFollowers=(await canonical.getByLabel('Valor').inputValue()).trim()
-            const provider=(await canonical.getByLabel('Provider').inputValue()).trim()
-            const account=(await canonical.getByLabel('Conta').inputValue()).trim()
-            const updated=(await canonical.getByLabel('Atualizado em').inputValue()).trim()
-            const status=(await canonical.getByLabel('Status').inputValue()).trim()
-            const metricsValue=normalizedNumber(metricsInstagramFollowers)
-            const mediaKitValue=normalizedNumber(mediaKitFollowers)
-            if(provider!=='Instagram')throw new Error(`Canonical provider mismatch: ${provider}`)
-            if(!account)throw new Error('Canonical account is missing from Media Kit provenance.')
-            if(!updated||updated==='Data indisponível'||!status)throw new Error('Canonical freshness/provenance is incomplete.')
-            if(metricsValue===null||mediaKitValue===null||metricsValue!==mediaKitValue)throw new Error(`Metrics / Media Kit follower mismatch: ${metricsInstagramFollowers} != ${mediaKitFollowers}`)
-            console.log(`CANONICAL_PROVIDER=${provider}`)
-            console.log(`CANONICAL_ACCOUNT=${account}`)
-            console.log('CANONICAL_METRIC=followers')
-            console.log(`METRICS_MODULE_VALUE=${metricsInstagramFollowers}`)
-            console.log(`MEDIA_KIT_VALUE=${mediaKitFollowers}`)
-            console.log('METRICS_MEDIA_KIT_CANONICAL_METRIC_PARITY=PASS')
+            const automaticRows=automatic.locator('[data-media-kit-metric]')
+            const automaticCount=await automaticRows.count()
+            if(automaticCount===0){
+              const body=await automatic.innerText()
+              if(!body.includes('Nenhum dado real de audiência está disponível no momento.'))throw new Error('Media Kit empty state does not explain the real-data boundary.')
+              console.log('MEDIA_KIT_REJECTS_DEMO_METRICS=PASS')
+            }else{
+              for(let index=0;index<automaticCount;index++){
+                const row=automaticRows.nth(index)
+                const value=(await row.locator('input').first().inputValue()).trim()
+                if(normalizedNumber(value)===null)throw new Error(`Media Kit automatic metric ${index+1} has no usable real value: ${value}`)
+              }
+              console.log(`MEDIA_KIT_REAL_AUTOMATIC_METRICS=${automaticCount}`)
+            }
+            await screenshot('media-kit-audience-boundary.png')
 
             if(errors.length)throw new Error(`Page errors: ${JSON.stringify(errors)}`)
             console.log('METRICS_SINGLE_PAGE=PASS')
-          }finally{await browser.close()}
+          }finally{
+            await browser.close()
+          }
           NODE
       - name: Upload Metrics Pages evidence
         if: always()

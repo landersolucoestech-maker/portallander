@@ -115,7 +115,7 @@ export function AdminShell({area,items,children,header,headerAction,headerAction
             return <div className={`sidebar-nav-group${expanded?' expanded':''}`} key={item.label}><button className="sidebar-nav-group-label" type="button" aria-expanded={expanded} onClick={()=>setExpandedGroups(current=>({...current,[item.label]:!expanded}))}><GroupIcon size={17}/><span>{item.label}</span><ChevronDown size={13}/></button>{expanded&&<div className="sidebar-subnav">{item.children.map(([label,Icon,to])=><NavLink end className="sidebar-subnav-link" key={to} to={to}><Icon size={14}/><span>{label}</span></NavLink>)}</div>}</div>
           }
           const [label,Icon,to]=item
-          return <NavLink key={to} end={to==='/app/dashboard'||to==='/app/crm'||to==='/app/agenda'||to==='/app/chat'||to==='/app/rh'||to==='/app/metricas'} to={to}><Icon size={17}/><span>{label}</span></NavLink>
+          return <NavLink key={to} end={to==='/app/dashboard'||to==='/app/crm'||to==='/app/agenda'||to==='/app/chat'||to==='/app/rh'||to==='/app/metrics'} to={to}><Icon size={17}/><span>{label}</span></NavLink>
         })}
       </nav>
     </aside>

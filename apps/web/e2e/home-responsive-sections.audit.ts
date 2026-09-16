@@ -2,6 +2,16 @@ import {expect,test,type Page} from '@playwright/test'
 
 const base='http://127.0.0.1:4173/portallander/'
 const storageKey='portal-lander:cms:section-configurations:v1'
+const editorRouteBySection:Readonly<Record<string,string>>={
+  hero:'hero',
+  'em-destaque':'featured',
+  'mais-lidas':'most-read',
+  'ultimas-noticias':'latest-news',
+  lancamentos:'releases',
+  agenda:'agenda',
+  'em-alta':'trending',
+  'anuncie-aqui':'advertising-cta',
+}
 
 async function seed(page:Page,patches:Record<string,Record<string,unknown>>){
   await page.addInitScript(({key,patches})=>{
@@ -14,8 +24,8 @@ const columnCount=async(page:Page,selector:string)=>page.locator(selector).evalu
 
 test.describe('responsive home section administration',()=>{
   test('configurable Home editors expose responsive preview without separate content sources',async({page})=>{
-    for(const id of ['hero','em-destaque','mais-lidas','ultimas-noticias','lancamentos','agenda','em-alta','anuncie-aqui']){
-      await page.goto(`${base}#/app/site/paginas/home/secoes/${id}`,{waitUntil:'domcontentloaded'})
+    for(const sectionId of Object.keys(editorRouteBySection)){
+      await page.goto(`${base}#/app/site/pages/home/sections/${editorRouteBySection[sectionId]}`,{waitUntil:'domcontentloaded'})
       await expect(page.getByRole('button',{name:/Desktop/}).first()).toBeVisible()
       await expect(page.getByRole('button',{name:/Tablet/}).first()).toBeVisible()
       await expect(page.getByRole('button',{name:/Mobile/}).first()).toBeVisible()
@@ -24,7 +34,7 @@ test.describe('responsive home section administration',()=>{
 
   test('featured preview uses the real iframe viewport for 3 desktop, 2 tablet and 1 mobile columns',async({page})=>{
     await seed(page,{'em-destaque':{active:true,itemLimit:6,homeSelectionMode:'automatic'}})
-    await page.goto(`${base}#/app/site/paginas/home/secoes/em-destaque`,{waitUntil:'domcontentloaded'})
+    await page.goto(`${base}#/app/site/pages/home/sections/featured`,{waitUntil:'domcontentloaded'})
     const iframe=page.locator('iframe.home-page-preview-iframe')
     const preview=page.frameLocator('iframe.home-page-preview-iframe')
     const grid=preview.locator('.official-em-destaque .pl-card-grid')
@@ -44,7 +54,7 @@ test.describe('responsive home section administration',()=>{
 
   test('latest-news preview physically lays out 3 desktop, 2 tablet and 1 mobile cards per row',async({page})=>{
     await seed(page,{'ultimas-noticias':{active:true,itemLimit:6,homeSelectionMode:'automatic'}})
-    await page.goto(`${base}#/app/site/paginas/home/secoes/ultimas-noticias`,{waitUntil:'domcontentloaded'})
+    await page.goto(`${base}#/app/site/pages/home/sections/latest-news`,{waitUntil:'domcontentloaded'})
     const iframe=page.locator('iframe.home-page-preview-iframe')
     const preview=page.frameLocator('iframe.home-page-preview-iframe')
     const grid=preview.locator('.official-ultimas-noticias .pl-latest-grid')

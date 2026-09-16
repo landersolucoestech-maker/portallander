@@ -21,7 +21,7 @@ requireTokens('sectionConfiguration.ts',sectionModel,[
 const pages=await read('src/modules/site-manager/pages/SiteSectionsPage.tsx')
 requireTokens('SiteSectionsPage.tsx',pages,[
   'isEditorialLayout?EDITORIAL_PAGE_SECTION_DEFINITIONS',
-  '/app/site/paginas/${encodeURIComponent(selected.id)}/secoes/${encodeURIComponent(section.id)}',
+  '/app/site/pages/${encodeURIComponent(selected.id)}/sections/${encodeURIComponent(section.id)}',
   'Configurar',
 ])
 

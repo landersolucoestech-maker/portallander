@@ -2,13 +2,10 @@ import {expect,test,type Page} from '@playwright/test'
 
 const base='http://127.0.0.1:4173/portallander/'
 const internalRoutes=[
- '/app/profile','/app/dashboard','/app/crm','/app/contracts','/app/agenda','/app/chat','/app/chat/settings','/app/rh',
- '/app/marketing','/app/marketing/campanhas','/app/marketing/calendario','/app/marketing/tarefas',
- '/app/marketing/metricas','/app/marketing/briefings','/app/marketing/ia-criativa',
+ '/app/profile','/app/dashboard','/app/crm','/app/contracts','/app/agenda','/app/chat','/app/chat/settings','/app/hr','/app/metrics',
+ '/app/marketing','/app/marketing/campaigns','/app/marketing/calendar','/app/marketing/tasks','/app/marketing/briefings','/app/marketing/creative-ai',
  '/app/reports','/app/settings','/app/finance','/app/finance/invoices','/app/finance/accounting','/app/finance/rules','/app/finance/categories',
- '/app/site','/app/site/home','/app/site/home/hero','/app/site/home/anuncio','/app/site/marca','/app/site/cabecalho',
- '/app/site/conteudos','/app/site/paginas','/app/site/categorias','/app/site/midia','/app/site/noticias/anuncio','/app/site/midia-kit',
- '/app/site/formularios','/app/site/formularios/collaborate'
+ '/app/site/content','/app/site/media','/app/site/pages','/app/site/forms','/app/site/forms/collaborate','/app/site/media-kit',
 ]
 const developmentEntryRoutes=['/app/login']
 const publicRoutes=[
@@ -56,6 +53,7 @@ for(const viewport of viewports){
    for(const route of internalRoutes){
      test(`internal ${route}`,async({page})=>{
        await openRoute(page,route)
+       await expect.poll(()=>page.evaluate(()=>window.location.hash),{message:`${route}: canonical route must not redirect`}).toBe(`#${route}`)
        await assertViewportIntegrity(page,true)
        if(viewport.name==='mobile'&&(await page.locator('.workspace-primary-action').count())>0){
          await expect(page.locator('.workspace-primary-action').first()).toBeVisible()
@@ -111,7 +109,8 @@ test.describe('site architecture behavior',()=>{
  })
 
  test('form editor updates the production renderer preview immediately',async({page})=>{
-   await openRoute(page,'/app/site/formularios/collaborate')
+   await openRoute(page,'/app/site/forms/collaborate')
+   await expect.poll(()=>page.evaluate(()=>window.location.hash)).toBe('#/app/site/forms/collaborate')
    const preview=page.locator('.site-form-preview-panel')
    await expect(preview).toBeVisible()
    await expect(preview.locator('.site-form-runtime')).toBeVisible()
@@ -124,7 +123,8 @@ test.describe('site architecture behavior',()=>{
  })
 
  test('page draft lifecycle preserves canonical editorial sections',async({page})=>{
-   await openRoute(page,'/app/site/paginas')
+   await openRoute(page,'/app/site/pages')
+   await expect.poll(()=>page.evaluate(()=>window.location.hash)).toBe('#/app/site/pages')
    await page.getByRole('button',{name:'Criar página'}).click()
    await page.getByLabel('Nome da página').fill('Música E2E')
    await page.getByRole('button',{name:'Criar rascunho'}).click()
@@ -153,11 +153,12 @@ test.describe('modal viewport integrity',()=>{
    {route:'/app/crm',button:/Novo Contato/i},
    {route:'/app/agenda',button:/Novo Evento/i},
    {route:'/app/finance',button:/Nova Transação/i},
-   {route:'/app/marketing/campanhas',button:/Nova Campanha/i},
+   {route:'/app/marketing/campaigns',button:/Nova Campanha/i},
  ]
  for(const item of cases){
    test(`${item.route} modal remains inside mobile viewport`,async({page})=>{
      await openRoute(page,item.route)
+     await expect.poll(()=>page.evaluate(()=>window.location.hash)).toBe(`#${item.route}`)
      const button=page.getByRole('button',{name:item.button}).first()
      if((await button.count())===0)test.skip(true,`No action matching ${item.button}`)
      await button.click()

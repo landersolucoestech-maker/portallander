@@ -109,7 +109,7 @@ const siteRoutes=await read('src/modules/site-manager/SiteManagerRoutes.tsx')
 for(const required of ['LegacyPageSectionRedirect','path="paginas/:pageId/secoes/:sectionId"','/app/site/pages/${encodeURIComponent(pageId)}/sections/${encodeURIComponent(sectionId)}'])if(!siteRoutes.includes(required))failures.push(`Navegação de Páginas deve preservar compatibilidade e resolver para a rota canônica: ${required}`)
 
 const visualAudit=await read('e2e/visual.audit.ts')
-for(const required of ['/app/login','/app/profile','/app/chat/settings','/app/finance/rules','/app/finance/categories','/app/site/midia-kit','desktop-large','tablet','mobile','modal viewport integrity'])if(!visualAudit.includes(required))failures.push(`Auditoria visual deve cobrir: ${required}`)
+for(const required of ['/app/login','/app/profile','/app/chat/settings','/app/finance/rules','/app/finance/categories','/app/site/media-kit','desktop-large','tablet','mobile','modal viewport integrity'])if(!visualAudit.includes(required))failures.push(`Auditoria visual deve cobrir: ${required}`)
 
 async function walk(path){
  const entries=await readdir(new URL(path,root),{withFileTypes:true})

@@ -65,7 +65,7 @@ test.describe('home advertising layout contract',()=>{
   })
 
   test('sidebar editor exposes fallback content, desktop reference dimensions and full-page preview',async({page})=>{
-    await page.goto(`${base}#/app/site/paginas/home/secoes/publicidade-lateral`,{waitUntil:'domcontentloaded'})
+    await page.goto(`${base}#/app/site/pages/home/sections/sidebar-advertising`,{waitUntil:'domcontentloaded'})
     await expect(page.getByText('Conteúdo exibido quando não houver imagem',{exact:true})).toBeVisible()
     await expect(page.getByText('Título principal',{exact:true})).toBeVisible()
     await expect(page.getByText('Texto do botão',{exact:true})).toBeVisible()
@@ -91,7 +91,7 @@ test.describe('home advertising layout contract',()=>{
   })
 
   test('Mais Lidas editor exposes 1 to 5 and updates the canonical full-page preview draft',async({page})=>{
-    await page.goto(`${base}#/app/site/paginas/home/secoes/mais-lidas`,{waitUntil:'domcontentloaded'})
+    await page.goto(`${base}#/app/site/pages/home/sections/most-read`,{waitUntil:'domcontentloaded'})
     const quantity=page.getByLabel('Quantidade máxima de conteúdos')
     await expect(quantity).toBeVisible();await expect(quantity.locator('option')).toHaveCount(5)
     const frame=page.frameLocator('.home-page-preview-iframe')

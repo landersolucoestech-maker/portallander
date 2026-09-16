@@ -22,5 +22,10 @@ const visualAudit=await read('e2e/visual.audit.ts')
 for(const forbidden of ['/app/site/midia-kit','/app/site/formularios','/app/marketing/campanhas','/app/marketing/calendario','/app/marketing/tarefas','/app/marketing/ia-criativa'])if(visualAudit.includes(forbidden))failures.push(`visual.audit.ts não pode cobrir rota técnica obsoleta: ${forbidden}`)
 for(const required of ['/app/site/media-kit','/app/site/forms','/app/marketing/campaigns','/app/marketing/calendar','/app/marketing/tasks','/app/marketing/creative-ai'])if(!visualAudit.includes(required))failures.push(`visual.audit.ts deve cobrir rota técnica canônica: ${required}`)
 
+const metricsWorkflow=await read('../../.github/workflows/metrics-runtime.yml')
+if(metricsWorkflow.includes("goto('#/app/site/midia-kit')"))failures.push('Metrics runtime workflow não pode navegar pela rota técnica legada de Mídia Kit.')
+if(!metricsWorkflow.includes("goto('#/app/site/media-kit')"))failures.push('Metrics runtime workflow deve validar a rota canônica de Mídia Kit publicada.')
+if(!metricsWorkflow.includes("goto('#/app/metrics')"))failures.push('Metrics runtime workflow deve validar a rota canônica global de Métricas publicada.')
+
 if(failures.length){console.error('Security/canonical-route boundaries failed:');failures.forEach(item=>console.error(`- ${item}`));process.exit(1)}
-console.log('Security/canonical-route boundaries OK — contract preview is allowlisted and technical navigation is canonical.')
+console.log('Security/canonical-route boundaries OK — contract preview is allowlisted and technical navigation is canonical across app, E2E and workflow proofs.')

@@ -2,9 +2,9 @@
 
 ## Estado canônico
 
-O branch de desenvolvimento canônico é `dev`. Push em `dev` executa validações, mas não publica GitHub Pages e não autoriza deploy de produção.
+O branch de desenvolvimento canônico é `dev`. Push em `dev` executa as validações do repositório e, quando os gates do workflow `Frontend CI and Pages` permitem, publica a build de desenvolvimento/demo no GitHub Pages.
 
-O projeto não usa Vercel como destino de hospedagem.
+GitHub Pages **não é o deploy de produção Hostinger** e não autoriza cutover produtivo. O projeto não usa Vercel como destino de hospedagem.
 
 ## Arquitetura do repositório
 
@@ -14,7 +14,8 @@ O Portal Lander é um monorepo com dois runtimes distintos:
    - build: `npm ci && npm run build`
    - artefato: `apps/web/dist`
    - o `base` público é configurável via `VITE_PUBLIC_BASE`;
-   - para domínio/subdomínio servido na raiz, usar `VITE_PUBLIC_BASE=/`;
+   - no GitHub Pages de desenvolvimento, o path canônico é `/portallander/`;
+   - para domínio/subdomínio Hostinger servido na raiz, usar `VITE_PUBLIC_BASE=/`;
    - para um subdiretório, informar o prefixo com `/` inicial e final.
 
 2. **API Node.js** (`apps/api`)
@@ -62,13 +63,13 @@ O inventário exato de aliases GA4 é validado pelo workflow de Analytics; nenhu
 
 ## GitHub Pages
 
-GitHub Pages existia como publicação automática vinculada a push em `dev`. Esse acoplamento foi removido. O workflow `Frontend CI` agora mantém qualidade/build/browser checks e possui somente `contents: read`; não executa `configure-pages`, `upload-pages-artifact` nem `deploy-pages`.
+O workflow `.github/workflows/deploy-pages.yml` (`Frontend CI and Pages`) é parte do fluxo canônico de `dev`. Ele valida qualidade, arquitetura, typecheck, testes, build de produção sem dados demo e regressão visual; depois gera o artefato explícito de desenvolvimento/demo, publica no GitHub Pages e executa browser smoke sobre o conteúdo publicado.
 
-O path histórico `/portallander/` continua como default de desenvolvimento/compatibilidade, mas não é mais uma decisão fixa de hospedagem: `VITE_PUBLIC_BASE` define o path do alvo Hostinger.
+Essa publicação é uma evidência automatizada do frontend de desenvolvimento e não substitui a infraestrutura produtiva. O path `/portallander/` é o base do Pages; `VITE_PUBLIC_BASE` continua definindo o path de outros alvos, inclusive Hostinger.
 
 ## Segurança operacional
 
-- `dev` pode receber desenvolvimento sem significar deploy produtivo.
+- `dev` publica o frontend de desenvolvimento/demo no GitHub Pages, mas não significa deploy produtivo Hostinger.
 - Nenhum workflow do repositório deve fazer deploy Hostinger apenas por push em `dev` enquanto o alvo real não estiver identificado e autorizado.
 - Não criar renderer de PDF com URL arbitrária. O Mídia Kit usa rota/template interno conhecido.
 - Não transportar `VITE_ENABLE_DEMO_DATA=true` para produção.
@@ -76,6 +77,8 @@ O path histórico `/portallander/` continua como default de desenvolvimento/comp
 - Migrations de produção exigem etapa/autorização explícita; os workflows de desenvolvimento usam banco efêmero de CI.
 
 ## Estado de prontidão
+
+`GITHUB_PAGES_DEVELOPMENT_DEPLOYMENT = AUTOMATED_ON_DEV`
 
 `HOSTINGER_DEPLOYMENT_ARCHITECTURE = DEFINED_IN_REPOSITORY`
 

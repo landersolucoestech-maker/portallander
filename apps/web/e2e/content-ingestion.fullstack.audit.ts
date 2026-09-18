@@ -7,6 +7,10 @@ const titleA='E2E Editorial Candidate A'
 const titleB='E2E Editorial Candidate B'
 
 test('browser production-data isola destino por candidato e converte somente A em draft persistido',async({page})=>{
+  // This test exercises login, two candidate transitions, pagination and a persisted draft.
+  // Give the full-stack journey its own budget without extending unrelated visual audits.
+  test.setTimeout(90_000)
+  const startedAt=Date.now()
   const request=page.context().request
   const mockRequests:string[]=[],pageErrors:string[]=[],consoleErrors:string[]=[]
   page.on('request',requestEvent=>{const url=requestEvent.url();if(/mockDataProvider|mockSeedLifecycle|\/mocks[-./]/i.test(url))mockRequests.push(url)})
@@ -63,7 +67,9 @@ test('browser production-data isola destino por candidato e converte somente A e
   await destinationB().selectOption(optionValues[0])
   await expect(createB()).toBeEnabled()
 
-  const contents=await request.get(`${apiBase}/api/editorial/contents`)
+  console.log('EDITORIAL_E2E_BEFORE_CONTENT_READ='+JSON.stringify({elapsedMs:Date.now()-startedAt}))
+  // A stuck API must fail on its own deadline, not consume the entire browser test budget.
+  const contents=await request.get(`${apiBase}/api/editorial/contents`,{timeout:15_000})
   expect(contents.ok()).toBeTruthy()
   const payload=await contents.json() as {contents:Array<{title:string;status:string;active:boolean;publishedAt?:string}>}
   const draft=payload.contents.find(item=>item.title===titleA)
